@@ -115,9 +115,18 @@ jobs:
         shell: powershell
         run: ./tool/ci/cache.ps1 '${{ matrix.platform }}-${{ matrix.arch }}'
 
+      - name: Read pinned Rust version
+        id: rust-version
+        shell: bash
+        run: |
+          version="$(sed -n 's/^channel *= *"\([^"]*\)".*/\1/p' plugins/rust_api/rust/rust-toolchain.toml)"
+          test -n "$version"
+          printf 'toolchain=%s\n' "$version" >> "$GITHUB_OUTPUT"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ steps.rust-version.outputs.toolchain }}
           targets: ${{ matrix.platform == 'macos' && matrix.arch == 'amd64' && 'x86_64-apple-darwin' || '' }}
 
       - name: Setup Android Signing
