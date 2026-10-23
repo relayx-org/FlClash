@@ -23,7 +23,7 @@ env:
 
 jobs:
   release:
-    runs-on: [self-hosted, Linux, X64, arc-runner-set]
+    runs-on: [self-hosted, Linux, X64]
     outputs:
       tag: ${{ steps.resolve.outputs.tag }}
       sha: ${{ steps.resolve.outputs.sha }}
@@ -55,10 +55,10 @@ jobs:
       matrix:
         include:
           - platform: android
-            runner: [self-hosted, Linux, X64, arc-runner-set]
+            runner: [self-hosted, Linux, X64]
             arch: multi
           - platform: linux
-            runner: [self-hosted, Linux, X64, arc-runner-set]
+            runner: [self-hosted, Linux, X64]
             arch: amd64
           - platform: windows
             runner: [self-hosted, Windows, X64]
@@ -314,7 +314,7 @@ jobs:
     permissions:
       contents: write
     needs: [release, build]
-    runs-on: [self-hosted, Linux, X64, arc-runner-set]
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Download packages
         uses: actions/download-artifact@v4
@@ -337,7 +337,7 @@ jobs:
   publish-minio:
     if: needs.release.outputs.stable == 'true'
     needs: [release, upload]
-    runs-on: [self-hosted, Linux, X64, arc-runner-set]
+    runs-on: [self-hosted, Linux, X64]
     concurrency:
       group: iping-stable-release
       cancel-in-progress: false

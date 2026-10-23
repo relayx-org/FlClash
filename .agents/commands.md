@@ -418,7 +418,7 @@ same release, and stable releases update MinIO only after every platform builds.
 
 ### Self-hosted Release Builds
 
-Organization runners use `[self-hosted, Linux, X64, arc-runner-set]`,
+Organization runners use `[self-hosted, Linux, X64]`,
 `[self-hosted, Windows, X64]`, and `[self-hosted, macOS, ARM64]`.
 Windows and Linux publish x64 only; Android retains all three APK ABIs.
 The Mac Studio builds both macOS architectures. Each job sets Xcode `ARCHS`
