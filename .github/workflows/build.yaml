@@ -178,7 +178,7 @@ jobs:
           if (-not $clang) { throw 'Install the Visual Studio C++ Clang tools on this runner.' }
           if (Test-Path .cargo/config.toml) { throw 'Merge the CI C compiler with the existing Cargo configuration.' }
           New-Item -ItemType Directory -Force -Path .cargo | Out-Null
-          @('[env]', "CC_x86_64_pc_windows_msvc = { value = '$clang', force = true }") | Set-Content .cargo/config.toml
+          @('[build]', 'jobs = 2', '', '[env]', "CC_x86_64_pc_windows_msvc = { value = '$clang', force = true }") | Set-Content .cargo/config.toml
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
