@@ -396,8 +396,8 @@ the logo's 30° lattice. `site/assets/field.js` draws the hero's capsules on tha
 proportions, and the slanted wipes, the dot-to-bar marks and the theme transition reuse the same angle. Text that sits
 inside the hero has to be listed in `wireField` in `app.js`, or the capsules run behind it.
 
-`.github/workflows/pages.yaml` deploys it after a successful stable release workflow and on pushes to `main` that touch the
-site; its Pages source has to be set to GitHub Actions once. The file names come from the
+`.github/workflows/pages.yaml` deploys the site only when manually triggered; its
+Pages source has to be set to GitHub Actions first. Website deployment is separate from app releases. The file names come from the
 release matrix in `build.yaml`, so a renamed artifact needs the same change in `buildsFor` in `site/assets/app.js`.
 
 ## Verify

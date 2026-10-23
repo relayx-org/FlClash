@@ -1,19 +1,6 @@
 name: pages
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'site/**'
-      - 'tool/build_site.sh'
-      - 'tool/render_site.mjs'
-      - '.github/workflows/pages.yaml'
-  workflow_run:
-    workflows:
-      - build
-    types:
-      - completed
   workflow_dispatch:
 
 permissions:
@@ -26,35 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  tag:
-    if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.event == 'workflow_dispatch' &&
-      github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    outputs:
-      stable: ${{ steps.lookup.outputs.stable }}
-      tag: ${{ steps.lookup.outputs.tag }}
-    steps:
-      - name: Look up the tag
-        id: lookup
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TITLE: ${{ github.event.workflow_run.display_title }}
-        run: |
-          if [[ "$TITLE" =~ ^Release\ (v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            tag="${BASH_REMATCH[1]}"
-            if [[ "$(gh release view "$tag" --json isDraft,isPrerelease --jq '.isDraft == false and .isPrerelease == false')" == true ]]; then
-              printf 'stable=true\ntag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
-            fi
-          fi
-
   deploy:
-    needs: tag
-    if: >-
-      !cancelled() &&
-      (github.event_name != 'workflow_run' || needs.tag.outputs.stable == 'true')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -62,8 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.tag.outputs.tag || github.sha }}
 
       - name: Assemble site
         env:
