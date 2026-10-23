@@ -49,6 +49,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
+      GRADLE_OPTS: -Dorg.gradle.caching=true
     strategy:
       fail-fast: false
       matrix:
@@ -158,7 +159,7 @@ jobs:
             libclash
             .dart_tool/setup_build_cache
             .dart_tool/hooks_runner
-          key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('build_config.yaml', 'core/**', 'services/helper/src/**', 'services/helper/Cargo.*', 'services/helper/build.rs', 'plugins/setup/**', 'plugins/rust_api/rust/**') }}
+          key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('build_config.yaml', 'core/**', 'services/helper/src/**', 'services/helper/Cargo.*', 'services/helper/build.rs', 'plugins/setup/hook/**', 'plugins/setup/setup_hooks/lib/**', 'plugins/setup/setup_hooks/pubspec.*', 'plugins/setup/pubspec.*', 'plugins/rust_api/rust/src/**', 'plugins/rust_api/rust/Cargo.*', 'plugins/rust_api/rust/build.rs') }}
           restore-keys: |
             native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-
 
