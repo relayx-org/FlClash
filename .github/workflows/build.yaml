@@ -216,13 +216,11 @@ jobs:
           printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$CERT_FILE"
           printf '%s' "$APPLE_API_PRIVATE_KEY" | base64 --decode > "$APPLE_API_KEY_PATH"
           KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
-          security list-keychains -d user > "$RUNNER_TEMP/iping-keychains-before"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_FILE"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
           security import "$CERT_FILE" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_FILE"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
-          security list-keychains -d user -s "$KEYCHAIN_FILE" login.keychain-db
           security find-identity -v -p codesigning "$KEYCHAIN_FILE"
 
       - name: Setup NDK
@@ -291,13 +289,6 @@ jobs:
       - name: Cleanup Apple signing material
         if: always() && matrix.platform == 'macos'
         run: |
-          python3 - <<'PY'
-          import os, shlex, subprocess
-          from pathlib import Path
-          original = Path(os.environ['RUNNER_TEMP']) / 'iping-keychains-before'
-          if original.exists():
-              subprocess.run(['security', 'list-keychains', '-d', 'user', '-s', *shlex.split(original.read_text())], check=True)
-          PY
           if [ -n "${KEYCHAIN_FILE:-}" ]; then
             security delete-keychain "$KEYCHAIN_FILE"
           fi

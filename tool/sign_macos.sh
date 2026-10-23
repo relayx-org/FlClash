@@ -8,6 +8,10 @@ set -euo pipefail
 
 app="build/macos/Build/Products/Release/iPing.app"
 test -d "$app"
+signing=(--force --options runtime --timestamp --sign "$CODESIGN_IDENTITY")
+if [ -n "${KEYCHAIN_FILE:-}" ]; then
+  signing+=(--keychain "$KEYCHAIN_FILE")
+fi
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -16,15 +20,15 @@ trap 'rm -rf "$work"' EXIT
 
 while IFS= read -r -d '' binary; do
   if /usr/bin/file -b "$binary" | /usr/bin/grep -q 'Mach-O'; then
-    /usr/bin/codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" "$binary"
+    /usr/bin/codesign "${signing[@]}" "$binary"
   fi
 done < <(/usr/bin/find "$app/Contents" -type f -print0)
 
 while IFS= read -r -d '' bundle; do
-  /usr/bin/codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" "$bundle"
+  /usr/bin/codesign "${signing[@]}" "$bundle"
 done < <(/usr/bin/find "$app/Contents" -depth -type d \( -name '*.framework' -o -name '*.app' -o -name '*.xpc' \) -print0)
 
-/usr/bin/codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" \
+/usr/bin/codesign "${signing[@]}" \
   --entitlements macos/Runner/Release.entitlements "$app"
 /usr/bin/codesign --verify --deep --strict "$app"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$app" "$work/notarize.zip"
