@@ -165,6 +165,17 @@ jobs:
         if: runner.os == 'Windows'
         run: git config --global core.longpaths true
 
+      - name: Use Clang for Windows Rust C dependencies
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $clang = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang -find 'VC\Tools\Llvm\x64\bin\clang-cl.exe' | Select-Object -First 1
+          if (-not $clang) { throw 'Install the Visual Studio C++ Clang tools on this runner.' }
+          if (Test-Path .cargo/config.toml) { throw 'Merge the CI C compiler with the existing Cargo configuration.' }
+          New-Item -ItemType Directory -Force -Path .cargo | Out-Null
+          @('[env]', "CC_x86_64_pc_windows_msvc = { value = '$clang', force = true }") | Set-Content .cargo/config.toml
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -229,8 +240,25 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
           security find-identity -v -p codesigning "$KEYCHAIN_FILE"
 
+      # setup-ndk stores r28c under a non-semver key that tool-cache cannot find.
+      - name: Reuse cached NDK
+        if: matrix.platform == 'android'
+        id: ndk-cache
+        run: |
+          ndk="$RUNNER_TOOL_CACHE/ndk/$NDK_VERSION/${RUNNER_ARCH,,}"
+          if [ -f "$ndk.complete" ] && [ -f "$ndk/source.properties" ]; then
+            version="$(sed -n 's/^Pkg\.Revision *= *//p' "$ndk/source.properties" | tr -d '\r')"
+            test -n "$version"
+            mkdir -p "$ANDROID_HOME/ndk"
+            if [ ! -e "$ANDROID_HOME/ndk/$version" ]; then
+              ln -sfn "$ndk" "$ANDROID_HOME/ndk/$version"
+            fi
+            printf '%s\n' "$ndk" >> "$GITHUB_PATH"
+            printf 'path=%s\n' "$ndk" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup NDK
-        if: startsWith(matrix.platform,'android')
+        if: matrix.platform == 'android' && steps.ndk-cache.outputs.path == ''
         uses: nttld/setup-ndk@v1
         id: build-ndk
         with:
@@ -262,7 +290,7 @@ jobs:
 
       - name: Setup
         env:
-          ANDROID_NDK_HOME: ${{ steps.build-ndk.outputs.ndk-path }}
+          ANDROID_NDK_HOME: ${{ steps.ndk-cache.outputs.path || steps.build-ndk.outputs.ndk-path }}
           CODESIGN_IDENTITY: ${{ matrix.platform == 'macos' && secrets.CODESIGN_IDENTITY || '' }}
           APPLE_API_KEY: ${{ matrix.platform == 'macos' && secrets.APPLE_API_KEY || '' }}
           APPLE_API_ISSUER: ${{ matrix.platform == 'macos' && secrets.APPLE_API_ISSUER || '' }}
