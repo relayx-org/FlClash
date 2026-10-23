@@ -82,7 +82,11 @@ jobs:
         env:
           TOOLS_SHA: ${{ github.sha }}
         run: |
-          git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
+          for attempt in 1 2 3; do
+            if git fetch --no-tags --depth=1 origin "$TOOLS_SHA"; then break; fi
+            [ "$attempt" -lt 3 ] || exit 1
+            sleep 5
+          done
           mkdir -p tool/ci
           for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/ci/cache.sh tool/ci/cache.ps1; do
             git show "$TOOLS_SHA:$path" > "$path"
