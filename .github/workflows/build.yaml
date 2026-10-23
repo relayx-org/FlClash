@@ -205,6 +205,13 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
           xcodebuild -version
 
+      # https://github.com/actions/runner-images/issues/14924
+      - name: Use TCP for Apple ticket validation on Intel runners
+        if: matrix.platform == 'macos' && matrix.arch == 'amd64'
+        run: |
+          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
+          sudo pfctl -E
+
       - name: Import Apple signing material
         if: matrix.platform == 'macos'
         env:
