@@ -27,7 +27,7 @@ const updateTargets = {
 String? updateArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
-    r'(android|windows|macos|linux)-(arm64-v8a|armeabi-v7a|x86_64|amd64|arm64)\.(apk|exe|zip|deb|rpm|AppImage)$',
+    r'(android|windows|macos|linux)-(arm64-v8a|armeabi-v7a|x86_64|amd64|arm64)(?:-setup)?\.(apk|exe|zip|deb|rpm|AppImage)$',
   ).firstMatch(name);
   if (match == null) return null;
   final arch = switch (match[2]!) {

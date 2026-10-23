@@ -402,55 +402,33 @@ release matrix in `build.yaml`, so a renamed artifact needs the same change in `
 
 ## Verify
 
-Every branch push, published GitHub Release, and manual run starts the checks.
-The `dart` job performs these root-package checks in order:
+Run the local checks before committing:
 
 ```bash
-bash tool/hooks/test.sh
 flutter pub get
-dart format --output=none --set-exit-if-changed lib test tool plugins setup.dart
 flutter analyze --no-fatal-infos
-dart run tool/changelog.dart verify   # main and tags only
-flutter test --reporter expanded --coverage
-dart run tool/check_coverage.dart coverage/lcov.info 75
+flutter test test/iping/
 ```
 
-`tool/hooks/` holds the scripts the git hooks run, and `tool/hooks/test.sh` runs every `*_test.sh` beside them, so a
-new hook script needs only its test file next to it, not a workflow step.
-
-Run `flutter analyze` before committing; CI fails on anything it reports.
-
-Release builds run only when a GitHub Release is published; pull requests trigger nothing.
-Root analysis excludes `plugins/**`, and root tests do not discover nested
-plugin packages, so parallel jobs validate the rest from their own package
-directories: `plugins` (local Flutter packages and the setup build tool), `go`
-(the Core wrapper, plus a vet of the Android files), `android` (JVM unit tests
-for `:common`, `:service` and `:app`, with the Flutter compile tasks excluded
-and the gomobile AAR built for one ABI), `rust` (both crates), and a
-Windows runner for the helper's `windows-service` feature. On branch pushes a
-`desktop` job also compiles a debug build per desktop platform; a release skips
-it, since its release matrix compiles the same native code. Release builds start
-alongside the checks; `upload` attaches packages only once every build and every
-check job passes.
-
-`bash tool/check_plugins.sh` is that plugin gate, and CI runs the same script.
-It discovers every `plugins/*/pubspec.yaml`, analyzes each package, and runs
-`flutter test` wherever `test/*_test.dart` exists. Adding a plugin package needs
-no workflow edit; enumerating packages by hand in the workflow is what
-previously left `plugins/tray` unanalyzed and untested.
+Use the covering test suites listed above for other changes. Release CI builds
+packages only; it does not run analysis, tests, coverage, or desktop debug builds.
+Publishing a GitHub Release triggers `release.yaml`, which dispatches `build.yaml`
+on `main` with that release's tag. The build resolves the published release and
+checks out its exact commit; signing and manifest tooling come from the dispatch's
+CI commit so packaging fixes can rebuild an existing release. Manual retries use `build.yaml` with the existing
+published tag; draft releases are rejected. Packages and checksums attach to the
+same release, and stable releases update MinIO only after every platform builds.
 
 ### CI Caches
 
-A run restores only cache entries saved on its own branch or tag, or on the default branch (`main`), and the
-repository holds 10 GB before evicting the least recently used entries. Every release is a new tag that no later run
-reads from, so `BRANCH_CACHE` turns caching off in tag runs: one release used to write about 9 GB of such entries and
-evict everything `dev` had saved. Release builds therefore start cold; branch runs, chiefly `dev`, keep the caches.
-
-- setup-go keys its entry on the `cache-dependency-path` files alone and saves only on a miss, so jobs listing the
-  same files share one entry holding the build cache of whichever finished first. `desktop` and `android` each add
-  the file that drives their Core build to get an entry of their own.
-- setup-gradle writes only on the default branch unless told otherwise, so `android` lets `dev` write as well. Its
-  entries are keyed by job, which is one more reason the release build gains nothing from caching.
+The dispatcher keeps build runs scoped to `main` while compiling the tagged
+source, so later versions can restore caches saved by earlier releases.
+Flutter SDK and Pub packages, Go modules and compiler outputs, Rust dependencies,
+Gradle, native Core outputs and macOS packaging downloads are cached. Native
+cache keys include the host architecture, target platform, toolchain versions
+and source hashes; the build hook validates restored fingerprints before reuse.
+Signing certificates, private keys and temporary keychains are never cached.
+The platform matrix does not cancel other builds when one platform fails.
 
 ## Worktree Tooling
 

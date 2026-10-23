@@ -11,6 +11,9 @@ test -d "$app"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
+# LaunchAtLogin ships build-time helper archives with development signatures.
+/usr/bin/find "$app/Contents/Resources" -path '*/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/LaunchAtLoginHelper*.zip' -delete
+
 while IFS= read -r -d '' binary; do
   if /usr/bin/file -b "$binary" | /usr/bin/grep -q 'Mach-O'; then
     /usr/bin/codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" "$binary"
@@ -25,10 +28,10 @@ done < <(/usr/bin/find "$app/Contents" -depth -type d \( -name '*.framework' -o 
   --entitlements macos/Runner/Release.entitlements "$app"
 /usr/bin/codesign --verify --deep --strict "$app"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$app" "$work/notarize.zip"
-xcrun notarytool submit "$work/notarize.zip" \
-  --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" \
+notary_auth=(--key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER")
+xcrun notarytool submit "$work/notarize.zip" "${notary_auth[@]}" \
   --wait --output-format json > "$work/result.json"
-python3 - "$work/result.json" <<'PY'
+if ! python3 - "$work/result.json" <<'PY'
 import json
 import sys
 
@@ -36,6 +39,11 @@ result = json.load(open(sys.argv[1]))
 if result.get('status') != 'Accepted':
     raise SystemExit(f"Notarization failed: {result.get('status')} ({result.get('id')})")
 PY
+then
+  submission="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "$work/result.json")"
+  xcrun notarytool log "$submission" "${notary_auth[@]}"
+  exit 1
+fi
 xcrun stapler staple "$app"
 xcrun stapler validate "$app"
 /usr/sbin/spctl --assess --type execute --verbose "$app"

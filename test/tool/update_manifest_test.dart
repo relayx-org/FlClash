@@ -14,6 +14,12 @@ void main() {
       updateArtifactTarget('iPing-1.0.0-linux-arm64.AppImage', '1.0.0'),
       'linux-arm64-AppImage',
     );
+    for (final arch in ['amd64', 'arm64']) {
+      expect(
+        updateArtifactTarget('iPing-1.0.0-windows-$arch-setup.exe', '1.0.0'),
+        'windows-$arch-exe',
+      );
+    }
     expect(
       updateArtifactTarget('iPing-1.0.1-macos-amd64.zip', '1.0.0'),
       isNull,
