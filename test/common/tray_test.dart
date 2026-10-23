@@ -37,21 +37,19 @@ void main() {
       );
     });
 
-    test('macOS keeps the template icon in every state', () {
-      for (final (isStart, tunEnable) in [
-        (false, false),
-        (true, false),
-        (true, true),
-      ]) {
-        expect(
-          macOS.getTrayIcon(
-            isStart: isStart,
-            tunEnable: tunEnable,
-            safeMode: false,
-          ),
-          'assets/images/tray/macos/status_1.png',
-        );
-      }
+    test('macOS loads png files from the macos directory', () {
+      expect(
+        macOS.getTrayIcon(isStart: false, tunEnable: false, safeMode: false),
+        'assets/images/tray/macos/status_1.png',
+      );
+      expect(
+        macOS.getTrayIcon(isStart: true, tunEnable: false, safeMode: false),
+        'assets/images/tray/macos/status_2.png',
+      );
+      expect(
+        macOS.getTrayIcon(isStart: true, tunEnable: true, safeMode: false),
+        'assets/images/tray/macos/status_3.png',
+      );
     });
 
     test('safe mode shows its own icon whatever the core is doing', () {

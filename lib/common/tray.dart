@@ -55,7 +55,7 @@ class AppTray implements TrayPort {
     required bool tunEnable,
     required bool safeMode,
   }) {
-    final status = switch ((safeMode, isMacOS || !isStart, tunEnable)) {
+    final status = switch ((safeMode, !isStart, tunEnable)) {
       (true, _, _) => 4,
       (false, true, _) => 1,
       (false, false, false) => 2,
@@ -92,7 +92,6 @@ class AppTray implements TrayPort {
             tunEnable: trayState.tunEnable,
             safeMode: trayState.safeMode,
           ),
-          isTemplate: isMacOS,
           size: isMacOS ? 18 : 16,
         ),
         toolTip: trayState.safeMode

@@ -61,8 +61,8 @@ static void my_application_activate(GApplication* application) {
   if (executable != nullptr) {
     g_autofree gchar* directory = g_path_get_dirname(executable);
     g_autofree gchar* path = g_build_filename(
-        directory, "data", "flutter_assets", "assets", "images", "icon.png",
-        nullptr);
+        directory, "data", "flutter_assets", "assets", "images", "linux",
+        "app_icon.png", nullptr);
     g_autoptr(GdkPixbuf) icon =
         gdk_pixbuf_new_from_file_at_size(path, 256, 256, nullptr);
     if (icon != nullptr) {

@@ -1,6 +1,6 @@
 display_name: iPing
 
-icon: ./assets/images/icon.png
+icon: ./assets/images/linux/app_icon.png
 
 supported_mime_type:
   - x-scheme-handler/iping
