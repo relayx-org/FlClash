@@ -342,6 +342,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
       MINIO_ENDPOINT: https://minio.long2ice.io
     steps:
       - uses: actions/checkout@v4
@@ -376,5 +378,6 @@ jobs:
           : "${AWS_ACCESS_KEY_ID:?Set MINIO_ACCESS_KEY_ID}"
           : "${AWS_SECRET_ACCESS_KEY:?Set MINIO_SECRET_ACCESS_KEY}"
           aws configure set default.s3.addressing_style path
+          aws configure set default.s3.multipart_threshold 512MB
           aws s3 cp build/update-release/ s3://iping/releases/ --recursive --exclude latest.json --endpoint-url "$MINIO_ENDPOINT"
           aws s3 cp build/update-release/latest.json s3://iping/releases/latest.json --cache-control 'no-cache, no-store, must-revalidate' --content-type application/json --endpoint-url "$MINIO_ENDPOINT"
