@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.0 (2026-10-23)
+
+**Features**
+
+- Add iPing account login, managed subscriptions, connection diagnostics, and mandatory updates on Android, Windows, macOS, and Linux (4879379)
+
+<!-- changelog:frozen -->
+<!-- Upstream FlClash history is preserved below the iPing release baseline. -->
+
 ## v0.9.1 (2026-10-17)
 
 **Breaking Changes**
@@ -89,9 +98,6 @@
 - **android** Rework the Android VPN service and lifecycle handling (ae29f38)
 - **plugins** Rework the desktop plugins and add the Helper service and Rust bridge (adf715f)
 - **core** Rework the core IPC and process lifecycle (c6eaa0a)
-
-<!-- changelog:frozen -->
-<!-- Entries below predate the structured pipeline. Their wording is kept as written; only the heading and list style were normalized. -->
 
 ## v0.8.96 (2026-08-17)
 
