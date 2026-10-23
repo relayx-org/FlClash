@@ -423,11 +423,12 @@ same release, and stable releases update MinIO only after every platform builds.
 
 The dispatcher keeps build runs scoped to `main` while compiling the tagged
 source, so later versions can restore caches saved by earlier releases.
-Flutter SDK and Pub packages, Go modules and compiler outputs, Rust dependencies,
+The shared Linux x64 Flutter SDK and all Pub packages, Go modules and compiler outputs, Rust dependencies,
 Gradle, native Core outputs and macOS packaging downloads are cached. Native
 cache keys include the host architecture, target platform, toolchain versions
 and source hashes; the build hook validates restored fingerprints before reuse.
 Signing certificates, private keys and temporary keychains are never cached.
+Other Flutter SDKs are downloaded instead of cached, leaving storage for compilation caches.
 The platform matrix does not cancel other builds when one platform fails.
 
 ## Worktree Tooling

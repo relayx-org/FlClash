@@ -44,6 +44,19 @@ then
   xcrun notarytool log "$submission" "${notary_auth[@]}"
   exit 1
 fi
-xcrun stapler staple "$app"
-xcrun stapler validate "$app"
-/usr/sbin/spctl --assess --type execute --verbose "$app"
+retry_apple_validation() {
+  local attempt status
+  for attempt in 1 2 3; do
+    if "$@"; then
+      return 0
+    else
+      status=$?
+    fi
+    [ "$attempt" -lt 3 ] || return "$status"
+    sleep 5
+  done
+}
+
+retry_apple_validation xcrun stapler staple "$app"
+retry_apple_validation xcrun stapler validate "$app"
+retry_apple_validation /usr/sbin/spctl --assess --type execute --verbose "$app"

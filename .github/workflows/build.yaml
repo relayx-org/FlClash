@@ -187,7 +187,8 @@ jobs:
         with:
           channel: ${{ matrix.flutter-channel || 'stable' }}
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          cache: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
+          pub-cache: true
 
       - name: Restore macOS packaging downloads
         if: matrix.platform == 'macos'
