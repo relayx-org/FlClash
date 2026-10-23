@@ -1412,8 +1412,9 @@ Platform projects copy the artifacts out of `libclash/`; application code must n
 - Android: nothing. The hook returns without building, because it runs once per architecture while gomobile packs
   every ABI and one set of Java classes into a single AAR.
 - macOS: a standalone `FlClashCore`. `Release.xcconfig` pins release and profile `ARCHS` to the host because
-  flutter_tools otherwise builds a universal binary and every artifact ships one slice; the hook skips a non-host slice
-  for the same reason. The `Stage Core` phase copies the Core after the hook may have rewritten it and fails when it is
+  flutter_tools otherwise builds a universal binary and every artifact ships one slice; the hook skips an unselected slice
+  for the same reason. CI may select `macos_architecture: amd64` or `arm64` in the setup
+  hook user-defines and override Xcode `ARCHS` for cross-builds. The `Stage Core` phase copies the Core after the hook may have rewritten it and fails when it is
   missing or lacks a slice for `ARCHS`, so a skipped hook cannot stage a stale Core silently.
 - Linux and Windows: `FlClashCore`, the Rust `FlClashHelperService`, and a `manifest.json` holding `coreSha256`; the
   Core builds first because the Helper embeds its hash. The CMake `install` rules copy them, and the Windows bundle

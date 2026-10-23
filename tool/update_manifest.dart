@@ -11,17 +11,12 @@ const updateTargets = {
   'android-arm64-apk',
   'android-amd64-apk',
   'windows-amd64-exe',
-  'windows-arm64-exe',
   'macos-amd64-zip',
   'macos-arm64-zip',
   'linux-amd64-zip',
-  'linux-arm64-zip',
   'linux-amd64-deb',
-  'linux-arm64-deb',
   'linux-amd64-rpm',
-  'linux-arm64-rpm',
   'linux-amd64-AppImage',
-  'linux-arm64-AppImage',
 };
 
 String? updateArtifactTarget(String name, String version) {

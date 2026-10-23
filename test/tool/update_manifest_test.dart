@@ -5,6 +5,38 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../tool/update_manifest.dart';
 
 void main() {
+  test(
+    'accepts the supported desktop matrix without Windows or Linux ARM64',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('iping-matrix-');
+      addTearDown(() => directory.delete(recursive: true));
+      final input = await Directory('${directory.path}/dist').create();
+      const names = [
+        'android-armeabi-v7a.apk',
+        'android-arm64-v8a.apk',
+        'android-x86_64.apk',
+        'windows-amd64-setup.exe',
+        'macos-amd64.zip',
+        'macos-arm64.zip',
+        'linux-amd64.zip',
+        'linux-amd64.deb',
+        'linux-amd64.rpm',
+        'linux-amd64.AppImage',
+      ];
+      for (final name in names) {
+        await File('${input.path}/iPing-1.0.0-$name').writeAsBytes([1]);
+      }
+      final manifest = await buildUpdateManifest(
+        artifacts: input,
+        output: Directory('${directory.path}/output'),
+        version: '1.0.0',
+        buildNumber: 1,
+        baseUrl: Uri.parse('https://example.com/releases/'),
+      );
+      expect(manifest['assets'], hasLength(10));
+    },
+  );
+
   test('maps platform package filenames to runtime targets', () {
     expect(
       updateArtifactTarget('iPing-1.0.0-android-arm64-v8a.apk', '1.0.0'),

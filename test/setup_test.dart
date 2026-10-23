@@ -25,6 +25,22 @@ void main() {
       expect(setup.createBuildEnvironment('dev'), {'APP_ENV': 'dev'});
     });
 
+    test(
+      'names cross-built macOS packages for their selected architecture',
+      () {
+        const pubspec = '''
+hooks:
+  user_defines:
+    setup:
+      macos_architecture: amd64
+''';
+
+        expect(setup.packageArchitecture('macos', pubspec, 'arm64'), 'amd64');
+        expect(setup.packageArchitecture('macos', 'name: x', 'arm64'), 'arm64');
+        expect(setup.packageArchitecture('linux', pubspec, 'arm64'), 'arm64');
+      },
+    );
+
     test('omits verbose from flutter build args by default', () {
       final args = setup.createFlutterBuildArgs(
         platform: 'android',

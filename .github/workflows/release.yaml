@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, arc-runner-set]
     steps:
       - name: Build the published release with shared caches
         env:

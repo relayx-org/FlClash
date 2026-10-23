@@ -54,9 +54,8 @@ Future<void> main(List<String> args) async {
 
   final env = results['env'] as String;
   final rootDir = Directory.current.path;
-  final skipped = packagesNotBuildingAssets(
-    File(p.join(rootDir, 'pubspec.yaml')).readAsStringSync(),
-  );
+  final pubspec = File(p.join(rootDir, 'pubspec.yaml')).readAsStringSync();
+  final skipped = packagesNotBuildingAssets(pubspec);
   if (skipped.isNotEmpty) {
     stderr.writeln(
       'pubspec.yaml sets hooks.user_defines.<package>.build_assets: false '
@@ -66,7 +65,7 @@ Future<void> main(List<String> args) async {
     );
     exit(1);
   }
-  final arch = _detectArch();
+  final arch = packageArchitecture(platform, pubspec, _detectArch());
   final targets = createPackageTargets(platform, results['targets']);
   final androidArch = results['arch'] as String?;
   final verbose = results['verbose'] as bool;
@@ -126,6 +125,18 @@ List<String> createFlutterBuildArgs({
 
 Map<String, String> createBuildEnvironment(String env) {
   return {'APP_ENV': env};
+}
+
+String packageArchitecture(String platform, String pubspec, String host) {
+  if (platform != 'macos') return host;
+  final document = loadYaml(pubspec) as Map;
+  final defines = (document['hooks'] as Map?)?['user_defines'] as Map?;
+  final architecture = (defines?['setup'] as Map?)?['macos_architecture'];
+  return switch (architecture) {
+    null => host,
+    'amd64' || 'arm64' => architecture as String,
+    _ => throw ArgumentError('Invalid macOS architecture: $architecture'),
+  };
 }
 
 /// Packages whose build hook `pubspec.yaml` turns into a no-op.

@@ -23,7 +23,7 @@ env:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, arc-runner-set]
     outputs:
       tag: ${{ steps.resolve.outputs.tag }}
       sha: ${{ steps.resolve.outputs.sha }}
@@ -46,65 +46,47 @@ jobs:
 
   build:
     needs: release
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
       GRADLE_OPTS: -Dorg.gradle.caching=true
-      IPING_NATIVE_CACHE_PATHS: |
-        libclash
-        .dart_tool/setup_build_cache
-        .dart_tool/hooks_runner
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: android
-            os: ubuntu-latest
-          - platform: windows
-            os: Windows-2022
-            arch: amd64
+            runner: [self-hosted, Linux, X64, arc-runner-set]
+            arch: multi
           - platform: linux
-            os: ubuntu-22.04
+            runner: [self-hosted, Linux, X64, arc-runner-set]
+            arch: amd64
+          - platform: windows
+            runner: [self-hosted, Windows, X64]
             arch: amd64
           - platform: macos
-            os: macos-15-intel
-            arch: amd64
+            runner: [self-hosted, macOS, ARM64]
+            arch: arm64
           - platform: macos
-            os: macos-latest
-            arch: arm64
-          - platform: windows
-            os: windows-11-arm
-            arch: arm64
-            flutter-channel: master
-          - platform: linux
-            os: ubuntu-24.04-arm
-            arch: arm64
-            flutter-channel: master
+            runner: [self-hosted, macOS, ARM64]
+            arch: amd64
 
     steps:
-      - name: Setup rust
-        if: startsWith(matrix.os, 'windows-11-arm')
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://win.rustup.rs/aarch64" -OutFile rustup-init.exe
-          .\rustup-init.exe -y --default-toolchain stable
-          $cargoPath = "$env:USERPROFILE\.cargo\bin"
-          Add-Content $env:GITHUB_PATH $cargoPath
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.release.outputs.sha }}
           submodules: recursive
 
-      - name: Use current signing tooling
-        if: matrix.platform == 'macos'
+      - name: Use current build tooling
         shell: bash
         env:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          git show "$TOOLS_SHA:tool/sign_macos.sh" > tool/sign_macos.sh
+          mkdir -p tool/ci
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart tool/sign_macos.sh tool/ci/cache.sh tool/ci/cache.ps1; do
+            git show "$TOOLS_SHA:$path" > "$path"
+          done
 
       - name: Validate release tag
         shell: bash
@@ -119,6 +101,20 @@ jobs:
           fi
           echo "Release tag $TAG does not match pubspec version $version" >&2
           exit 1
+
+      - name: Reuse local Unix build caches
+        if: runner.os != 'Windows'
+        run: bash tool/ci/cache.sh '${{ matrix.platform }}-${{ matrix.arch }}'
+
+      - name: Reuse local Windows build caches
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tool/ci/cache.ps1 '${{ matrix.platform }}-${{ matrix.arch }}'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos' && matrix.arch == 'amd64' && 'x86_64-apple-darwin' || '' }}
 
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
@@ -144,26 +140,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: core/go.sum
-
-      - name: Restore Rust build cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: release-${{ matrix.platform }}-${{ matrix.arch || 'multi' }}
-          workspaces: |
-            services/helper
-            plugins/rust_api/rust
-          cache-on-failure: true
-
-      - name: Restore native outputs
-        id: native_cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{ env.IPING_NATIVE_CACHE_PATHS }}
-          key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('build_config.yaml', 'core/**', 'services/helper/src/**', 'services/helper/Cargo.*', 'services/helper/build.rs', 'plugins/setup/hook/**', 'plugins/setup/setup_hooks/lib/**', 'plugins/setup/setup_hooks/pubspec.*', 'plugins/setup/pubspec.*', 'plugins/rust_api/rust/src/**', 'plugins/rust_api/rust/Cargo.*', 'plugins/rust_api/rust/build.rs') }}
-          restore-keys: |
-            native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-
+          cache: false
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -176,41 +153,42 @@ jobs:
         if: startsWith(matrix.platform,'android')
         uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: false
+          cache-disabled: true
 
       - name: Enable git long paths (Windows)
-        if: startsWith(matrix.os, 'windows')
+        if: runner.os == 'Windows'
         run: git config --global core.longpaths true
 
-      # Stable publishes no Windows or Linux arm64 archive; master makes the action
-      # clone the SDK at the pinned tag and let it fetch the host's own Dart SDK.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: ${{ matrix.flutter-channel || 'stable' }}
+          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
-          pub-cache: true
-
-      - name: Restore macOS packaging downloads
-        if: matrix.platform == 'macos'
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: appdmg-v1-${{ runner.os }}-${{ runner.arch }}
+          cache: false
+          pub-cache: false
 
       - name: Setup Xcode
-        if: startsWith(matrix.platform,'macos')
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
-          xcodebuild -version
+        if: matrix.platform == 'macos'
+        run: xcodebuild -version
 
-      # https://github.com/actions/runner-images/issues/14924
-      - name: Use TCP for Apple ticket validation on Intel runners
-        if: matrix.platform == 'macos' && matrix.arch == 'amd64'
+      - name: Select macOS target architecture
+        if: matrix.platform == 'macos'
+        env:
+          MACOS_ARCH: ${{ matrix.arch }}
         run: |
-          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
-          sudo pfctl -E
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          arch = os.environ['MACOS_ARCH']
+          config = Path(os.environ['RUNNER_TEMP']) / 'iping-architecture.xcconfig'
+          config.write_text('ARCHS = ' + ('x86_64' if arch == 'amd64' else 'arm64') + '\nONLY_ACTIVE_ARCH = NO\n')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'XCODE_XCCONFIG_FILE={config}\n')
+          pubspec = Path('pubspec.yaml')
+          source = pubspec.read_text()
+          assert source.count('    setup:\n') == 1
+          pubspec.write_text(source.replace('    setup:\n', f'    setup:\n      macos_architecture: {arch}\n'))
+          PY
 
       - name: Import Apple signing material
         if: matrix.platform == 'macos'
@@ -238,6 +216,7 @@ jobs:
           printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$CERT_FILE"
           printf '%s' "$APPLE_API_PRIVATE_KEY" | base64 --decode > "$APPLE_API_KEY_PATH"
           KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+          security list-keychains -d user > "$RUNNER_TEMP/iping-keychains-before"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_FILE"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
@@ -285,16 +264,40 @@ jobs:
           APPLE_API_ISSUER: ${{ matrix.platform == 'macos' && secrets.APPLE_API_ISSUER || '' }}
         run: dart setup.dart ${{ matrix.platform }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} -v
 
-      - name: Save native outputs
-        if: always() && !cancelled() && steps.native_cache.outputs.cache-primary-key != '' && steps.native_cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ env.IPING_NATIVE_CACHE_PATHS }}
-          key: ${{ steps.native_cache.outputs.cache-primary-key }}
+      - name: Verify macOS target architecture
+        if: matrix.platform == 'macos'
+        env:
+          MACOS_ARCH: ${{ matrix.arch }}
+        run: |
+          arch="$MACOS_ARCH"
+          [ "$arch" != amd64 ] || arch=x86_64
+          app=build/macos/Build/Products/Release/iPing.app
+          xcrun lipo -verify_arch "$arch" "$app/Contents/MacOS/iPing"
+          xcrun lipo -verify_arch "$arch" "$app/Contents/MacOS/iPingCore"
+          xcrun lipo -verify_arch "$arch" "$app/Contents/Frameworks/rust_api.framework/rust_api"
+
+      - name: Cleanup Android signing material
+        if: always() && matrix.platform == 'android'
+        run: |
+          rm -f android/app/keystore.jks
+          python3 - <<'PY'
+          from pathlib import Path
+          properties = Path('android/local.properties')
+          if properties.exists():
+              lines = properties.read_text().splitlines()
+              properties.write_text(''.join(line + '\n' for line in lines if not line.startswith(('keyAlias=', 'storePassword=', 'keyPassword='))))
+          PY
 
       - name: Cleanup Apple signing material
         if: always() && matrix.platform == 'macos'
         run: |
+          python3 - <<'PY'
+          import os, shlex, subprocess
+          from pathlib import Path
+          original = Path(os.environ['RUNNER_TEMP']) / 'iping-keychains-before'
+          if original.exists():
+              subprocess.run(['security', 'list-keychains', '-d', 'user', '-s', *shlex.split(original.read_text())], check=True)
+          PY
           if [ -n "${KEYCHAIN_FILE:-}" ]; then
             security delete-keychain "$KEYCHAIN_FILE"
           fi
@@ -311,7 +314,7 @@ jobs:
     permissions:
       contents: write
     needs: [release, build]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, arc-runner-set]
     steps:
       - name: Download packages
         uses: actions/download-artifact@v4
@@ -334,7 +337,7 @@ jobs:
   publish-minio:
     if: needs.release.outputs.stable == 'true'
     needs: [release, upload]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, arc-runner-set]
     concurrency:
       group: iping-stable-release
       cancel-in-progress: false
@@ -360,11 +363,16 @@ jobs:
           path: dist
           pattern: artifact-*
           merge-multiple: true
+      - name: Use local package cache
+        run: |
+          mkdir -p "$RUNNER_TOOL_CACHE/iping/pub"
+          echo "PUB_CACHE=$RUNNER_TOOL_CACHE/iping/pub" >> "$GITHUB_ENV"
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ runner.arch == 'ARM64' && 'master' || 'stable' }}
+          channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          cache: false
+          pub-cache: false
       - run: flutter pub get
       - name: Skip native build hooks
         run: |

@@ -14,7 +14,6 @@ typedef CoreBuildFunction = Future<BuildReport> Function(BuildRequest request);
 
 final _log = Logger('setup_hooks');
 
-/// CI sets `build_assets: false` for `flutter test`; no test loads the Core.
 bool buildsAssets(BuildInput input) =>
     input.userDefines['build_assets'] != false;
 
@@ -112,10 +111,19 @@ final class CoreBuilder implements Builder {
     };
     final target = Target.resolve(platform: platform, goarch: goarch);
 
-    final host = _hostArchitecture ?? Architecture.current;
-    if (code.targetOS == OS.macOS && code.targetArchitecture != host) {
-      _log.info('Skipping non-host macOS slice: $target');
-      return null;
+    if (code.targetOS == OS.macOS) {
+      final architecture = switch (input.userDefines['macos_architecture']) {
+        null => _hostArchitecture ?? Architecture.current,
+        'amd64' => Architecture.x64,
+        'arm64' => Architecture.arm64,
+        final value => throw BuildException(
+          'Invalid macOS architecture: $value',
+        ),
+      };
+      if (code.targetArchitecture != architecture) {
+        _log.info('Skipping unselected macOS slice: $target');
+        return null;
+      }
     }
 
     final rootDir = repositoryRoot(input);

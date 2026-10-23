@@ -7,7 +7,7 @@ import 'src/changelog/git.dart';
 import 'src/changelog/models.dart';
 import 'src/changelog/render.dart';
 
-const _repository = 'long2ice/FlClash';
+const _repository = 'relayx-org/FlClash';
 
 Future<void> main(List<String> arguments) async {
   final parser = ArgParser()

@@ -122,6 +122,34 @@ void main() {
       );
     });
 
+    test('cross-builds the selected Intel macOS slice on an ARM host', () {
+      const builder = CoreBuilder(hostArchitecture: Architecture.arm64);
+      const userDefines = {'macos_architecture': 'amd64'};
+
+      expect(
+        builder
+            .requestFor(
+              buildInput(
+                os: OS.macOS,
+                architecture: Architecture.x64,
+                userDefines: userDefines,
+              ),
+            )!
+            .target,
+        Target.macosAmd64,
+      );
+      expect(
+        builder.requestFor(
+          buildInput(
+            os: OS.macOS,
+            architecture: Architecture.arm64,
+            userDefines: userDefines,
+          ),
+        ),
+        isNull,
+      );
+    });
+
     test('leaves Android to the :core Gradle module', () {
       final bin = p.join(repository.path, 'ndk', 'prebuilt', 'host', 'bin');
 

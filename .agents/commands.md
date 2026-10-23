@@ -50,11 +50,8 @@ hooks:
       build_assets: true   # false does the same for the Rust library
 ```
 
-CI flips `setup` to `false` with `yq` in its throwaway checkout before
-`dart run tool/changelog.dart` and `dart run tool/test.dart`; no test loads the Go core. `rust_api`
-stays on there because the editor tests in `test/plugins/code_forge/` and the socket
-test in `test/core/desktop/ipc_native_test.dart` load the Rust library the hook
-builds; the release-notes job, which runs no tests, flips both.
+Metadata-only tooling can set both hooks to `false` in its throwaway checkout.
+Editor and IPC socket tests need `rust_api` enabled; no test loads the Go Core.
 Never commit `false`: a build with it set stages whatever `libclash/` already
 holds and bundles no Rust library, which is why `setup.dart` refuses to package
 while it is set. Locally, `false` is worth setting for a Dart-only test loop,
@@ -87,10 +84,10 @@ uploads, then replaces `latest.json` last. Bump `pubspec.yaml` before each relea
 Use `--allow-partial` only with a separate test bucket/path and base URL; clients
 whose platform is missing cannot install that release.
 
-Publishing a GitHub Release starts the package builds and checks. CI attaches
+Publishing a GitHub Release starts the package builds. CI attaches
 the packages and `SHA256SUMS` to that release without replacing its description.
 Stable releases also run `publish-minio` after the upload succeeds; GitHub
-prereleases leave the production update manifest unchanged. All jobs use GitHub-hosted runners.
+prereleases leave the production update manifest unchanged. All jobs share the existing `relayx-org` self-hosted runners.
 The MinIO job uploads through `https://minio.long2ice.io` with path-style addressing; its
 public ingress must allow S3 upload methods under `/iping/releases/`. Configure
 `MINIO_ACCESS_KEY_ID` and `MINIO_SECRET_ACCESS_KEY` as CI secrets. Credentials
@@ -220,7 +217,7 @@ flutter test test/setup_test.dart
 flutter test plugins/proxy/test/proxy_test.dart
 ```
 
-For the whole suite, or a directory of more than a few files, use `tool/test.dart`, which is also what CI runs:
+For the whole suite, or a directory of more than a few files, use `tool/test.dart`:
 
 ```bash
 dart run tool/test.dart                                  # all of test/
@@ -237,14 +234,14 @@ its own, lets that run decide, and names the files that only failed together. Se
 `rules.md` before fixing one.
 
 `plugins/setup/setup_hooks/` is a pure Dart package and is tested with `dart test` from its own directory, which is
-also what CI runs; `tool/check_plugins.sh` does not descend into it. It must stay out of `flutter test`, because a test
+the command to run locally; `tool/check_plugins.sh` does not descend into it. It must stay out of `flutter test`, because a test
 run of `plugins/setup` would execute the build hook itself.
 
-Native plugin code under `plugins/*/{linux,macos,windows}` is compiled by the CI `desktop` job, which runs
-`flutter build <platform> --debug` on every branch push, and by the release matrix on a tag; `tool/check_plugins.sh`
+Native plugin code under `plugins/*/{linux,macos,windows}` is compiled by the release matrix.
+Use `flutter build <platform> --debug` locally for focused native checks; `tool/check_plugins.sh`
 only analyzes and tests the Dart side.
 
-Root `flutter test` only discovers the root package's `test/` directory by default. Include bundled plugin Dart tests by passing paths explicitly, or run `flutter test` from that plugin package directory, or run `bash tool/check_plugins.sh` to analyze and test every plugin package the way CI does. Native plugin tests under platform folders are not run by `flutter test`.
+Root `flutter test` only discovers the root package's `test/` directory by default. Include bundled plugin Dart tests by passing paths explicitly, or run `flutter test` from that plugin package directory, or run `bash tool/check_plugins.sh` to analyze and test every plugin package locally. Native plugin tests under platform folders are not run by `flutter test`.
 
 For the current Core/service architecture, useful focused checks are:
 
@@ -271,7 +268,7 @@ What those suites own:
 
 ## Native Component Verification
 
-The CI Go-wrapper checks can be reproduced without CGO, the Android files included:
+Run the Go-wrapper checks without CGO, the Android files included:
 
 ```bash
 cd core
@@ -280,7 +277,7 @@ CGO_ENABLED=0 go vet . ./cmd/...
 GOOS=android GOARCH=arm64 CGO_ENABLED=0 go vet -tags=with_gvisor . ./mobile ./tun ./platform
 ```
 
-The Windows Helper's loopback/session protocol tests are host-independent by default. Windows CI additionally enables its
+The Windows Helper's loopback/session protocol tests are host-independent by default. On Windows, also enable its
 service implementation:
 
 ```bash
@@ -316,7 +313,7 @@ notes shown in the update dialog. `parseReleaseChangelog` reads that block and f
 bullets when a release predates it.
 
 ```bash
-dart run tool/changelog.dart verify                  # what CI checks
+dart run tool/changelog.dart verify                  # verify generated release notes
 dart run tool/changelog.dart release --version 0.1.0
 dart run tool/changelog.dart build --unreleased      # changelog.json only, includes untagged work
 dart run tool/changelog.dart render release --out release.md
@@ -350,7 +347,7 @@ tool/release.sh stable --push     # changelog, chore(release) commit, tag, push
 ```
 
 The release commit comes before the tag on purpose: the generated wording is reviewable in the diff before it ships, and
-the tag is what `render release` reads. CI never writes back to the repository; it only runs `verify`. Wording in
+the tag is what `render release` reads. CI never writes back to the repository; verify the changelog locally before publishing. Wording in
 `changelog.json` may be edited by hand as long as no derivable entry disappears and every entry still points at a commit
 inside that version's range.
 
@@ -419,18 +416,29 @@ CI commit so packaging fixes can rebuild an existing release. Manual retries use
 published tag; draft releases are rejected. Packages and checksums attach to the
 same release, and stable releases update MinIO only after every platform builds.
 
-### CI Caches
+### Self-hosted Release Builds
 
-The dispatcher keeps build runs scoped to `main` while compiling the tagged
-source, so later versions can restore caches saved by earlier releases.
-The shared Linux x64 Flutter SDK and all Pub packages, Go modules and compiler outputs, Rust dependencies,
-Gradle, native Core outputs and macOS packaging downloads are cached. Native
-cache keys include the host architecture, target platform, toolchain versions
-and source hashes; the build hook validates restored fingerprints before reuse.
-Signing certificates, private keys and temporary keychains are never cached.
-Other Flutter SDKs are downloaded instead of cached, leaving storage for compilation caches.
-The platform matrix does not cancel other builds when one platform fails.
-Native outputs and Rust dependencies are saved even when later signing or packaging fails.
+Organization runners use `[self-hosted, Linux, X64, arc-runner-set]`,
+`[self-hosted, Windows, X64]`, and `[self-hosted, macOS, ARM64]`.
+Windows and Linux publish x64 only; Android retains all three APK ABIs.
+The Mac Studio builds both macOS architectures. Each job sets Xcode `ARCHS`
+through a temporary `XCODE_XCCONFIG_FILE` and the matching
+`hooks.user_defines.setup.macos_architecture` (`arm64` or `amd64`).
+The Core hook and package filenames follow that selection; Rust also needs
+`x86_64-apple-darwin` installed for Intel. Local builds default to the host.
+
+`tool/ci/cache.sh` and `cache.ps1` keep build outputs, Core fingerprints,
+Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
+`RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
+by platform and architecture; installed SDKs, Go caches and Cargo packages stay
+on the runner. Remote Actions caches are disabled. One runner per host serializes
+jobs on that machine. Temporary signing keys are removed and the Mac keychain
+search list is restored after every job.
+
+The repository lives at `relayx-org/FlClash` and shares the existing Debian,
+Windows and Mac Studio organization runners. Their deployment sources live in
+the Helm repository under `docker/github-runner/`; no repository-specific runner
+instances are required. The organization runner group permits this public repository.
 
 ## Worktree Tooling
 

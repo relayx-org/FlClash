@@ -7,12 +7,12 @@ cask "flclash" do
     sha256 arm:   "ARM_SHA256",
            intel: "AMD_SHA256"
 
-    url "https://github.com/long2ice/FlClash/releases/download/v#{version}/iPing-#{version}-macos-#{arch}.dmg"
+    url "https://github.com/relayx-org/FlClash/releases/download/v#{version}/iPing-#{version}-macos-#{arch}.dmg"
   end
 
   name "iPing"
   desc "Multi-platform proxy client based on ClashMeta"
-  homepage "https://github.com/long2ice/FlClash"
+  homepage "https://github.com/relayx-org/FlClash"
 
   livecheck do
     url :url

@@ -94,7 +94,7 @@ as in `48 dp`, never px: a reader takes px for physical pixels and misjudges the
 `tool/` and CSS under `site/` keep px. `test/lint/length_unit_test.dart` fails on a number followed by px in `lib/`
 and `test/`.
 
-CI gates formatting: `dart format --output=none --set-exit-if-changed lib test
+Before committing, check formatting: `dart format --output=none --set-exit-if-changed lib test
 tool plugins setup.dart` runs before `flutter analyze`.
 
 These directories are excluded from analysis:
@@ -145,7 +145,7 @@ it is forked upstream code, not a house style.
 Three gates run the same script, and they do not have equal force. The `PostToolUse` hooks in `.claude/settings.json`
 and `.codex/config.toml` run after the tool and hand offending lines back as feedback; neither can undo the completed
 write. The `comment-density` pre-commit hook fails the commit, and it is the only hard gate that covers every tool.
-Behavior is pinned by `tool/hooks/comment_density_test.sh`, which CI runs through `tool/hooks/test.sh`.
+Behavior is pinned by `tool/hooks/comment_density_test.sh`, run locally through `tool/hooks/test.sh`.
 
 When a change genuinely warrants more, raise the ceiling for that run rather than working around it:
 `COMMENT_DENSITY_MAX=20 git commit`, or `SKIP=comment-density git commit` to step past it entirely.
@@ -377,7 +377,7 @@ it there is.
 ## Testing Rules
 
 The `core/` directory is excluded from automated coverage accounting. Do not add coverage instrumentation or coverage
-collection for code under `core/`. CI still runs `CGO_ENABLED=0 go test .` and `go vet .` to compile/check the Go wrapper,
+collection for code under `core/`. Run `CGO_ENABLED=0 go test .` and `go vet .` locally to compile/check the Go wrapper,
 plus a `GOOS=android` vet that covers the `android` files the first two exclude; verify cross-language
 protocol behavior through shared Dart contract tests under `test/core/` and native platform build checks.
 
@@ -390,7 +390,7 @@ it in an unrelated test.
 
 Register fallback values for freezed params used with `any()` matchers.
 
-`tool/check_coverage.dart` enforces a total floor passed by CI plus per-group floors declared in `_groupFloors`. Raise a
+`tool/check_coverage.dart` enforces a total floor passed by the caller plus per-group floors declared in `_groupFloors`. Raise a
 group's floor when new tests lift it; do not lower one to make a run pass.
 
 Every measured group needs a floor. A group the report measures but `_groupFloors` does not declare fails the run, so
