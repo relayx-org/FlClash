@@ -50,6 +50,10 @@ jobs:
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
       GRADLE_OPTS: -Dorg.gradle.caching=true
+      IPING_NATIVE_CACHE_PATHS: |
+        libclash
+        .dart_tool/setup_build_cache
+        .dart_tool/hooks_runner
     strategy:
       fail-fast: false
       matrix:
@@ -153,12 +157,10 @@ jobs:
           cache-on-failure: true
 
       - name: Restore native outputs
-        uses: actions/cache@v4
+        id: native_cache
+        uses: actions/cache/restore@v4
         with:
-          path: |
-            libclash
-            .dart_tool/setup_build_cache
-            .dart_tool/hooks_runner
+          path: ${{ env.IPING_NATIVE_CACHE_PATHS }}
           key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('build_config.yaml', 'core/**', 'services/helper/src/**', 'services/helper/Cargo.*', 'services/helper/build.rs', 'plugins/setup/hook/**', 'plugins/setup/setup_hooks/lib/**', 'plugins/setup/setup_hooks/pubspec.*', 'plugins/setup/pubspec.*', 'plugins/rust_api/rust/src/**', 'plugins/rust_api/rust/Cargo.*', 'plugins/rust_api/rust/build.rs') }}
           restore-keys: |
             native-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ env.GO_VERSION }}-${{ env.FLUTTER_VERSION }}-
@@ -275,6 +277,13 @@ jobs:
           APPLE_API_KEY: ${{ matrix.platform == 'macos' && secrets.APPLE_API_KEY || '' }}
           APPLE_API_ISSUER: ${{ matrix.platform == 'macos' && secrets.APPLE_API_ISSUER || '' }}
         run: dart setup.dart ${{ matrix.platform }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} -v
+
+      - name: Save native outputs
+        if: always() && !cancelled() && steps.native_cache.outputs.cache-primary-key != '' && steps.native_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.IPING_NATIVE_CACHE_PATHS }}
+          key: ${{ steps.native_cache.outputs.cache-primary-key }}
 
       - name: Cleanup Apple signing material
         if: always() && matrix.platform == 'macos'

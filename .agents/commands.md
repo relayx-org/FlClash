@@ -430,6 +430,7 @@ and source hashes; the build hook validates restored fingerprints before reuse.
 Signing certificates, private keys and temporary keychains are never cached.
 Other Flutter SDKs are downloaded instead of cached, leaving storage for compilation caches.
 The platform matrix does not cancel other builds when one platform fails.
+Native outputs and Rust dependencies are saved even when later signing or packaging fails.
 
 ## Worktree Tooling
 
