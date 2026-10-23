@@ -84,7 +84,7 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
           mkdir -p tool/ci
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart tool/sign_macos.sh tool/ci/cache.sh tool/ci/cache.ps1; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/ci/cache.sh tool/ci/cache.ps1; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -141,6 +141,12 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
+
+      - name: Use selected Go toolchain
+        shell: bash
+        run: |
+          unset GOROOT
+          printf 'GOROOT=%s\n' "$(go env GOROOT)" >> "$GITHUB_ENV"
 
       - name: Setup Java
         if: matrix.platform == 'android'
