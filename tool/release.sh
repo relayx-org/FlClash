@@ -27,8 +27,8 @@ Options:
   -h, --help         Show this help.
 
 Examples:
-  tool/release.sh pre --push          # v0.8.97-pre.1, notes rendered by CI
-  tool/release.sh stable --push       # v0.8.97 with a chore(release) commit
+  tool/release.sh pre --push          # v0.1.1-pre.1
+  tool/release.sh stable --push       # v0.1.1 with a chore(release) commit
 EOF
 }
 
@@ -83,8 +83,8 @@ fi
 branch="$(git rev-parse --abbrev-ref HEAD)"
 [[ "$branch" != "HEAD" ]] || die "detached HEAD; check out a branch first"
 if [[ "$branch" != "main" ]]; then
-  echo "note: releasing from '$branch', not main. CI triggers on the tag, so"
-  echo "      this publishes '$branch' while main stays behind."
+  echo "note: releasing from '$branch'; publish the GitHub Release for this tag"
+  echo "      to build and publish packages from this branch."
 fi
 
 current="$(pubspec_version)"
@@ -123,10 +123,10 @@ echo "version   : $current -> $version$([[ $bumped == 1 ]] && echo ' (pubspec wi
 echo "tag       : $tag"
 if [[ "$mode" == "pre" ]]; then
   echo "changelog : rendered by CI from build --unreleased; nothing committed"
-  echo "publishes : build artifacts + Telegram only, no GitHub release"
+  echo "publishes : GitHub prerelease packages after publishing the release; no MinIO update"
 else
   echo "changelog : CHANGELOG.md + changelog.json regenerated and committed"
-  echo "publishes : GitHub release with artifacts, SHA256SUMS, Homebrew cask"
+  echo "publishes : GitHub release packages, SHA256SUMS, and the MinIO update manifest"
 fi
 echo "push      : $([[ $do_push == 1 ]] && echo yes || echo 'no (printed at the end)')"
 echo

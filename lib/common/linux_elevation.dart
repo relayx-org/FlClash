@@ -19,6 +19,9 @@ typedef PasswordPrompt = Future<String?> Function();
 const _pkexecNotAuthorized = 127;
 
 class LinuxElevation {
+  LinuxElevation({PasswordPrompt? askPassword})
+    : askPassword = askPassword ?? _askPassword;
+
   @visibleForTesting
   ProcessRunner run = Process.run;
 
@@ -26,7 +29,7 @@ class LinuxElevation {
   InputProcessRunner runWithInput = _runWithInput;
 
   @visibleForTesting
-  PasswordPrompt askPassword = _askPassword;
+  PasswordPrompt askPassword;
 
   Future<bool> elevate(List<String> command) async {
     try {

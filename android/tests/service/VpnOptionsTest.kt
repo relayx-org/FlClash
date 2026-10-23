@@ -1,6 +1,6 @@
-package com.follow.clash.service.models
+package my.iping.client.service.models
 
-import com.follow.clash.common.AccessControlMode
+import my.iping.client.common.AccessControlMode
 import com.google.gson.JsonParser
 import java.net.Inet4Address
 import java.net.Inet6Address

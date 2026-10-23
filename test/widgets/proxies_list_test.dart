@@ -42,8 +42,9 @@ void main() {
     List<Group>? groups,
     Set<String> unfoldSet = const {'G0', 'G1', 'G2'},
     ValueListenable<Brightness>? brightness,
+    Size size = const Size(900, 700),
   }) async {
-    tester.view.physicalSize = const Size(900, 700);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -277,6 +278,35 @@ void main() {
           card.bottom,
       sideInset,
     );
+  });
+
+  for (final width in [900.0, 1400.0]) {
+    for (final groupCount in [1, 2]) {
+      testWidgets('$groupCount groups fill the available width at $width', (
+        tester,
+      ) async {
+        await pumpList(
+          tester,
+          viewMode: ViewMode.desktop,
+          size: Size(width, 700),
+          groups: [for (var i = 0; i < groupCount; i++) _group('G$i', 4)],
+        );
+
+        final first = tester.getRect(headerOf('G0'));
+        final last = tester.getRect(headerOf('G${groupCount - 1}'));
+        expect(first.left, 16);
+        expect(last.right, closeTo(width - 16, 0.01));
+        expect(last.top, first.top);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  testWidgets('an empty desktop group list stays valid', (tester) async {
+    await pumpList(tester, viewMode: ViewMode.desktop, groups: []);
+
+    expect(find.byType(ListHeader), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a desktop window lays the groups out in columns and pins the '

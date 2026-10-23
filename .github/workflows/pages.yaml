@@ -27,32 +27,38 @@ concurrency:
 
 jobs:
   tag:
-    # head_branch also names a branch push's branch, so only a tag at the built commit counts as a release.
     if: >-
-      github.repository == 'chen08209/FlClash' &&
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'v') &&
-      !contains(github.event.workflow_run.head_branch, '-')
+      github.event.workflow_run.event == 'release' &&
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       stable: ${{ steps.lookup.outputs.stable }}
     steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
       - name: Look up the tag
         id: lookup
         env:
-          NAME: ${{ github.event.workflow_run.head_branch }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           SHA: ${{ github.event.workflow_run.head_sha }}
-          REMOTE: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if git ls-remote --tags "$REMOTE" "refs/tags/$NAME" "refs/tags/$NAME^{}" | grep -q "^$SHA"; then
-            echo 'stable=true' >> "$GITHUB_OUTPUT"
-          fi
+          while IFS= read -r tag; do
+            if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+               [[ "$(gh release view "$tag" --json isDraft,isPrerelease --jq '.isDraft == false and .isPrerelease == false')" == true ]]; then
+              echo 'stable=true' >> "$GITHUB_OUTPUT"
+              break
+            fi
+          done < <(git tag --points-at "$SHA")
 
   deploy:
     needs: tag
     if: >-
-      github.repository == 'chen08209/FlClash' &&
       !cancelled() &&
       (github.event_name != 'workflow_run' || needs.tag.outputs.stable == 'true')
     runs-on: ubuntu-latest

@@ -1,3 +1,4 @@
+import '../helpers/iping_session.dart';
 import 'dart:async';
 
 import 'package:fl_clash/core/controller.dart';
@@ -31,6 +32,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           currentProfileIdProvider.overrideWithBuild((_, _) => null),
           profilesProvider.overrideWith(() => TestProfiles([original])),
         ],
@@ -57,6 +59,7 @@ void main() {
       final second = Profile.normal(label: 'Second');
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           currentProfileIdProvider.overrideWithBuild((_, _) => first.id),
           profilesProvider.overrideWith(() => TestProfiles([first])),
         ],
@@ -93,6 +96,7 @@ void main() {
         ];
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileIdProvider.overrideWithBuild((_, _) => null),
             profilesProvider.overrideWith(() => TestProfiles(profiles)),
           ],
@@ -115,6 +119,7 @@ void main() {
     ) {
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           scriptsProvider.overrideWith(_MemoryScripts.new),
@@ -211,6 +216,7 @@ void main() {
       when(() => core.updateGeoData('MMDB')).thenAnswer((_) async => '');
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
         ],
       );
@@ -229,6 +235,7 @@ void main() {
       ).thenThrow(StateError('disconnected'));
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
         ],
       );
@@ -265,6 +272,7 @@ void main() {
     test('applies the profile after restarting a stopped core', () async {
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreActionProvider.overrideWith(_TestCoreAction.new),
           setupActionProvider.overrideWith(_TestSetupAction.new),
         ],
@@ -287,6 +295,7 @@ void main() {
       () async {
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             coreActionProvider.overrideWith(_TestCoreAction.new),
             setupActionProvider.overrideWith(_TestSetupAction.new),
           ],
@@ -311,6 +320,7 @@ void main() {
       () async {
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             coreActionProvider.overrideWith(_TestCoreAction.new),
             setupActionProvider.overrideWith(_TestSetupAction.new),
           ],
@@ -335,6 +345,7 @@ void main() {
       () async {
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             coreActionProvider.overrideWith(_TestCoreAction.new),
             setupActionProvider.overrideWith(_TestSetupAction.new),
           ],
@@ -362,6 +373,7 @@ void main() {
     test('reapplies the latest request without restarting twice', () async {
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreActionProvider.overrideWith(_TestCoreAction.new),
           setupActionProvider.overrideWith(_TestSetupAction.new),
         ],
@@ -394,6 +406,7 @@ void main() {
     test('surfaces a failed restart to its caller as a rejection', () async {
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreActionProvider.overrideWith(_TestCoreAction.new),
           setupActionProvider.overrideWith(_TestSetupAction.new),
         ],
@@ -421,7 +434,10 @@ void main() {
       'startCore leaves status and initCore to the superseding operation',
       () async {
         final container = ProviderContainer(
-          overrides: [coreActionProvider.overrideWith(_TestCoreAction.new)],
+          overrides: [
+            connectedAccountOverride,
+            coreActionProvider.overrideWith(_TestCoreAction.new),
+          ],
         );
         addTearDown(container.dispose);
         final coreAction =
@@ -440,7 +456,10 @@ void main() {
 
     test('startCore treats a coalesced outcome as applied', () async {
       final container = ProviderContainer(
-        overrides: [coreActionProvider.overrideWith(_TestCoreAction.new)],
+        overrides: [
+          connectedAccountOverride,
+          coreActionProvider.overrideWith(_TestCoreAction.new),
+        ],
       );
       addTearDown(container.dispose);
       final coreAction =
@@ -461,6 +480,7 @@ void main() {
       () async {
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             coreActionProvider.overrideWith(_TestCoreAction.new),
             setupActionProvider.overrideWith(_TestSetupAction.new),
           ],
@@ -491,6 +511,7 @@ void main() {
     test('restartCore treats a coalesced outcome as applied', () async {
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreActionProvider.overrideWith(_TestCoreAction.new),
           setupActionProvider.overrideWith(_TestSetupAction.new),
         ],
@@ -519,6 +540,7 @@ void main() {
         final startCompleter = Completer<bool>();
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             initProvider.overrideWithBuild((_, _) => true),
             commonActionProvider.overrideWith(_RaceCommonAction.new),
             setupActionProvider.overrideWith(_RaceSetupAction.new),
@@ -549,6 +571,7 @@ void main() {
         final stopCompleter = Completer<bool>();
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             initProvider.overrideWithBuild((_, _) => true),
             commonActionProvider.overrideWith(_RaceCommonAction.new),
             setupActionProvider.overrideWith(_RaceSetupAction.new),
@@ -586,6 +609,7 @@ void main() {
         final startCompleter = Completer<bool>();
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             initProvider.overrideWithBuild((_, _) => true),
             commonActionProvider.overrideWith(_RaceCommonAction.new),
             setupActionProvider.overrideWith(_RaceSetupAction.new),
@@ -622,6 +646,7 @@ void main() {
         final startCompleter = Completer<bool>();
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             initProvider.overrideWithBuild((_, _) => true),
             commonActionProvider.overrideWith(_RaceCommonAction.new),
             setupActionProvider.overrideWith(_RaceSetupAction.new),
@@ -651,6 +676,7 @@ void main() {
       test('stale initialization cannot start after a newer stop', () async {
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             initProvider.overrideWithBuild((_, _) => true),
             commonActionProvider.overrideWith(_RaceCommonAction.new),
             setupActionProvider.overrideWith(_InitializingSetupAction.new),
@@ -680,6 +706,7 @@ void main() {
         () async {
           final container = ProviderContainer(
             overrides: [
+              connectedAccountOverride,
               initProvider.overrideWithBuild((_, _) => true),
               suspendProvider.overrideWithValue(true),
               commonActionProvider.overrideWith(_RaceCommonAction.new),
@@ -709,6 +736,7 @@ void main() {
         late _RestartRecordingCoreAction coreAction;
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             setupActionProvider.overrideWith(() {
               setupAction = _AuthorizationSetupAction([AuthorizeCode.success]);
               return setupAction;
@@ -744,6 +772,7 @@ void main() {
         late _RestartRecordingCoreAction coreAction;
         final container = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileProvider.overrideWithValue(null),
             setupActionProvider.overrideWith(() {
               setupAction = _AuthorizationSetupAction([AuthorizeCode.success]);
@@ -773,6 +802,7 @@ void main() {
       late _AuthorizationSetupAction setupAction;
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           currentProfileProvider.overrideWithValue(null),
           setupActionProvider.overrideWith(() {
             setupAction = _AuthorizationSetupAction([AuthorizeCode.success]);
@@ -804,6 +834,7 @@ void main() {
       late _AuthorizationSetupAction setupAction;
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           setupActionProvider.overrideWith(() {
             setupAction = _AuthorizationSetupAction([], pending: pending);
             return setupAction;
@@ -832,6 +863,7 @@ void main() {
       late _AuthorizationSetupAction setupAction;
       final container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           setupActionProvider.overrideWith(() {
             setupAction = _AuthorizationSetupAction([AuthorizeCode.error]);
             return setupAction;

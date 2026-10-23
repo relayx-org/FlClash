@@ -1,25 +1,23 @@
-display_name: FlClash
+display_name: iPing
 
 icon: ./assets/images/icon.png
 
 supported_mime_type:
-  - x-scheme-handler/clash
-  - x-scheme-handler/clashmeta
-  - x-scheme-handler/flclash
+  - x-scheme-handler/iping
 
 keywords:
-  - FlClash
+  - iPing
   - Clash
   - ClashMeta
   - Proxy
 
-generic_name: FlClash
+generic_name: iPing
 
 categories:
   - Network
 
 startup_notify: true
 
-startup_wm_class: com.follow.clash
+startup_wm_class: my.iping.client
 
 include: []

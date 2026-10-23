@@ -62,9 +62,9 @@ hooks:
     });
 
     test('packages every Linux format on every architecture', () {
-      expect(setup.createPackageTargets('linux', null), 'deb,appimage,rpm');
+      expect(setup.createPackageTargets('linux', null), 'deb,appimage,rpm,zip');
       expect(setup.createPackageTargets('linux', 'deb'), 'deb');
-      expect(setup.createPackageTargets('macos', null), 'dmg');
+      expect(setup.createPackageTargets('macos', null), 'dmg,zip');
     });
 
     test('downloads the appimagetool build matching the host', () {

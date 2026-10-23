@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -9,10 +10,6 @@ import 'package:fl_clash/views/dashboard/layout.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
 import 'package:fl_clash/views/dashboard/widgets/profile_detail.dart';
 import 'package:fl_clash/views/dashboard/widgets/profiles.dart';
-import 'package:fl_clash/views/profiles/profiles.dart';
-import 'package:fl_clash/views/profiles/custom/custom.dart';
-import 'package:fl_clash/views/profiles/custom/rules.dart';
-import 'package:fl_clash/views/proxies/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,21 +21,6 @@ import '../../helpers/test_app.dart';
 import '../../helpers/test_profiles.dart';
 
 const _gib = 1024 * 1024 * 1024;
-
-class _TestProfileRules extends ProfileRules {
-  @override
-  Stream<List<Rule>> build(int profileId) => Stream.value(const []);
-}
-
-class _TestProxyGroups extends ProxyGroups {
-  @override
-  Stream<List<ProxyGroup>> build(int profileId) => Stream.value(const []);
-}
-
-class _IdleSetupAction extends SetupAction {
-  @override
-  void autoApplyProfile() {}
-}
 
 ExternalProvider _provider(String name, String type, int count) =>
     ExternalProvider(
@@ -142,14 +124,14 @@ void main() {
 
   Finder label(String text) => find.text(text, findRichText: true);
 
-  testWidgets('offers to add a profile without profiles', (tester) async {
+  testWidgets('offers subscription details without profiles', (tester) async {
     setUpProfiles([]);
     await pumpCard(tester);
 
-    expect(find.text('Add profile'), findsOneWidget);
+    expect(find.text('Subscription info'), findsOneWidget);
 
     await pumpDesktopCard(tester);
-    expect(find.text('Add profile'), findsOneWidget);
+    expect(find.text('Subscription info'), findsOneWidget);
     expect(find.byTooltip('Switch profile'), findsNothing);
   });
 
@@ -215,21 +197,11 @@ void main() {
     expect(find.byTooltip('Switch profile'), findsNothing);
   });
 
-  testWidgets('the button beside the name switches the profile in a sheet', (
-    tester,
-  ) async {
-    setUpProfiles([for (var id = 1; id <= 3; id++) _profile(id)]);
+  testWidgets('does not expose profile import or switching', (tester) async {
+    setUpProfiles([_profile(1), _profile(2)]);
     await pumpDesktopCard(tester);
-
-    expect(label('P1'), findsOneWidget);
-    await tester.tap(find.byTooltip('Switch profile'));
-    await tester.pumpAndSettle();
-    expect(find.byType(ProfilesView), findsOneWidget);
-    await tester.tap(label('P3').last);
-    await tester.pumpAndSettle();
-
-    expect(container.read(currentProfileIdProvider), 3);
-    expect(find.byType(ProfileDetailSheet), findsNothing);
+    expect(find.byTooltip('Switch profile'), findsNothing);
+    expect(find.text('Add profile'), findsNothing);
   });
 
   Future<File> writeAppliedConfig(WidgetTester tester) async {
@@ -254,38 +226,17 @@ void main() {
     return file!;
   }
 
-  Future<void> openDetail(WidgetTester tester) async {
+  testWidgets('tapping the subscription opens its details without navigation', (
+    tester,
+  ) async {
+    setUpProfiles([_profile(1)]);
+    container.listen(currentPageLabelProvider, (_, _) {});
+    await pumpCard(tester);
     await tester.tap(label('P1'));
     await tester.pumpAndSettle();
-    await settleCounts(tester, until: find.text('3'));
-    await tester.pumpAndSettle();
-  }
-
-  testWidgets('reopening on the same config skips the read', (tester) async {
-    final config = await writeAppliedConfig(tester);
-    globalState.lastConfigMd5 = 'applied';
-    addTearDown(() => globalState.lastConfigMd5 = null);
-    setUpProfiles([_profile(1)]);
-    container.listen(groupsProvider, (_, _) {});
-    await pumpCard(tester);
-
-    await openDetail(tester);
-    config.deleteSync();
-    container.read(groupsProvider.notifier).value = [
-      const Group(type: GroupType.Selector, name: 'G1'),
-    ];
-    await tester.pumpAndSettle();
-    globalState.navigatorKey.currentState!.pop();
-    await tester.pumpAndSettle();
-    await openDetail(tester);
-
-    expect(
-      find.descendant(
-        of: find.byType(ProfileDetailSheet),
-        matching: find.text('3'),
-      ),
-      findsOneWidget,
-    );
+    expect(container.read(currentPageLabelProvider), PageLabel.dashboard);
+    expect(find.byType(IpingSubscriptionDetails), findsOneWidget);
+    expect(find.byType(ProfileDetailSheet), findsNothing);
   });
 
   testWidgets('counts recorded at the last apply skip the config file', (
@@ -419,107 +370,10 @@ void main() {
     final name = tester.getRect(label('P1'));
     final daysLeft = tester.getRect(find.text('30 days left'));
     expect(daysLeft.center.dy, moreOrLessEquals(name.center.dy, epsilon: 1));
-    expect(find.byTooltip('Switch profile'), findsOneWidget);
+    expect(find.byTooltip('Switch profile'), findsNothing);
     expect(find.textContaining('minutes ago'), findsNothing);
     expect(find.text('42 GB / 100 GB'), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('tapping the card shows what the Core was handed', (
-    tester,
-  ) async {
-    await writeAppliedConfig(tester);
-    setUpProfiles(
-      [_profile(1), _profile(2)],
-      overrides: [
-        providersProvider.overrideWithBuild(
-          (_, _) => [_provider('nodes', 'Proxy', 5)],
-        ),
-      ],
-    );
-    container.read(currentProfileIdProvider.notifier).value = 1;
-    await pumpCard(tester);
-
-    await openDetail(tester);
-
-    expect(find.byType(ProfileDetailSheet), findsOneWidget);
-    expect(find.byTooltip('Runtime config'), findsOneWidget);
-    expect(find.byTooltip('Edit'), findsNothing);
-    expect(
-      find.descendant(
-        of: find.byType(ExternalProvidersSliver),
-        matching: find.byType(ProviderItem),
-      ),
-      findsOneWidget,
-    );
-    expect(find.byTooltip('Update'), findsOneWidget);
-    for (final (title, value) in [
-      ('Proxy group', '1'),
-      ('Proxies', '7'),
-      ('Rules', '3'),
-    ]) {
-      expect(
-        find.descendant(
-          of: find
-              .ancestor(of: find.text(title), matching: find.byType(Column))
-              .first,
-          matching: find.text(value),
-        ),
-        findsOneWidget,
-      );
-    }
-  });
-
-  testWidgets('tapping a custom profile edits it in a sheet, built as it '
-      'opens', (tester) async {
-    final profile = Profile.custom(label: 'mine');
-    setUpProfiles(
-      [profile],
-      overrides: [
-        profileRulesProvider.overrideWith2((_) => _TestProfileRules()),
-        proxyGroupsProvider.overrideWith2((_) => _TestProxyGroups()),
-        customProfileDataProvider(
-          profile.id,
-        ).overrideWithValue(const CustomProfileData(ruleTargets: {'DIRECT'})),
-        setupActionProvider.overrideWith(_IdleSetupAction.new),
-      ],
-    );
-    await pumpCard(tester);
-
-    await tester.tap(label('mine'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(CustomProfileView), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey(NullStatusIllustration.profile)),
-      findsNothing,
-    );
-    expect(
-      find.descendant(
-        of: find.byType(CustomProfileView),
-        matching: find.byType(CommonCard),
-      ),
-      findsWidgets,
-    );
-
-    await tester.pumpAndSettle();
-    expect(find.byType(NullStatus), findsOneWidget);
-    expect(find.byType(ProfileDetailSheet), findsNothing);
-    final sheet = find.byType(NestedPagedSheet);
-    expect(
-      find.descendant(of: sheet, matching: find.byType(CustomProfileView)),
-      findsOneWidget,
-    );
-
-    await tester.tap(
-      find.ancestor(of: find.text('Rule'), matching: find.byType(CommonCard)),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      ModalRoute.of(tester.element(find.byType(CustomRulesView))),
-      isA<PagedSheetRoute<void>>(),
-    );
   });
 
   test('counts provider proxies but not provider rules', () {

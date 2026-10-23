@@ -301,7 +301,7 @@
   "actionDelayTest": "Проверить все задержки",
   "actionUpdateProfiles": "Обновить профили",
   "disclaimer": "Отказ от ответственности",
-  "disclaimerDesc": "Перед использованием FlClash (далее — «Программа») внимательно прочитайте это заявление и убедитесь, что понимаете его полностью. Нажимая «Согласен», вы подтверждаете, что прочитали, поняли и принимаете все приведённые ниже условия. Если вы не согласны, нажмите «Выход» и прекратите использование Программы.",
+  "disclaimerDesc": "Перед использованием iPing (далее — «Программа») внимательно прочитайте это заявление и убедитесь, что понимаете его полностью. Нажимая «Согласен», вы подтверждаете, что прочитали, поняли и принимаете все приведённые ниже условия. Если вы не согласны, нажмите «Выход» и прекратите использование Программы.",
   "disclaimerSoftwareTitle": "Характер программы",
   "disclaimerSoftwareContent": "Программа — это клиент сетевого прокси с открытым исходным кодом на основе ядра Clash.Meta (mihomo). Она предоставляет только локальные инструменты: управление конфигурациями, маршрутизацию по правилам и пересылку трафика.",
   "disclaimerNoServiceStatement": "Сама Программа не предоставляет прокси-серверы, узлы, подписки или услуги доступа к сети и не состоит в партнёрских, агентских или гарантийных отношениях с поставщиками таких услуг.",
@@ -584,11 +584,11 @@
   "strategy": "Стратегия",
   "tolerance": "Допуск",
   "inputProxyGroupName": "Введите название группы прокси",
-  "helperCorruptTip": "Служба Helper недоступна, поэтому TUN-режим включить нельзя. Переустановите FlClash.",
+  "helperCorruptTip": "Служба Helper недоступна, поэтому TUN-режим включить нельзя. Переустановите iPing.",
   "tunAuthorizationFailed": "Не удалось получить права для TUN, поэтому он выключен.",
   "sudoPasswordTitle": "Введите пароль для sudo",
-  "coreBlockedByPolicyTip": "Windows отказалась запускать FlClashCore.exe (ошибка {code}). Политики контроля приложений, такие как Smart App Control или AppLocker, блокируют неподписанные программы; разрешите FlClash в этой политике или отключите её и повторите попытку.",
-  "coreBlockedBySmartAppControlTip": "Smart App Control в Windows заблокировал неподписанный FlClashCore.exe. Откройте Безопасность Windows → Управление приложениями и браузером → Параметры Smart App Control, выберите «Выкл.» и снова запустите FlClash. Повторно включить Smart App Control без переустановки Windows нельзя.",
+  "coreBlockedByPolicyTip": "Windows отказалась запускать iPingCore.exe (ошибка {code}). Политики контроля приложений, такие как Smart App Control или AppLocker, блокируют неподписанные программы; разрешите iPing в этой политике или отключите её и повторите попытку.",
+  "coreBlockedBySmartAppControlTip": "Smart App Control в Windows заблокировал неподписанный iPingCore.exe. Откройте Безопасность Windows → Управление приложениями и браузером → Параметры Smart App Control, выберите «Выкл.» и снова запустите iPing. Повторно включить Smart App Control без переустановки Windows нельзя.",
   "hideFromList": "Скрыть из списка",
   "testWhenUsed": "Тестировать при использовании",
   "disableUDP": "Отключить UDP",
@@ -825,7 +825,7 @@
   "routingMark": "Метка маршрутизации",
   "strictRouteDesc": "Строгая маршрутизация не даёт трафику вроде DNS обходить TUN, а при выключенном IPv6 блокирует IPv6-соединения этого устройства.",
   "initFailed": "Не удалось запустить",
-  "initFailedTip": "При запуске FlClash произошла ошибка, и работа не может быть продолжена. Скопируйте подробности, чтобы сообщить о проблеме. Если ошибка повторяется, очистка данных обычно позволяет снова запустить приложение.",
+  "initFailedTip": "При запуске iPing произошла ошибка, и работа не может быть продолжена. Скопируйте подробности, чтобы сообщить о проблеме. Если ошибка повторяется, очистка данных обычно позволяет снова запустить приложение.",
   "errorDetails": "Подробности ошибки",
   "stackTrace": "Трассировка стека",
   "clearDataAndExitTip": "Все профили, настройки и локальные данные будут удалены, после чего приложение закроется. Откройте его снова, чтобы начать заново.",
@@ -939,5 +939,130 @@
   "customImportDroppedSubRules": "{count, plural, one{Пользовательские профили не поддерживают подправила, поэтому отброшено {label} правило SUB-RULE} few{Пользовательские профили не поддерживают подправила, поэтому отброшено {label} правила SUB-RULE} many{Пользовательские профили не поддерживают подправила, поэтому отброшено {label} правил SUB-RULE} other{Пользовательские профили не поддерживают подправила, поэтому отброшено {label} правила SUB-RULE}}",
   "autoInclude": "Автоматическое включение",
   "allReferencedProxies": "Все используемые прокси",
-  "allReferencedProxyProviders": "Все используемые провайдеры прокси"
+  "allReferencedProxyProviders": "Все используемые провайдеры прокси",
+  "ipingWelcome": "Добро пожаловать в {siteName}",
+  "@ipingWelcome": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingLoginHint": "Войдите, чтобы автоматически загрузить подписку.",
+  "ipingEmail": "Электронная почта",
+  "ipingPassword": "Пароль",
+  "ipingEmailInvalid": "Введите действующий адрес электронной почты.",
+  "ipingPasswordRequired": "Введите пароль.",
+  "ipingSignIn": "Войти",
+  "ipingSignOut": "Выйти",
+  "ipingForgotPassword": "Забыли пароль?",
+  "ipingRegister": "Создать аккаунт",
+  "ipingTerms": "Условия использования",
+  "ipingPrivacy": "Политика конфиденциальности",
+  "ipingAccount": "Аккаунт",
+  "ipingNodeCount": "Доступных узлов: {count}",
+  "ipingNoNodes": "Нет доступных узлов. Проверьте услуги в консоли iPing и обновите подписку.",
+  "ipingSync": "Обновить подписку",
+  "ipingSyncing": "Обновление…",
+  "ipingConsole": "Открыть консоль iPing",
+  "ipingCredentialsError": "Неверный адрес электронной почты или пароль.",
+  "ipingSessionExpired": "Сеанс недействителен. Войдите снова.",
+  "ipingNetworkError": "Не удалось подключиться к iPing. Проверьте сеть. Последняя подписка сохранена.",
+  "ipingSubscriptionError": "Не удалось загрузить подписку. Повторите попытку или обратитесь в поддержку.",
+  "ipingStorageError": "Не удалось сохранить данные аккаунта. Проверьте разрешения и повторите попытку.",
+  "@ipingNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingBrowserLogin": "Войти через браузер",
+  "ipingBrowserHint": "Войдите на сайте {siteName} через почту, Google или ключ доступа. Подписка загрузится после возвращения.",
+  "@ipingBrowserHint": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingBrowserWaiting": "Завершите вход в браузере и вернитесь в iPing.",
+  "ipingBrandEyebrow": "ГЛОБАЛЬНАЯ СВЯЗЬ",
+  "ipingBrandHeadline": "Больше возможностей.",
+  "ipingBrandHeadlineAccent": "Проще подключение.",
+  "ipingBrandDescription": "Подписки, узлы и сетевые подключения — вместе в привычном аккаунте.",
+  "ipingFeatureLogin": "Вход через браузер",
+  "ipingFeatureSync": "Автообновление подписок",
+  "ipingFeatureConnect": "Гибкий выбор узлов",
+  "ipingDevice": "Ваше устройство",
+  "ipingNetwork": "Глобальная сеть",
+  "ipingGateway": "Прокси и туннель",
+  "ipingLoginSecurityNote": "Вход подтверждается в браузере. Клиент не сохраняет ваш пароль.",
+  "ipingRegistrationClosed": "Регистрация закрыта. Существующие пользователи могут войти.",
+  "ipingUpdateRequired": "Требуется обновление",
+  "ipingUpdateRequiredDesc": "Установите версию {version}, чтобы продолжить использование iPing.",
+  "ipingUpdateFailed": "Не удалось обновить приложение. Проверьте подключение и разрешения на установку, затем повторите попытку.",
+  "ipingUpdateInstallHint": "Подтвердите установку в системных окнах. После обновления приложение перезапустится.",
+  "ipingVersion": "Версия {version}",
+  "ipingUserId": "ID пользователя {id}",
+  "ipingRefreshAccount": "Обновить данные аккаунта",
+  "ipingAccountAuthorizeHint": "Войдите снова, чтобы разрешить доступ к данным аккаунта.",
+  "ipingAccountAuthorize": "Разрешить доступ к аккаунту",
+  "ipingAccountLoadFailed": "Не удалось загрузить данные аккаунта. Повторите попытку.",
+  "ipingBalance": "Баланс (CNY)",
+  "ipingAccountActive": "Активен",
+  "ipingAccountInactive": "Отключён",
+  "ipingJoinedAt": "Дата регистрации",
+  "@ipingUserId": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingAccountInformation": "Данные аккаунта",
+  "ipingTelegram": "Telegram",
+  "ipingTelegramBound": "Привязан",
+  "ipingTelegramUnbound": "Не привязан",
+  "ipingApiKey": "API Key",
+  "ipingApiAuthorized": "Доступ на этом устройстве разрешён",
+  "ipingReferralInformation": "Реферальная программа",
+  "ipingReferralRate": "Ставка комиссии",
+  "ipingReferralCount": "Приглашённые пользователи",
+  "ipingReferralEarnings": "Общий доход (CNY)",
+  "ipingReferralLink": "Реферальная ссылка",
+  "ipingReferralHint": "Получайте комиссию, когда приглашённый пользователь пополняет баланс.",
+  "ipingNotifications": "Уведомления Telegram",
+  "ipingNotifyTopup": "Уведомления о пополнении",
+  "ipingNotifyTunnel": "Истечение срока туннеля",
+  "ipingNotifyIp": "Истечение срока IP",
+  "ipingNotificationsHint": "Настройки синхронизированы с сайтом. Привяжите Telegram для уведомлений; изменить настройки можно на сайте.",
+  "ipingTraffic30Days": "Трафик · Последние 30 дней",
+  "ipingActualTraffic": "Фактический трафик",
+  "ipingBilledTraffic": "Тарифицируемый трафик",
+  "ipingNoTraffic": "За этот период трафик не зафиксирован.",
+  "ipingAccountServices": "Управление услугами",
+  "ipingAccountServicesHint": "Пополняйте баланс, привязывайте Telegram и управляйте ключами API и уведомлениями на сайте.",
+  "ipingBilling": "Счета и история баланса",
+  "ipingAccountSettings": "Настройки аккаунта",
+  "ipingDiagnostics": "Диагностика подключения",
+  "ipingRunDiagnostics": "Проверить снова",
+  "ipingSubscriptionCheck": "Подписка",
+  "ipingSystemDns": "Системный DNS · {host}",
+  "@ipingSystemDns": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingDnsOk": "Адрес сервера разрешён.",
+  "ipingDnsFailed": "Не удалось разрешить адрес. Проверьте сеть и DNS.",
+  "ipingProxyCheck": "Состояние прокси",
+  "ipingStartToCheck": "Запустите подключение для проверки выхода.",
+  "ipingSafeDiagnostics": "В безопасном режиме проверка прокси и выхода недоступна.",
+  "ipingExitCheck": "Доступность текущего выхода",
+  "ipingExitOk": "Текущий выход ответил.",
+  "ipingExitFailed": "Выход не ответил. Смените узел и повторите проверку.",
+  "ipingDiagnosticsHint": "DNS и выход проверяются отдельно. Сбой выхода сам по себе не означает сбой DNS. Настройки сети не меняются."
 }

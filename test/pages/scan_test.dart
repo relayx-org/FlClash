@@ -275,7 +275,7 @@ void main() {
 
       platform.emit(
         _textCapture([
-          'clash://install-config?url=https%3A%2F%2Fsub.example%2Fy',
+          'iping://install-config?url=https%3A%2F%2Fsub.example%2Fy',
         ]),
       );
       await tester.pumpAndSettle();

@@ -69,7 +69,10 @@ void main() {
     git(['checkout', '--quiet', '--orphan', 'frozen-history']);
     commit('chore: optimize commented policy');
     git(['tag', 'v0.8.96']);
-    final builder = ChangelogBuilder(Git(workingDirectory: repo.path));
+    final builder = ChangelogBuilder(
+      Git(workingDirectory: repo.path),
+      boundary: 'v0.8.96',
+    );
     expect(builder.build().changelog.versions, isEmpty);
 
     commit('fix: new release fix');
@@ -102,6 +105,48 @@ void main() {
         .map((entry) => entry.text);
 
     expect(features, ['Second feature', 'First feature']);
+  });
+
+  test('freezing history preserves generated and already frozen entries', () {
+    const existing =
+        '# Changelog\n\n## v0.9.1\n\n- Old release\n\n'
+        '<!-- changelog:frozen -->\n<!-- Old note -->\n\n## v0.8.96\n\n- Earlier release\n';
+    final rendered = renderMarkdown(const Changelog(versions: []));
+    final merged = mergeMarkdown(rendered, existing, freezeHistory: true);
+    expect(
+      merged,
+      '$rendered## v0.9.1\n\n- Old release\n\n'
+      '## v0.8.96\n\n- Earlier release\n',
+    );
+    expect(mergeMarkdown(rendered, merged), merged);
+  });
+
+  test('a commit baseline allows the fork to restart its version numbers', () {
+    final scoped = Git(workingDirectory: repo.path);
+    final baseline = scoped.head();
+    final builder = ChangelogBuilder(scoped, boundary: baseline);
+
+    commit('feat: first iPing release');
+    final pending = builder.build(
+      pending: const PendingVersion(version: '0.1.0', date: '2026-01-02'),
+    );
+    expect(pending.changelog.versions.single.tag, 'v0.1.0');
+    expect(
+      pending.changelog.versions.single.groups.single.entries.single.text,
+      'First iPing release',
+    );
+
+    git(['tag', 'v0.1.0']);
+    expect(
+      encodeChangelog(builder.build().changelog),
+      encodeChangelog(pending.changelog),
+    );
+    commit('fix: update installation');
+    git(['tag', 'v0.1.1']);
+    expect(builder.build().changelog.versions.map((version) => version.tag), [
+      'v0.1.1',
+      'v0.1.0',
+    ]);
   });
 
   test('ignores tags that are not release tags', () {

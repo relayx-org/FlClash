@@ -192,10 +192,10 @@ class _ProxiesListViewState extends ConsumerState<ProxiesListView> {
               final width = max(maxWidth - _groupInset * 2, 0.0);
               final groupColumns = viewMode == ViewMode.mobile
                   ? 1
-                  : ((width + gap) / (_groupMinWidth + gap)).floor().clamp(
-                      1,
-                      _groupMaxColumns,
-                    );
+                  : ((width + gap) / (_groupMinWidth + gap))
+                        .floor()
+                        .clamp(1, min(_groupMaxColumns, max(groups.length, 1)))
+                        .toInt();
               final groupWidth =
                   (width - gap * (groupColumns - 1)) / groupColumns;
               final columns = getProxiesColumns(

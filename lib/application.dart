@@ -3,14 +3,17 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/common/window.dart';
 import 'package:fl_clash/bootstrap.dart';
 import 'package:fl_clash/common/system_dns.dart';
+import 'package:fl_clash/common/window.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/manager/hotkey_manager.dart';
 import 'package:fl_clash/manager/manager.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/view.dart';
+import 'package:fl_clash/iping/update_gate.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -71,6 +74,11 @@ class ApplicationState extends ConsumerState<Application> {
   void initState() {
     super.initState();
     SystemNavigator.setFrameworkHandlesBack(true);
+    linkManager.initUriListen((uri) {
+      if (ref.read(ipingBrowserProvider).handleCallback(uri)) {
+        unawaited(window?.show());
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (globalState.navigatorKey.currentContext != null) {
         await bootstrap.attach();
@@ -78,45 +86,15 @@ class ApplicationState extends ConsumerState<Application> {
         exit(0);
       }
       _autoUpdateProfilesTask();
-      _initLink();
       if (!safeModeBuild) {
         unawaited(app?.initShortcuts());
       }
     });
   }
 
-  void _initLink() {
-    linkManager.initAppLinksListen((url) async {
-      unawaited(window?.show());
-      final message = currentAppLocalizations.createProfileFromUrlTip(url);
-      final parts = message.split(url);
-      final res = await dialogs.showMessage(
-        title: currentAppLocalizations.addProfile,
-        message: TextSpan(
-          children: [
-            TextSpan(text: parts.first),
-            TextSpan(
-              text: url,
-              style: TextStyle(
-                color: context.colorScheme.primary,
-                decoration: TextDecoration.underline,
-                decorationColor: context.colorScheme.primary,
-              ),
-            ),
-            if (parts.length > 1) TextSpan(text: parts.last),
-          ],
-        ),
-      );
-      if (res != true) return;
-      unawaited(
-        ref.read(profilesActionProvider.notifier).addProfileFromLink(url),
-      );
-    });
-  }
-
   void _autoUpdateProfilesTask() {
     _autoUpdateProfilesTaskTimer = Timer(const Duration(minutes: 20), () async {
-      await ref.read(profilesActionProvider.notifier).autoUpdateProfiles();
+      await ref.read(ipingSessionProvider.notifier).synchronize();
       await ref.read(resourcesActionProvider.notifier).autoUpdate();
       if (!mounted) {
         return;
@@ -164,14 +142,14 @@ class ApplicationState extends ConsumerState<Application> {
                 child: RemoteFocusAdapter(
                   enabled: system.isTV,
                   floatingKeyboard: app?.floatingKeyboard,
-                  child: child!,
+                  child: IpingUpdateGate(child: child!),
                 ),
               ),
             );
           },
           scrollBehavior: const BaseScrollBehavior(),
-          title: appName,
-          locale: getLocaleForString(locale),
+          title: ref.watch(ipingSiteConfigProvider).name,
+          locale: getLocaleForString(locale) ?? defaultAppLocale,
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           themeMode: themeProps.themeMode,
           theme: watchAppTheme(ref, Brightness.light),
@@ -180,7 +158,7 @@ class ApplicationState extends ConsumerState<Application> {
           home: KeyboardInsetHold(child: child!),
         );
       },
-      child: const HomePage(),
+      child: const IpingGate(child: HomePage()),
     );
   }
 

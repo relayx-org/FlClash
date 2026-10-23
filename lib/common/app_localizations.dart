@@ -8,6 +8,7 @@ import 'package:fl_clash/ui/l10n.dart';
 import 'package:flutter/widgets.dart';
 
 final currentAppLocalizations = AppLocalizations.current;
+const defaultAppLocale = Locale('zh', 'CN');
 
 class AppUiLocalizations implements UiLocalizations {
   const AppUiLocalizations(this._localizations);

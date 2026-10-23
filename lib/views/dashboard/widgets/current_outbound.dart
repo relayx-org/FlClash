@@ -9,6 +9,8 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/ip_quality.dart';
 import 'package:fl_clash/providers/outbound_ip.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/diagnostics.dart';
 import 'package:fl_clash/providers/routed_probe.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
@@ -67,7 +69,7 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
   Widget build(BuildContext context) {
     final density = DashboardDensityScope.of(context);
     final hasProfile = ref.watch(
-      profilesProvider.select((state) => state.isNotEmpty),
+      ipingSessionProvider.select((state) => state.canConnect),
     );
     final isStart = ref.watch(isStartProvider);
     final suspended = isStart && ref.watch(suspendProvider);
@@ -195,6 +197,17 @@ class _CurrentOutboundCardState extends ConsumerState<CurrentOutboundCard>
                   ),
                 ),
               ],
+            ),
+          ),
+          PositionedDirectional(
+            top: metrics.padding.resolve(Directionality.of(context)).top,
+            end:
+                metrics.padding.resolve(Directionality.of(context)).horizontal /
+                2,
+            child: DashboardIconButton(
+              glyph: AppGlyphs.search,
+              tooltip: appLocalizations.ipingDiagnostics,
+              onPressed: () => showIpingDiagnostics(context),
             ),
           ),
         ],

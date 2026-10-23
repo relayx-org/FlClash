@@ -1,3 +1,6 @@
+import '../../helpers/iping_session.dart';
+import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/session.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/ip_quality.dart';
 import 'package:fl_clash/common/service_probe.dart'
@@ -99,6 +102,7 @@ Widget _app(
   return TestApp(
     locale: const Locale('en'),
     overrides: [
+      connectedAccountOverride,
       profilesProvider.overrideWithValue(const [_profile]),
       suspendProvider.overrideWithValue(false),
       outboundIpProbeProvider.overrideWithBuild(
@@ -122,6 +126,7 @@ Widget _probingApp(
   return TestApp(
     locale: const Locale('en'),
     overrides: [
+      connectedAccountOverride,
       profilesProvider.overrideWithValue(const [_profile]),
       routeTrackerProvider.overrideWithBuild(
         (ref, _) => RouteState(
@@ -229,6 +234,7 @@ void main() {
         TestApp(
           locale: const Locale('en'),
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWithValue(const [_profile]),
             suspendProvider.overrideWithValue(false),
             outboundIpProbeProvider.overrideWith(_Ips.new),
@@ -478,8 +484,15 @@ void main() {
     ProviderContainer containerWith({
       List<Profile> profiles = const [_profile],
       bool suspended = false,
+      bool available = true,
     }) => ProviderContainer(
       overrides: [
+        if (available)
+          connectedAccountOverride
+        else
+          ipingSessionProvider.overrideWithBuild(
+            (_, _) => const IpingSessionState(initialized: true),
+          ),
         initProvider.overrideWithBuild((_, _) => true),
         profilesProvider.overrideWithValue(profiles),
         outboundIpProbeProvider.overrideWith(_Ips.new),
@@ -583,8 +596,10 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('is off without a profile', (tester) async {
-      container = containerWith(profiles: const []);
+    testWidgets('is off without an available account subscription', (
+      tester,
+    ) async {
+      container = containerWith(profiles: const [], available: false);
       await pumpCard(tester, density: DashboardDensity.mobile);
 
       final toggle = tester.widget<InkResponse>(startButton());

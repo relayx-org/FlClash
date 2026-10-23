@@ -23,6 +23,7 @@ const _groupFloors = <String, double>{
   'ui': 91.0,
   'widgets': 82.0,
   'features': 81.0,
+  'iping': 75.0,
   'models': 67.0,
   'providers': 73.0,
   'common': 74.0,

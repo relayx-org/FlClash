@@ -8,8 +8,8 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
-import 'package:fl_clash/views/profiles/add.dart';
-import 'package:fl_clash/views/profiles/custom/custom.dart';
+import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -43,15 +43,11 @@ int _daysLeft(DateTime expiry) =>
 String _expiryText(BuildContext context, DateTime expiry) =>
     context.appLocalizations.profileExpiresIn(expiry.show, _daysLeft(expiry));
 
-void _openProfile(BuildContext context, Profile? profile) {
-  switch (profile) {
-    case null:
-      showAddProfilePage(context);
-    case Profile(type: ProfileType.custom, :final id):
-      showCustomProfileSheet(context, id);
-    case _:
-      showProfileDetailSheet(context);
-  }
+void _openProfile(BuildContext context) {
+  showSheet<void>(
+    context: context,
+    builder: (_) => const IpingSubscriptionDetails(),
+  );
 }
 
 const _nearlyUsedShare = 0.9;
@@ -76,9 +72,6 @@ class ProfilesCard extends ConsumerWidget {
     final compact = density.isCompact;
     final appLocalizations = context.appLocalizations;
     final profile = ref.watch(currentProfileProvider);
-    final switchable = ref.watch(
-      profilesProvider.select((profiles) => profiles.length > 1),
-    );
     final usage = _usageOf(profile);
     final expiry = _expiryOf(profile);
     final updatedAt = profile?.lastUpdateDate;
@@ -109,34 +102,23 @@ class ProfilesCard extends ConsumerWidget {
       _ => null,
     };
     final sync = profile != null && profile.type == ProfileType.url
-        ? _SyncButton(profile: profile)
+        ? const _SyncButton()
         : null;
     final nameRow = Row(
       children: [
         Flexible(
           child: EmojiText(
-            profile?.realLabel ?? appLocalizations.addProfile,
+            profile?.realLabel ?? appLocalizations.subscriptionInfo,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: name.of(context, emphasized: true),
           ),
         ),
-        if (profile != null && switchable)
-          SizedBox(
-            height: name.leading,
-            child: DashboardIconButton(
-              glyph: AppGlyphs.swap,
-              tooltip: appLocalizations.switchProfile,
-              onPressed: () => showProfilesSheet(context),
-            ),
-          ),
       ],
     );
     return DashboardCard(
       semanticLabel: appLocalizations.profile,
-      onTap: mobile || profile == null
-          ? () => _openProfile(context, profile)
-          : null,
+      onTap: mobile || profile == null ? () => _openProfile(context) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
@@ -160,7 +142,7 @@ class ProfilesCard extends ConsumerWidget {
                         tooltip: appLocalizations.details(
                           appLocalizations.profile,
                         ),
-                        onPressed: () => _openProfile(context, profile),
+                        onPressed: () => _openProfile(context),
                       ),
                     ],
                   ),
@@ -220,13 +202,13 @@ double _widthOf(String text, TextStyle style) =>
     globalState.measure.computeTextSize(Text(text, style: style)).width;
 
 class _SyncButton extends ConsumerWidget {
-  const _SyncButton({required this.profile});
-
-  final Profile profile;
+  const _SyncButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isUpdating = ref.watch(isUpdatingProvider(profile.updatingKey));
+    final isUpdating = ref.watch(
+      ipingSessionProvider.select((state) => state.busy),
+    );
     if (isUpdating) {
       return const SizedBox.square(
         dimension: 32,
@@ -236,7 +218,7 @@ class _SyncButton extends ConsumerWidget {
     return DashboardIconButton(
       glyph: AppGlyphs.sync,
       tooltip: context.appLocalizations.update,
-      onPressed: () => syncProfile(ref, profile),
+      onPressed: () => ref.read(ipingSessionProvider.notifier).synchronize(),
     );
   }
 }

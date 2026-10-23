@@ -60,15 +60,15 @@ class LinkManager {
   Future<void> initAppLinksListen(
     Function(String url) installConfigCallBack,
   ) async {
+    await initUriListen((uri) => _handle(uri, installConfigCallBack));
+  }
+
+  Future<void> initUriListen(void Function(Uri) onUri) async {
     destroy();
-    subscription = uriLinkStream().listen((uri) {
-      _handle(uri, installConfigCallBack);
-    });
+    subscription = uriLinkStream().listen(onUri);
     final pending = _pendingUri;
     _pendingUri = null;
-    if (pending != null) {
-      _handle(pending, installConfigCallBack);
-    }
+    if (pending != null) onUri(pending);
   }
 
   void _handle(Uri uri, Function(String url) installConfigCallBack) {

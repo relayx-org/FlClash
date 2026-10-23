@@ -112,13 +112,26 @@ void main() {
       expect(find.byWidget(entry.value), findsOneWidget);
       expect(tester.takeException(), null);
 
+      if (entry.key == 'tools') {
+        expect(find.text('About'), findsOneWidget);
+        expect(find.text('Other'), findsNothing);
+        container
+            .read(appSettingProvider.notifier)
+            .update((state) => state.copyWith(developerMode: true));
+        await tester.pump();
+        await tester.drag(scrollables.first, const Offset(0, -700));
+        await tester.pumpAndSettle();
+        expect(find.text('Other'), findsOneWidget);
+        expect(find.text('Developer mode'), findsOneWidget);
+        expect(find.text('About'), findsOneWidget);
+      }
+
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
 
   final toolDestinations = <String, Type>{
     'Theme': ThemeView,
-    'Backup and restore': BackupAndRestore,
     'General': GeneralView,
     'Advanced configuration': AdvancedConfigView,
     'Custom profile resources': CustomResourcesView,

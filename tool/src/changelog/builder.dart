@@ -6,9 +6,7 @@ import 'models.dart';
 import 'parser.dart';
 import 'render.dart';
 
-/// Versions up to and including this tag are frozen: they predate the
-/// structured pipeline and are kept verbatim at the bottom of `CHANGELOG.md`.
-const frozenBoundaryTag = 'v0.8.96';
+const changelogBaseline = '8d4f9744948751f1273fe871e1d05276fac09b0e';
 
 const changelogDataPath = 'changelog.json';
 
@@ -45,16 +43,19 @@ class ChangelogBuildResult {
 }
 
 class ChangelogBuilder {
-  ChangelogBuilder(this.git, {this.boundary = frozenBoundaryTag});
+  ChangelogBuilder(this.git, {this.boundary = changelogBaseline});
 
   final Git git;
   final String boundary;
 
   ChangelogBuildResult build({PendingVersion? pending}) {
-    final boundaryTag = VersionTag.tryParse(boundary);
+    final frozenTags = git
+        .versionTags(revision: boundary)
+        .map((tag) => tag.name)
+        .toSet();
     final stable = git
         .stableTags()
-        .where((tag) => boundaryTag == null || tag.compareTo(boundaryTag) > 0)
+        .where((tag) => !frozenTags.contains(tag.name))
         .toList();
     final parser = ChangelogParser();
     final versions = <ChangelogVersion>[];
@@ -62,7 +63,7 @@ class ChangelogBuilder {
 
     if (pending != null && !git.tagExists(pending.tag)) {
       final commits = git.commits(
-        from: stable.isEmpty ? boundaryTag?.name : stable.first.name,
+        from: stable.isEmpty ? boundary : stable.first.name,
         to: 'HEAD',
       );
       commitIdsByTag[pending.tag] = _idsOf(commits);
@@ -81,7 +82,7 @@ class ChangelogBuilder {
       final tag = stable[index];
       final previous = index + 1 < stable.length
           ? stable[index + 1].name
-          : boundaryTag?.name;
+          : boundary;
       final commits = git.commits(from: previous, to: tag.name);
       commitIdsByTag[tag.name] = _idsOf(commits);
       versions.add(
@@ -125,10 +126,19 @@ int _frozenBoundary(String content) {
   }
 }
 
-String mergeMarkdown(String rendered, String existing) {
+String mergeMarkdown(
+  String rendered,
+  String existing, {
+  bool freezeHistory = false,
+}) {
   final boundary = _frozenBoundary(existing);
-  if (boundary < 0) {
-    var tail = existing.trimLeft();
+  if (boundary < 0 || freezeHistory) {
+    var tail =
+        (boundary < 0
+                ? existing
+                : '${existing.substring(0, existing.indexOf(changelogFrozenMarker)).trimRight()}\n\n'
+                      '${existing.substring(boundary).trimLeft()}')
+            .trimLeft();
     if (tail.startsWith(changelogTitle)) {
       tail = tail.substring(changelogTitle.length).trimLeft();
     }

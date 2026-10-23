@@ -1,3 +1,4 @@
+import '../helpers/iping_session.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -141,6 +142,7 @@ void main() {
     action = TestSetupAction();
     container = ProviderContainer(
       overrides: [
+        connectedAccountOverride,
         profilesProvider.overrideWith(TestProfiles.new),
         setupActionProvider.overrideWith(() => action),
         commonActionProvider.overrideWith(TestCommonAction.new),
@@ -170,6 +172,25 @@ void main() {
   }
 
   group('setRunning gating', () {
+    test(
+      'a signed-out account cannot start even during initialization',
+      () async {
+        final denied = TestSetupAction();
+        final scoped = ProviderContainer(
+          overrides: [setupActionProvider.overrideWith(() => denied)],
+        );
+        addTearDown(scoped.dispose);
+        expect(
+          await scoped
+              .read(setupActionProvider.notifier)
+              .setRunning(true, initialize: true),
+          isFalse,
+        );
+        expect(denied.coreRunningCalls, isEmpty);
+        expect(denied.authorizeCalls, 0);
+      },
+    );
+
     test('ignores a start request before initialization completes', () async {
       await container.read(setupActionProvider.notifier).setRunning(true);
 
@@ -191,6 +212,7 @@ void main() {
       final scopedAction = TestSetupAction();
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => scopedAction),
           commonActionProvider.overrideWith(TestCommonAction.new),
@@ -337,6 +359,7 @@ void main() {
     SetupAction buildScoped() {
       scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(TestSetupAction.new),
           commonActionProvider.overrideWith(TestCommonAction.new),
@@ -429,6 +452,7 @@ void main() {
       action = TestSetupAction();
       container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => action),
           commonActionProvider.overrideWith(TestCommonAction.new),
@@ -450,6 +474,7 @@ void main() {
       action = TestSetupAction();
       container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => action),
           commonActionProvider.overrideWith(TestCommonAction.new),
@@ -494,6 +519,7 @@ void main() {
       action = TestSetupAction();
       container = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => action),
           commonActionProvider.overrideWith(TestCommonAction.new),
@@ -681,6 +707,7 @@ void main() {
       final scopedAction = TestSetupAction();
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => scopedAction),
           safeModeProvider.overrideWithValue(true),
@@ -758,6 +785,7 @@ void main() {
       final scopedAction = TestSetupAction();
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => scopedAction),
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -789,6 +817,7 @@ void main() {
       final scopedAction = TestSetupAction();
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => scopedAction),
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -823,6 +852,7 @@ void main() {
       final scopedAction = TestSetupAction();
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(TestProfiles.new),
           setupActionProvider.overrideWith(() => scopedAction),
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -865,6 +895,7 @@ void main() {
     ProviderContainer buildScoped(List<Profile> profiles, int? profileId) {
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles(profiles)),
           currentProfileIdProvider.overrideWithBuild((_, _) => profileId),
           setupActionProvider.overrideWith(TestSetupAction.new),
@@ -921,6 +952,7 @@ void main() {
       ).copyWith(id: 1, currentGroupName: 'Manual');
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupActionProvider.overrideWith(TestSetupAction.new),
@@ -939,6 +971,7 @@ void main() {
       ).copyWith(id: 1, currentGroupName: 'Manual');
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupActionProvider.overrideWith(TestSetupAction.new),
@@ -1047,6 +1080,7 @@ void main() {
         var preloadRan = false;
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWith(() => TestProfiles([profile])),
             currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
             setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
@@ -1087,6 +1121,7 @@ void main() {
         });
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWith(() => TestProfiles([profile])),
             currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
             setupStateProvider.overrideWith(
@@ -1124,6 +1159,7 @@ void main() {
         when(() => core.setupConfig(any())).thenAnswer((_) async => '');
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileProvider.overrideWithValue(null),
             setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
             coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -1161,6 +1197,7 @@ void main() {
         });
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWith(() => TestProfiles([profile])),
             currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
             setupStateProvider.overrideWith(
@@ -1202,6 +1239,7 @@ void main() {
       var setupState = nullProfileSetupState.copyWith(profileId: profile.id);
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupStateProvider.overrideWith((_, _) => setupState),
@@ -1281,6 +1319,7 @@ void main() {
       });
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupStateProvider.overrideWith(
@@ -1343,6 +1382,7 @@ void main() {
       await configFile.writeAsString('previous');
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           setupStateProvider.overrideWith(
@@ -1398,6 +1438,7 @@ void main() {
       });
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           profilesProvider.overrideWith(() => TestProfiles([profile])),
           setupStateProvider.overrideWith(
             (_, profileId) =>
@@ -1435,6 +1476,7 @@ void main() {
         );
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWith(() => TestProfiles([profile])),
             coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
           ],
@@ -1469,6 +1511,7 @@ void main() {
         when(() => core.stopListener()).thenAnswer((_) async => true);
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             profilesProvider.overrideWith(() => TestProfiles([profile])),
             currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
             setupStateProvider.overrideWith(
@@ -1566,6 +1609,7 @@ void main() {
       );
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
           setupActionProvider.overrideWith(SetupAction.new),
         ],
@@ -1636,6 +1680,7 @@ void main() {
       );
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
           setupActionProvider.overrideWith(SetupAction.new),
         ],
@@ -1693,6 +1738,7 @@ void main() {
       );
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
           setupActionProvider.overrideWith(SetupAction.new),
         ],
@@ -1732,6 +1778,7 @@ void main() {
       when(() => core.getConfig(any())).thenAnswer((_) async => {});
       final scoped = ProviderContainer(
         overrides: [
+          connectedAccountOverride,
           coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
           setupActionProvider.overrideWith(SetupAction.new),
         ],
@@ -1765,6 +1812,7 @@ void main() {
         when(() => core.setupConfig(any())).thenThrow(StateError('rejected'));
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileProvider.overrideWithValue(null),
             setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
             coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -1789,6 +1837,7 @@ void main() {
         when(() => core.setupConfig(any())).thenAnswer((_) async => '');
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileProvider.overrideWithValue(null),
             setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
             coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
@@ -1819,6 +1868,7 @@ void main() {
         ).thenAnswer((_) async => 'config rejected');
         final scoped = ProviderContainer(
           overrides: [
+            connectedAccountOverride,
             currentProfileProvider.overrideWithValue(null),
             setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
             coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),

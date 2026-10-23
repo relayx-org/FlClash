@@ -15,8 +15,8 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/views/disclaimer.dart';
 import 'package:fl_clash/views/navigation.dart';
+import 'package:fl_clash/iping/providers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -140,8 +140,7 @@ class Bootstrap {
     final profiles = await database.profilesDao.query().get();
     container.read(profilesProvider.notifier).reorder(profiles);
     await AppLocalizations.load(
-      getLocaleForString(config.appSettingProps.locale) ??
-          WidgetsBinding.instance.platformDispatcher.locale,
+      getLocaleForString(config.appSettingProps.locale) ?? defaultAppLocale,
     );
     await window?.init(version, config.windowProps);
     if (system.isAndroid) {
@@ -163,10 +162,6 @@ class Bootstrap {
   Future<void> _initApp() async {
     unawaited(_container.read(systemActionProvider.notifier).updateTray());
     unawaited(
-      _container.read(profilesActionProvider.notifier).autoUpdateProfiles(),
-    );
-    unawaited(_container.read(commonActionProvider.notifier).autoCheckUpdate());
-    unawaited(
       autoLaunch?.updateStatus(_container.read(appSettingProvider).autoLaunch),
     );
     if (!_container.read(appSettingProvider).silentLaunch) {
@@ -175,12 +170,14 @@ class Bootstrap {
       unawaited(window?.hide());
     }
     await _handleFailedPreference();
-    if (!await _handlerDisclaimer()) {
-      return;
-    }
     await _showCrashRecoveryTip();
     await _container.read(coreActionProvider.notifier).startCore();
-    if (!_bootDecision.isDegraded) {
+    await _container
+        .read(ipingSessionProvider.notifier)
+        .controller
+        .initialize();
+    if (!_bootDecision.isDegraded &&
+        _container.read(ipingSessionProvider).canConnect) {
       await _container.read(setupActionProvider.notifier).initStatus();
     }
     _container.read(initProvider.notifier).value = true;
@@ -233,29 +230,6 @@ class Bootstrap {
     }
     // Saving here would rewrite the preferences file the user just chose to delete.
     await _container.read(systemActionProvider.notifier).handleExit(false);
-  }
-
-  /// Android's exit only finishes the activity, so Dart keeps running after
-  /// [SystemAction.handleExit] returns and must not go on to start the app.
-  Future<bool> _handlerDisclaimer() async {
-    final acceptedVersion = _container.read(
-      appSettingProvider.select((state) => state.acceptedDisclaimerVersion),
-    );
-    if (acceptedVersion >= disclaimerVersion) {
-      return true;
-    }
-    final isDisclaimerAccepted = await requestDisclaimerConsent();
-    if (!isDisclaimerAccepted) {
-      await _container.read(systemActionProvider.notifier).handleExit();
-      return false;
-    }
-    _container
-        .read(appSettingProvider.notifier)
-        .update(
-          (state) =>
-              state.copyWith(acceptedDisclaimerVersion: disclaimerVersion),
-        );
-    return true;
   }
 }
 

@@ -9,8 +9,7 @@ const changelogTitle = '# Changelog';
 const changelogFrozenMarker = '<!-- changelog:frozen -->';
 
 const changelogFrozenNote =
-    '<!-- Entries below predate the structured pipeline. Their wording is kept as '
-    'written; only the heading and list style were normalized. -->';
+    '<!-- Upstream FlClash history is preserved below the iPing release baseline. -->';
 
 const releaseBeginMarker = '<!-- flclash:changelog:begin -->';
 const releaseEndMarker = '<!-- flclash:changelog:end -->';

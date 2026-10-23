@@ -43,6 +43,7 @@ class SecretTextFormField extends StatefulWidget {
   final ValueChanged<String>? onFieldSubmitted;
   final FormFieldValidator<String>? validator;
   final bool autofocus;
+  final Iterable<String>? autofillHints;
 
   const SecretTextFormField({
     super.key,
@@ -56,6 +57,7 @@ class SecretTextFormField extends StatefulWidget {
     this.onFieldSubmitted,
     this.validator,
     this.autofocus = false,
+    this.autofillHints,
   });
 
   @override
@@ -70,6 +72,7 @@ class _SecretTextFormFieldState extends State<SecretTextFormField> {
     final localizations = UiLocalizations.of(context);
     return TextFormField(
       autofocus: widget.autofocus,
+      autofillHints: widget.autofillHints,
       focusNode: widget.focusNode,
       controller: widget.controller,
       obscureText: _obscure,

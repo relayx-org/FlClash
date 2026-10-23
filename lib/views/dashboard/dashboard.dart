@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/brand.dart';
+import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -58,11 +60,56 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     final editing = _editing;
     final gap = cardSpacingOf(context, ref.watch(viewModeProvider));
     final appLocalizations = context.appLocalizations;
+    final logoUrl = ref.watch(
+      ipingSiteConfigProvider.select((site) => site.logoUrl),
+    );
+    final content = LayoutBuilder(
+      builder: (context, constraints) {
+        final room = constraints.biggest / scale;
+        final layout = DashboardDensity.of(room);
+        return DashboardDensityScope(
+          density: layout,
+          scale: scale,
+          child: layout.isDesktop
+              ? _DesktopDashboard(
+                  platform: platform,
+                  columns: dashboardColumnsOf(room.width),
+                  gap: gap,
+                )
+              : _MobileDashboard(
+                  platform: platform,
+                  gap: gap,
+                  editing: editing,
+                  cardKeyOf: _cardKeyOf,
+                  onDone: () => _setEditing(false),
+                ),
+        );
+      },
+    );
     return CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
           : appLocalizations.dashboard,
+      titleWidget: editing
+          ? null
+          : LayoutBuilder(
+              builder: (context, constraints) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (constraints.maxWidth >= 120) ...[
+                    IpingLogo(src: logoUrl, size: 28),
+                    const SizedBox(width: 10),
+                  ],
+                  Flexible(
+                    child: Text(
+                      appLocalizations.dashboard,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
       backAction: editing ? () => _setEditing(false) : null,
       actions: [if (!editing && coreLib == null) const CoreStatusButton()],
       confirmationAction: editing
@@ -80,30 +127,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             onPressed: () => _setEditing(true),
           ),
       ],
-      // The providers learn a resize a frame late, too late for the cards.
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final room = constraints.biggest / scale;
-          final layout = DashboardDensity.of(room);
-          return DashboardDensityScope(
-            density: layout,
-            scale: scale,
-            child: layout.isDesktop
-                ? _DesktopDashboard(
-                    platform: platform,
-                    columns: dashboardColumnsOf(room.width),
-                    gap: gap,
-                  )
-                : _MobileDashboard(
-                    platform: platform,
-                    gap: gap,
-                    editing: editing,
-                    cardKeyOf: _cardKeyOf,
-                    onDone: () => _setEditing(false),
-                  ),
-          );
-        },
-      ),
+      body: content,
     );
   }
 }

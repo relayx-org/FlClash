@@ -44,6 +44,12 @@ class App {
     return methodChannel.invokeMethod<bool>('moveTaskToBack');
   }
 
+  Future<void> setConnectionAllowed(bool value) async {
+    await methodChannel.invokeMethod<bool>('setConnectionAllowed', {
+      'value': value,
+    });
+  }
+
   Future<List<Package>> getPackages() async {
     final packagesString = await methodChannel.invokeMethod<String>(
       'getPackages',

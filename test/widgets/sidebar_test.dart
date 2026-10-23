@@ -37,6 +37,7 @@ Widget _sidebar({
   VoidCallback? onToggle,
   Size windowControls = Size.zero,
   EdgeInsets safePadding = EdgeInsets.zero,
+  Widget? footer,
 }) {
   return TestApp(
     child: Scaffold(
@@ -54,6 +55,7 @@ Widget _sidebar({
                   onSelected: onSelected ?? (_) {},
                   onToggle: onToggle,
                   windowControls: windowControls,
+                  footer: footer,
                 ),
               ),
             ),
@@ -103,6 +105,29 @@ Finder _rowTooltip(String message) => find.byWidgetPredicate(
 );
 
 void main() {
+  testWidgets('keeps branding visible below the navigation at either width', (
+    tester,
+  ) async {
+    for (final expanded in [false, true]) {
+      await tester.pumpWidget(
+        _sidebar(
+          expanded: expanded,
+          onToggle: () {},
+          footer: const Center(
+            child: SizedBox.square(dimension: 28, key: ValueKey('brand')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final brand = tester.getRect(find.byKey(const ValueKey('brand')));
+      final sidebar = tester.getRect(_sidebarFinder);
+      expect(brand.size, const Size.square(28));
+      expect(sidebar.contains(brand.topLeft), isTrue);
+      expect(sidebar.contains(brand.bottomRight), isTrue);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('the selected row carries a centered indicator', (tester) async {
     await tester.pumpWidget(_sidebar(selectedIndex: 1));
 

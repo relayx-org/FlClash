@@ -301,7 +301,7 @@
   "actionDelayTest": "Probar la latencia de todos",
   "actionUpdateProfiles": "Actualizar perfiles",
   "disclaimer": "Aviso legal",
-  "disclaimerDesc": "Antes de usar FlClash (“el Software”), lee con atención esta declaración y asegúrate de entenderla por completo. Pulsar “Aceptar” significa que has leído, comprendido y aceptado todos los términos siguientes. Si no estás de acuerdo, pulsa “Salir” y deja de usar el Software.",
+  "disclaimerDesc": "Antes de usar iPing (“el Software”), lee con atención esta declaración y asegúrate de entenderla por completo. Pulsar “Aceptar” significa que has leído, comprendido y aceptado todos los términos siguientes. Si no estás de acuerdo, pulsa “Salir” y deja de usar el Software.",
   "disclaimerSoftwareTitle": "Naturaleza del software",
   "disclaimerSoftwareContent": "El Software es un cliente proxy de red de código abierto basado en el núcleo Clash.Meta (mihomo). Solo ofrece herramientas locales como la gestión de configuración, el enrutamiento basado en reglas y el reenvío de tráfico.",
   "disclaimerNoServiceStatement": "El Software en sí no proporciona ningún servidor proxy, nodo, suscripción ni servicio de acceso a la red, y no mantiene ninguna relación de asociación, representación ni garantía con ningún proveedor de dichos servicios.",
@@ -584,11 +584,11 @@
   "strategy": "Estrategia",
   "tolerance": "Tolerancia",
   "inputProxyGroupName": "Introduce el nombre del grupo de proxies",
-  "helperCorruptTip": "El servicio auxiliar (Helper) no está disponible; no se puede activar el modo TUN. Reinstala FlClash para restaurarlo.",
+  "helperCorruptTip": "El servicio auxiliar (Helper) no está disponible; no se puede activar el modo TUN. Reinstala iPing para restaurarlo.",
   "tunAuthorizationFailed": "No se pudo autorizar TUN, por lo que se desactivó.",
   "sudoPasswordTitle": "Introduce tu contraseña para sudo",
-  "coreBlockedByPolicyTip": "Windows se negó a ejecutar FlClashCore.exe (error {code}). Una directiva de control de aplicaciones, como Smart App Control o AppLocker, bloquea los programas sin firmar; permite FlClash en esa directiva o desactívala e inténtalo de nuevo.",
-  "coreBlockedBySmartAppControlTip": "Smart App Control de Windows bloqueó FlClashCore.exe porque no está firmado. Abre Seguridad de Windows → Control de aplicaciones y navegador → Configuración de Smart App Control, elige Desactivado y vuelve a iniciar FlClash. Smart App Control no se puede volver a activar sin reinstalar Windows.",
+  "coreBlockedByPolicyTip": "Windows se negó a ejecutar iPingCore.exe (error {code}). Una directiva de control de aplicaciones, como Smart App Control o AppLocker, bloquea los programas sin firmar; permite iPing en esa directiva o desactívala e inténtalo de nuevo.",
+  "coreBlockedBySmartAppControlTip": "Smart App Control de Windows bloqueó iPingCore.exe porque no está firmado. Abre Seguridad de Windows → Control de aplicaciones y navegador → Configuración de Smart App Control, elige Desactivado y vuelve a iniciar iPing. Smart App Control no se puede volver a activar sin reinstalar Windows.",
   "hideFromList": "Ocultar de la lista",
   "testWhenUsed": "Probar al usarse",
   "disableUDP": "Desactivar UDP",
@@ -825,7 +825,7 @@
   "routingMark": "Marca de enrutamiento",
   "strictRouteDesc": "La ruta estricta evita que el tráfico, como el DNS, eluda TUN y, con IPv6 desactivado, bloquea las conexiones IPv6 de este dispositivo.",
   "initFailed": "Error al iniciar",
-  "initFailedTip": "FlClash encontró un error al iniciarse y no puede continuar. Copia los detalles para informar del problema. Si sigue ocurriendo, borrar los datos suele permitir que la app vuelva a iniciarse.",
+  "initFailedTip": "iPing encontró un error al iniciarse y no puede continuar. Copia los detalles para informar del problema. Si sigue ocurriendo, borrar los datos suele permitir que la app vuelva a iniciarse.",
   "errorDetails": "Detalles del error",
   "stackTrace": "Seguimiento de pila",
   "clearDataAndExitTip": "Esto elimina todos los perfiles, ajustes y datos locales, y luego cierra la app. Ábrela de nuevo para empezar de cero.",
@@ -939,5 +939,130 @@
   "customImportDroppedSubRules": "{count, plural, =1{Se descartó 1 regla SUB-RULE, porque los perfiles personalizados no admiten subreglas} other{Se descartaron {label} reglas SUB-RULE, porque los perfiles personalizados no admiten subreglas}}",
   "autoInclude": "Incluir automáticamente",
   "allReferencedProxies": "Todos los proxies referenciados",
-  "allReferencedProxyProviders": "Todos los proveedores de proxies referenciados"
+  "allReferencedProxyProviders": "Todos los proveedores de proxies referenciados",
+  "ipingWelcome": "Bienvenido a {siteName}",
+  "@ipingWelcome": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingLoginHint": "Inicia sesión para cargar tu suscripción automáticamente.",
+  "ipingEmail": "Correo electrónico",
+  "ipingPassword": "Contraseña",
+  "ipingEmailInvalid": "Introduce un correo electrónico válido.",
+  "ipingPasswordRequired": "Introduce tu contraseña.",
+  "ipingSignIn": "Iniciar sesión",
+  "ipingSignOut": "Cerrar sesión",
+  "ipingForgotPassword": "¿Olvidaste tu contraseña?",
+  "ipingRegister": "Crear una cuenta",
+  "ipingTerms": "Términos del servicio",
+  "ipingPrivacy": "Política de privacidad",
+  "ipingAccount": "Cuenta",
+  "ipingNodeCount": "{count} nodos disponibles",
+  "ipingNoNodes": "No hay nodos disponibles. Gestiona tus servicios en la consola iPing y actualiza.",
+  "ipingSync": "Actualizar suscripción",
+  "ipingSyncing": "Actualizando…",
+  "ipingConsole": "Abrir la consola iPing",
+  "ipingCredentialsError": "El correo o la contraseña son incorrectos.",
+  "ipingSessionExpired": "Tu sesión ya no es válida. Inicia sesión de nuevo.",
+  "ipingNetworkError": "No se puede conectar con iPing. Comprueba la conexión y reinténtalo. Se conserva la última suscripción.",
+  "ipingSubscriptionError": "No se pudo cargar la suscripción. Reinténtalo o contacta con soporte.",
+  "ipingStorageError": "No se pudieron guardar los datos. Comprueba los permisos y reinténtalo.",
+  "@ipingNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingBrowserLogin": "Iniciar sesión en el navegador",
+  "ipingBrowserHint": "Accede al sitio de {siteName} con correo, Google o una clave de acceso. La suscripción se cargará al volver.",
+  "@ipingBrowserHint": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingBrowserWaiting": "Completa el inicio de sesión en el navegador y vuelve a iPing.",
+  "ipingBrandEyebrow": "CONEXIONES GLOBALES",
+  "ipingBrandHeadline": "Un mundo más amplio.",
+  "ipingBrandHeadlineAccent": "Una conexión más sencilla.",
+  "ipingBrandDescription": "Tus suscripciones, nodos y conexiones de red, juntos en tu cuenta habitual.",
+  "ipingFeatureLogin": "Acceso por navegador",
+  "ipingFeatureSync": "Sincronización automática",
+  "ipingFeatureConnect": "Selección flexible de nodos",
+  "ipingDevice": "Tu dispositivo",
+  "ipingNetwork": "Red global",
+  "ipingGateway": "Proxy y túnel",
+  "ipingLoginSecurityNote": "La autenticación se realiza en el navegador. El cliente no guarda tu contraseña.",
+  "ipingRegistrationClosed": "El registro está cerrado. Las cuentas existentes pueden iniciar sesión.",
+  "ipingUpdateRequired": "Actualización necesaria",
+  "ipingUpdateRequiredDesc": "Instala la versión {version} para seguir usando iPing.",
+  "ipingUpdateFailed": "La actualización falló. Comprueba la conexión y los permisos de instalación e inténtalo de nuevo.",
+  "ipingUpdateInstallHint": "Confirma las solicitudes de instalación del sistema. La aplicación se reiniciará tras la actualización.",
+  "ipingVersion": "Versión {version}",
+  "ipingUserId": "ID de usuario {id}",
+  "ipingRefreshAccount": "Actualizar información de la cuenta",
+  "ipingAccountAuthorizeHint": "Inicia sesión de nuevo para autorizar el acceso a la información de tu cuenta.",
+  "ipingAccountAuthorize": "Autorizar acceso a la cuenta",
+  "ipingAccountLoadFailed": "No se pudo cargar la información de la cuenta. Inténtalo de nuevo.",
+  "ipingBalance": "Saldo (CNY)",
+  "ipingAccountActive": "Activa",
+  "ipingAccountInactive": "Desactivada",
+  "ipingJoinedAt": "Fecha de registro",
+  "@ipingUserId": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingAccountInformation": "Información de la cuenta",
+  "ipingTelegram": "Telegram",
+  "ipingTelegramBound": "Vinculado",
+  "ipingTelegramUnbound": "Sin vincular",
+  "ipingApiKey": "Clave API",
+  "ipingApiAuthorized": "Acceso autorizado en este dispositivo",
+  "ipingReferralInformation": "Referidos",
+  "ipingReferralRate": "Porcentaje de comisión",
+  "ipingReferralCount": "Personas referidas",
+  "ipingReferralEarnings": "Ganancias totales (CNY)",
+  "ipingReferralLink": "Enlace de referido",
+  "ipingReferralHint": "Recibe una comisión cuando una persona referida recarga su cuenta.",
+  "ipingNotifications": "Notificaciones de Telegram",
+  "ipingNotifyTopup": "Notificaciones de recarga",
+  "ipingNotifyTunnel": "Caducidad del túnel",
+  "ipingNotifyIp": "Caducidad de la IP",
+  "ipingNotificationsHint": "Estas preferencias coinciden con las del sitio web. Vincula Telegram para recibir notificaciones y cambia las preferencias en la web.",
+  "ipingTraffic30Days": "Tráfico · Últimos 30 días",
+  "ipingActualTraffic": "Tráfico real",
+  "ipingBilledTraffic": "Tráfico facturado",
+  "ipingNoTraffic": "No hay tráfico registrado en este período.",
+  "ipingAccountServices": "Gestionar servicios de la cuenta",
+  "ipingAccountServicesHint": "Recarga, vincula Telegram y gestiona las claves API y notificaciones en la web.",
+  "ipingBilling": "Facturas e historial del saldo",
+  "ipingAccountSettings": "Ajustes de la cuenta",
+  "ipingDiagnostics": "Diagnóstico de conexión",
+  "ipingRunDiagnostics": "Volver a comprobar",
+  "ipingSubscriptionCheck": "Suscripción",
+  "ipingSystemDns": "DNS del sistema · {host}",
+  "@ipingSystemDns": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingDnsOk": "Dirección del servidor resuelta.",
+  "ipingDnsFailed": "No se pudo resolver la dirección. Revisa la red y el DNS.",
+  "ipingProxyCheck": "Estado del proxy",
+  "ipingStartToCheck": "Inicia la conexión para comprobar la salida.",
+  "ipingSafeDiagnostics": "Las comprobaciones del proxy y la salida no están disponibles en modo seguro.",
+  "ipingExitCheck": "Conectividad de la salida actual",
+  "ipingExitOk": "La salida actual respondió.",
+  "ipingExitFailed": "La salida no respondió. Cambia de nodo y vuelve a comprobar.",
+  "ipingDiagnosticsHint": "El DNS y la salida se comprueban por separado. Un fallo de salida no implica un fallo de DNS. No se modifican ajustes de red."
 }

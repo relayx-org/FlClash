@@ -301,7 +301,7 @@
   "actionDelayTest": "모든 지연 테스트",
   "actionUpdateProfiles": "프로필 업데이트",
   "disclaimer": "면책 조항",
-  "disclaimerDesc": "FlClash(이하 “본 소프트웨어”)를 사용하기 전에 이 문서를 주의 깊게 읽고 모든 내용을 이해했는지 확인하세요. “동의”를 누르면 아래 모든 조항을 읽고 이해했으며 수락한 것으로 간주합니다. 동의하지 않으면 “종료”를 누르고 본 소프트웨어의 사용을 중단하세요.",
+  "disclaimerDesc": "iPing(이하 “본 소프트웨어”)를 사용하기 전에 이 문서를 주의 깊게 읽고 모든 내용을 이해했는지 확인하세요. “동의”를 누르면 아래 모든 조항을 읽고 이해했으며 수락한 것으로 간주합니다. 동의하지 않으면 “종료”를 누르고 본 소프트웨어의 사용을 중단하세요.",
   "disclaimerSoftwareTitle": "소프트웨어의 성격",
   "disclaimerSoftwareContent": "본 소프트웨어는 Clash.Meta(mihomo) 코어를 기반으로 한 오픈 소스 네트워크 프록시 클라이언트입니다. 구성 관리, 규칙 기반 라우팅, 트래픽 전달과 같은 로컬 도구만 제공합니다.",
   "disclaimerNoServiceStatement": "본 소프트웨어 자체는 프록시 서버, 노드, 구독, 네트워크 접속 서비스를 일절 제공하지 않으며, 이러한 서비스의 어떤 제공자와도 제휴, 대리 또는 보증 관계가 없습니다.",
@@ -584,11 +584,11 @@
   "strategy": "전략",
   "tolerance": "허용 오차",
   "inputProxyGroupName": "프록시 그룹 이름을 입력하세요",
-  "helperCorruptTip": "헬퍼 서비스를 사용할 수 없어 TUN 모드를 켤 수 없습니다. FlClash를 다시 설치하여 복구하세요.",
+  "helperCorruptTip": "헬퍼 서비스를 사용할 수 없어 TUN 모드를 켤 수 없습니다. iPing를 다시 설치하여 복구하세요.",
   "tunAuthorizationFailed": "TUN 권한을 얻지 못해 끄기로 되돌렸습니다.",
   "sudoPasswordTitle": "sudo 비밀번호를 입력하세요",
-  "coreBlockedByPolicyTip": "Windows에서 FlClashCore.exe 실행을 거부했습니다(오류 {code}). Smart App Control이나 AppLocker와 같은 앱 제어 정책이 서명되지 않은 프로그램을 차단합니다. 해당 정책에서 FlClash를 허용하거나 정책을 끈 후 다시 시도하세요.",
-  "coreBlockedBySmartAppControlTip": "서명되지 않아 Windows Smart App Control이 FlClashCore.exe를 차단했습니다. Windows 보안 → 앱 및 브라우저 컨트롤 → Smart App Control 설정에서 끔을 선택한 후 FlClash를 다시 시작하세요. Smart App Control은 Windows를 다시 설치하지 않으면 다시 켤 수 없습니다.",
+  "coreBlockedByPolicyTip": "Windows에서 iPingCore.exe 실행을 거부했습니다(오류 {code}). Smart App Control이나 AppLocker와 같은 앱 제어 정책이 서명되지 않은 프로그램을 차단합니다. 해당 정책에서 iPing를 허용하거나 정책을 끈 후 다시 시도하세요.",
+  "coreBlockedBySmartAppControlTip": "서명되지 않아 Windows Smart App Control이 iPingCore.exe를 차단했습니다. Windows 보안 → 앱 및 브라우저 컨트롤 → Smart App Control 설정에서 끔을 선택한 후 iPing를 다시 시작하세요. Smart App Control은 Windows를 다시 설치하지 않으면 다시 켤 수 없습니다.",
   "hideFromList": "목록에서 숨기기",
   "testWhenUsed": "사용할 때 테스트",
   "disableUDP": "UDP 사용 안 함",
@@ -825,7 +825,7 @@
   "routingMark": "라우팅 마크",
   "strictRouteDesc": "엄격한 라우팅은 DNS 등의 트래픽이 TUN을 우회하지 못하게 하며, IPv6가 꺼져 있으면 이 기기의 IPv6 연결을 차단합니다.",
   "initFailed": "시작 실패",
-  "initFailedTip": "FlClash를 시작하는 중 오류가 발생하여 계속할 수 없습니다. 세부 정보를 복사하여 문제를 보고하세요. 문제가 계속되면 데이터를 지우면 대개 앱이 다시 시작됩니다.",
+  "initFailedTip": "iPing를 시작하는 중 오류가 발생하여 계속할 수 없습니다. 세부 정보를 복사하여 문제를 보고하세요. 문제가 계속되면 데이터를 지우면 대개 앱이 다시 시작됩니다.",
   "errorDetails": "오류 세부 정보",
   "stackTrace": "스택 트레이스",
   "clearDataAndExitTip": "모든 프로필, 설정, 로컬 데이터를 삭제한 후 앱을 종료합니다. 앱을 다시 열면 처음부터 시작합니다.",
@@ -939,5 +939,130 @@
   "customImportDroppedSubRules": "{count, plural, other{사용자 지정 프로필은 하위 규칙을 지원하지 않아 SUB-RULE 규칙 {label}개를 제외했습니다}}",
   "autoInclude": "자동 포함",
   "allReferencedProxies": "참조된 모든 프록시",
-  "allReferencedProxyProviders": "참조된 모든 프록시 공급자"
+  "allReferencedProxyProviders": "참조된 모든 프록시 공급자",
+  "ipingWelcome": "{siteName}에 오신 것을 환영합니다",
+  "@ipingWelcome": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingLoginHint": "로그인하면 구독을 자동으로 불러옵니다.",
+  "ipingEmail": "이메일",
+  "ipingPassword": "비밀번호",
+  "ipingEmailInvalid": "올바른 이메일 주소를 입력하세요.",
+  "ipingPasswordRequired": "비밀번호를 입력하세요.",
+  "ipingSignIn": "로그인",
+  "ipingSignOut": "로그아웃",
+  "ipingForgotPassword": "비밀번호 찾기",
+  "ipingRegister": "계정 만들기",
+  "ipingTerms": "서비스 약관",
+  "ipingPrivacy": "개인정보 처리방침",
+  "ipingAccount": "계정",
+  "ipingNodeCount": "사용 가능한 노드 {count}개",
+  "ipingNoNodes": "사용 가능한 노드가 없습니다. iPing 콘솔에서 서비스를 확인한 후 새로고침하세요.",
+  "ipingSync": "구독 새로고침",
+  "ipingSyncing": "새로고침 중…",
+  "ipingConsole": "iPing 콘솔 열기",
+  "ipingCredentialsError": "이메일 또는 비밀번호가 올바르지 않습니다.",
+  "ipingSessionExpired": "로그인이 만료되었습니다. 다시 로그인하세요.",
+  "ipingNetworkError": "iPing에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요. 이전 구독은 유지됩니다.",
+  "ipingSubscriptionError": "구독을 불러올 수 없습니다. 다시 시도하거나 고객 지원에 문의하세요.",
+  "ipingStorageError": "계정 정보를 저장할 수 없습니다. 저장소 권한을 확인하고 다시 시도하세요.",
+  "@ipingNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingBrowserLogin": "브라우저로 로그인",
+  "ipingBrowserHint": "{siteName} 웹사이트에서 이메일, Google 또는 패스키로 로그인하면 구독을 자동으로 불러옵니다.",
+  "@ipingBrowserHint": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingBrowserWaiting": "브라우저에서 로그인을 완료한 뒤 iPing으로 돌아오세요.",
+  "ipingBrandEyebrow": "글로벌 네트워크 연결",
+  "ipingBrandHeadline": "더 넓은 세상으로.",
+  "ipingBrandHeadlineAccent": "더 간편한 연결로.",
+  "ipingBrandDescription": "익숙한 계정에서 구독, 노드, 네트워크 연결을 한곳에서 관리하세요.",
+  "ipingFeatureLogin": "브라우저 로그인",
+  "ipingFeatureSync": "구독 자동 동기화",
+  "ipingFeatureConnect": "유연한 노드 선택",
+  "ipingDevice": "내 기기",
+  "ipingNetwork": "글로벌 네트워크",
+  "ipingGateway": "프록시 및 터널",
+  "ipingLoginSecurityNote": "인증은 브라우저에서 이루어집니다. 클라이언트는 비밀번호를 저장하지 않습니다.",
+  "ipingRegistrationClosed": "현재 신규 가입이 중단되었습니다. 기존 계정으로 로그인할 수 있습니다.",
+  "ipingUpdateRequired": "업데이트 필요",
+  "ipingUpdateRequiredDesc": "iPing을 계속 사용하려면 {version} 버전을 설치하세요.",
+  "ipingUpdateFailed": "업데이트에 실패했습니다. 네트워크 연결과 설치 권한을 확인한 후 다시 시도하세요.",
+  "ipingUpdateInstallHint": "시스템 설치 승인 절차를 완료하세요. 업데이트 후 앱이 다시 시작됩니다.",
+  "ipingVersion": "버전 {version}",
+  "ipingUserId": "사용자 ID {id}",
+  "ipingRefreshAccount": "계정 정보 새로고침",
+  "ipingAccountAuthorizeHint": "계정 정보에 대한 접근을 허용하려면 다시 로그인하세요.",
+  "ipingAccountAuthorize": "계정 접근 허용",
+  "ipingAccountLoadFailed": "계정 정보를 불러올 수 없습니다. 다시 시도하세요.",
+  "ipingBalance": "잔액 (CNY)",
+  "ipingAccountActive": "활성",
+  "ipingAccountInactive": "비활성",
+  "ipingJoinedAt": "가입일",
+  "@ipingUserId": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingAccountInformation": "계정 정보",
+  "ipingTelegram": "Telegram",
+  "ipingTelegramBound": "연결됨",
+  "ipingTelegramUnbound": "연결 안 됨",
+  "ipingApiKey": "API 키",
+  "ipingApiAuthorized": "이 기기에서 접근 허용됨",
+  "ipingReferralInformation": "추천 정보",
+  "ipingReferralRate": "수수료율",
+  "ipingReferralCount": "추천한 사용자 수",
+  "ipingReferralEarnings": "총 수익 (CNY)",
+  "ipingReferralLink": "추천 링크",
+  "ipingReferralHint": "추천한 사용자가 계정을 충전하면 수수료율에 따른 수익을 받습니다.",
+  "ipingNotifications": "Telegram 알림",
+  "ipingNotifyTopup": "충전 알림",
+  "ipingNotifyTunnel": "터널 만료 알림",
+  "ipingNotifyIp": "IP 만료 알림",
+  "ipingNotificationsHint": "웹사이트와 같은 알림 설정입니다. Telegram을 연결하면 알림을 받을 수 있으며, 설정은 웹사이트에서 변경할 수 있습니다.",
+  "ipingTraffic30Days": "트래픽 · 최근 30일",
+  "ipingActualTraffic": "실제 트래픽",
+  "ipingBilledTraffic": "과금 트래픽",
+  "ipingNoTraffic": "이 기간에 기록된 트래픽이 없습니다.",
+  "ipingAccountServices": "계정 서비스 관리",
+  "ipingAccountServicesHint": "웹사이트에서 충전, Telegram 연결, API 키 및 알림 관리를 할 수 있습니다.",
+  "ipingBilling": "청구 및 잔액 내역",
+  "ipingAccountSettings": "계정 설정",
+  "ipingDiagnostics": "연결 진단",
+  "ipingRunDiagnostics": "다시 확인",
+  "ipingSubscriptionCheck": "구독 상태",
+  "ipingSystemDns": "시스템 DNS · {host}",
+  "@ipingSystemDns": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingDnsOk": "서버 주소를 확인했습니다.",
+  "ipingDnsFailed": "주소를 확인할 수 없습니다. 네트워크와 시스템 DNS를 확인하세요.",
+  "ipingProxyCheck": "프록시 상태",
+  "ipingStartToCheck": "연결을 시작하면 현재 출구를 확인할 수 있습니다.",
+  "ipingSafeDiagnostics": "안전 모드에서는 프록시와 출구를 확인할 수 없습니다.",
+  "ipingExitCheck": "현재 출구 연결",
+  "ipingExitOk": "현재 출구가 정상 응답했습니다.",
+  "ipingExitFailed": "출구가 응답하지 않습니다. 노드를 변경하고 다시 확인하세요.",
+  "ipingDiagnosticsHint": "시스템 DNS와 출구는 별도로 확인합니다. 출구 실패만으로 DNS 오류를 판단할 수 없으며 네트워크 설정을 변경하지 않습니다."
 }

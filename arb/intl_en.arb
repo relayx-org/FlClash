@@ -301,7 +301,7 @@
   "actionDelayTest": "Test all delays",
   "actionUpdateProfiles": "Update profiles",
   "disclaimer": "Disclaimer",
-  "disclaimerDesc": "Before using FlClash (\"the Software\"), please read this statement carefully and make sure you understand all of it. Tapping \"Agree\" means you have read, understood, and accept every term below. If you do not agree, tap \"Exit\" and stop using the Software.",
+  "disclaimerDesc": "Before using iPing (\"the Software\"), please read this statement carefully and make sure you understand all of it. Tapping \"Agree\" means you have read, understood, and accept every term below. If you do not agree, tap \"Exit\" and stop using the Software.",
   "disclaimerSoftwareTitle": "Nature of the software",
   "disclaimerSoftwareContent": "The Software is an open-source network proxy client built on the Clash.Meta (mihomo) core. It only provides local tooling such as configuration management, rule-based routing, and traffic forwarding.",
   "disclaimerNoServiceStatement": "The Software itself does not provide any proxy server, node, subscription, or network access service, and has no partnership, agency, or guarantee relationship with any provider of such services.",
@@ -584,11 +584,11 @@
   "strategy": "Strategy",
   "tolerance": "Tolerance",
   "inputProxyGroupName": "Enter the proxy group name",
-  "helperCorruptTip": "Helper service unavailable; TUN mode cannot be enabled. Reinstall FlClash to restore it.",
+  "helperCorruptTip": "Helper service unavailable; TUN mode cannot be enabled. Reinstall iPing to restore it.",
   "tunAuthorizationFailed": "TUN could not be authorized, so it was turned off.",
   "sudoPasswordTitle": "Enter your password for sudo",
-  "coreBlockedByPolicyTip": "Windows refused to run FlClashCore.exe (error {code}). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow FlClash in that policy or turn it off, then try again.",
-  "coreBlockedBySmartAppControlTip": "Windows Smart App Control blocked FlClashCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start FlClash again. Smart App Control cannot be turned back on without reinstalling Windows.",
+  "coreBlockedByPolicyTip": "Windows refused to run iPingCore.exe (error {code}). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow iPing in that policy or turn it off, then try again.",
+  "coreBlockedBySmartAppControlTip": "Windows Smart App Control blocked iPingCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start iPing again. Smart App Control cannot be turned back on without reinstalling Windows.",
   "hideFromList": "Hide from list",
   "testWhenUsed": "Test when used",
   "disableUDP": "Disable UDP",
@@ -825,7 +825,7 @@
   "routingMark": "Routing mark",
   "strictRouteDesc": "Strict route keeps traffic such as DNS from bypassing TUN, and with IPv6 off it blocks this device's IPv6 connections.",
   "initFailed": "Startup failed",
-  "initFailedTip": "FlClash ran into an error while starting and can't continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.",
+  "initFailedTip": "iPing ran into an error while starting and can't continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.",
   "errorDetails": "Error details",
   "stackTrace": "Stack trace",
   "clearDataAndExitTip": "This deletes all profiles, settings, and local data, then closes the app. Open it again to start fresh.",
@@ -939,5 +939,130 @@
   "customImportDroppedSubRules": "{count, plural, =1{1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules} other{{label} SUB-RULE rules were dropped, since custom profiles do not support sub-rules}}",
   "autoInclude": "Auto-include",
   "allReferencedProxies": "All referenced proxies",
-  "allReferencedProxyProviders": "All referenced proxy providers"
+  "allReferencedProxyProviders": "All referenced proxy providers",
+  "ipingWelcome": "Welcome to {siteName}",
+  "@ipingWelcome": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingLoginHint": "Sign in to load your subscription automatically.",
+  "ipingEmail": "Email",
+  "ipingPassword": "Password",
+  "ipingEmailInvalid": "Enter a valid email address.",
+  "ipingPasswordRequired": "Enter your password.",
+  "ipingSignIn": "Sign in",
+  "ipingSignOut": "Sign out",
+  "ipingForgotPassword": "Forgot password?",
+  "ipingRegister": "Create an account",
+  "ipingTerms": "Terms of service",
+  "ipingPrivacy": "Privacy policy",
+  "ipingAccount": "Account",
+  "ipingNodeCount": "{count} available nodes",
+  "ipingNoNodes": "No available nodes. Manage your services in the iPing console, then refresh.",
+  "ipingSync": "Refresh subscription",
+  "ipingSyncing": "Refreshing…",
+  "ipingConsole": "Open iPing console",
+  "ipingCredentialsError": "The email or password is incorrect.",
+  "ipingSessionExpired": "Your session is no longer valid. Please sign in again.",
+  "ipingNetworkError": "Unable to reach iPing. Check your connection and retry. Your last subscription is kept.",
+  "ipingSubscriptionError": "The subscription could not be loaded. Retry or contact iPing support.",
+  "ipingStorageError": "Unable to save account data. Check system storage permissions and retry.",
+  "@ipingNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingBrowserLogin": "Sign in with browser",
+  "ipingBrowserHint": "Use email, Google, or a passkey on the {siteName} website. Return here to load your subscription automatically.",
+  "@ipingBrowserHint": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingBrowserWaiting": "Complete sign-in in your browser, then return to iPing.",
+  "ipingBrandEyebrow": "GLOBAL CONNECTIVITY",
+  "ipingBrandHeadline": "A wider world.",
+  "ipingBrandHeadlineAccent": "A simpler connection.",
+  "ipingBrandDescription": "Your subscriptions, nodes, and network connections, together in one familiar account.",
+  "ipingFeatureLogin": "Browser sign-in",
+  "ipingFeatureSync": "Automatic subscriptions",
+  "ipingFeatureConnect": "Flexible routing",
+  "ipingDevice": "Your device",
+  "ipingNetwork": "Global network",
+  "ipingGateway": "Proxy & tunnel",
+  "ipingLoginSecurityNote": "Sign-in is verified in your browser. Your password stays out of the client.",
+  "ipingRegistrationClosed": "Registration is currently closed. Existing accounts can still sign in.",
+  "ipingUpdateRequired": "Update required",
+  "ipingUpdateRequiredDesc": "Install version {version} to continue using iPing.",
+  "ipingUpdateFailed": "The update failed. Check your connection and installation permissions, then retry.",
+  "ipingUpdateInstallHint": "Complete any system installation prompts. The application restarts after the update.",
+  "ipingVersion": "Version {version}",
+  "ipingUserId": "User ID {id}",
+  "ipingRefreshAccount": "Refresh account information",
+  "ipingAccountAuthorizeHint": "Sign in again to authorize access to your account information.",
+  "ipingAccountAuthorize": "Authorize account access",
+  "ipingAccountLoadFailed": "Unable to load account information. Please try again.",
+  "ipingBalance": "Balance (CNY)",
+  "ipingAccountActive": "Active",
+  "ipingAccountInactive": "Disabled",
+  "ipingJoinedAt": "Joined",
+  "@ipingUserId": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingAccountInformation": "Account information",
+  "ipingTelegram": "Telegram",
+  "ipingTelegramBound": "Linked",
+  "ipingTelegramUnbound": "Not linked",
+  "ipingApiKey": "API Key",
+  "ipingApiAuthorized": "Authorized on this device",
+  "ipingReferralInformation": "Referrals",
+  "ipingReferralRate": "Commission rate",
+  "ipingReferralCount": "People referred",
+  "ipingReferralEarnings": "Total earnings (CNY)",
+  "ipingReferralLink": "Referral link",
+  "ipingReferralHint": "Earn a commission when someone you refer tops up their account.",
+  "ipingNotifications": "Telegram notifications",
+  "ipingNotifyTopup": "Top-up notifications",
+  "ipingNotifyTunnel": "Tunnel expiry reminders",
+  "ipingNotifyIp": "IP expiry reminders",
+  "ipingNotificationsHint": "These preferences match the website. Link Telegram to receive notifications; change preferences on the website.",
+  "ipingTraffic30Days": "Traffic · Last 30 days",
+  "ipingActualTraffic": "Actual traffic",
+  "ipingBilledTraffic": "Billed traffic",
+  "ipingNoTraffic": "No traffic recorded in this period.",
+  "ipingAccountServices": "Manage account services",
+  "ipingAccountServicesHint": "Top up, link Telegram, and manage API keys and notifications on the website.",
+  "ipingBilling": "Billing and balance history",
+  "ipingAccountSettings": "Account settings",
+  "ipingDiagnostics": "Connection diagnostics",
+  "ipingRunDiagnostics": "Check again",
+  "ipingSubscriptionCheck": "Subscription",
+  "ipingSystemDns": "System DNS · {host}",
+  "@ipingSystemDns": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingDnsOk": "Server address resolved successfully.",
+  "ipingDnsFailed": "Unable to resolve the server address. Check your network and system DNS, then retry.",
+  "ipingProxyCheck": "Proxy status",
+  "ipingStartToCheck": "Start the connection to check the current exit.",
+  "ipingSafeDiagnostics": "Safe mode: proxy and exit checks are unavailable.",
+  "ipingExitCheck": "Current exit connectivity",
+  "ipingExitOk": "The current exit responded successfully.",
+  "ipingExitFailed": "The exit did not respond. Try another node and check again.",
+  "ipingDiagnosticsHint": "System DNS and exit checks are separate. A failed exit check does not by itself indicate a DNS fault. No network settings are changed."
 }

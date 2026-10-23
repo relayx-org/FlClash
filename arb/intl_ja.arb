@@ -301,7 +301,7 @@
   "actionDelayTest": "すべての遅延をテスト",
   "actionUpdateProfiles": "プロファイルを更新",
   "disclaimer": "免責事項",
-  "disclaimerDesc": "FlClash（以下「本ソフトウェア」）をご利用になる前に、本声明の内容をよくお読みになり、十分にご理解ください。「同意する」をタップすると、以下のすべての条項を読み、理解し、承諾したものとみなされます。同意いただけない場合は「終了」をタップし、本ソフトウェアの使用を中止してください。",
+  "disclaimerDesc": "iPing（以下「本ソフトウェア」）をご利用になる前に、本声明の内容をよくお読みになり、十分にご理解ください。「同意する」をタップすると、以下のすべての条項を読み、理解し、承諾したものとみなされます。同意いただけない場合は「終了」をタップし、本ソフトウェアの使用を中止してください。",
   "disclaimerSoftwareTitle": "ソフトウェアの性質",
   "disclaimerSoftwareContent": "本ソフトウェアは Clash.Meta（mihomo）コアをベースとしたオープンソースのネットワークプロキシクライアントであり、設定管理、ルールによる振り分け、トラフィック転送などのローカルツール機能のみを提供します。",
   "disclaimerNoServiceStatement": "本ソフトウェア自体は、プロキシサーバー、ノード、サブスクリプション、ネットワーク接続サービスを一切提供しておらず、それらのサービス提供者と提携、代理、保証の関係はありません。",
@@ -584,11 +584,11 @@
   "strategy": "戦略",
   "tolerance": "許容値",
   "inputProxyGroupName": "プロキシグループ名を入力してください",
-  "helperCorruptTip": "Helper サービスが利用できないため、TUN モードを有効にできません。FlClash を再インストールしてください。",
+  "helperCorruptTip": "Helper サービスが利用できないため、TUN モードを有効にできません。iPing を再インストールしてください。",
   "tunAuthorizationFailed": "TUN の権限を取得できなかったため、オフにしました。",
   "sudoPasswordTitle": "sudo のパスワードを入力",
-  "coreBlockedByPolicyTip": "Windows が FlClashCore.exe の実行を拒否しました（エラー {code}）。スマート アプリ コントロールや AppLocker などのアプリ制御ポリシーは未署名のプログラムをブロックします。ポリシーで FlClash を許可するか、ポリシーを無効にしてから再試行してください。",
-  "coreBlockedBySmartAppControlTip": "Windows のスマート アプリ コントロールが、署名されていない FlClashCore.exe をブロックしました。Windows セキュリティ → アプリとブラウザーの制御 → スマート アプリ コントロールの設定で「オフ」を選び、FlClash を再起動してください。一度オフにすると、Windows を再インストールしない限り再度オンにはできません。",
+  "coreBlockedByPolicyTip": "Windows が iPingCore.exe の実行を拒否しました（エラー {code}）。スマート アプリ コントロールや AppLocker などのアプリ制御ポリシーは未署名のプログラムをブロックします。ポリシーで iPing を許可するか、ポリシーを無効にしてから再試行してください。",
+  "coreBlockedBySmartAppControlTip": "Windows のスマート アプリ コントロールが、署名されていない iPingCore.exe をブロックしました。Windows セキュリティ → アプリとブラウザーの制御 → スマート アプリ コントロールの設定で「オフ」を選び、iPing を再起動してください。一度オフにすると、Windows を再インストールしない限り再度オンにはできません。",
   "hideFromList": "リストから隠す",
   "testWhenUsed": "使用時にテスト",
   "disableUDP": "UDPを無効化",
@@ -825,7 +825,7 @@
   "routingMark": "ルーティングマーク",
   "strictRouteDesc": "厳格なルーティングは DNS などの通信が TUN を迂回するのを防ぎます。IPv6 がオフの場合、この端末の IPv6 通信は遮断されます。",
   "initFailed": "起動に失敗しました",
-  "initFailedTip": "FlClash の起動中にエラーが発生したため、続行できません。詳細をコピーして問題を報告できます。繰り返し発生する場合は、データを消去すると起動できるようになることがあります。",
+  "initFailedTip": "iPing の起動中にエラーが発生したため、続行できません。詳細をコピーして問題を報告できます。繰り返し発生する場合は、データを消去すると起動できるようになることがあります。",
   "errorDetails": "エラーの詳細",
   "stackTrace": "スタックトレース",
   "clearDataAndExitTip": "すべてのプロファイル、設定、ローカルデータを削除してアプリを終了します。もう一度開くと最初から始められます。",
@@ -939,5 +939,130 @@
   "customImportDroppedSubRules": "{count, plural, other{カスタム設定はサブルールに対応していないため、SUB-RULE ルール {label} 件を破棄しました}}",
   "autoInclude": "自動で含める",
   "allReferencedProxies": "参照されているすべてのプロキシ",
-  "allReferencedProxyProviders": "参照されているすべてのプロキシプロバイダー"
+  "allReferencedProxyProviders": "参照されているすべてのプロキシプロバイダー",
+  "ipingWelcome": "{siteName} へようこそ",
+  "@ipingWelcome": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingLoginHint": "ログインするとサブスクリプションを自動で読み込みます。",
+  "ipingEmail": "メールアドレス",
+  "ipingPassword": "パスワード",
+  "ipingEmailInvalid": "有効なメールアドレスを入力してください。",
+  "ipingPasswordRequired": "パスワードを入力してください。",
+  "ipingSignIn": "ログイン",
+  "ipingSignOut": "ログアウト",
+  "ipingForgotPassword": "パスワードをお忘れですか？",
+  "ipingRegister": "アカウントを作成",
+  "ipingTerms": "利用規約",
+  "ipingPrivacy": "プライバシーポリシー",
+  "ipingAccount": "アカウント",
+  "ipingNodeCount": "利用可能なノード：{count}",
+  "ipingNoNodes": "利用可能なノードがありません。iPing コンソールでサービスを管理してから更新してください。",
+  "ipingSync": "サブスクリプションを更新",
+  "ipingSyncing": "更新中…",
+  "ipingConsole": "iPing コンソールを開く",
+  "ipingCredentialsError": "メールアドレスまたはパスワードが正しくありません。",
+  "ipingSessionExpired": "セッションが無効です。もう一度ログインしてください。",
+  "ipingNetworkError": "iPing に接続できません。接続を確認して再試行してください。前回の設定は保持されています。",
+  "ipingSubscriptionError": "サブスクリプションを読み込めません。再試行するかサポートに連絡してください。",
+  "ipingStorageError": "アカウント情報を保存できません。保存権限を確認して再試行してください。",
+  "@ipingNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingBrowserLogin": "ブラウザでログイン",
+  "ipingBrowserHint": "{siteName} サイトでメール、Google、パスキーを使ってログインすると、サブスクリプションを自動的に読み込みます。",
+  "@ipingBrowserHint": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingBrowserWaiting": "ブラウザでログインを完了し、iPing に戻ってください。",
+  "ipingBrandEyebrow": "グローバルな接続",
+  "ipingBrandHeadline": "もっと広い世界へ。",
+  "ipingBrandHeadlineAccent": "もっとシンプルな接続を。",
+  "ipingBrandDescription": "使い慣れたアカウントでサブスクリプション、ノード、ネットワーク接続を一元管理。",
+  "ipingFeatureLogin": "ブラウザーでログイン",
+  "ipingFeatureSync": "サブスクリプション自動同期",
+  "ipingFeatureConnect": "柔軟なノード選択",
+  "ipingDevice": "デバイス",
+  "ipingNetwork": "世界のネットワーク",
+  "ipingGateway": "プロキシとトンネル",
+  "ipingLoginSecurityNote": "認証はブラウザーで行います。クライアントはパスワードを保存しません。",
+  "ipingRegistrationClosed": "現在、新規登録は受け付けていません。既存のアカウントでログインできます。",
+  "ipingUpdateRequired": "更新が必要です",
+  "ipingUpdateRequiredDesc": "iPing を引き続き利用するには、バージョン {version} をインストールしてください。",
+  "ipingUpdateFailed": "更新に失敗しました。ネットワーク接続とインストール権限を確認して再試行してください。",
+  "ipingUpdateInstallHint": "システムのインストール確認を完了してください。更新後にアプリが再起動します。",
+  "ipingVersion": "バージョン {version}",
+  "ipingUserId": "ユーザー ID {id}",
+  "ipingRefreshAccount": "アカウント情報を更新",
+  "ipingAccountAuthorizeHint": "アカウント情報の表示を許可するには、再度ログインしてください。",
+  "ipingAccountAuthorize": "アカウントへのアクセスを許可",
+  "ipingAccountLoadFailed": "アカウント情報を読み込めません。もう一度お試しください。",
+  "ipingBalance": "残高（人民元）",
+  "ipingAccountActive": "有効",
+  "ipingAccountInactive": "無効",
+  "ipingJoinedAt": "登録日時",
+  "@ipingUserId": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingAccountInformation": "アカウント情報",
+  "ipingTelegram": "Telegram",
+  "ipingTelegramBound": "連携済み",
+  "ipingTelegramUnbound": "未連携",
+  "ipingApiKey": "API Key",
+  "ipingApiAuthorized": "このデバイスで認証済み",
+  "ipingReferralInformation": "紹介情報",
+  "ipingReferralRate": "報酬率",
+  "ipingReferralCount": "紹介人数",
+  "ipingReferralEarnings": "累計報酬（人民元）",
+  "ipingReferralLink": "紹介リンク",
+  "ipingReferralHint": "紹介したユーザーがチャージすると、報酬率に応じた報酬を受け取れます。",
+  "ipingNotifications": "Telegram 通知",
+  "ipingNotifyTopup": "チャージ通知",
+  "ipingNotifyTunnel": "トンネル有効期限の通知",
+  "ipingNotifyIp": "IP 有効期限の通知",
+  "ipingNotificationsHint": "Web と同じ通知設定です。Telegram と連携すると通知を受信できます。設定は Web で変更できます。",
+  "ipingTraffic30Days": "通信量 · 過去 30 日間",
+  "ipingActualTraffic": "実際の通信量",
+  "ipingBilledTraffic": "課金対象の通信量",
+  "ipingNoTraffic": "この期間の通信記録はありません。",
+  "ipingAccountServices": "アカウントサービス管理",
+  "ipingAccountServicesHint": "Web でチャージ、Telegram 連携、API キーと通知の管理ができます。",
+  "ipingBilling": "請求と残高履歴",
+  "ipingAccountSettings": "アカウント設定",
+  "ipingDiagnostics": "接続診断",
+  "ipingRunDiagnostics": "再チェック",
+  "ipingSubscriptionCheck": "サブスクリプション",
+  "ipingSystemDns": "システム DNS · {host}",
+  "@ipingSystemDns": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingDnsOk": "サーバーアドレスを解決できました。",
+  "ipingDnsFailed": "アドレスを解決できません。ネットワークとシステム DNS を確認してください。",
+  "ipingProxyCheck": "プロキシ状態",
+  "ipingStartToCheck": "接続を開始して出口を確認してください。",
+  "ipingSafeDiagnostics": "セーフモードではプロキシと出口を確認できません。",
+  "ipingExitCheck": "現在の出口の接続",
+  "ipingExitOk": "現在の出口から応答がありました。",
+  "ipingExitFailed": "出口から応答がありません。ノードを変更して再確認してください。",
+  "ipingDiagnosticsHint": "システム DNS と出口は別々に確認します。出口の失敗だけでは DNS 障害と判断できません。ネットワーク設定は変更しません。"
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/system_dns.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/account.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -159,6 +160,7 @@ class _Sidebar extends ConsumerWidget {
     );
     final version = ref.watch(versionProvider);
     return NavigationSidebar(
+      footer: const IpingAccountButton(),
       destinations: [
         for (final item in items)
           SidebarDestination(glyph: item.glyph, label: item.label.label),

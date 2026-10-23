@@ -30,12 +30,6 @@ class Navigation implements NavigationPort {
             : [],
       ),
       NavigationItem(
-        glyph: AppGlyphs.profiles,
-        label: PageLabel.profiles,
-        builder: (_) =>
-            const ProfilesView(key: GlobalObjectKey(PageLabel.profiles)),
-      ),
-      NavigationItem(
         glyph: AppGlyphs.requests,
         label: PageLabel.requests,
         builder: (_) =>
@@ -72,7 +66,7 @@ class Navigation implements NavigationPort {
             : [],
       ),
       NavigationItem(
-        glyph: AppGlyphs.tools,
+        glyph: AppGlyphs.settings,
         label: PageLabel.tools,
         builder: (_) => const ToolsView(key: GlobalObjectKey(PageLabel.tools)),
         modes: [NavigationItemMode.desktop, NavigationItemMode.mobile],

@@ -63,6 +63,72 @@ the hooks again. The editor and IPC socket tests still need the Rust library: ke
 on, or point `FRB_DART_LOAD_EXTERNAL_LIBRARY_NATIVE_LIB_DIR` at a directory that
 holds a `rust_api` library built from the same sources.
 
+## iPing Updates
+
+Release builds check `https://video.iping.my/releases/latest.json` at startup,
+on resume (at most once every five minutes), and hourly. A newer version blocks
+normal navigation and connections until installed; a known required update is
+cached across restarts and remains required while offline. Debug and safe mode
+builds do not check for updates. Override the base URL at build time with
+`--dart-define=IPING_UPDATE_BASE_URL=https://example.com/releases/`.
+
+Build all existing architectures with `setup.dart` and collect their `dist/`
+artifacts in one directory. macOS also produces a ZIP with `ditto` to preserve
+framework symlinks and signatures; Linux produces ZIP, DEB, RPM, and AppImage.
+Publish through the existing `minio` rclone remote:
+
+```bash
+bash tool/publish_update.sh --artifacts dist
+```
+
+The publisher requires the full platform matrix, computes SHA-256 and sizes,
+uploads immutable `<version>+<build>/` packages into `iping/releases/`, checks the
+uploads, then replaces `latest.json` last. Bump `pubspec.yaml` before each release.
+Use `--allow-partial` only with a separate test bucket/path and base URL; clients
+whose platform is missing cannot install that release.
+
+Publishing a GitHub Release starts the package builds and checks. CI attaches
+the packages and `SHA256SUMS` to that release without replacing its description.
+Stable releases also run `publish-minio` after the upload succeeds; GitHub
+prereleases leave the production update manifest unchanged. All jobs use GitHub-hosted runners.
+The MinIO job uploads through `https://minio.long2ice.io` with path-style addressing; its
+public ingress must allow S3 upload methods under `/iping/releases/`. Configure
+`MINIO_ACCESS_KEY_ID` and `MINIO_SECRET_ACCESS_KEY` as CI secrets. Credentials
+stay out of the application and manifest.
+
+Android uses `ota_update` and requires the same APK signing key as the installed
+app. CI requires `KEYSTORE` (base64 JKS), `KEY_ALIAS`, `STORE_PASSWORD`, and
+`KEY_PASSWORD`; missing signing secrets fail the build before publishing a
+development APK. Windows runs the existing Inno Setup installer and restarts after installation;
+Authenticode is optional. macOS replaces the app bundle after verifying its code
+signature. macOS release jobs import `MACOS_CERTIFICATE` (base64 Developer ID P12)
+with `MACOS_CERTIFICATE_PASSWORD` and sign with `CODESIGN_IDENTITY`. Apple notarization
+uses `APPLE_API_PRIVATE_KEY` (base64 P8), `APPLE_API_KEY`, and `APPLE_API_ISSUER`.
+The packaging hook signs and notarizes the app before creating both DMG and ZIP.
+Linux uses the system package manager with elevation for DEB/RPM,
+or replaces the writable AppImage/ZIP installation. System permission and Android
+installation confirmations still apply.
+
+## iPing Client Authentication
+
+The `iping` website confirms browser sign-in through `POST /api/user/client-login`.
+The backend's `api_key` is the subscription token; its `access_key` is the API
+credential. The callback carries a one-time code and state; the client exchanges
+the code using its PKCE verifier and saves both credentials in secure session storage. Older sessions
+without an API key remain usable for subscriptions.
+
+Authenticated reads use `ref.read(ipingAuthenticatedApiProvider).get<Map<String, dynamic>>('user/info')`.
+The public `ipingApiProvider` handles site configuration, browser login URLs and subscriptions;
+the session depends only on that public client, keeping API credential lookup out of its dependencies.
+The client reads the current account's API key for each request, sends it in the
+Bearer header, and restricts requests to the configured site's API paths without
+following redirects. Public site configuration and subscription downloads remain
+anonymous. Deploy the website and backend changes, then sign in again to add the
+API key to an existing client session.
+
+Connection diagnostics read `user/info` for account authorization and check system DNS separately
+from the existing routed exit probe. Account operations remain in the sidebar footer or the mobile settings menu.
+
 ## Flutter Development
 
 Use the default Flutter SDK directly:
@@ -251,7 +317,7 @@ bullets when a release predates it.
 
 ```bash
 dart run tool/changelog.dart verify                  # what CI checks
-dart run tool/changelog.dart release --version 0.8.96
+dart run tool/changelog.dart release --version 0.1.0
 dart run tool/changelog.dart build --unreleased      # changelog.json only, includes untagged work
 dart run tool/changelog.dart render release --out release.md
 dart run tool/changelog.dart render telegram --out telegram.md
@@ -261,18 +327,21 @@ Releasing a stable version, in order:
 
 ```bash
 tool/bump_version.sh all
-dart run tool/changelog.dart release --version 0.8.96
-git commit -am "chore(release): v0.8.96"
-git tag v0.8.96
-git push origin main && git push origin v0.8.96
+dart run tool/changelog.dart release --version 0.1.0
+git commit -am "chore(release): v0.1.0"
+git tag v0.1.0
+git push origin main && git push origin v0.1.0
+dart run tool/changelog.dart render release --tag v0.1.0 --out /tmp/iping-release.md
+gh release create v0.1.0 --verify-tag --title v0.1.0 --notes-file /tmp/iping-release.md
 ```
 
-Push the tag by name. Every release tag here is lightweight, and `--follow-tags` carries annotated tags only: it skips a
-lightweight one silently, so the branch lands, the tag does not, and the release workflow never fires.
+Push the tag by name: `--follow-tags` does not carry lightweight tags. Publishing
+the GitHub Release, through the UI or `gh release create`, starts the release
+workflow; pushing a tag alone does not build or publish packages.
 
 `tool/release.sh` drives both paths so the ordering below cannot be got wrong by hand. It resolves the version (bumping
 the patch when pubspec still names an already tagged one), prints the notes the tag would ship, and only pushes with
-`--push`:
+`--push`. It prepares the tag; publish a GitHub Release for that tag afterwards:
 
 ```bash
 tool/release.sh pre --dry-run     # plan and notes, changes nothing
@@ -285,18 +354,22 @@ the tag is what `render release` reads. CI never writes back to the repository; 
 `changelog.json` may be edited by hand as long as no derivable entry disappears and every entry still points at a commit
 inside that version's range.
 
-Entries at or below `v0.8.96` are frozen: they predate the pipeline, live under the `<!-- changelog:frozen -->` marker
-in `CHANGELOG.md`, and are never regenerated.
+The upstream history at commit `8d4f9744948751f1273fe871e1d05276fac09b0e` is frozen
+under the `<!-- changelog:frozen -->` marker in `CHANGELOG.md`. iPing starts a new
+version series at `0.1.0`; the builder excludes tags already reachable at that baseline.
+The initial fork release uses `release --freeze-history` once to preserve all upstream notes.
 
 `verify` compares a version only when its tag is reachable from `HEAD`, because that is the same scope the builder walks
 (`git tag --merged`). A branch cut before the newest release cannot derive that version at all, so `verify` names it as
 skipped and moves on instead of reporting drift that does not exist. Checking mere tag existence is what made every such
 branch fail on an unrelated release.
 
-Prerelease tags (`v0.8.96-pre.N`) skip the release commit, and CI renders their notes with `build --unreleased` for the
-Telegram post. They publish no GitHub release, so the update dialog never sees them. `build --unreleased` reads the
-version from `pubspec.yaml` rather than the tag, so the patch has to be bumped before the first `-pre.N` of a cycle:
-while `v<pubspec version>` is still tagged it refuses to collect anything and the release job fails.
+Prerelease tags (`v0.1.0-pre.N`) skip the release commit. Publish their GitHub
+Release with **Set as a pre-release** selected, or pass `--prerelease` to
+`gh release create`. CI attaches the packages but does not update MinIO's
+production manifest. Generate their notes with `build --unreleased` before
+rendering; this reads the base version from `pubspec.yaml`, which must be bumped
+before the first prerelease of a cycle.
 
 ### Website
 
@@ -323,14 +396,13 @@ the logo's 30° lattice. `site/assets/field.js` draws the hero's capsules on tha
 proportions, and the slanted wipes, the dot-to-bar marks and the theme transition reuse the same angle. Text that sits
 inside the hero has to be listed in `wireField` in `app.js`, or the capsules run behind it.
 
-`.github/workflows/pages.yaml` deploys it after every successful stable tag build and on pushes to `main` that touch the
-site, in the public repository only; its Pages source has to be set to GitHub Actions once. The file names come from the
+`.github/workflows/pages.yaml` deploys it after a successful stable release workflow and on pushes to `main` that touch the
+site; its Pages source has to be set to GitHub Actions once. The file names come from the
 release matrix in `build.yaml`, so a renamed artifact needs the same change in `buildsFor` in `site/assets/app.js`.
 
 ## Verify
 
-In the public repository every branch push runs the `dart` job; in the private
-`origin` every check job runs only when started by hand (`workflow_dispatch`).
+Every branch push, published GitHub Release, and manual run starts the checks.
 The `dart` job performs these root-package checks in order:
 
 ```bash
@@ -348,7 +420,7 @@ new hook script needs only its test file next to it, not a workflow step.
 
 Run `flutter analyze` before committing; CI fails on anything it reports.
 
-Release builds run only for `v*` tag pushes; pull requests trigger nothing.
+Release builds run only when a GitHub Release is published; pull requests trigger nothing.
 Root analysis excludes `plugins/**`, and root tests do not discover nested
 plugin packages, so parallel jobs validate the rest from their own package
 directories: `plugins` (local Flutter packages and the setup build tool), `go`
@@ -356,10 +428,10 @@ directories: `plugins` (local Flutter packages and the setup build tool), `go`
 for `:common`, `:service` and `:app`, with the Flutter compile tasks excluded
 and the gomobile AAR built for one ABI), `rust` (both crates), and a
 Windows runner for the helper's `windows-service` feature. On branch pushes a
-`desktop` job also compiles a debug build per desktop platform; a tag skips it,
-since its release matrix compiles the same native code. Release builds run only
-in the public repository and start alongside the checks; `upload` publishes
-only once every build and every check job passes.
+`desktop` job also compiles a debug build per desktop platform; a release skips
+it, since its release matrix compiles the same native code. Release builds start
+alongside the checks; `upload` attaches packages only once every build and every
+check job passes.
 
 `bash tool/check_plugins.sh` is that plugin gate, and CI runs the same script.
 It discovers every `plugins/*/pubspec.yaml`, analyzes each package, and runs

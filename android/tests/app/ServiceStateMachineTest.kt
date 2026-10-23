@@ -1,11 +1,11 @@
-package com.follow.clash
+package my.iping.client
 
-import com.follow.clash.common.AccessControlMode
-import com.follow.clash.models.SetupParams
-import com.follow.clash.models.SharedState
-import com.follow.clash.service.models.AccessControlProps
-import com.follow.clash.service.models.NotificationParams
-import com.follow.clash.service.models.VpnOptions
+import my.iping.client.common.AccessControlMode
+import my.iping.client.models.SetupParams
+import my.iping.client.models.SharedState
+import my.iping.client.service.models.AccessControlProps
+import my.iping.client.service.models.NotificationParams
+import my.iping.client.service.models.VpnOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -102,7 +102,7 @@ private class FakeHost(override val scope: CoroutineScope) : ServiceStateHost {
     var lastStartOptions: VpnOptions? = null
 
     override var runtime: ServiceRuntime? = null
-    override val homeDirPath = "/data/user/0/com.follow.clash/files"
+    override val homeDirPath = "/data/user/0/my.iping.client/files"
     override val sdkInt = 34
 
     val toasts = mutableListOf<String>()

@@ -2370,10 +2370,10 @@ class AppLocalizations {
     return Intl.message('Disclaimer', name: 'disclaimer', desc: '', args: []);
   }
 
-  /// `Before using FlClash ("the Software"), please read this statement carefully and make sure you understand all of it. Tapping "Agree" means you have read, understood, and accept every term below. If you do not agree, tap "Exit" and stop using the Software.`
+  /// `Before using iPing ("the Software"), please read this statement carefully and make sure you understand all of it. Tapping "Agree" means you have read, understood, and accept every term below. If you do not agree, tap "Exit" and stop using the Software.`
   String get disclaimerDesc {
     return Intl.message(
-      'Before using FlClash ("the Software"), please read this statement carefully and make sure you understand all of it. Tapping "Agree" means you have read, understood, and accept every term below. If you do not agree, tap "Exit" and stop using the Software.',
+      'Before using iPing ("the Software"), please read this statement carefully and make sure you understand all of it. Tapping "Agree" means you have read, understood, and accept every term below. If you do not agree, tap "Exit" and stop using the Software.',
       name: 'disclaimerDesc',
       desc: '',
       args: [],
@@ -4760,10 +4760,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Helper service unavailable; TUN mode cannot be enabled. Reinstall FlClash to restore it.`
+  /// `Helper service unavailable; TUN mode cannot be enabled. Reinstall iPing to restore it.`
   String get helperCorruptTip {
     return Intl.message(
-      'Helper service unavailable; TUN mode cannot be enabled. Reinstall FlClash to restore it.',
+      'Helper service unavailable; TUN mode cannot be enabled. Reinstall iPing to restore it.',
       name: 'helperCorruptTip',
       desc: '',
       args: [],
@@ -4790,20 +4790,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Windows refused to run FlClashCore.exe (error {code}). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow FlClash in that policy or turn it off, then try again.`
+  /// `Windows refused to run iPingCore.exe (error {code}). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow iPing in that policy or turn it off, then try again.`
   String coreBlockedByPolicyTip(Object code) {
     return Intl.message(
-      'Windows refused to run FlClashCore.exe (error $code). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow FlClash in that policy or turn it off, then try again.',
+      'Windows refused to run iPingCore.exe (error $code). An app control policy such as Smart App Control or AppLocker blocks unsigned programs; allow iPing in that policy or turn it off, then try again.',
       name: 'coreBlockedByPolicyTip',
       desc: '',
       args: [code],
     );
   }
 
-  /// `Windows Smart App Control blocked FlClashCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start FlClash again. Smart App Control cannot be turned back on without reinstalling Windows.`
+  /// `Windows Smart App Control blocked iPingCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start iPing again. Smart App Control cannot be turned back on without reinstalling Windows.`
   String get coreBlockedBySmartAppControlTip {
     return Intl.message(
-      'Windows Smart App Control blocked FlClashCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start FlClash again. Smart App Control cannot be turned back on without reinstalling Windows.',
+      'Windows Smart App Control blocked iPingCore.exe because it is not signed. Open Windows Security → App & browser control → Smart App Control settings, choose Off, then start iPing again. Smart App Control cannot be turned back on without reinstalling Windows.',
       name: 'coreBlockedBySmartAppControlTip',
       desc: '',
       args: [],
@@ -6838,10 +6838,10 @@ class AppLocalizations {
     );
   }
 
-  /// `FlClash ran into an error while starting and can't continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.`
+  /// `iPing ran into an error while starting and can't continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.`
   String get initFailedTip {
     return Intl.message(
-      'FlClash ran into an error while starting and can\'t continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.',
+      'iPing ran into an error while starting and can\'t continue. Copy the details to report the problem. If it keeps happening, clearing the data usually lets the app start again.',
       name: 'initFailedTip',
       desc: '',
       args: [],
@@ -7832,6 +7832,861 @@ class AppLocalizations {
     return Intl.message(
       'All referenced proxy providers',
       name: 'allReferencedProxyProviders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Welcome to {siteName}`
+  String ipingWelcome(String siteName) {
+    return Intl.message(
+      'Welcome to $siteName',
+      name: 'ipingWelcome',
+      desc: '',
+      args: [siteName],
+    );
+  }
+
+  /// `Sign in to load your subscription automatically.`
+  String get ipingLoginHint {
+    return Intl.message(
+      'Sign in to load your subscription automatically.',
+      name: 'ipingLoginHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Email`
+  String get ipingEmail {
+    return Intl.message('Email', name: 'ipingEmail', desc: '', args: []);
+  }
+
+  /// `Password`
+  String get ipingPassword {
+    return Intl.message('Password', name: 'ipingPassword', desc: '', args: []);
+  }
+
+  /// `Enter a valid email address.`
+  String get ipingEmailInvalid {
+    return Intl.message(
+      'Enter a valid email address.',
+      name: 'ipingEmailInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter your password.`
+  String get ipingPasswordRequired {
+    return Intl.message(
+      'Enter your password.',
+      name: 'ipingPasswordRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign in`
+  String get ipingSignIn {
+    return Intl.message('Sign in', name: 'ipingSignIn', desc: '', args: []);
+  }
+
+  /// `Sign out`
+  String get ipingSignOut {
+    return Intl.message('Sign out', name: 'ipingSignOut', desc: '', args: []);
+  }
+
+  /// `Forgot password?`
+  String get ipingForgotPassword {
+    return Intl.message(
+      'Forgot password?',
+      name: 'ipingForgotPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create an account`
+  String get ipingRegister {
+    return Intl.message(
+      'Create an account',
+      name: 'ipingRegister',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Terms of service`
+  String get ipingTerms {
+    return Intl.message(
+      'Terms of service',
+      name: 'ipingTerms',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Privacy policy`
+  String get ipingPrivacy {
+    return Intl.message(
+      'Privacy policy',
+      name: 'ipingPrivacy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Account`
+  String get ipingAccount {
+    return Intl.message('Account', name: 'ipingAccount', desc: '', args: []);
+  }
+
+  /// `{count} available nodes`
+  String ipingNodeCount(int count) {
+    return Intl.message(
+      '$count available nodes',
+      name: 'ipingNodeCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `No available nodes. Manage your services in the iPing console, then refresh.`
+  String get ipingNoNodes {
+    return Intl.message(
+      'No available nodes. Manage your services in the iPing console, then refresh.',
+      name: 'ipingNoNodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh subscription`
+  String get ipingSync {
+    return Intl.message(
+      'Refresh subscription',
+      name: 'ipingSync',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refreshing…`
+  String get ipingSyncing {
+    return Intl.message(
+      'Refreshing…',
+      name: 'ipingSyncing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open iPing console`
+  String get ipingConsole {
+    return Intl.message(
+      'Open iPing console',
+      name: 'ipingConsole',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The email or password is incorrect.`
+  String get ipingCredentialsError {
+    return Intl.message(
+      'The email or password is incorrect.',
+      name: 'ipingCredentialsError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your session is no longer valid. Please sign in again.`
+  String get ipingSessionExpired {
+    return Intl.message(
+      'Your session is no longer valid. Please sign in again.',
+      name: 'ipingSessionExpired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to reach iPing. Check your connection and retry. Your last subscription is kept.`
+  String get ipingNetworkError {
+    return Intl.message(
+      'Unable to reach iPing. Check your connection and retry. Your last subscription is kept.',
+      name: 'ipingNetworkError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The subscription could not be loaded. Retry or contact iPing support.`
+  String get ipingSubscriptionError {
+    return Intl.message(
+      'The subscription could not be loaded. Retry or contact iPing support.',
+      name: 'ipingSubscriptionError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to save account data. Check system storage permissions and retry.`
+  String get ipingStorageError {
+    return Intl.message(
+      'Unable to save account data. Check system storage permissions and retry.',
+      name: 'ipingStorageError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign in with browser`
+  String get ipingBrowserLogin {
+    return Intl.message(
+      'Sign in with browser',
+      name: 'ipingBrowserLogin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use email, Google, or a passkey on the {siteName} website. Return here to load your subscription automatically.`
+  String ipingBrowserHint(String siteName) {
+    return Intl.message(
+      'Use email, Google, or a passkey on the $siteName website. Return here to load your subscription automatically.',
+      name: 'ipingBrowserHint',
+      desc: '',
+      args: [siteName],
+    );
+  }
+
+  /// `Complete sign-in in your browser, then return to iPing.`
+  String get ipingBrowserWaiting {
+    return Intl.message(
+      'Complete sign-in in your browser, then return to iPing.',
+      name: 'ipingBrowserWaiting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `GLOBAL CONNECTIVITY`
+  String get ipingBrandEyebrow {
+    return Intl.message(
+      'GLOBAL CONNECTIVITY',
+      name: 'ipingBrandEyebrow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A wider world.`
+  String get ipingBrandHeadline {
+    return Intl.message(
+      'A wider world.',
+      name: 'ipingBrandHeadline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A simpler connection.`
+  String get ipingBrandHeadlineAccent {
+    return Intl.message(
+      'A simpler connection.',
+      name: 'ipingBrandHeadlineAccent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your subscriptions, nodes, and network connections, together in one familiar account.`
+  String get ipingBrandDescription {
+    return Intl.message(
+      'Your subscriptions, nodes, and network connections, together in one familiar account.',
+      name: 'ipingBrandDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Browser sign-in`
+  String get ipingFeatureLogin {
+    return Intl.message(
+      'Browser sign-in',
+      name: 'ipingFeatureLogin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatic subscriptions`
+  String get ipingFeatureSync {
+    return Intl.message(
+      'Automatic subscriptions',
+      name: 'ipingFeatureSync',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Flexible routing`
+  String get ipingFeatureConnect {
+    return Intl.message(
+      'Flexible routing',
+      name: 'ipingFeatureConnect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your device`
+  String get ipingDevice {
+    return Intl.message('Your device', name: 'ipingDevice', desc: '', args: []);
+  }
+
+  /// `Global network`
+  String get ipingNetwork {
+    return Intl.message(
+      'Global network',
+      name: 'ipingNetwork',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Proxy & tunnel`
+  String get ipingGateway {
+    return Intl.message(
+      'Proxy & tunnel',
+      name: 'ipingGateway',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign-in is verified in your browser. Your password stays out of the client.`
+  String get ipingLoginSecurityNote {
+    return Intl.message(
+      'Sign-in is verified in your browser. Your password stays out of the client.',
+      name: 'ipingLoginSecurityNote',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Registration is currently closed. Existing accounts can still sign in.`
+  String get ipingRegistrationClosed {
+    return Intl.message(
+      'Registration is currently closed. Existing accounts can still sign in.',
+      name: 'ipingRegistrationClosed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update required`
+  String get ipingUpdateRequired {
+    return Intl.message(
+      'Update required',
+      name: 'ipingUpdateRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Install version {version} to continue using iPing.`
+  String ipingUpdateRequiredDesc(Object version) {
+    return Intl.message(
+      'Install version $version to continue using iPing.',
+      name: 'ipingUpdateRequiredDesc',
+      desc: '',
+      args: [version],
+    );
+  }
+
+  /// `The update failed. Check your connection and installation permissions, then retry.`
+  String get ipingUpdateFailed {
+    return Intl.message(
+      'The update failed. Check your connection and installation permissions, then retry.',
+      name: 'ipingUpdateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complete any system installation prompts. The application restarts after the update.`
+  String get ipingUpdateInstallHint {
+    return Intl.message(
+      'Complete any system installation prompts. The application restarts after the update.',
+      name: 'ipingUpdateInstallHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Version {version}`
+  String ipingVersion(Object version) {
+    return Intl.message(
+      'Version $version',
+      name: 'ipingVersion',
+      desc: '',
+      args: [version],
+    );
+  }
+
+  /// `User ID {id}`
+  String ipingUserId(int id) {
+    return Intl.message(
+      'User ID $id',
+      name: 'ipingUserId',
+      desc: '',
+      args: [id],
+    );
+  }
+
+  /// `Refresh account information`
+  String get ipingRefreshAccount {
+    return Intl.message(
+      'Refresh account information',
+      name: 'ipingRefreshAccount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign in again to authorize access to your account information.`
+  String get ipingAccountAuthorizeHint {
+    return Intl.message(
+      'Sign in again to authorize access to your account information.',
+      name: 'ipingAccountAuthorizeHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authorize account access`
+  String get ipingAccountAuthorize {
+    return Intl.message(
+      'Authorize account access',
+      name: 'ipingAccountAuthorize',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load account information. Please try again.`
+  String get ipingAccountLoadFailed {
+    return Intl.message(
+      'Unable to load account information. Please try again.',
+      name: 'ipingAccountLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance (CNY)`
+  String get ipingBalance {
+    return Intl.message(
+      'Balance (CNY)',
+      name: 'ipingBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Active`
+  String get ipingAccountActive {
+    return Intl.message(
+      'Active',
+      name: 'ipingAccountActive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disabled`
+  String get ipingAccountInactive {
+    return Intl.message(
+      'Disabled',
+      name: 'ipingAccountInactive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Joined`
+  String get ipingJoinedAt {
+    return Intl.message('Joined', name: 'ipingJoinedAt', desc: '', args: []);
+  }
+
+  /// `Account information`
+  String get ipingAccountInformation {
+    return Intl.message(
+      'Account information',
+      name: 'ipingAccountInformation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Telegram`
+  String get ipingTelegram {
+    return Intl.message('Telegram', name: 'ipingTelegram', desc: '', args: []);
+  }
+
+  /// `Linked`
+  String get ipingTelegramBound {
+    return Intl.message(
+      'Linked',
+      name: 'ipingTelegramBound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not linked`
+  String get ipingTelegramUnbound {
+    return Intl.message(
+      'Not linked',
+      name: 'ipingTelegramUnbound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `API Key`
+  String get ipingApiKey {
+    return Intl.message('API Key', name: 'ipingApiKey', desc: '', args: []);
+  }
+
+  /// `Authorized on this device`
+  String get ipingApiAuthorized {
+    return Intl.message(
+      'Authorized on this device',
+      name: 'ipingApiAuthorized',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Referrals`
+  String get ipingReferralInformation {
+    return Intl.message(
+      'Referrals',
+      name: 'ipingReferralInformation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Commission rate`
+  String get ipingReferralRate {
+    return Intl.message(
+      'Commission rate',
+      name: 'ipingReferralRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `People referred`
+  String get ipingReferralCount {
+    return Intl.message(
+      'People referred',
+      name: 'ipingReferralCount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total earnings (CNY)`
+  String get ipingReferralEarnings {
+    return Intl.message(
+      'Total earnings (CNY)',
+      name: 'ipingReferralEarnings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Referral link`
+  String get ipingReferralLink {
+    return Intl.message(
+      'Referral link',
+      name: 'ipingReferralLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Earn a commission when someone you refer tops up their account.`
+  String get ipingReferralHint {
+    return Intl.message(
+      'Earn a commission when someone you refer tops up their account.',
+      name: 'ipingReferralHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Telegram notifications`
+  String get ipingNotifications {
+    return Intl.message(
+      'Telegram notifications',
+      name: 'ipingNotifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Top-up notifications`
+  String get ipingNotifyTopup {
+    return Intl.message(
+      'Top-up notifications',
+      name: 'ipingNotifyTopup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel expiry reminders`
+  String get ipingNotifyTunnel {
+    return Intl.message(
+      'Tunnel expiry reminders',
+      name: 'ipingNotifyTunnel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP expiry reminders`
+  String get ipingNotifyIp {
+    return Intl.message(
+      'IP expiry reminders',
+      name: 'ipingNotifyIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These preferences match the website. Link Telegram to receive notifications; change preferences on the website.`
+  String get ipingNotificationsHint {
+    return Intl.message(
+      'These preferences match the website. Link Telegram to receive notifications; change preferences on the website.',
+      name: 'ipingNotificationsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic · Last 30 days`
+  String get ipingTraffic30Days {
+    return Intl.message(
+      'Traffic · Last 30 days',
+      name: 'ipingTraffic30Days',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Actual traffic`
+  String get ipingActualTraffic {
+    return Intl.message(
+      'Actual traffic',
+      name: 'ipingActualTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Billed traffic`
+  String get ipingBilledTraffic {
+    return Intl.message(
+      'Billed traffic',
+      name: 'ipingBilledTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No traffic recorded in this period.`
+  String get ipingNoTraffic {
+    return Intl.message(
+      'No traffic recorded in this period.',
+      name: 'ipingNoTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage account services`
+  String get ipingAccountServices {
+    return Intl.message(
+      'Manage account services',
+      name: 'ipingAccountServices',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Top up, link Telegram, and manage API keys and notifications on the website.`
+  String get ipingAccountServicesHint {
+    return Intl.message(
+      'Top up, link Telegram, and manage API keys and notifications on the website.',
+      name: 'ipingAccountServicesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Billing and balance history`
+  String get ipingBilling {
+    return Intl.message(
+      'Billing and balance history',
+      name: 'ipingBilling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Account settings`
+  String get ipingAccountSettings {
+    return Intl.message(
+      'Account settings',
+      name: 'ipingAccountSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection diagnostics`
+  String get ipingDiagnostics {
+    return Intl.message(
+      'Connection diagnostics',
+      name: 'ipingDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check again`
+  String get ipingRunDiagnostics {
+    return Intl.message(
+      'Check again',
+      name: 'ipingRunDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscription`
+  String get ipingSubscriptionCheck {
+    return Intl.message(
+      'Subscription',
+      name: 'ipingSubscriptionCheck',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System DNS · {host}`
+  String ipingSystemDns(String host) {
+    return Intl.message(
+      'System DNS · $host',
+      name: 'ipingSystemDns',
+      desc: '',
+      args: [host],
+    );
+  }
+
+  /// `Server address resolved successfully.`
+  String get ipingDnsOk {
+    return Intl.message(
+      'Server address resolved successfully.',
+      name: 'ipingDnsOk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to resolve the server address. Check your network and system DNS, then retry.`
+  String get ipingDnsFailed {
+    return Intl.message(
+      'Unable to resolve the server address. Check your network and system DNS, then retry.',
+      name: 'ipingDnsFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Proxy status`
+  String get ipingProxyCheck {
+    return Intl.message(
+      'Proxy status',
+      name: 'ipingProxyCheck',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start the connection to check the current exit.`
+  String get ipingStartToCheck {
+    return Intl.message(
+      'Start the connection to check the current exit.',
+      name: 'ipingStartToCheck',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Safe mode: proxy and exit checks are unavailable.`
+  String get ipingSafeDiagnostics {
+    return Intl.message(
+      'Safe mode: proxy and exit checks are unavailable.',
+      name: 'ipingSafeDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current exit connectivity`
+  String get ipingExitCheck {
+    return Intl.message(
+      'Current exit connectivity',
+      name: 'ipingExitCheck',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The current exit responded successfully.`
+  String get ipingExitOk {
+    return Intl.message(
+      'The current exit responded successfully.',
+      name: 'ipingExitOk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The exit did not respond. Try another node and check again.`
+  String get ipingExitFailed {
+    return Intl.message(
+      'The exit did not respond. Try another node and check again.',
+      name: 'ipingExitFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System DNS and exit checks are separate. A failed exit check does not by itself indicate a DNS fault. No network settings are changed.`
+  String get ipingDiagnosticsHint {
+    return Intl.message(
+      'System DNS and exit checks are separate. A failed exit check does not by itself indicate a DNS fault. No network settings are changed.',
+      name: 'ipingDiagnosticsHint',
       desc: '',
       args: [],
     );

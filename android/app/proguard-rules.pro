@@ -1,4 +1,4 @@
 
--keep class com.follow.clash.models.** { *; }
+-keep class my.iping.client.models.** { *; }
 
--keep class com.follow.clash.service.models.** { *; }
+-keep class my.iping.client.service.models.** { *; }

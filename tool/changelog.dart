@@ -7,7 +7,7 @@ import 'src/changelog/git.dart';
 import 'src/changelog/models.dart';
 import 'src/changelog/render.dart';
 
-const _repository = 'chen08209/FlClash';
+const _repository = 'long2ice/FlClash';
 
 Future<void> main(List<String> arguments) async {
   final parser = ArgParser()
@@ -15,7 +15,13 @@ Future<void> main(List<String> arguments) async {
 
   parser.addCommand('release')
     ..addOption('version', help: 'Version being released, without the v.')
-    ..addOption('date', help: 'Release date, defaults to today.');
+    ..addOption('date', help: 'Release date, defaults to today.')
+    ..addFlag(
+      'freeze-history',
+      negatable: false,
+      help:
+          'Preserve all existing Markdown entries below the release baseline.',
+    );
 
   parser
       .addCommand('build')
@@ -67,7 +73,11 @@ int _release(String root, ArgResults command) {
   );
   _printWarnings(result.warnings);
   _writeData(root, result.changelog);
-  _writeMarkdown(root, result.changelog);
+  _writeMarkdown(
+    root,
+    result.changelog,
+    freezeHistory: command.flag('freeze-history'),
+  );
   stdout.writeln('Wrote $changelogMarkdownPath and $changelogDataPath');
   return 0;
 }
@@ -254,10 +264,20 @@ void _writeData(String root, Changelog changelog) {
   file.writeAsStringSync(encodeChangelog(changelog));
 }
 
-void _writeMarkdown(String root, Changelog changelog) {
+void _writeMarkdown(
+  String root,
+  Changelog changelog, {
+  bool freezeHistory = false,
+}) {
   final file = resolve(root, changelogMarkdownPath);
   final existing = file.existsSync() ? file.readAsStringSync() : '';
-  file.writeAsStringSync(mergeMarkdown(renderMarkdown(changelog), existing));
+  file.writeAsStringSync(
+    mergeMarkdown(
+      renderMarkdown(changelog),
+      existing,
+      freezeHistory: freezeHistory,
+    ),
+  );
 }
 
 void _printWarnings(List<String> warnings) {

@@ -20,6 +20,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/glyph_finders.dart';
+import '../helpers/iping_session.dart';
 import '../helpers/test_app.dart';
 
 Finder _glyph(Glyph glyph) => find.byGlyph(glyph);
@@ -28,6 +29,19 @@ void main() {
   setUp(() {
     navigationPort = navigation;
     addTearDown(() => navigationPort = null);
+  });
+
+  test('desktop navigation keeps connection pages and settings', () {
+    final destinations = navigation
+        .getItems(hasProxies: true)
+        .where((item) => item.modes.contains(NavigationItemMode.desktop))
+        .map((item) => item.label);
+    expect(destinations, [
+      PageLabel.dashboard,
+      PageLabel.proxies,
+      PageLabel.connections,
+      PageLabel.tools,
+    ]);
   });
 
   testWidgets('initial desktop layout does not animate mobile navigation out', (
@@ -266,7 +280,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.getSize(sidebar).width, 48);
-    expect(find.text('Tools'), findsNWidgets(2));
+    expect(find.text('Settings'), findsNWidgets(2));
     expect(container.read(appSettingProvider).sidebarExpanded, isTrue);
     expect(tester.takeException(), isNull);
   });
@@ -409,48 +423,56 @@ void main() {
     },
   );
 
-  testWidgets(
-    'profile trailing controls stay valid while a maximized window restores',
-    (tester) async {
-      tester.view.physicalSize = const Size(1440, 900);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('sidebar account stays valid while a maximized window restores', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      final profile = Profile.normal();
-      final container = ProviderContainer(
-        overrides: [
-          profilesProvider.overrideWith(() => _HomeTestProfiles([profile])),
-          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
-          versionProvider.overrideWithBuild((_, _) => 15),
-        ],
-      );
-      addTearDown(container.dispose);
-      globalState.container = container;
-      container
-          .read(currentPageLabelProvider.notifier)
-          .toPage(PageLabel.profiles);
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const TestApp(
-            includeNavigatorKey: false,
-            child: ThemeManager(
-              child: WindowHeaderContainer(child: HomePage()),
-            ),
+    final container = ProviderContainer(
+      overrides: [
+        navigationItemsStateProvider.overrideWithValue(
+          NavigationItemsState(
+            value: [
+              NavigationItem(
+                glyph: AppGlyphs.dashboard,
+                label: PageLabel.dashboard,
+                builder: (_) => const SizedBox.shrink(),
+              ),
+              NavigationItem(
+                glyph: AppGlyphs.settings,
+                label: PageLabel.tools,
+                builder: (_) => const SizedBox.shrink(),
+              ),
+            ],
           ),
         ),
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(tester.takeException(), isNull);
+        versionProvider.overrideWithBuild((_, _) => 15),
+        connectedAccountOverride,
+      ],
+    );
+    addTearDown(container.dispose);
+    globalState.container = container;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const TestApp(
+          includeNavigatorKey: false,
+          child: ThemeManager(child: WindowHeaderContainer(child: HomePage())),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.byTooltip('Account\ntest@example.com'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
-      tester.view.physicalSize = const Size(380, 900);
-      await tester.pump(const Duration(milliseconds: 16));
-      expect(tester.takeException(), isNull);
-    },
-  );
+    tester.view.physicalSize = const Size(380, 900);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'desktop navigation keeps the tools route when logs are enabled',
@@ -1463,15 +1485,6 @@ class _NavigationItems extends Notifier<List<NavigationItem>> {
   List<NavigationItem> build() => const [];
 
   void set(List<NavigationItem> items) => state = items;
-}
-
-class _HomeTestProfiles extends Profiles {
-  final List<Profile> initial;
-
-  _HomeTestProfiles(this.initial);
-
-  @override
-  List<Profile> build() => initial;
 }
 
 class _InitRecorder extends StatefulWidget {

@@ -7,8 +7,8 @@ import 'package:yaml/yaml.dart';
 
 const _allTargets = <String, String>{
   'android': 'apk',
-  'linux': 'deb,appimage,rpm',
-  'macos': 'dmg',
+  'linux': 'deb,appimage,rpm,zip',
+  'macos': 'dmg,zip',
   'windows': 'exe,zip',
 };
 
@@ -195,15 +195,21 @@ Future<int> _package(
     return activateResult.exitCode;
   }
 
+  final distributionTargets = platform == 'macos'
+      ? targets.split(',').where((target) => target != 'zip').join(',')
+      : targets;
   final process = await Process.start(
     'flutter_distributor',
     [
       'package',
       '--skip-clean',
+      if (platform == 'macos' &&
+          Platform.environment['CODESIGN_IDENTITY']?.isNotEmpty == true)
+        '--hook-pre=bash tool/sign_macos.sh',
       '--platform',
       platform,
       '--targets',
-      targets,
+      distributionTargets.isEmpty ? 'dmg' : distributionTargets,
       if (androidArch != null)
         '--build-target-platform=${_androidFlutterTarget[androidArch]!}',
       if (flutterBuildArgs.isNotEmpty)
@@ -221,6 +227,38 @@ Future<int> _package(
     stderr.write(utf8.decode(data));
   });
   final exitCode = await process.exitCode;
+  if (exitCode == 0 &&
+      platform == 'macos' &&
+      targets.split(',').contains('zip')) {
+    final options =
+        loadYaml(
+              await File(
+                p.join(rootDir, 'distribute_options.yaml'),
+              ).readAsString(),
+            )
+            as YamlMap;
+    final pubspec =
+        loadYaml(await File(p.join(rootDir, 'pubspec.yaml')).readAsString())
+            as YamlMap;
+    final name = options['app_name'] as String;
+    final version = (pubspec['version'] as String).split('+').first;
+    final output = Directory(p.join(rootDir, options['output'] as String));
+    await output.create(recursive: true);
+    final archive = File(p.join(output.path, '$name-$version-macos-$arch.zip'));
+    if (await archive.exists()) await archive.delete();
+    final result = await Process.run('/usr/bin/ditto', [
+      '-c',
+      '-k',
+      '--sequesterRsrc',
+      '--keepParent',
+      p.join(rootDir, 'build/macos/Build/Products/Release/$name.app'),
+      archive.path,
+    ]);
+    if (result.exitCode != 0) {
+      stderr.write(result.stderr);
+      return result.exitCode;
+    }
+  }
   return exitCode;
 }
 
