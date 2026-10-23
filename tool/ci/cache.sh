@@ -20,11 +20,9 @@ done
   printf 'npm_config_cache=%s/npm\n' "$base"
 } >> "$GITHUB_ENV"
 if [ "${RUNNER_OS:-}" = Linux ]; then
-  mkdir -p "$base/cargo" "$base/rustup" "$base/go" "$base/go-build"
+  mkdir -p "$base/go" "$base/go-build"
   {
-    printf 'CARGO_HOME=%s/cargo\nRUSTUP_HOME=%s/rustup\n' "$base" "$base"
     printf 'GOPATH=%s/go\nGOCACHE=%s/go-build\n' "$base" "$base"
   } >> "$GITHUB_ENV"
-  printf '%s/cargo/bin\n' "$base" >> "${GITHUB_PATH:?}"
 fi
 echo 'Reusing local build and package caches outside the checkout.'
