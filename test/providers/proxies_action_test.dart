@@ -935,23 +935,23 @@ void main() {
       expect(container.read(profilesProvider).single, same(profile));
     });
 
-    test('updateCurrentUnfoldSet is a no-op without a current profile', () {
+    test('updateCurrentFoldSet is a no-op without a current profile', () {
       final container = buildContainer();
 
       expect(
-        () => actionOf(container).updateCurrentUnfoldSet({'Proxy'}),
+        () => actionOf(container).updateCurrentFoldSet({'Proxy'}),
         returnsNormally,
       );
       expect(container.read(profilesProvider), isEmpty);
     });
 
-    test('updateCurrentUnfoldSet stores the set on the current profile', () {
+    test('updateCurrentFoldSet stores the set on the current profile', () {
       final profile = Profile.normal(label: 'p');
       final container = buildContainer(profile: profile);
 
-      actionOf(container).updateCurrentUnfoldSet({'Proxy', 'Auto'});
+      actionOf(container).updateCurrentFoldSet({'Proxy', 'Auto'});
 
-      expect(container.read(profilesProvider).single.unfoldSet, {
+      expect(container.read(profilesProvider).single.foldSet, {
         'Proxy',
         'Auto',
       });

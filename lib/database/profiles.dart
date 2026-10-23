@@ -34,7 +34,9 @@ class Profiles extends Table {
 
   TextColumn get selectedMap => text().map(const StringMapConverter())();
 
-  TextColumn get unfoldSet => text().map(const StringSetConverter())();
+  TextColumn get foldSet => text()
+      .withDefault(const Constant('[]'))
+      .map(const StringSetConverter())();
 
   IntColumn get order => integer().nullable()();
 
@@ -166,7 +168,7 @@ extension RawProfilExt on RawProfile {
       subscriptionInfo: subscriptionInfo,
       autoUpdate: autoUpdate,
       selectedMap: selectedMap,
-      unfoldSet: unfoldSet,
+      foldSet: foldSet,
       extendType: extendType,
       scriptId: scriptId,
       matchTarget: matchTarget,
@@ -190,7 +192,7 @@ extension ProfilesCompanionExt on Profile {
       subscriptionInfo: Value(subscriptionInfo),
       autoUpdate: autoUpdate,
       selectedMap: selectedMap,
-      unfoldSet: unfoldSet,
+      foldSet: Value(foldSet),
       extendType: extendType,
       scriptId: Value(scriptId),
       matchTarget: Value(matchTarget),

@@ -154,14 +154,15 @@ class $ProfilesTable extends Profiles
     requiredDuringInsert: true,
   ).withConverter<Map<String, String>>($ProfilesTable.$converterselectedMap);
   @override
-  late final GeneratedColumnWithTypeConverter<Set<String>, String> unfoldSet =
+  late final GeneratedColumnWithTypeConverter<Set<String>, String> foldSet =
       GeneratedColumn<String>(
-        'unfold_set',
+        'fold_set',
         aliasedName,
         false,
         type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Set<String>>($ProfilesTable.$converterunfoldSet);
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<Set<String>>($ProfilesTable.$converterfoldSet);
   static const VerificationMeta _orderMeta = const VerificationMeta('order');
   @override
   late final GeneratedColumn<int> order = GeneratedColumn<int>(
@@ -196,7 +197,7 @@ class $ProfilesTable extends Profiles
     subscriptionInfo,
     autoUpdate,
     selectedMap,
-    unfoldSet,
+    foldSet,
     order,
     overrides,
   ];
@@ -371,10 +372,10 @@ class $ProfilesTable extends Profiles
           data['${effectivePrefix}selected_map'],
         )!,
       ),
-      unfoldSet: $ProfilesTable.$converterunfoldSet.fromSql(
+      foldSet: $ProfilesTable.$converterfoldSet.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
-          data['${effectivePrefix}unfold_set'],
+          data['${effectivePrefix}fold_set'],
         )!,
       ),
       order: attachedDatabase.typeMapping.read(
@@ -403,7 +404,7 @@ class $ProfilesTable extends Profiles
       const SubscriptionInfoConverter();
   static TypeConverter<Map<String, String>, String> $converterselectedMap =
       const StringMapConverter();
-  static TypeConverter<Set<String>, String> $converterunfoldSet =
+  static TypeConverter<Set<String>, String> $converterfoldSet =
       const StringSetConverter();
   static TypeConverter<ProfileOverrides?, String?> $converteroverrides =
       const ProfileOverridesConverter();
@@ -424,7 +425,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
   final SubscriptionInfo? subscriptionInfo;
   final bool autoUpdate;
   final Map<String, String> selectedMap;
-  final Set<String> unfoldSet;
+  final Set<String> foldSet;
   final int? order;
   final ProfileOverrides? overrides;
   const RawProfile({
@@ -442,7 +443,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
     this.subscriptionInfo,
     required this.autoUpdate,
     required this.selectedMap,
-    required this.unfoldSet,
+    required this.foldSet,
     this.order,
     this.overrides,
   });
@@ -490,8 +491,8 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
       );
     }
     {
-      map['unfold_set'] = Variable<String>(
-        $ProfilesTable.$converterunfoldSet.toSql(unfoldSet),
+      map['fold_set'] = Variable<String>(
+        $ProfilesTable.$converterfoldSet.toSql(foldSet),
       );
     }
     if (!nullToAbsent || order != null) {
@@ -533,7 +534,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
           : Value(subscriptionInfo),
       autoUpdate: Value(autoUpdate),
       selectedMap: Value(selectedMap),
-      unfoldSet: Value(unfoldSet),
+      foldSet: Value(foldSet),
       order: order == null && nullToAbsent
           ? const Value.absent()
           : Value(order),
@@ -573,7 +574,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
       selectedMap: serializer.fromJson<Map<String, String>>(
         json['selectedMap'],
       ),
-      unfoldSet: serializer.fromJson<Set<String>>(json['unfoldSet']),
+      foldSet: serializer.fromJson<Set<String>>(json['foldSet']),
       order: serializer.fromJson<int?>(json['order']),
       overrides: serializer.fromJson<ProfileOverrides?>(json['overrides']),
     );
@@ -604,7 +605,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
       ),
       'autoUpdate': serializer.toJson<bool>(autoUpdate),
       'selectedMap': serializer.toJson<Map<String, String>>(selectedMap),
-      'unfoldSet': serializer.toJson<Set<String>>(unfoldSet),
+      'foldSet': serializer.toJson<Set<String>>(foldSet),
       'order': serializer.toJson<int?>(order),
       'overrides': serializer.toJson<ProfileOverrides?>(overrides),
     };
@@ -625,7 +626,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
     Value<SubscriptionInfo?> subscriptionInfo = const Value.absent(),
     bool? autoUpdate,
     Map<String, String>? selectedMap,
-    Set<String>? unfoldSet,
+    Set<String>? foldSet,
     Value<int?> order = const Value.absent(),
     Value<ProfileOverrides?> overrides = const Value.absent(),
   }) => RawProfile(
@@ -650,7 +651,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
         : this.subscriptionInfo,
     autoUpdate: autoUpdate ?? this.autoUpdate,
     selectedMap: selectedMap ?? this.selectedMap,
-    unfoldSet: unfoldSet ?? this.unfoldSet,
+    foldSet: foldSet ?? this.foldSet,
     order: order.present ? order.value : this.order,
     overrides: overrides.present ? overrides.value : this.overrides,
   );
@@ -688,7 +689,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
       selectedMap: data.selectedMap.present
           ? data.selectedMap.value
           : this.selectedMap,
-      unfoldSet: data.unfoldSet.present ? data.unfoldSet.value : this.unfoldSet,
+      foldSet: data.foldSet.present ? data.foldSet.value : this.foldSet,
       order: data.order.present ? data.order.value : this.order,
       overrides: data.overrides.present ? data.overrides.value : this.overrides,
     );
@@ -711,7 +712,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
           ..write('subscriptionInfo: $subscriptionInfo, ')
           ..write('autoUpdate: $autoUpdate, ')
           ..write('selectedMap: $selectedMap, ')
-          ..write('unfoldSet: $unfoldSet, ')
+          ..write('foldSet: $foldSet, ')
           ..write('order: $order, ')
           ..write('overrides: $overrides')
           ..write(')'))
@@ -734,7 +735,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
     subscriptionInfo,
     autoUpdate,
     selectedMap,
-    unfoldSet,
+    foldSet,
     order,
     overrides,
   );
@@ -756,7 +757,7 @@ class RawProfile extends DataClass implements Insertable<RawProfile> {
           other.subscriptionInfo == this.subscriptionInfo &&
           other.autoUpdate == this.autoUpdate &&
           other.selectedMap == this.selectedMap &&
-          other.unfoldSet == this.unfoldSet &&
+          other.foldSet == this.foldSet &&
           other.order == this.order &&
           other.overrides == this.overrides);
 }
@@ -776,7 +777,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
   final Value<SubscriptionInfo?> subscriptionInfo;
   final Value<bool> autoUpdate;
   final Value<Map<String, String>> selectedMap;
-  final Value<Set<String>> unfoldSet;
+  final Value<Set<String>> foldSet;
   final Value<int?> order;
   final Value<ProfileOverrides?> overrides;
   const ProfilesCompanion({
@@ -794,7 +795,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
     this.subscriptionInfo = const Value.absent(),
     this.autoUpdate = const Value.absent(),
     this.selectedMap = const Value.absent(),
-    this.unfoldSet = const Value.absent(),
+    this.foldSet = const Value.absent(),
     this.order = const Value.absent(),
     this.overrides = const Value.absent(),
   });
@@ -813,7 +814,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
     this.subscriptionInfo = const Value.absent(),
     required bool autoUpdate,
     required Map<String, String> selectedMap,
-    required Set<String> unfoldSet,
+    this.foldSet = const Value.absent(),
     this.order = const Value.absent(),
     this.overrides = const Value.absent(),
   }) : type = Value(type),
@@ -822,8 +823,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
        extendType = Value(extendType),
        autoUpdateDurationMillis = Value(autoUpdateDurationMillis),
        autoUpdate = Value(autoUpdate),
-       selectedMap = Value(selectedMap),
-       unfoldSet = Value(unfoldSet);
+       selectedMap = Value(selectedMap);
   static Insertable<RawProfile> custom({
     Expression<int>? id,
     Expression<String>? type,
@@ -839,7 +839,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
     Expression<String>? subscriptionInfo,
     Expression<bool>? autoUpdate,
     Expression<String>? selectedMap,
-    Expression<String>? unfoldSet,
+    Expression<String>? foldSet,
     Expression<int>? order,
     Expression<String>? overrides,
   }) {
@@ -859,7 +859,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
       if (subscriptionInfo != null) 'subscription_info': subscriptionInfo,
       if (autoUpdate != null) 'auto_update': autoUpdate,
       if (selectedMap != null) 'selected_map': selectedMap,
-      if (unfoldSet != null) 'unfold_set': unfoldSet,
+      if (foldSet != null) 'fold_set': foldSet,
       if (order != null) 'order': order,
       if (overrides != null) 'overrides': overrides,
     });
@@ -880,7 +880,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
     Value<SubscriptionInfo?>? subscriptionInfo,
     Value<bool>? autoUpdate,
     Value<Map<String, String>>? selectedMap,
-    Value<Set<String>>? unfoldSet,
+    Value<Set<String>>? foldSet,
     Value<int?>? order,
     Value<ProfileOverrides?>? overrides,
   }) {
@@ -900,7 +900,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
       subscriptionInfo: subscriptionInfo ?? this.subscriptionInfo,
       autoUpdate: autoUpdate ?? this.autoUpdate,
       selectedMap: selectedMap ?? this.selectedMap,
-      unfoldSet: unfoldSet ?? this.unfoldSet,
+      foldSet: foldSet ?? this.foldSet,
       order: order ?? this.order,
       overrides: overrides ?? this.overrides,
     );
@@ -961,9 +961,9 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
         $ProfilesTable.$converterselectedMap.toSql(selectedMap.value),
       );
     }
-    if (unfoldSet.present) {
-      map['unfold_set'] = Variable<String>(
-        $ProfilesTable.$converterunfoldSet.toSql(unfoldSet.value),
+    if (foldSet.present) {
+      map['fold_set'] = Variable<String>(
+        $ProfilesTable.$converterfoldSet.toSql(foldSet.value),
       );
     }
     if (order.present) {
@@ -994,7 +994,7 @@ class ProfilesCompanion extends UpdateCompanion<RawProfile> {
           ..write('subscriptionInfo: $subscriptionInfo, ')
           ..write('autoUpdate: $autoUpdate, ')
           ..write('selectedMap: $selectedMap, ')
-          ..write('unfoldSet: $unfoldSet, ')
+          ..write('foldSet: $foldSet, ')
           ..write('order: $order, ')
           ..write('overrides: $overrides')
           ..write(')'))
@@ -4459,7 +4459,7 @@ typedef $$ProfilesTableCreateCompanionBuilder =
       Value<SubscriptionInfo?> subscriptionInfo,
       required bool autoUpdate,
       required Map<String, String> selectedMap,
-      required Set<String> unfoldSet,
+      Value<Set<String>> foldSet,
       Value<int?> order,
       Value<ProfileOverrides?> overrides,
     });
@@ -4479,7 +4479,7 @@ typedef $$ProfilesTableUpdateCompanionBuilder =
       Value<SubscriptionInfo?> subscriptionInfo,
       Value<bool> autoUpdate,
       Value<Map<String, String>> selectedMap,
-      Value<Set<String>> unfoldSet,
+      Value<Set<String>> foldSet,
       Value<int?> order,
       Value<ProfileOverrides?> overrides,
     });
@@ -4650,8 +4650,8 @@ class $$ProfilesTableFilterComposer
   );
 
   ColumnWithTypeConverterFilters<Set<String>, Set<String>, String>
-  get unfoldSet => $composableBuilder(
-    column: $table.unfoldSet,
+  get foldSet => $composableBuilder(
+    column: $table.foldSet,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -4846,8 +4846,8 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get unfoldSet => $composableBuilder(
-    column: $table.unfoldSet,
+  ColumnOrderings<String> get foldSet => $composableBuilder(
+    column: $table.foldSet,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4934,8 +4934,8 @@ class $$ProfilesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumnWithTypeConverter<Set<String>, String> get unfoldSet =>
-      $composableBuilder(column: $table.unfoldSet, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<Set<String>, String> get foldSet =>
+      $composableBuilder(column: $table.foldSet, builder: (column) => column);
 
   GeneratedColumn<int> get order =>
       $composableBuilder(column: $table.order, builder: (column) => column);
@@ -5092,7 +5092,7 @@ class $$ProfilesTableTableManager
                     const Value.absent(),
                 Value<bool> autoUpdate = const Value.absent(),
                 Value<Map<String, String>> selectedMap = const Value.absent(),
-                Value<Set<String>> unfoldSet = const Value.absent(),
+                Value<Set<String>> foldSet = const Value.absent(),
                 Value<int?> order = const Value.absent(),
                 Value<ProfileOverrides?> overrides = const Value.absent(),
               }) => ProfilesCompanion(
@@ -5110,7 +5110,7 @@ class $$ProfilesTableTableManager
                 subscriptionInfo: subscriptionInfo,
                 autoUpdate: autoUpdate,
                 selectedMap: selectedMap,
-                unfoldSet: unfoldSet,
+                foldSet: foldSet,
                 order: order,
                 overrides: overrides,
               ),
@@ -5131,7 +5131,7 @@ class $$ProfilesTableTableManager
                     const Value.absent(),
                 required bool autoUpdate,
                 required Map<String, String> selectedMap,
-                required Set<String> unfoldSet,
+                Value<Set<String>> foldSet = const Value.absent(),
                 Value<int?> order = const Value.absent(),
                 Value<ProfileOverrides?> overrides = const Value.absent(),
               }) => ProfilesCompanion.insert(
@@ -5149,7 +5149,7 @@ class $$ProfilesTableTableManager
                 subscriptionInfo: subscriptionInfo,
                 autoUpdate: autoUpdate,
                 selectedMap: selectedMap,
-                unfoldSet: unfoldSet,
+                foldSet: foldSet,
                 order: order,
                 overrides: overrides,
               ),

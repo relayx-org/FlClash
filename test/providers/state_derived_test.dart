@@ -421,7 +421,7 @@ void main() {
     () {
       final profile = Profile.normal().copyWith(
         currentGroupName: 'Group B',
-        unfoldSet: {'Group A'},
+        foldSet: {'Group A'},
       );
       final groups = [
         const Group(
@@ -463,7 +463,7 @@ void main() {
           .update((_) => 'ga');
       final list = container.read(proxiesListStateProvider);
       expect(list.groups.single.name, 'Group B');
-      expect(list.currentUnfoldSet, {'Group A'});
+      expect(list.currentFoldSet, {'Group A'});
 
       final tab = container.read(proxiesTabStateProvider);
       expect(tab.currentGroupName, 'Group B');
@@ -632,7 +632,7 @@ void main() {
   test('selection and delay providers resolve groups and profile state', () {
     final profile = Profile.normal().copyWith(
       selectedMap: {'Selector': 'Leaf'},
-      unfoldSet: {'Selector'},
+      foldSet: {'Selector'},
     );
     const groups = [
       Group(
@@ -655,7 +655,7 @@ void main() {
         );
 
     expect(container.read(selectedMapProvider), {'Selector': 'Leaf'});
-    expect(container.read(unfoldSetProvider), {'Selector'});
+    expect(container.read(foldSetProvider), {'Selector'});
     expect(container.read(proxyNameProvider('Selector')), 'Leaf');
     expect(container.read(selectedProxyNameProvider('Selector')), 'Leaf');
     expect(

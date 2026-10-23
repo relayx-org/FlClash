@@ -1211,7 +1211,7 @@ void main() {
               type: ProfileType.custom,
               selectedMap: const {'Old': 'DIRECT', 'Parent': 'Old'},
               currentGroupName: 'Old',
-              unfoldSet: const {'Old', 'Parent'},
+              foldSet: const {'Old', 'Parent'},
             )
             .toCompanion(),
       ]);
@@ -1225,7 +1225,7 @@ void main() {
       final row = (await testDatabase.profilesDao.query().get()).single;
       expect(row.selectedMap, {'New': 'DIRECT', 'Parent': 'New'});
       expect(row.currentGroupName, 'New');
-      expect(row.unfoldSet, {'New', 'Parent'});
+      expect(row.foldSet, {'New', 'Parent'});
     });
 
     test('put records the icon so it can be reused later', () async {

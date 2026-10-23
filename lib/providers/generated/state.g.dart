@@ -2025,7 +2025,7 @@ final class ProxiesListStateProvider
   }
 }
 
-String _$proxiesListStateHash() => r'212d21f79e9c149076e13d1d19ccd83ccb4b471b';
+String _$proxiesListStateHash() => r'5a9db35f66f1fbde61b0f04631115f4c3d1d3e57';
 
 @ProviderFor(proxiesTabState)
 final proxiesTabStateProvider = ProxiesTabStateProvider._();
@@ -2492,25 +2492,25 @@ final class SelectedMapProvider
 
 String _$selectedMapHash() => r'd4438d8d87d0c7ec7d9c5d02f577cdba6ba2a785';
 
-@ProviderFor(unfoldSet)
-final unfoldSetProvider = UnfoldSetProvider._();
+@ProviderFor(foldSet)
+final foldSetProvider = FoldSetProvider._();
 
-final class UnfoldSetProvider
+final class FoldSetProvider
     extends $FunctionalProvider<Set<String>, Set<String>, Set<String>>
     with $Provider<Set<String>> {
-  UnfoldSetProvider._()
+  FoldSetProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'unfoldSetProvider',
+        name: r'foldSetProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$unfoldSetHash();
+  String debugGetCreateSourceHash() => _$foldSetHash();
 
   @$internal
   @override
@@ -2519,7 +2519,7 @@ final class UnfoldSetProvider
 
   @override
   Set<String> create(Ref ref) {
-    return unfoldSet(ref);
+    return foldSet(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -2531,7 +2531,7 @@ final class UnfoldSetProvider
   }
 }
 
-String _$unfoldSetHash() => r'59a5b417611533069462ddf31eca080ab2f74ac9';
+String _$foldSetHash() => r'8be1f0f1f09cbec8fa7c8c65ac65ccff90f0b2db';
 
 @ProviderFor(realSelectedProxyState)
 final realSelectedProxyStateProvider = RealSelectedProxyStateFamily._();

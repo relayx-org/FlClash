@@ -120,13 +120,13 @@ GroupsState filterGroupsState(Ref ref, String query) {
 ProxiesListState proxiesListState(Ref ref) {
   final query = ref.watch(queryProvider(QueryTag.proxies));
   final currentGroups = ref.watch(filterGroupsStateProvider(query));
-  final currentUnfoldSet = ref.watch(unfoldSetProvider);
+  final currentFoldSet = ref.watch(foldSetProvider);
   final cardType = ref.watch(
     proxiesStyleSettingProvider.select((state) => state.cardType),
   );
   return ProxiesListState(
     groups: currentGroups.value,
-    currentUnfoldSet: currentUnfoldSet,
+    currentFoldSet: currentFoldSet,
     proxyCardType: cardType,
   );
 }
@@ -218,11 +218,11 @@ Map<String, String> selectedMap(Ref ref) {
 }
 
 @riverpod
-Set<String> unfoldSet(Ref ref) {
-  final unfoldSet = ref.watch(
-    currentProfileProvider.select((state) => state?.unfoldSet ?? {}),
+Set<String> foldSet(Ref ref) {
+  final foldSet = ref.watch(
+    currentProfileProvider.select((state) => state?.foldSet ?? {}),
   );
-  return unfoldSet;
+  return foldSet;
 }
 
 @riverpod

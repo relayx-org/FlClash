@@ -336,7 +336,7 @@ extension ProfileReferences on Profile {
         final name? => keyOf(name),
         null => null,
       },
-      unfoldSet: {for (final name in unfoldSet) keyOf(name)},
+      foldSet: {for (final name in foldSet) keyOf(name)},
     );
   }
 }

@@ -29,7 +29,7 @@ void main() {
     final profile = Profile.normal().copyWith(
       currentGroupName: 'Selector',
       selectedMap: {'Selector': 'Proxy 1'},
-      unfoldSet: expanded ? {'Selector'} : {},
+      foldSet: expanded ? {} : {'Selector'},
     );
     final proxies = List.generate(
       proxyCount,

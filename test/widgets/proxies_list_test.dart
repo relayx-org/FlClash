@@ -40,7 +40,7 @@ void main() {
     Map<String, String> selectedMap = const {},
     ViewMode viewMode = ViewMode.mobile,
     List<Group>? groups,
-    Set<String> unfoldSet = const {'G0', 'G1', 'G2'},
+    Set<String> foldSet = const {},
     ValueListenable<Brightness>? brightness,
     Size size = const Size(900, 700),
   }) async {
@@ -51,7 +51,7 @@ void main() {
     groups ??= [_group('G0', 40), _group('G1', 30), _group('G2', 60)];
     final profile = Profile.normal().copyWith(
       selectedMap: selectedMap,
-      unfoldSet: unfoldSet,
+      foldSet: foldSet,
     );
     _RecordingProxiesAction.tested.clear();
     container = ProviderContainer(
@@ -158,10 +158,7 @@ void main() {
     final card = find.byKey(const ValueKey('G0.G0-0')).first;
     final before = tester.widget(card);
 
-    container.read(proxiesActionProvider.notifier).updateCurrentUnfoldSet({
-      'G0',
-      'G1',
-    });
+    container.read(proxiesActionProvider.notifier).updateCurrentFoldSet({'G2'});
     await tester.pump();
 
     expect(tester.widget(card), same(before));
@@ -170,10 +167,7 @@ void main() {
   testWidgets('a group unfolds its rows from under its header and folds them '
       'back', (tester) async {
     await pumpList(tester);
-    container.read(proxiesActionProvider.notifier).updateCurrentUnfoldSet({
-      'G1',
-      'G2',
-    });
+    container.read(proxiesActionProvider.notifier).updateCurrentFoldSet({'G0'});
     await tester.pumpAndSettle();
     final radius = AppCorner.xl.ap(tester.element(find.text('G0')));
     final unfolding = find.byType(UnfoldEntryTransition);
@@ -242,7 +236,11 @@ void main() {
   ) async {
     final brightness = ValueNotifier(Brightness.light);
     addTearDown(brightness.dispose);
-    await pumpList(tester, unfoldSet: const {}, brightness: brightness);
+    await pumpList(
+      tester,
+      foldSet: const {'G0', 'G1', 'G2'},
+      brightness: brightness,
+    );
 
     brightness.value = Brightness.dark;
     await tester.pumpAndSettle();
@@ -312,8 +310,9 @@ void main() {
   testWidgets('a desktop window lays the groups out in columns and pins the '
       'header of an unfolded one', (tester) async {
     await pumpList(tester, viewMode: ViewMode.desktop);
-    container.read(proxiesActionProvider.notifier).updateCurrentUnfoldSet({
-      'G2',
+    container.read(proxiesActionProvider.notifier).updateCurrentFoldSet({
+      'G0',
+      'G1',
     });
     await tester.pumpAndSettle();
     final first = tester.getRect(headerOf('G0'));

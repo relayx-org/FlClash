@@ -96,7 +96,7 @@ abstract class NavigationItemsState with _$NavigationItemsState {
 abstract class ProxiesListState with _$ProxiesListState {
   const factory ProxiesListState({
     required List<Group> groups,
-    required Set<String> currentUnfoldSet,
+    required Set<String> currentFoldSet,
     required ProxyCardType proxyCardType,
   }) = _ProxiesListState;
 }

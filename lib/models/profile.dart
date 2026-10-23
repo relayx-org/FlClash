@@ -74,7 +74,7 @@ abstract class Profile with _$Profile {
     SubscriptionInfo? subscriptionInfo,
     @Default(true) bool autoUpdate,
     @Default({}) Map<String, String> selectedMap,
-    @Default({}) Set<String> unfoldSet,
+    @Default({}) Set<String> foldSet,
     @Default(ExtendType.standard) ExtendType extendType,
     int? scriptId,
     String? matchTarget,

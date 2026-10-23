@@ -50,7 +50,7 @@ class Database extends _$Database {
   Database([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
@@ -111,6 +111,9 @@ class Database extends _$Database {
             customProxies.emptyOptions,
           );
         }
+        if (from < 21) {
+          await _replaceUnfoldSet(m);
+        }
       }),
       beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
     );
@@ -152,6 +155,20 @@ class Database extends _$Database {
       return;
     }
     await m.renameColumn(table, oldName, column);
+  }
+
+  /// Schema 20 kept the groups the user expanded; what it names says nothing
+  /// about which of them were folded, so every group starts out expanded.
+  Future<void> _replaceUnfoldSet(Migrator m) async {
+    final columns = await _columnsOf(profiles.actualTableName);
+    if (!columns.contains('unfold_set')) {
+      await _addColumnIfMissing(m, profiles, profiles.foldSet);
+      return;
+    }
+    await m.renameColumn(profiles, 'unfold_set', profiles.foldSet);
+    await customStatement(
+      "UPDATE ${profiles.actualTableName} SET ${profiles.foldSet.name} = '[]'",
+    );
   }
 
   /// alterTable re-creates the old index, which names the dropped column.

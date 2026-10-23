@@ -48,8 +48,8 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
         (k, e) => MapEntry(k, e as String),
       ) ??
       const {},
-  unfoldSet:
-      (json['unfoldSet'] as List<dynamic>?)?.map((e) => e as String).toSet() ??
+  foldSet:
+      (json['foldSet'] as List<dynamic>?)?.map((e) => e as String).toSet() ??
       const {},
   extendType:
       $enumDecodeNullable(_$ExtendTypeEnumMap, json['extendType']) ??
@@ -76,7 +76,7 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'subscriptionInfo': instance.subscriptionInfo,
   'autoUpdate': instance.autoUpdate,
   'selectedMap': instance.selectedMap,
-  'unfoldSet': instance.unfoldSet.toList(),
+  'foldSet': instance.foldSet.toList(),
   'extendType': _$ExtendTypeEnumMap[instance.extendType]!,
   'scriptId': instance.scriptId,
   'matchTarget': instance.matchTarget,

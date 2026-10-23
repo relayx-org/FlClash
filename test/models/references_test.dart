@@ -279,7 +279,7 @@ void main() {
       autoUpdateDuration: Duration.zero,
       selectedMap: {'Auto': 'HK', 'Pool': 'HK', 'Old': 'US'},
       currentGroupName: 'Old',
-      unfoldSet: {'Old', 'Auto'},
+      foldSet: {'Old', 'Auto'},
     );
     const members = {
       'Auto': ['HK', 'Old'],
@@ -296,7 +296,7 @@ void main() {
         .renamedPicks({'Old': 'New'}, members: members, groups: true);
     expect(group.selectedMap, {'Auto': 'New', 'New': 'US'});
     expect(group.currentGroupName, 'New');
-    expect(group.unfoldSet, {'New', 'Auto'});
+    expect(group.foldSet, {'New', 'Auto'});
   });
 
   test('a name is in use wherever one profile names it', () {

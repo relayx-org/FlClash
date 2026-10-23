@@ -23,7 +23,6 @@ void main() {
     final profile = Profile.normal().copyWith(
       currentGroupName: 'Selector',
       selectedMap: {'Selector': 'Proxy 1'},
-      unfoldSet: {'Selector'},
     );
     final group = Group(
       name: 'Selector',
@@ -91,7 +90,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final profile = Profile.normal().copyWith(unfoldSet: {'Far'});
+    final profile = Profile.normal().copyWith(
+      foldSet: {for (var index = 0; index < 40; index++) 'G$index'},
+    );
     final groups = [
       for (var index = 0; index < 40; index++)
         Group(name: 'G$index', type: GroupType.Selector, hidden: false),

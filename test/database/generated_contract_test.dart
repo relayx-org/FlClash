@@ -27,7 +27,7 @@ void main() {
       ),
       autoUpdate: true,
       selectedMap: const {'Select': 'DIRECT'},
-      unfoldSet: const {'Select'},
+      foldSet: const {'Select'},
       order: 3,
       overrides: const ProfileOverrides(
         dnsOverrideKeys: {DnsOverrideKey.nameserver},
@@ -63,7 +63,7 @@ void main() {
       autoUpdateDurationMillis: 0,
       autoUpdate: false,
       selectedMap: {},
-      unfoldSet: {},
+      foldSet: {},
     );
     expect(emptyProfile.toColumns(true), hasLength(9));
     expect(emptyProfile.toColumns(false), hasLength(17));
@@ -77,7 +77,7 @@ void main() {
       autoUpdateDurationMillis: 60,
       autoUpdate: true,
       selectedMap: const {},
-      unfoldSet: const {},
+      foldSet: const Value({}),
     ).copyWith(id: const Value(8), order: const Value(1));
     expect(insertedProfile.toColumns(true), hasLength(10));
     expect(insertedProfile.toString(), contains('Inserted'));
@@ -97,7 +97,7 @@ void main() {
         subscriptionInfo: const Variable('{}'),
         autoUpdate: const Variable(true),
         selectedMap: const Variable('{}'),
-        unfoldSet: const Variable('[]'),
+        foldSet: const Variable('[]'),
         order: const Variable(1),
         overrides: const Variable('{}'),
       ).toColumns(false),

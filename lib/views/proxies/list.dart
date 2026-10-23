@@ -48,13 +48,11 @@ class _ProxiesListViewState extends ConsumerState<ProxiesListView> {
 
   void _handleChange(String groupName) {
     _autoScrollToGroup(groupName);
-    final tempUnfoldSet = Set<String>.from(ref.read(unfoldSetProvider));
-    if (!tempUnfoldSet.remove(groupName)) {
-      tempUnfoldSet.add(groupName);
+    final tempFoldSet = Set<String>.from(ref.read(foldSetProvider));
+    if (!tempFoldSet.remove(groupName)) {
+      tempFoldSet.add(groupName);
     }
-    ref
-        .read(proxiesActionProvider.notifier)
-        .updateCurrentUnfoldSet(tempUnfoldSet);
+    ref.read(proxiesActionProvider.notifier).updateCurrentFoldSet(tempFoldSet);
   }
 
   GroupOffsets _getGroupOffsets() {
@@ -66,7 +64,7 @@ class _ProxiesListViewState extends ConsumerState<ProxiesListView> {
       final column = index % _groupColumns;
       offsets.add(columnOffsets[column]);
       columnOffsets[column] += listHeaderHeight + _gap;
-      if (state.currentUnfoldSet.contains(group.name)) {
+      if (!state.currentFoldSet.contains(group.name)) {
         final rowCount = (group.all.length + _columns - 1) ~/ _columns;
         columnOffsets[column] += _rowsExtent(rowCount, rowExtent);
       }
@@ -316,7 +314,7 @@ class _GroupSliverState extends ConsumerState<_GroupSliver>
   double _rowExtent = 0;
   late final _controller = AnimationController(
     vsync: this,
-    value: ref.read(unfoldSetProvider).contains(widget.group.name) ? 1 : 0,
+    value: ref.read(foldSetProvider).contains(widget.group.name) ? 0 : 1,
   );
   late final _unfold = UnfoldEntryTransition.curveOf(_controller);
 
@@ -325,7 +323,7 @@ class _GroupSliverState extends ConsumerState<_GroupSliver>
     super.initState();
     _controller.addStatusListener((_) => setState(() {}));
     ref.listenManual(
-      unfoldSetProvider.select((state) => state.contains(widget.group.name)),
+      foldSetProvider.select((state) => !state.contains(widget.group.name)),
       (_, isExpand) => _handleUnfold(isExpand),
     );
   }
@@ -447,7 +445,7 @@ class _GroupSliverState extends ConsumerState<_GroupSliver>
   Widget build(BuildContext context) {
     final groupName = widget.group.name;
     final isExpand = ref.watch(
-      unfoldSetProvider.select((state) => state.contains(groupName)),
+      foldSetProvider.select((state) => !state.contains(groupName)),
     );
     final unfolded = _controller.isCompleted;
     Widget? rows;

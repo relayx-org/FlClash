@@ -161,12 +161,12 @@ class ProxiesAction extends _$ProxiesAction {
         .put(profile.copyWith(currentGroupName: groupName));
   }
 
-  void updateCurrentUnfoldSet(Set<String> value) {
+  void updateCurrentFoldSet(Set<String> value) {
     final currentProfile = ref.read(currentProfileProvider);
     if (currentProfile == null) return;
     ref
         .read(profilesProvider.notifier)
-        .put(currentProfile.copyWith(unfoldSet: value));
+        .put(currentProfile.copyWith(foldSet: value));
   }
 
   void setDelay(Delay delay) {

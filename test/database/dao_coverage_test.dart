@@ -34,7 +34,7 @@ void main() {
         ),
         autoUpdate: false,
         selectedMap: const {'Selector': 'Proxy'},
-        unfoldSet: const {'Selector'},
+        foldSet: const {'Selector'},
         type: ProfileType.url,
         extendType: ExtendType.script,
         scriptId: 7,
@@ -79,7 +79,7 @@ void main() {
     await database.profilesDao.putAll([readable.toCompanion()]);
     await database.customStatement(
       'INSERT INTO profiles (id, type, label, url, extend_type, '
-      'auto_update_duration_millis, auto_update, selected_map, unfold_set) '
+      'auto_update_duration_millis, auto_update, selected_map, fold_set) '
       "VALUES (2, 'future', 'Future', '', 'standard', 0, 1, '{}', '[]')",
     );
 
@@ -118,7 +118,7 @@ void main() {
   test('profiles query resets damaged JSON columns of a profile', () async {
     await database.customStatement(
       'INSERT INTO profiles (id, type, label, url, extend_type, '
-      'auto_update_duration_millis, auto_update, selected_map, unfold_set, '
+      'auto_update_duration_millis, auto_update, selected_map, fold_set, '
       'subscription_info, overrides) '
       "VALUES (1, 'url', 'Damaged', '', 'standard', 0, 1, 'x', '{}', '[', '{')",
     );
@@ -126,7 +126,7 @@ void main() {
     final profile = (await database.profilesDao.query().get()).single;
     expect(profile.label, 'Damaged');
     expect(profile.selectedMap, isEmpty);
-    expect(profile.unfoldSet, isEmpty);
+    expect(profile.foldSet, isEmpty);
     expect(profile.subscriptionInfo, null);
     expect(profile.overrides, const ProfileOverrides());
   });
@@ -134,7 +134,7 @@ void main() {
   test('proxy groups query resets damaged options of a group', () async {
     await database.customStatement(
       'INSERT INTO profiles (id, type, label, url, extend_type, '
-      'auto_update_duration_millis, auto_update, selected_map, unfold_set) '
+      'auto_update_duration_millis, auto_update, selected_map, fold_set) '
       "VALUES (1, 'custom', 'Mine', '', 'standard', 0, 1, '{}', '[]')",
     );
     await database.customStatement(
@@ -172,7 +172,7 @@ void main() {
           autoUpdateDurationMillis: 60000,
           autoUpdate: true,
           selectedMap: const {'Proxy': 'DIRECT'},
-          unfoldSet: const {'Proxy'},
+          foldSet: const Value({'Proxy'}),
         ),
       );
       await database.managers.scripts.create(

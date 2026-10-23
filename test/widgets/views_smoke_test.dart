@@ -265,7 +265,6 @@ void main() {
     final profile = Profile.normal().copyWith(
       currentGroupName: 'Selector',
       selectedMap: {'Selector': 'Proxy 1'},
-      unfoldSet: {'Selector'},
     );
     final proxies = List.generate(
       24,
