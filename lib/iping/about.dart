@@ -1,12 +1,10 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/widgets/widgets.dart';
-import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'api.dart';
-import 'brand.dart';
+import 'about_widgets.dart';
 import 'providers.dart';
 
 class IpingAboutSection extends ConsumerStatefulWidget {
@@ -21,37 +19,17 @@ class _IpingAboutSectionState extends ConsumerState<IpingAboutSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
     final site = ref.watch(ipingSiteConfigProvider);
-    return generateSection(
-      title: l.about,
-      items: [
-        FutureBuilder<PackageInfo>(
-          future: _packageInfo,
-          builder: (context, snapshot) {
-            final info = snapshot.data;
-            return ListItem(
-              leading: IpingLogo(src: site.logoUrl),
-              title: Text(site.name),
-              subtitle: info == null
-                  ? null
-                  : Text(
-                      l.ipingVersion('${info.version} (${info.buildNumber})'),
-                    ),
-            );
-          },
-        ),
-        ListItem(
-          leading: const GlyphIcon(AppGlyphs.textShort),
-          title: Text(l.ipingTerms),
-          onTap: () => dialogs.openUrl('$ipingSite/terms-of-service.html'),
-        ),
-        ListItem(
-          leading: const GlyphIcon(AppGlyphs.lock),
-          title: Text(l.ipingPrivacy),
-          onTap: () => dialogs.openUrl('$ipingSite/privacy-policy.html'),
-        ),
-      ],
+    return FutureBuilder<PackageInfo>(
+      future: _packageInfo,
+      builder: (context, snapshot) => IpingAboutSummary(
+        site: site,
+        version: snapshot.data == null
+            ? null
+            : '${snapshot.data!.version} (${snapshot.data!.buildNumber})',
+        onTerms: () => dialogs.openUrl('$ipingSite/terms-of-service.html'),
+        onPrivacy: () => dialogs.openUrl('$ipingSite/privacy-policy.html'),
+      ),
     );
   }
 }

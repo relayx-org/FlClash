@@ -355,14 +355,130 @@ void main() {
     expect(find.text('user@example.com'), findsOneWidget);
     expect(find.text('Personal center'), findsNothing);
     expect(find.textContaining('User ID'), findsNothing);
-    await tester.tap(find.byType(IpingAccountButton));
-    await tester.pumpAndSettle();
+    expect(find.byType(IpingAccountButton), findsNothing);
+    expect(find.byType(CommonPopupMenu), findsNothing);
     expect(find.text('Open iPing console'), findsOneWidget);
     expect(find.text('Contact support'), findsNothing);
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Sign in with browser'), findsOneWidget);
     expect(storage.value, isNull);
+  });
+
+  for (final width in [320.0, 390.0]) {
+    for (final brightness in Brightness.values) {
+      testWidgets(
+        'mobile account actions are flat at $width in ${brightness.name}',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 844);
+          tester.view.devicePixelRatio = 1;
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          api.siteSettings = const IpingSiteConfig(
+            name: 'A longer name for your network services',
+          );
+          storage.value = const IpingAccount(
+            id: 7,
+            email: 'a.long.account.email.address@example.com',
+            subscriptionToken: 'subscription',
+          );
+          final theme = ThemeData(
+            colorScheme: seededColorScheme(
+              seedColor: const Color(0xFF146B65),
+              brightness: brightness,
+            ),
+          ).withAppShapes.withAppSurfaces.withAppTypography;
+
+          await pump(
+            tester,
+            const Scaffold(
+              body: SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: IpingAccountSection(),
+              ),
+            ),
+            theme: theme,
+          );
+
+          expect(find.text(api.siteSettings.name), findsOneWidget);
+          expect(find.text(storage.value!.email), findsOneWidget);
+          expect(find.text('Open iPing console'), findsOneWidget);
+          expect(find.text('Sign out'), findsOneWidget);
+          expect(find.byType(IpingAccountButton), findsNothing);
+          expect(find.byType(CommonPopupBox), findsNothing);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('mobile console action opens the external link confirmation', (
+    tester,
+  ) async {
+    storage.value = await api.authenticate();
+    await pump(tester, const Scaffold(body: IpingAccountSection()));
+
+    await tester.tap(find.text('Open iPing console'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CommonDialog), findsOneWidget);
+    expect(
+      tester
+          .widget<SelectableText>(find.byType(SelectableText))
+          .textSpan!
+          .toPlainText(),
+      '$ipingSite/home',
+    );
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CommonDialog), findsNothing);
+  });
+
+  testWidgets('mobile sign out is disabled during a subscription refresh', (
+    tester,
+  ) async {
+    storage.value = await api.authenticate();
+    await pump(tester, const Scaffold(body: IpingAccountSection()));
+    api.download = Completer<IpingSubscription>();
+    final refresh = container.read(ipingSessionProvider.notifier).synchronize();
+    await tester.pumpAndSettle();
+    final row = find.ancestor(
+      of: find.text('Sign out'),
+      matching: find.byType(ListItem),
+    );
+
+    expect(tester.widget<ListItem>(row).onTap, isNull);
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(container.read(ipingSessionProvider).account, isNotNull);
+
+    api.download!.complete((bytes: Uint8List(0), nodes: 2));
+    await refresh;
+    await tester.pumpAndSettle();
+    expect(tester.widget<ListItem>(row).onTap, isNotNull);
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign out'), findsNothing);
+    expect(storage.value, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('mobile account actions disappear when sign out storage fails', (
+    tester,
+  ) async {
+    storage.value = await api.authenticate();
+    await pump(tester, const Scaffold(body: IpingAccountSection()));
+    storage.clearFails = true;
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open iPing console'), findsNothing);
+    expect(find.text('Sign out'), findsNothing);
+    expect(container.read(ipingSessionProvider).failure, IpingFailure.storage);
+    expect(tester.takeException(), isNull);
   });
 
   for (final width in [48.0, 220.0]) {

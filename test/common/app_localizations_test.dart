@@ -10,6 +10,7 @@ import 'package:fl_clash/core/desktop/launch_policy.dart';
 import 'package:fl_clash/core/desktop/model.dart';
 import 'package:fl_clash/core/method.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/iping/backend_settings.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -184,6 +185,33 @@ void main() {
         appLocalizations,
       ),
       'proxy 0: unsupported type',
+    );
+  });
+
+  test('settings failures use localized labels and port messages', () {
+    expect(
+      userFacingErrorMessage(
+        const IpingSettingsException('port', IpingSettingsIssue.portConflict),
+        appLocalizations,
+      ),
+      appLocalizations.portConflictTip,
+    );
+    expect(
+      userFacingErrorMessage(
+        const IpingSettingsException(
+          'socks-port',
+          IpingSettingsIssue.portRange,
+        ),
+        appLocalizations,
+      ),
+      appLocalizations.portTip(appLocalizations.socksPort),
+    );
+    expect(
+      userFacingErrorMessage(
+        const IpingSettingsException('global-ua', IpingSettingsIssue.invalid),
+        appLocalizations,
+      ),
+      appLocalizations.invalidSettingTip(appLocalizations.userAgent),
     );
   });
 

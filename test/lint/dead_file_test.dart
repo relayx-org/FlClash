@@ -15,7 +15,14 @@ final _declaration = RegExp(
 );
 
 Iterable<File> _dartFiles({required bool includeGenerated}) sync* {
-  for (final root in ['lib', 'test', 'tool', 'plugins']) {
+  for (final root in [
+    'lib',
+    'test',
+    'tool',
+    'plugins',
+    'openwrt/ui/lib',
+    'openwrt/ui/test',
+  ]) {
     final directory = Directory(root);
     if (!directory.existsSync()) {
       fail('$root no longer exists; update this test.');

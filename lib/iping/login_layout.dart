@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'site_config.dart';
@@ -88,7 +88,7 @@ class _BrandPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     final scheme = context.colorScheme;
     final dark = scheme.brightness == Brightness.dark;
     final background = dark
@@ -239,7 +239,7 @@ class _ConnectionIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     return ExcludeSemantics(
       child: SizedBox(
         height: 220,

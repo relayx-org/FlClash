@@ -4,6 +4,50 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
+  test(
+    'the published release waits for iOS and the same-source OpenWrt bundles',
+    () {
+      final build =
+          loadYaml(File('.github/workflows/build.yaml').readAsStringSync())
+              as YamlMap;
+      final jobs = build['jobs'] as YamlMap;
+      final native = jobs['build'] as YamlMap;
+      final matrix = native['strategy']['matrix']['include'] as YamlList;
+      final ios =
+          matrix.singleWhere((entry) => entry['platform'] == 'ios') as YamlMap;
+      expect(ios['arch'], 'arm64');
+      expect(ios['runner'], contains('macOS'));
+      final signing = (native['steps'] as YamlList).singleWhere(
+        (step) => step['name'] == 'Prepare iOS distribution signing',
+      );
+      expect(
+        signing['env'].keys,
+        containsAll([
+          'IOS_CERTIFICATE',
+          'IOS_CERTIFICATE_PASSWORD',
+          'IOS_PROVISIONING_PROFILE',
+          'IOS_TUNNEL_PROVISIONING_PROFILE',
+        ]),
+      );
+      expect(jobs['openwrt']['uses'], './.github/workflows/openwrt.yaml');
+      expect(
+        jobs['openwrt']['with']['ref'],
+        r'${{ needs.release.outputs.sha }}',
+      );
+      expect(jobs['upload']['needs'], containsAll(['build', 'openwrt']));
+      final workflow =
+          loadYaml(File('.github/workflows/openwrt.yaml').readAsStringSync())
+              as YamlMap;
+      expect(workflow['on']['workflow_call']['inputs'], contains('ref'));
+      for (final job in (workflow['jobs'] as YamlMap).values) {
+        final checkout = (job['steps'] as YamlList).firstWhere(
+          (step) => step['uses'] == 'actions/checkout@v4',
+        );
+        expect(checkout['with']['ref'], r'${{ inputs.ref || github.sha }}');
+      }
+    },
+  );
+
   group('Linux packaging teardown', () {
     for (final format in ['deb', 'rpm']) {
       test('$format removes the Helper unit only on a real uninstall', () {

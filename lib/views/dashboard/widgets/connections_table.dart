@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/core/method.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/app.dart';
-import 'package:fl_clash/providers/core.dart';
 import 'package:fl_clash/views/connection/connections.dart';
 import 'package:fl_clash/views/connection/requests.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
@@ -18,13 +18,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
-import 'current_outbound.dart';
+import 'record_table.dart';
 
 /// Enough to fill the tallest card several times over; the full feed is a
 /// tap away.
-const _maxFeedRows = 100;
 const _midTableWidth = 620.0;
-const _wideTableWidth = 880.0;
 const _cellInset = 8.0;
 const _tableGap = 12.0;
 const _headerHeight = 32.0;
@@ -92,7 +90,7 @@ mixin ConnectionsPolling<T extends ConsumerStatefulWidget>
 
   bool get pollsConnections;
 
-  CoreController get _core => ref.read(coreHandlerProvider);
+  IpingBackend get _backend => ref.read(ipingBackendProvider);
 
   @override
   Duration get pollInterval => Duration(seconds: pollsConnections ? 1 : 2);
@@ -120,7 +118,9 @@ mixin ConnectionsPolling<T extends ConsumerStatefulWidget>
     }
     try {
       if (pollsConnections) {
-        final next = await _core.getConnections();
+        final next = (await _backend.readConnections(
+          const IpingConnectionQuery(limit: null),
+        )).items.toList();
         if (!isCurrent()) return;
         next.sort((a, b) => b.start.compareTo(a.start));
         final tcp = next
@@ -135,7 +135,7 @@ mixin ConnectionsPolling<T extends ConsumerStatefulWidget>
           }),
         );
       } else {
-        final count = await _core.getConnectionCount();
+        final count = await _backend.readConnectionCount();
         if (!isCurrent()) return;
         connectionCount.value = count;
       }
@@ -380,21 +380,22 @@ class _ConnectionsTableCardState extends ConsumerState<ConnectionsTableCard>
           const SizedBox(height: _tableGap),
           Expanded(
             child: switch (_feed) {
-              DashboardFeed.connections => _Table<TrackerInfo>(
+              DashboardFeed.connections => DashboardRecordTable<TrackerInfo>(
                 key: const ValueKey(DashboardFeed.connections),
                 tableId: 'dashboard.connections',
                 items: connections,
                 rowHeight: rowHeight,
-                columnsOf: (width) => _connectionColumns(context, width),
+                columnsOf: (width) =>
+                    dashboardConnectionColumns(context, width),
               ),
-              DashboardFeed.requests => _Table<TrackerInfo>(
+              DashboardFeed.requests => DashboardRecordTable<TrackerInfo>(
                 key: const ValueKey(DashboardFeed.requests),
                 tableId: 'dashboard.requests',
                 items: _requests,
                 rowHeight: rowHeight,
                 columnsOf: (_) => _requestColumns(context),
               ),
-              DashboardFeed.dns => _Table<DnsQuery>(
+              DashboardFeed.dns => DashboardRecordTable<DnsQuery>(
                 key: const ValueKey(DashboardFeed.dns),
                 tableId: 'dashboard.dns',
                 items: _queries,
@@ -468,237 +469,6 @@ class _FeedSegment extends StatelessWidget {
   }
 }
 
-class _Table<T> extends ConsumerStatefulWidget {
-  const _Table({
-    super.key,
-    required this.tableId,
-    required this.items,
-    required this.rowHeight,
-    required this.columnsOf,
-  });
-
-  final String tableId;
-  final List<T> items;
-  final double rowHeight;
-  final List<RecordColumn<T>> Function(double width) columnsOf;
-
-  @override
-  ConsumerState<_Table<T>> createState() => _TableState<T>();
-}
-
-class _TableState<T> extends ConsumerState<_Table<T>>
-    with TableColumnWidthsMixin<_Table<T>> {
-  final _sorter = RecordSorter<T>();
-  RecordSort? _sort;
-
-  @override
-  String get tableId => widget.tableId;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final rowHeight = widget.rowHeight;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = widget.columnsOf(constraints.maxWidth);
-        final layouts = [for (final column in columns) column.layout];
-        final widths = tableColumnWidths(
-          layouts,
-          constraints.maxWidth,
-          columnWidths,
-        );
-        final sorted = _sorter.sort(widget.items, columns, _sort);
-        final items = sorted.length > _maxFeedRows
-            ? sorted.sublist(0, _maxFeedRows)
-            : sorted;
-        final headerStyle = AppTextStyle.caption1
-            .of(context, emphasized: true)
-            .copyWith(color: colorScheme.onSurfaceVariant);
-        final headerHeight =
-            _headerHeight * DashboardDensityScope.scaleOf(context);
-        final overflows =
-            items.length * rowHeight + 2 > constraints.maxHeight - headerHeight;
-        final shape = AppShape.all(DashboardCorner.tableHeader);
-        final fill = ShapeDecoration(
-          color: DashboardColors.of(context).tone,
-          shape: shape,
-        );
-        final body = ListView.builder(
-          padding: const EdgeInsets.only(top: 2),
-          itemExtent: rowHeight,
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            final cells = DefaultTextStyle.merge(
-              style: AppTextStyle.footnote.of(context),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              child: TableCells(
-                columns: layouts,
-                widths: widths,
-                height: rowHeight,
-                inset: _cellInset,
-                cells: [
-                  for (final column in columns) column.cell(context, item),
-                ],
-              ),
-            );
-            return index.isOdd
-                ? DecoratedBox(decoration: fill, child: cells)
-                : cells;
-          },
-        );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DecoratedBox(
-              decoration: fill,
-              child: Material(
-                type: MaterialType.transparency,
-                shape: shape,
-                clipBehavior: Clip.antiAlias,
-                child: TableColumnResizer(
-                  columns: layouts,
-                  widths: widths,
-                  onResize: (boundary, delta) =>
-                      resizeColumn(layouts, widths, boundary, delta),
-                  onResizeEnd: saveColumnWidths,
-                  onReset: resetColumnWidths,
-                  child: TableCells(
-                    columns: layouts,
-                    widths: widths,
-                    height: headerHeight,
-                    inset: 0,
-                    cells: [
-                      for (final column in columns)
-                        RecordHeaderCell(
-                          label: column.layout.label,
-                          end: column.layout.end,
-                          style: headerStyle,
-                          inset: _cellInset,
-                          descending: _sort?.columnId == column.id
-                              ? _sort?.descending
-                              : null,
-                          onTap: column.sortKey == null
-                              ? null
-                              : () => setState(
-                                  () => _sort = nextRecordSort(_sort, column),
-                                ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: items.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Text(
-                          context.appLocalizations.noData,
-                          style: DashboardText.label(context),
-                        ),
-                      ),
-                    )
-                  : overflows
-                  ? DashboardFadeOut(child: body)
-                  : body,
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-TextStyle _muted(BuildContext context) =>
-    TextStyle(color: context.colorScheme.onSurfaceVariant);
-
-class _Muted extends StatelessWidget {
-  const _Muted(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(text, style: _muted(context));
-  }
-}
-
-class _Number extends StatelessWidget {
-  const _Number(this.text, {this.muted = false});
-
-  final String text;
-  final bool muted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontFeatures: const [FontFeature.tabularFigures()],
-        color: muted ? context.colorScheme.onSurfaceVariant : null,
-      ),
-    );
-  }
-}
-
-class _Source extends StatelessWidget {
-  const _Source(this.name);
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final letter = name.characters.firstOrNull ?? '?';
-    return Row(
-      spacing: 8,
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: ShapeDecoration(
-            color: DashboardColors.of(context).tone2,
-            shape: AppShape.all(7),
-          ),
-          child: Center(
-            child: Text(
-              letter,
-              style: AppTextStyle.caption2
-                  .of(context, emphasized: true)
-                  .copyWith(color: context.colorScheme.onSurfaceVariant),
-            ),
-          ),
-        ),
-        Flexible(
-          child: Text(
-            name.isEmpty ? '—' : name,
-            style: AppTextStyle.footnote.of(context, emphasized: true),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Exit extends StatelessWidget {
-  const _Exit(this.info);
-
-  final TrackerInfo info;
-
-  @override
-  Widget build(BuildContext context) {
-    final exit = info.chains.firstOrNull ?? '';
-    return EmojiText(
-      exit.isEmpty ? '—' : exit,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: isBuiltinOutbound(exit) ? _muted(context) : null,
-    );
-  }
-}
-
 String _timeOf(DateTime time) => time.showTime.trim();
 
 String _ruleKey(TrackerInfo info) =>
@@ -707,101 +477,18 @@ String _ruleKey(TrackerInfo info) =>
 String _exitKey(TrackerInfo info) =>
     (info.chains.firstOrNull ?? '').toLowerCase();
 
-List<RecordColumn<TrackerInfo>> _connectionColumns(
-  BuildContext context,
-  double width,
-) {
-  final appLocalizations = context.appLocalizations;
-  final mid = width >= _midTableWidth;
-  final wide = width >= _wideTableWidth;
-  return [
-    RecordColumn(
-      TableColumn('source', appLocalizations.source, width: wide ? 160 : 140),
-      cell: (_, info) => _Source(info.metadata.process),
-      sortKey: (info) => info.metadata.process.toLowerCase(),
-    ),
-    RecordColumn(
-      TableColumn('target', appLocalizations.target, flex: wide ? 1.3 : 1),
-      cell: (_, info) => TrackerTargetText(info),
-      sortKey: (info) => info.title.toLowerCase(),
-    ),
-    if (mid)
-      RecordColumn(
-        TableColumn(
-          'protocol',
-          appLocalizations.protocol,
-          width: wide ? 52 : 46,
-        ),
-        cell: (_, info) => _Muted(info.metadata.network.toUpperCase()),
-        sortKey: (info) => info.metadata.network.toLowerCase(),
-      ),
-    if (wide)
-      RecordColumn(
-        TableColumn('rule', appLocalizations.rule, flex: 1),
-        cell: (_, info) => TrackerRuleText(info),
-        sortKey: _ruleKey,
-      ),
-    RecordColumn(
-      TableColumn(
-        'exit',
-        appLocalizations.outboundExit,
-        width: wide ? 120 : 100,
-      ),
-      cell: (_, info) => _Exit(info),
-      sortKey: _exitKey,
-    ),
-    RecordColumn(
-      TableColumn(
-        'download',
-        appLocalizations.download,
-        width: wide ? 80 : 70,
-        end: true,
-      ),
-      cell: (_, info) => _Number(dashboardTraffic(info.download)),
-      sortKey: (info) => info.download,
-      descendingFirst: true,
-    ),
-    RecordColumn(
-      TableColumn(
-        'upload',
-        appLocalizations.upload,
-        width: wide ? 80 : 70,
-        end: true,
-      ),
-      cell: (_, info) => _Number(dashboardTraffic(info.upload)),
-      sortKey: (info) => info.upload,
-      descendingFirst: true,
-    ),
-    if (mid)
-      RecordColumn(
-        TableColumn(
-          'duration',
-          appLocalizations.duration,
-          width: wide ? 72 : 64,
-          end: true,
-        ),
-        cell: (_, info) => _Number(
-          trackerDurationText(DateTime.now().difference(info.start)),
-          muted: true,
-        ),
-        sortKey: (info) => -info.start.microsecondsSinceEpoch,
-        descendingFirst: true,
-      ),
-  ];
-}
-
 List<RecordColumn<TrackerInfo>> _requestColumns(BuildContext context) {
   final appLocalizations = context.appLocalizations;
   return [
     RecordColumn(
       TableColumn('time', appLocalizations.time, width: 76),
-      cell: (_, info) => _Number(_timeOf(info.start), muted: true),
+      cell: (_, info) => DashboardNumber(_timeOf(info.start), muted: true),
       sortKey: (info) => info.start,
       descendingFirst: true,
     ),
     RecordColumn(
       TableColumn('source', appLocalizations.source, width: 140),
-      cell: (_, info) => _Source(info.metadata.process),
+      cell: (_, info) => DashboardSource(info.metadata.process),
       sortKey: (info) => info.metadata.process.toLowerCase(),
     ),
     RecordColumn(
@@ -816,12 +503,13 @@ List<RecordColumn<TrackerInfo>> _requestColumns(BuildContext context) {
     ),
     RecordColumn(
       TableColumn('exit', appLocalizations.outboundExit, width: 100),
-      cell: (_, info) => _Exit(info),
+      cell: (_, info) => DashboardExit(info),
       sortKey: _exitKey,
     ),
     RecordColumn(
       TableColumn('traffic', appLocalizations.traffic, width: 64, end: true),
-      cell: (_, info) => _Number(dashboardTraffic(info.upload + info.download)),
+      cell: (_, info) =>
+          DashboardNumber(dashboardTraffic(info.upload + info.download)),
       sortKey: (info) => info.upload + info.download,
       descendingFirst: true,
     ),
@@ -833,7 +521,7 @@ List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context) {
   return [
     RecordColumn(
       TableColumn('time', appLocalizations.time, width: 76),
-      cell: (_, query) => _Number(_timeOf(query.time), muted: true),
+      cell: (_, query) => DashboardNumber(_timeOf(query.time), muted: true),
       sortKey: (query) => query.time,
       descendingFirst: true,
     ),
@@ -847,12 +535,12 @@ List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context) {
     ),
     RecordColumn(
       TableColumn('type', appLocalizations.ipType, width: 60),
-      cell: (_, query) => _Muted(query.type),
+      cell: (_, query) => DashboardMuted(query.type),
       sortKey: (query) => query.type,
     ),
     RecordColumn(
       TableColumn('initiator', appLocalizations.initiatorShort, width: 52),
-      cell: (_, query) => _Muted(query.initiator?.label ?? '—'),
+      cell: (_, query) => DashboardMuted(query.initiator?.label ?? '—'),
       sortKey: (query) => query.initiator?.label ?? '',
     ),
     RecordColumn(
@@ -862,7 +550,7 @@ List<RecordColumn<DnsQuery>> _dnsColumns(BuildContext context) {
     ),
     RecordColumn(
       TableColumn('elapsed', appLocalizations.elapsed, width: 72, end: true),
-      cell: (_, query) => _Number('${query.delay} ms', muted: true),
+      cell: (_, query) => DashboardNumber('${query.delay} ms', muted: true),
       sortKey: (query) => query.delay,
       descendingFirst: true,
     ),

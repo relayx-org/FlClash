@@ -1,4 +1,4 @@
-import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/gestures.dart';
@@ -69,7 +69,7 @@ class _PaletteState extends State<Palette> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -390,7 +390,7 @@ class _HsvSliders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     final colorScheme = context.colorScheme;
     final color = hsv.toColor();
     final level = context.raisedSurfaceLevel;
@@ -706,7 +706,7 @@ class _HexColorFieldState extends State<HexColorField> {
         textCapitalization: TextCapitalization.characters,
         style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
         decoration: InputDecoration(
-          hintText: context.appLocalizations.hex,
+          hintText: AppLocalizations.of(context).hex,
           prefixText: '#',
         ),
         inputFormatters: [

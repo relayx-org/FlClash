@@ -80,7 +80,20 @@ hooks:
     test('packages every Linux format on every architecture', () {
       expect(setup.createPackageTargets('linux', null), 'deb,appimage,rpm,zip');
       expect(setup.createPackageTargets('linux', 'deb'), 'deb');
+      expect(setup.createPackageTargets('ios', null), 'ipa');
+      expect(
+        () => setup.createPackageTargets('ios', 'zip'),
+        throwsArgumentError,
+      );
       expect(setup.createPackageTargets('macos', null), 'dmg,zip');
+    });
+
+    test('iOS packages arm64 devices on either macOS host architecture', () {
+      expect(setup.canBuildPlatform('ios', 'macos'), isTrue);
+      expect(setup.canBuildPlatform('ios', 'linux'), isFalse);
+      expect(setup.canBuildPlatform('ios', 'windows'), isFalse);
+      expect(setup.packageArchitecture('ios', 'name: x', 'amd64'), 'arm64');
+      expect(setup.packageArchitecture('ios', 'name: x', 'arm64'), 'arm64');
     });
 
     test('downloads the appimagetool build matching the host', () {

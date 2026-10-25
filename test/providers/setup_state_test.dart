@@ -59,52 +59,53 @@ void main() {
     expect(state.profileProviders, {'Sub': subscription.id});
   });
 
-  testWidgets('a custom setup leaves the extension of its profile out', (
-    tester,
-  ) async {
-    const profile = Profile(
-      id: 1,
-      type: ProfileType.custom,
-      autoUpdateDuration: Duration.zero,
-      extendType: ExtendType.script,
-      scriptId: 5,
-      matchTarget: 'Proxy',
-    );
-    await testDatabase.profilesDao.putAll([profile.toCompanion()]);
-    await testDatabase.scripts.put(
-      Script(
-        id: 5,
-        label: 'Script',
-        lastUpdateTime: DateTime(2026),
-      ).toCompanion(),
-    );
-    await testDatabase.rulesDao.putRule(
-      Rule.parse('DOMAIN,global.com,DIRECT', id: 10),
-    );
-    await testDatabase.rulesDao.putRule(
-      Rule.parse('DOMAIN,own.com,DIRECT', id: 11),
-      profileId: profile.id,
-    );
-    final container = ProviderContainer(
-      overrides: [
-        profilesProvider.overrideWith(() => TestProfiles([profile])),
-      ],
-    );
-    addTearDown(container.dispose);
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const SizedBox.shrink(),
-      ),
-    );
+  testWidgets(
+    'a custom setup loads its selected script and keeps its own rules',
+    (tester) async {
+      const profile = Profile(
+        id: 1,
+        type: ProfileType.custom,
+        autoUpdateDuration: Duration.zero,
+        extendType: ExtendType.script,
+        scriptId: 5,
+        matchTarget: 'Proxy',
+      );
+      await testDatabase.profilesDao.putAll([profile.toCompanion()]);
+      await testDatabase.scripts.put(
+        Script(
+          id: 5,
+          label: 'Script',
+          lastUpdateTime: DateTime(2026),
+        ).toCompanion(),
+      );
+      await testDatabase.rulesDao.putRule(
+        Rule.parse('DOMAIN,global.com,DIRECT', id: 10),
+      );
+      await testDatabase.rulesDao.putRule(
+        Rule.parse('DOMAIN,own.com,DIRECT', id: 11),
+        profileId: profile.id,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          profilesProvider.overrideWith(() => TestProfiles([profile])),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const SizedBox.shrink(),
+        ),
+      );
 
-    final state = await container.read(setupStateProvider(profile.id).future);
+      final state = await container.read(setupStateProvider(profile.id).future);
 
-    expect(state.script, isNull);
-    expect(state.matchTarget, isNull);
-    expect(state.addedRules, isEmpty);
-    expect(state.rules.map((rule) => rule.id), [11]);
-  });
+      expect(state.script?.id, 5);
+      expect(state.matchTarget, isNull);
+      expect(state.addedRules, isEmpty);
+      expect(state.rules.map((rule) => rule.id), [11]);
+    },
+  );
 
   testWidgets('a custom setup carries the dialers of its own profile', (
     tester,

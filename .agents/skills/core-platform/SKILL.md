@@ -29,6 +29,8 @@ Every behavior here has one authoritative owner, and a change lands there:
 - Shared facade/protocol: `lib/core/controller.dart`, `lib/core/interface.dart`, and `lib/core/method.dart`.
 - Android Core connection: `lib/core/lib.dart`, `lib/plugins/service.dart`, and Android `ServicePlugin`.
 - Android start/stop intent: `ServiceState`; binding/process-time bookkeeping: `ServiceController`.
+- iOS VPN intent and Core routing: `ios/Runner/IOSService.swift`; packet tunnel and settings:
+  `ios/PacketTunnel/`; Go library API: `core/lib_ios.go`. See `ios/README.md` for its build and signing boundary.
 - Desktop composition: `lib/core/service.dart`; lifecycle/process ownership: `lib/core/desktop/lifecycle.dart`.
 - Desktop IPC/RPC: `lib/core/desktop/transport.dart` and `lib/core/desktop/rpc_client.dart`.
 - Desktop launch ownership: `lib/core/desktop/launcher.dart`; Windows and Linux Helper HTTP contract:

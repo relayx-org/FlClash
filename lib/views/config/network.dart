@@ -5,6 +5,9 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/config.dart';
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/core_settings_page.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/config/override.dart';
 import 'package:fl_clash/views/config/tun.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -36,6 +39,16 @@ ConfigWriter<T> _tunWriter<T>(_TunUpdate<T> update) {
       .read(patchClashConfigProvider.notifier)
       .update((state) => update(state, value));
 }
+
+ConfigWriter<T> _settingWriter<T>(
+  String key, {
+  Object? Function(T value)? encode,
+}) =>
+    (ref, value) => globalState.safeRun(
+      () => ref.read(ipingBackendProvider).updateSettings({
+        key: encode == null ? value : encode(value),
+      }),
+    );
 
 ConfigToggleItem _vpnToggle({
   required ConfigLabel title,
@@ -82,9 +95,7 @@ class TUNItem extends ConsumerWidget {
     return ConfigToggleItem(
       title: (l) => l.tun,
       selector: patchClashConfigProvider.select((state) => state.tun.enable),
-      onChanged: _tunWriter(
-        (state, value) => state.copyWith.tun(enable: value),
-      ),
+      onChanged: _settingWriter('tun.enable'),
     );
   }
 }
@@ -177,7 +188,10 @@ class TunStackItem extends ConsumerWidget {
       options: TunStack.values,
       textBuilder: (stack) => stack.name,
       selector: patchClashConfigProvider.select((state) => state.tun.stack),
-      onChanged: _tunWriter((state, value) => state.copyWith.tun(stack: value)),
+      onChanged: _settingWriter<TunStack>(
+        'tun.stack',
+        encode: (value) => value.name,
+      ),
     );
   }
 }
@@ -263,9 +277,7 @@ class RouteAddressItem extends ConsumerWidget {
       selector: patchClashConfigProvider.select(
         (state) => state.tun.routeAddress,
       ),
-      onChanged: _tunWriter(
-        (state, value) => state.copyWith.tun(routeAddress: value),
-      ),
+      onChanged: _settingWriter('tun.route-address'),
     );
   }
 }
@@ -297,6 +309,7 @@ class _NumberItem extends ConsumerWidget {
     this.isSeconds = false,
     this.min = 0,
     this.max = _maxUint32,
+    this.setting,
   });
 
   final ConfigLabel title;
@@ -305,6 +318,7 @@ class _NumberItem extends ConsumerWidget {
   final bool isSeconds;
   final int min;
   final int max;
+  final String? setting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -335,6 +349,10 @@ class _NumberItem extends ConsumerWidget {
         if (value == null) {
           return;
         }
+        if (setting case final key?) {
+          _settingWriter<int>(key)(ref, int.parse(value.trim()));
+          return;
+        }
         ref
             .read(patchClashConfigProvider.notifier)
             .update((state) => update(state, int.parse(value.trim())));
@@ -349,6 +367,7 @@ List<Widget> tunItems({required bool isMipsStack}) {
   return [
     _NumberItem(
       title: (l) => 'MTU',
+      setting: 'tun.mtu',
       min: minTunMtu,
       max: maxTunMtu,
       select: (state) => state.tun.mtu,
@@ -362,9 +381,7 @@ List<Widget> tunItems({required bool isMipsStack}) {
         selector: patchClashConfigProvider.select(
           (state) => state.tun.congestionController,
         ),
-        onChanged: _tunWriter(
-          (state, value) => state.copyWith.tun(congestionController: value),
-        ),
+        onChanged: _settingWriter('tun.congestion-controller'),
       ),
     const BypassPrivateRouteItem(),
     const RouteAddressItem(),
@@ -375,9 +392,7 @@ List<Widget> tunItems({required bool isMipsStack}) {
       selector: patchClashConfigProvider.select(
         (state) => state.tun.routeExcludeAddress,
       ),
-      onChanged: _tunWriter(
-        (state, value) => state.copyWith.tun(routeExcludeAddress: value),
-      ),
+      onChanged: _settingWriter('tun.route-exclude-address'),
     ),
   ];
 }
@@ -580,32 +595,71 @@ class NetworkOptionsSection extends ConsumerWidget {
   }
 }
 
-class NetworkListView extends StatelessWidget {
+class NetworkListView extends ConsumerWidget {
   const NetworkListView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-      ).copyWith(top: context.contentTopPadding, bottom: 16),
-      children: [
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isCustomInterfaceName = ref.watch(
+      patchClashConfigProvider.select(
+        (state) => state.interfaceNameMode == InterfaceNameMode.custom,
+      ),
+    );
+    final excluded = <String>{
+      if (!system.isDesktop) ...{
+        'disable-keep-alive',
+        'keep-alive-idle',
+        'keep-alive-interval',
+        'tun.enable',
+        'tun.device',
+        'tun.stack',
+        'tun.mtu',
+        'tun.congestion-controller',
+        'tun.route-address',
+        'tun.route-exclude-address',
+      },
+      if (!system.isLinux) ...{
+        'routing-mark',
+        'tun.gso',
+        'tun.include-interface',
+        'tun.exclude-interface',
+        'tun.include-uid',
+        'tun.exclude-uid',
+        'tun.exclude-src-port',
+        'tun.exclude-dst-port',
+      },
+      if (!system.isLinux && !system.isWindows) 'tun.strict-route',
+    };
+    return IpingCoreSettingsPage(
+      backend: ref.watch(ipingBackendProvider),
+      kind: IpingCoreSettingsKind.network,
+      scaffold: false,
+      excluded: excluded,
+      before: [
         if (system.isAndroid) const VpnSections(),
         if (system.isDesktop) const SystemProxySection(),
-        const NetworkOptionsSection(),
-        TunSection(
-          isDesktop: system.isDesktop,
-          isLinux: system.isLinux,
-          isWindows: system.isWindows,
-        ),
         generateSection(
-          title: context.appLocalizations.outbound,
-          items: outboundItems(
-            isDesktop: system.isDesktop,
-            isLinux: system.isLinux,
-          ),
+          title: context.appLocalizations.options,
+          items: [
+            if (system.isMacOS) const AutoSetSystemDnsItem(),
+            if (system.isDesktop) ...[
+              const InterfaceNameModeItem(),
+              if (isCustomInterfaceName) const InterfaceNameItem(),
+              const BypassPrivateRouteItem(),
+            ],
+          ],
+          footer: context.appLocalizations.bypassPrivateRouteDesc,
         ),
       ],
+      after: [
+        if (!system.isDesktop) ...[
+          const TunStackItem(),
+          const TunSection(isDesktop: false, isLinux: false, isWindows: false),
+        ],
+      ],
+      footer: system.isDesktop
+          ? context.appLocalizations.tunOverrideDesc
+          : null,
     );
   }
 }

@@ -307,3 +307,14 @@ extension AppShapeThemeExt on ThemeData {
 }
 
 const _pillButton = ButtonStyle(shape: WidgetStatePropertyAll(AppShape.full));
+
+void strokeUnitShape(Canvas canvas, Path path, double extent, BorderSide side) {
+  final scale = 1 + side.width * side.strokeAlign / extent;
+  canvas
+    ..save()
+    ..translate(0.5, 0.5)
+    ..scale(scale)
+    ..translate(-0.5, -0.5)
+    ..drawPath(path, side.toPaint()..strokeWidth = side.width / extent / scale)
+    ..restore();
+}

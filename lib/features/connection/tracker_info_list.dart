@@ -1,6 +1,9 @@
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import '../../models/tracker.dart';
+import '../../common/fixed.dart';
+import '../../common/list_limits.dart';
+import '../../ui/ui.dart';
+import '../../ui/record.dart';
+import '../../ui/record_table.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 

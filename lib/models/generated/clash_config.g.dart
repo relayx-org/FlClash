@@ -101,89 +101,6 @@ Map<String, dynamic> _$ProxyToJson(_Proxy instance) => <String, dynamic>{
   'now': instance.now,
 };
 
-_CustomProxy _$CustomProxyFromJson(Map<String, dynamic> json) => _CustomProxy(
-  id: Snowflake.buildId((json['id'] as num?)?.toInt()),
-  definition: json['definition'] as Map<String, dynamic>? ?? const {},
-  order: json['order'] as String?,
-  emptyOptions:
-      (json['emptyOptions'] as List<dynamic>?)
-          ?.map((e) => $enumDecode(_$ProxyFieldEnumMap, e))
-          .toSet() ??
-      const {},
-);
-
-Map<String, dynamic> _$CustomProxyToJson(_CustomProxy instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'definition': instance.definition,
-      'order': instance.order,
-      'emptyOptions': instance.emptyOptions
-          .map((e) => _$ProxyFieldEnumMap[e]!)
-          .toList(),
-    };
-
-const _$ProxyFieldEnumMap = {
-  ProxyField.username: 'username',
-  ProxyField.password: 'password',
-  ProxyField.uuid: 'uuid',
-  ProxyField.psk: 'psk',
-  ProxyField.key: 'key',
-  ProxyField.privateKey: 'privateKey',
-  ProxyField.publicKey: 'publicKey',
-  ProxyField.privateKeyPassphrase: 'privateKeyPassphrase',
-  ProxyField.preSharedKey: 'preSharedKey',
-  ProxyField.authStr: 'authStr',
-  ProxyField.cipher: 'cipher',
-  ProxyField.alterId: 'alterId',
-  ProxyField.protocol: 'protocol',
-  ProxyField.obfs: 'obfs',
-  ProxyField.transport: 'transport',
-  ProxyField.up: 'up',
-  ProxyField.down: 'down',
-  ProxyField.network: 'network',
-  ProxyField.flow: 'flow',
-  ProxyField.wsPath: 'wsPath',
-  ProxyField.wsHost: 'wsHost',
-  ProxyField.grpcServiceName: 'grpcServiceName',
-  ProxyField.xhttpPath: 'xhttpPath',
-  ProxyField.xhttpHost: 'xhttpHost',
-  ProxyField.tls: 'tls',
-  ProxyField.sni: 'sni',
-  ProxyField.servername: 'servername',
-  ProxyField.alpn: 'alpn',
-  ProxyField.skipCertVerify: 'skipCertVerify',
-  ProxyField.clientFingerprint: 'clientFingerprint',
-  ProxyField.realityPublicKey: 'realityPublicKey',
-  ProxyField.realityShortId: 'realityShortId',
-  ProxyField.plugin: 'plugin',
-  ProxyField.pluginMode: 'pluginMode',
-  ProxyField.pluginHost: 'pluginHost',
-  ProxyField.udpOverTcp: 'udpOverTcp',
-  ProxyField.protocolParam: 'protocolParam',
-  ProxyField.obfsParam: 'obfsParam',
-  ProxyField.obfsPassword: 'obfsPassword',
-  ProxyField.obfsSecret: 'obfsSecret',
-  ProxyField.obfsMode: 'obfsMode',
-  ProxyField.obfsHost: 'obfsHost',
-  ProxyField.version: 'version',
-  ProxyField.ports: 'ports',
-  ProxyField.hopInterval: 'hopInterval',
-  ProxyField.congestionController: 'congestionController',
-  ProxyField.udpRelayMode: 'udpRelayMode',
-  ProxyField.reduceRtt: 'reduceRtt',
-  ProxyField.ip: 'ip',
-  ProxyField.ipv6: 'ipv6',
-  ProxyField.allowedIps: 'allowedIps',
-  ProxyField.dns: 'dns',
-  ProxyField.remoteDnsResolve: 'remoteDnsResolve',
-  ProxyField.mtu: 'mtu',
-  ProxyField.tfo: 'tfo',
-  ProxyField.mptcp: 'mptcp',
-  ProxyField.interfaceName: 'interfaceName',
-  ProxyField.routingMark: 'routingMark',
-  ProxyField.ipVersion: 'ipVersion',
-};
-
 _Sniffer _$SnifferFromJson(Map<String, dynamic> json) => _Sniffer(
   enable: json['enable'] as bool? ?? false,
   overrideDest: json['override-destination'] as bool? ?? true,
@@ -526,6 +443,11 @@ Map<String, dynamic> _$ProfileTunToJson(_ProfileTun instance) =>
 
 _ProfileOverrides _$ProfileOverridesFromJson(Map<String, dynamic> json) =>
     _ProfileOverrides(
+      resources: json['resources'] == null
+          ? const IpingResourceBindings()
+          : IpingResourceBindings.fromJson(
+              json['resources'] as Map<String, dynamic>,
+            ),
       dns: json['dns'] == null
           ? defaultDns
           : Dns.safeDnsFromJson(json['dns'] as Map<String, Object?>),
@@ -564,6 +486,7 @@ _ProfileOverrides _$ProfileOverridesFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ProfileOverridesToJson(_ProfileOverrides instance) =>
     <String, dynamic>{
+      'resources': instance.resources,
       'dns': instance.dns,
       'dns-override-keys': instance.dnsOverrideKeys
           .map((e) => _$DnsOverrideKeyEnumMap[e]!)
@@ -730,72 +653,6 @@ Map<String, dynamic> _$ProxyProviderOptionsToJson(
   'exclude-filter': instance.excludeFilter,
   'override': instance.proxyOverride,
   'memberLayout': instance.memberLayout,
-};
-
-_Rule _$RuleFromJson(Map<String, dynamic> json) => _Rule(
-  id: (json['id'] as num?)?.toInt() ?? -1,
-  ruleAction:
-      $enumDecodeNullable(_$RuleActionEnumMap, json['ruleAction']) ??
-      RuleAction.DOMAIN,
-  content: json['content'] as String?,
-  ruleTarget: json['ruleTarget'] as String?,
-  ruleProvider: json['ruleProvider'] as String?,
-  subRule: json['subRule'] as String?,
-  noResolve: json['noResolve'] as bool? ?? false,
-  src: json['src'] as bool? ?? false,
-  order: json['order'] as String?,
-);
-
-Map<String, dynamic> _$RuleToJson(_Rule instance) => <String, dynamic>{
-  'id': instance.id,
-  'ruleAction': _$RuleActionEnumMap[instance.ruleAction]!,
-  'content': instance.content,
-  'ruleTarget': instance.ruleTarget,
-  'ruleProvider': instance.ruleProvider,
-  'subRule': instance.subRule,
-  'noResolve': instance.noResolve,
-  'src': instance.src,
-  'order': instance.order,
-};
-
-const _$RuleActionEnumMap = {
-  RuleAction.DOMAIN: 'DOMAIN',
-  RuleAction.DOMAIN_SUFFIX: 'DOMAIN_SUFFIX',
-  RuleAction.DOMAIN_KEYWORD: 'DOMAIN_KEYWORD',
-  RuleAction.DOMAIN_REGEX: 'DOMAIN_REGEX',
-  RuleAction.DOMAIN_WILDCARD: 'DOMAIN_WILDCARD',
-  RuleAction.GEOSITE: 'GEOSITE',
-  RuleAction.IP_CIDR: 'IP_CIDR',
-  RuleAction.IP_CIDR6: 'IP_CIDR6',
-  RuleAction.IP_SUFFIX: 'IP_SUFFIX',
-  RuleAction.IP_ASN: 'IP_ASN',
-  RuleAction.GEOIP: 'GEOIP',
-  RuleAction.SRC_GEOIP: 'SRC_GEOIP',
-  RuleAction.SRC_IP_ASN: 'SRC_IP_ASN',
-  RuleAction.SRC_IP_CIDR: 'SRC_IP_CIDR',
-  RuleAction.SRC_IP_SUFFIX: 'SRC_IP_SUFFIX',
-  RuleAction.DST_PORT: 'DST_PORT',
-  RuleAction.SRC_PORT: 'SRC_PORT',
-  RuleAction.IN_PORT: 'IN_PORT',
-  RuleAction.IN_TYPE: 'IN_TYPE',
-  RuleAction.IN_USER: 'IN_USER',
-  RuleAction.IN_NAME: 'IN_NAME',
-  RuleAction.REMATCH_NAME: 'REMATCH_NAME',
-  RuleAction.PROCESS_PATH: 'PROCESS_PATH',
-  RuleAction.PROCESS_PATH_REGEX: 'PROCESS_PATH_REGEX',
-  RuleAction.PROCESS_PATH_WILDCARD: 'PROCESS_PATH_WILDCARD',
-  RuleAction.PROCESS_NAME: 'PROCESS_NAME',
-  RuleAction.PROCESS_NAME_REGEX: 'PROCESS_NAME_REGEX',
-  RuleAction.PROCESS_NAME_WILDCARD: 'PROCESS_NAME_WILDCARD',
-  RuleAction.UID: 'UID',
-  RuleAction.NETWORK: 'NETWORK',
-  RuleAction.DSCP: 'DSCP',
-  RuleAction.RULE_SET: 'RULE_SET',
-  RuleAction.AND: 'AND',
-  RuleAction.OR: 'OR',
-  RuleAction.NOT: 'NOT',
-  RuleAction.SUB_RULE: 'SUB_RULE',
-  RuleAction.MATCH: 'MATCH',
 };
 
 _ClashConfig _$ClashConfigFromJson(Map<String, dynamic> json) => _ClashConfig(

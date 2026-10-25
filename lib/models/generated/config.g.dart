@@ -6,14 +6,6 @@ part of '../config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_Filter _$FilterFromJson(Map<String, dynamic> json) =>
-    _Filter(label: json['label'] as String, regex: json['regex'] as String);
-
-Map<String, dynamic> _$FilterToJson(_Filter instance) => <String, dynamic>{
-  'label': instance.label,
-  'regex': instance.regex,
-};
-
 _AppSettingProps _$AppSettingPropsFromJson(
   Map<String, dynamic> json,
 ) => _AppSettingProps(
@@ -283,20 +275,21 @@ _ProxiesStyleProps _$ProxiesStylePropsFromJson(Map<String, dynamic> json) =>
     _ProxiesStyleProps(
       type:
           $enumDecodeNullable(_$ProxiesTypeEnumMap, json['type']) ??
-          ProxiesType.list,
+          defaultProxyViewType,
       sortType:
           $enumDecodeNullable(_$ProxiesSortTypeEnumMap, json['sortType']) ??
-          ProxiesSortType.none,
+          defaultProxyViewSort,
       layout:
           $enumDecodeNullable(_$ProxiesLayoutEnumMap, json['layout']) ??
-          ProxiesLayout.standard,
+          defaultProxyViewLayout,
       iconStyle: json['iconStyle'] == null
-          ? ProxiesIconStyle.filled
+          ? defaultProxyViewIcon
           : proxiesIconStyleSafeFromJson(json['iconStyle']),
       cardType: json['cardType'] == null
-          ? ProxyCardType.standard
+          ? defaultProxyViewCard
           : proxyCardTypeSafeFromJson(json['cardType']),
-      hideTimeoutProxies: json['hideTimeoutProxies'] as bool? ?? false,
+      hideTimeoutProxies:
+          json['hideTimeoutProxies'] as bool? ?? defaultProxyViewHideTimeout,
     );
 
 Map<String, dynamic> _$ProxiesStylePropsToJson(_ProxiesStyleProps instance) =>

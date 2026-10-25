@@ -1,6 +1,5 @@
-import 'package:fl_clash/enum/enum.dart';
-
-import 'string.dart';
+import 'share_link.dart';
+import 'package:fl_clash/enum/rule_action.dart';
 
 enum InputIssueKind {
   keyTooLong,
@@ -152,7 +151,7 @@ ParsedInput<String> parseUrlInput(
   final lines = text.split(_lineSeparator);
   for (var index = 0; index < lines.length; index++) {
     final line = _stripLineMarkup(lines[index]);
-    for (final raw in line.isShareLink ? [line] : line.split(_whitespaces)) {
+    for (final raw in isShareLink(line) ? [line] : line.split(_whitespaces)) {
       final url = _unquote(raw);
       if (url.isEmpty) {
         continue;

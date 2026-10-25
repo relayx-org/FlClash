@@ -78,3 +78,7 @@ devtools_options.yaml
 .fvm/
 .fvmrc
 /coverage/lcov.info
+
+# OpenWrt embedded Flutter Web build
+/openwrt/iping/src/webui/dist/*
+!/openwrt/iping/src/webui/dist/.keep

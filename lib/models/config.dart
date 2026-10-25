@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'models.dart';
+export 'filter.dart';
 
 part 'generated/config.freezed.dart';
 part 'generated/config.g.dart';
@@ -211,14 +212,6 @@ Object? _readUserAgents(Map<dynamic, dynamic> json, String key) {
 }
 
 @freezed
-abstract class Filter with _$Filter {
-  const factory Filter({required String label, required String regex}) =
-      _Filter;
-
-  factory Filter.fromJson(Map<String, Object?> json) => _$FilterFromJson(json);
-}
-
-@freezed
 abstract class AppSettingProps with _$AppSettingProps {
   const factory AppSettingProps({
     String? locale,
@@ -401,16 +394,16 @@ ProxyCardType proxyCardTypeSafeFromJson(Object? cardType) {
 @freezed
 abstract class ProxiesStyleProps with _$ProxiesStyleProps {
   const factory ProxiesStyleProps({
-    @Default(ProxiesType.list) ProxiesType type,
-    @Default(ProxiesSortType.none) ProxiesSortType sortType,
-    @Default(ProxiesLayout.standard) ProxiesLayout layout,
-    @Default(ProxiesIconStyle.filled)
+    @Default(defaultProxyViewType) ProxiesType type,
+    @Default(defaultProxyViewSort) ProxiesSortType sortType,
+    @Default(defaultProxyViewLayout) ProxiesLayout layout,
+    @Default(defaultProxyViewIcon)
     @JsonKey(fromJson: proxiesIconStyleSafeFromJson)
     ProxiesIconStyle iconStyle,
-    @Default(ProxyCardType.standard)
+    @Default(defaultProxyViewCard)
     @JsonKey(fromJson: proxyCardTypeSafeFromJson)
     ProxyCardType cardType,
-    @Default(false) bool hideTimeoutProxies,
+    @Default(defaultProxyViewHideTimeout) bool hideTimeoutProxies,
   }) = _ProxiesStyleProps;
 
   factory ProxiesStyleProps.fromJson(Map<String, Object?>? json) => json == null

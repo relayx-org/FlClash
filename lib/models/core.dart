@@ -1,3 +1,4 @@
+export 'delay.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -177,14 +178,6 @@ abstract class CoreEvent with _$CoreEvent {
 
   factory CoreEvent.fromJson(Map<String, Object?> json) =>
       _$CoreEventFromJson(json);
-}
-
-@freezed
-abstract class Delay with _$Delay {
-  const factory Delay({required String name, required String url, int? value}) =
-      _Delay;
-
-  factory Delay.fromJson(Map<String, Object?> json) => _$DelayFromJson(json);
 }
 
 @freezed

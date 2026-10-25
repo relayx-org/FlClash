@@ -1,10 +1,10 @@
+import 'package:fl_clash/ui/group_monogram.dart';
+export 'package:fl_clash/ui/group_monogram.dart';
 import 'dart:async';
 
 import 'package:fl_clash/common/cache.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/plugins/app.dart';
-import 'package:fl_clash/ui/icons/icons.dart';
-import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -81,7 +81,7 @@ class CommonTargetIcon extends StatelessWidget {
   const CommonTargetIcon({super.key, required this.src, this.fallback});
 
   Widget _defaultIcon() {
-    return fallback ?? const _ImagePlaceholder();
+    return fallback ?? const TargetImagePlaceholder();
   }
 
   Widget _buildIcon() {
@@ -104,72 +104,6 @@ class CommonTargetIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _buildIcon();
-  }
-}
-
-class _ImagePlaceholder extends StatelessWidget {
-  const _ImagePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final size = IconTheme.of(context).size ?? 24;
-    final colorScheme = context.colorScheme;
-    return SizedBox.square(
-      dimension: size,
-      child: Center(
-        child: GlyphIcon(
-          AppGlyphs.photos,
-          size: size * 0.7,
-          color: Color.alphaBlend(
-            colorScheme.onSurfaceVariant.opacity50,
-            colorScheme.surface,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Stands for a proxy group without an icon: the first letter or digit of
-/// its name, past any leading emoji the name already shows.
-class GroupMonogram extends StatelessWidget {
-  final String name;
-
-  const GroupMonogram(this.name, {super.key});
-
-  static final _letter = RegExp(r'[\p{L}\p{N}]', unicode: true);
-
-  String get _mark {
-    final letter = _letter.firstMatch(name)?.group(0);
-    if (letter != null) {
-      return letter.toUpperCase();
-    }
-    return name.characters.firstOrNull ?? '';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final iconTheme = IconTheme.of(context);
-    final size = iconTheme.size ?? 24;
-    final mark = _mark;
-    if (mark.isEmpty) {
-      return const _ImagePlaceholder();
-    }
-    return SizedBox.square(
-      dimension: size,
-      child: Center(
-        child: EmojiText(
-          mark,
-          maxLines: 1,
-          style: AppTextStyle.custom(
-            context,
-            size: size * 0.62,
-            leading: size * 0.62,
-            weight: FontWeight.w600,
-          ).copyWith(color: iconTheme.color),
-        ),
-      ),
-    );
   }
 }
 

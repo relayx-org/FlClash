@@ -1,3 +1,4 @@
+import 'share_link.dart' as share_links;
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -21,13 +22,7 @@ extension StringExtension on String {
         : null;
   }
 
-  bool get isShareLink {
-    final index = indexOf('://');
-    return index > 0 &&
-        length > index + 3 &&
-        !contains('\n') &&
-        shareLinkSchemes.contains(substring(0, index).toLowerCase());
-  }
+  bool get isShareLink => share_links.isShareLink(this);
 
   dynamic get splitByMultipleSeparators {
     final parts = split(

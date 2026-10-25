@@ -1,3 +1,4 @@
+import 'memory_summary.dart';
 import 'dart:io';
 import 'dart:math';
 
@@ -151,8 +152,11 @@ class _MemoryInfoState extends ConsumerState<MemoryInfo>
     final mobile = !density.isDesktop;
     final summary = ValueListenableBuilder(
       valueListenable: _memoryStateNotifier,
-      builder: (_, memory, _) =>
-          _MemorySummary(memory: memory, density: density),
+      builder: (_, memory, _) => DashboardMemorySummary(
+        appBytes: memory.app,
+        coreBytes: memory.coreTotal,
+        density: density,
+      ),
     );
     return DashboardCard(
       semanticLabel: appLocalizations.memoryInfo,
@@ -189,90 +193,6 @@ class _MemoryInfoState extends ConsumerState<MemoryInfo>
           if (mobile) summary else Expanded(child: summary),
         ],
       ),
-    );
-  }
-}
-
-class _MemorySummary extends StatelessWidget {
-  const _MemorySummary({required this.memory, required this.density});
-
-  final MemorySnapshot memory;
-  final DashboardDensity density;
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final colorScheme = context.colorScheme;
-    final mobile = !density.isDesktop;
-    final compact = density.isCompact;
-    final total = memory.total.traffic;
-    final figure = mobile ? AppTextStyle.title1 : AppTextStyle.title2;
-    final parts = [
-      (
-        label: appLocalizations.app,
-        bytes: memory.app,
-        color: colorScheme.primary,
-      ),
-      (
-        label: appLocalizations.core,
-        bytes: memory.coreTotal,
-        color: DashboardColors.of(context).series2,
-      ),
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: mobile ? MainAxisSize.min : MainAxisSize.max,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: total.value,
-                style: DashboardText.figure(context, figure),
-              ),
-              TextSpan(
-                text: ' ${total.unit}',
-                style: DashboardText.unit(context, AppTextStyle.footnote),
-              ),
-            ],
-          ),
-          maxLines: 1,
-        ),
-        if (mobile) const SizedBox(height: 14) else const Spacer(),
-        _MemoryBar(
-          segments: [
-            for (final part in parts) (bytes: part.bytes, color: part.color),
-          ],
-        ),
-        SizedBox(height: compact ? 8 : 10),
-        Wrap(
-          spacing: 16,
-          runSpacing: 4,
-          children: [
-            for (final part in parts)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 6,
-                children: [
-                  DecoratedBox(
-                    decoration: ShapeDecoration(
-                      color: part.color,
-                      shape: AppShape.circle,
-                    ),
-                    child: const SizedBox.square(dimension: 8),
-                  ),
-                  Text(part.label, style: DashboardText.label(context)),
-                  Text(
-                    '${part.bytes.traffic.value} ${part.bytes.traffic.unit}',
-                    style: AppTextStyle.footnote
-                        .of(context, emphasized: true)
-                        .toTabular,
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -538,7 +458,7 @@ class _MemoryOverview extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _MemoryBar(
+          DashboardMemoryBar(
             segments: [
               (bytes: snapshot.app, color: colorScheme.primary),
               (
@@ -557,65 +477,6 @@ class _MemoryOverview extends StatelessWidget {
                 .copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MemoryBar extends StatelessWidget {
-  const _MemoryBar({required this.segments});
-
-  static const _gap = 2.0;
-
-  final List<({int bytes, Color color})> segments;
-
-  @override
-  Widget build(BuildContext context) {
-    final duration = context.motionDuration(commonDuration);
-    final total = segments.fold(
-      0,
-      (sum, segment) => sum + max(0, segment.bytes),
-    );
-    return ClipRSuperellipse(
-      borderRadius: AppRadius.full,
-      child: SizedBox(
-        height: 8,
-        child: total == 0
-            ? ColoredBox(color: DashboardColors.of(context).tone2)
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final (index, segment) in segments.indexed) ...[
-                    if (index > 0)
-                      AnimatedContainer(
-                        duration: duration,
-                        curve: Easing.standard,
-                        width:
-                            segment.bytes > 0 &&
-                                segments
-                                    .take(index)
-                                    .any((previous) => previous.bytes > 0)
-                            ? _gap
-                            : 0,
-                      ),
-                    // Whole percents, so the drift between two polls does not
-                    // replay the animation every time.
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(
-                        end: (max(0, segment.bytes) * 100 / total)
-                            .roundToDouble(),
-                      ),
-                      duration: duration,
-                      curve: Easing.standard,
-                      builder: (_, percent, child) => Expanded(
-                        flex: (percent * 100).round(),
-                        child: child!,
-                      ),
-                      child: ColoredBox(color: segment.color),
-                    ),
-                  ],
-                ],
-              ),
       ),
     );
   }

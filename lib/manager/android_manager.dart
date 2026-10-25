@@ -40,7 +40,12 @@ class _AndroidContainerState extends ConsumerState<AndroidManager>
         debouncer.call(FunctionTag.saveSharedFile, () async {
           await preferences.saveShareState(next);
         }, duration: const Duration(seconds: 1));
-        if (prev?.needSyncSharedState != next.needSyncSharedState) {
+        if (system.isIOS ||
+            prev?.needSyncSharedState != next.needSyncSharedState) {
+          if (system.isIOS) {
+            unawaited(service?.syncState(next));
+            return;
+          }
           service?.syncState(next.needSyncSharedState);
         }
       }

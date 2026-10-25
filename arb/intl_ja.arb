@@ -1064,5 +1064,32 @@
   "ipingExitCheck": "現在の出口の接続",
   "ipingExitOk": "現在の出口から応答がありました。",
   "ipingExitFailed": "出口から応答がありません。ノードを変更して再確認してください。",
-  "ipingDiagnosticsHint": "システム DNS と出口は別々に確認します。出口の失敗だけでは DNS 障害と判断できません。ネットワーク設定は変更しません。"
+  "ipingDiagnosticsHint": "システム DNS と出口は別々に確認します。出口の失敗だけでは DNS 障害と判断できません。ネットワーク設定は変更しません。",
+  "invalidSettingTip": "「{name}」の設定値が無効です。",
+  "@invalidSettingTip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routerAccessTitle": "ルーターにアクセス",
+  "routerAccessKey": "アクセスキー",
+  "routerAccessHint": "ルーターに SSH 接続して次のコマンドを実行し、アクセスキーを取得してください：",
+  "routerAccessInvalid": "アクセスキーが正しくありません。",
+  "routerAgentUnavailable": "ルーターのサービスに接続できません。サービスを確認して再試行してください。",
+  "routerOperationFailed": "操作を完了できませんでした。ルーターのログを確認して再試行してください。",
+  "routerServiceConflict": "別のプロキシが必要なネットワークリソースを使用しています。停止してから iPing に接続してください。",
+  "routerBusy": "別の操作を実行中です。しばらくお待ちください。",
+  "routerSettingsHint": "設定はルーターに保存されます。適用時に iPing コアが再起動し、接続が一時的に切れる場合があります。",
+  "routerResourcesHint": "追加ルールは購読ルールより先に適用されます。カスタムノードとフィルターグループは選択グループに追加されます。ノードとルールプロバイダーは Mihomo YAML 形式です。",
+  "routerIconsHint": "キーにグループ名、値に HTTP(S) 画像 URL を入力します。",
+  "routerScriptHint": "main(config) を定義し、変更した設定を返します。スクリプトはルーター上で実行され、制限時間は3秒です。ネットワークとファイル API は利用できません。",
+  "groupIcons": "グループのアイコン",
+  "resourceChangedTip": "リソースが変更されました。再読み込みしてからもう一度お試しください。",
+  "ruleProviderBehavior": "ルールの種類",
+  "ruleProviderFormat": "形式",
+  "applyResources": "現在のプロファイルにリソースを適用",
+  "resourceSelectionHint": "保存したリソースはライブラリに追加されます。このプロファイルで使うリソースを選択してください。選択したノードとフィルターグループは選択グループに追加されます。",
+  "resourceLibraryHint": "リソースはライブラリに保存されます。「現在のプロファイルにリソースを適用」で選択してください。"
 }

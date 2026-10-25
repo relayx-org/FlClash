@@ -1,0 +1,170 @@
+name: openwrt
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
+      release_tag:
+        type: string
+        default: ''
+      build_packages:
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'openwrt/**'
+      - 'test/**'
+      - 'pubspec.*'
+      - '.github/workflows/openwrt.yaml'
+      - 'tool/ci/openwrt_release.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openwrt-${{ github.run_id }}-${{ github.run_attempt }}
+  cancel-in-progress: false
+
+jobs:
+  agent:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Check package release tooling
+        run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: openwrt/iping/src/go.sum
+      - name: Check Agent lifecycle and shared profile contract
+        working-directory: openwrt/iping/src
+        run: |
+          go test -race ./...
+          go vet ./...
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$RUNNER_TEMP/iping-arm64" .
+          CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build -o "$RUNNER_TEMP/iping-mips" .
+
+  ui:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: core/go.sum
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+
+      - name: Set Web release version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: python3 tool/ci/openwrt_release.py prepare --release-tag "$RELEASE_TAG"
+
+      - name: Resolve native dependencies
+        run: flutter pub get
+
+      - name: Resolve Web dependencies
+        working-directory: openwrt/ui
+        run: flutter pub get
+
+      - name: Check shared native logic
+        run: |
+          flutter analyze --no-fatal-infos
+          flutter test test/iping test/common/task_test.dart test/common/javascript_test.dart test/models/rule_test.dart test/providers/setup_action_test.dart test/providers/setup_state_test.dart test/providers/database_test.dart test/providers/action_test.dart test/views/dns_view_test.dart test/views/network_config_test.dart test/views/added_rules_test.dart test/views/clash_providers_view_test.dart test/features/list_editor_page_test.dart test/features/custom_quick_edit_test.dart test/widgets/uncovered_views_test.dart test/manager/window_header_test.dart test/lint
+
+      - name: Check Web logic
+        working-directory: openwrt/ui
+        run: |
+          flutter analyze --no-fatal-infos
+          flutter test
+
+      - name: Build shared Flutter interface
+        run: bash openwrt/build_ui.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-web
+          path: openwrt/iping/src/webui/dist/
+          if-no-files-found: error
+
+  packages:
+    if: github.event_name == 'workflow_dispatch' || inputs.build_packages
+    needs: [ui, agent]
+    runs-on: [self-hosted, Linux, X64]
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        branch: [openwrt-24.10, openwrt-25.12]
+        arch:
+          - x86_64
+          - aarch64_generic
+          - aarch64_cortex-a53
+          - aarch64_cortex-a72
+          - aarch64_cortex-a76
+          - arm_cortex-a7_neon-vfpv4
+          - arm_cortex-a9_vfpv3-d16
+          - arm_cortex-a9_neon
+          - mips_24kc
+          - mipsel_24kc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Set package release version
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: python3 tool/ci/openwrt_release.py prepare --release-tag "$RELEASE_TAG"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: openwrt-web
+          path: openwrt/iping/src/webui/dist/
+
+      - name: Build packages with the official OpenWrt SDK
+        uses: openwrt/gh-action-sdk@f5813d30eeef3534b58ac7e79c5d8842b6035434
+        env:
+          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
+          FEED_DIR: ${{ github.workspace }}/openwrt
+          FEEDNAME: iping
+          PACKAGES: iping-mihomo iping
+          NO_REFRESH_CHECK: true
+          V: s
+
+      - name: Bundle matching Agent and Core packages
+        env:
+          ARCH: ${{ matrix.arch }}
+          BRANCH: ${{ matrix.branch }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          python3 tool/ci/openwrt_release.py bundle \
+            --packages "bin/packages/$ARCH/iping" \
+            --branch "$BRANCH" --arch "$ARCH" --release-tag "$RELEASE_TAG"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-openwrt-${{ matrix.branch }}-${{ matrix.arch }}
+          path: dist/iPing-*-openwrt-*.zip
+          if-no-files-found: error
+
+      - name: Save SDK logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-logs-${{ matrix.branch }}-${{ matrix.arch }}
+          path: logs/
+          if-no-files-found: ignore

@@ -1,5 +1,4 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -20,8 +19,16 @@ class _RecordingGlobalRules extends TestGlobalRules {
   final deleted = <List<int>>[];
 
   @override
-  void delAll(Iterable<int> ruleIds) {
-    deleted.add(List<int>.from(ruleIds));
+  Future<List<Rule>> resourceSnapshot() async => state.value ?? initial;
+
+  @override
+  Future<void> writeResources(List<Rule> items) async {
+    final kept = items.map((item) => item.id).toSet();
+    deleted.add([
+      for (final rule in state.value ?? initial)
+        if (!kept.contains(rule.id)) rule.id,
+    ]);
+    state = AsyncData(items);
   }
 }
 
@@ -211,13 +218,13 @@ void main() {
       tester,
     ) async {
       await pumpRules(tester, [_rule(1, 'a.com'), _rule(2, 'b.net')]);
-      expect(find.byType(ReorderableList), findsOneWidget);
+      expect(find.byType(ReorderableListView), findsOneWidget);
 
       await search(tester, 'NET');
 
       expect(find.text('b.net'), findsOneWidget);
       expect(find.text('a.com'), findsNothing);
-      expect(find.byType(ReorderableList), findsNothing);
+      expect(find.byType(ReorderableListView), findsNothing);
     });
 
     testWidgets('matches the rule type and the target', (tester) async {

@@ -148,7 +148,7 @@ class SetupAction extends _$SetupAction {
     if (!globalState.needInitStatus) {
       return;
     }
-    if (system.isAndroid) {
+    if (system.isMobile) {
       await _updateStartTime();
     }
     final shouldRun = _isRunning || ref.read(appSettingProvider).autoRun;
@@ -439,6 +439,21 @@ class SetupAction extends _$SetupAction {
   Future<BuiltProfile> getProfile({
     required SetupState setupState,
     required PatchClashConfig patchConfig,
+  }) => _buildProfile(setupState: setupState, patchConfig: patchConfig);
+
+  Future<String> validateResourceBindings(SetupState state) async {
+    final profile = await _buildProfile(
+      setupState: state,
+      patchConfig: ref.read(patchClashConfigProvider),
+      full: true,
+    );
+    return _core.validateConfigWithData(profile.yaml);
+  }
+
+  Future<BuiltProfile> _buildProfile({
+    required SetupState setupState,
+    required PatchClashConfig patchConfig,
+    bool full = false,
   }) async {
     final profileId = setupState.profileId;
     if (profileId == null) {
@@ -456,16 +471,23 @@ class SetupAction extends _$SetupAction {
     );
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
-    final scriptContent =
-        !isCustom && setupState.extendType == ExtendType.script
+    final scriptContent = setupState.extendType == ExtendType.script
         ? await setupState.script?.content
         : null;
     final hasScript = scriptContent?.isNotEmpty == true;
-    final profileBase = !isCustom && !hasScript
+    final profileBase =
+        !full &&
+            !isCustom &&
+            !hasScript &&
+            setupState.overrides.resources.isEmpty
         ? await _core.getProfileBase(profileId)
         : null;
     Map<String, dynamic> rawConfig = isCustom
         ? {
+            'proxy-groups': [
+              for (final group in setupState.proxyGroups) group.definition,
+            ],
+            'rules': [for (final rule in setupState.rules) rule.rawValue],
             'proxies': appProxiesPayload(
               setupState.appProxies,
               dialers: setupState.proxyDialers,
@@ -486,10 +508,18 @@ class SetupAction extends _$SetupAction {
     );
     final res = await makeRealProfileTask(
       MakeRealProfileState(
-        rules: rules,
-        proxyGroups: proxyGroups,
+        rules: hasScript ? const [] : rules,
+        proxyGroups: hasScript ? const [] : proxyGroups,
         injectedProxyProviders: injected.proxies,
         injectedRuleProviders: injected.rules,
+        resourceProxies: [
+          for (final proxy in setupState.appProxies)
+            if (setupState.overrides.resources.proxies.contains(
+              proxy.id.toString(),
+            ))
+              proxy,
+        ],
+        resourceFilters: setupState.resourceFilters,
         profilesPath: directory,
         profileId: profileId,
         rawConfig: rawConfig,
@@ -537,6 +567,11 @@ class SetupAction extends _$SetupAction {
       for (final proxyGroup in proxyGroups) ...?proxyGroup.use,
     };
     final usedRuleProviders = <String>{
+      for (final provider in setupState.clashProviders)
+        if (setupState.overrides.resources.providers.contains(
+          provider.id.toString(),
+        ))
+          provider.label,
       for (final rule in rules) ...rule.ruleSets,
       if (setupState.profileType == ProfileType.custom)
         ...setupState.overrides.ruleSets,
@@ -725,7 +760,7 @@ class SetupAction extends _$SetupAction {
     _appliedInputs = null;
     globalState.lastConfigMd5 = null;
     globalState.lastConfigCounts = null;
-    if (system.isAndroid) {
+    if (system.isMobile) {
       await ref.read(vpnOptionsProvider.future);
       await preferences.saveShareState(ref.read(sharedStateProvider));
     }

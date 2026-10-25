@@ -6,6 +6,8 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/pages/editor.dart';
 import 'package:fl_clash/providers/state.dart';
 import 'package:fl_clash/views/config/override.dart';
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/core_settings_page.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:material_ui/material_ui.dart';
@@ -104,63 +106,57 @@ String _enhancedModeValue(DnsMode mode) => switch (mode) {
 
 typedef _DnsState = OverrideState<DnsOverrideKey, Dns>;
 
-_DnsState _patchDns(PatchClashConfig config) =>
-    (model: config.dns, keys: config.dnsOverrideKeys);
-
-PatchClashConfig _setPatchDns(PatchClashConfig config, _DnsState state) =>
-    config.copyWith(dns: state.model, dnsOverrideKeys: state.keys);
-
 _DnsState _profileDns(ProfileOverrides overrides) =>
     (model: overrides.dns, keys: overrides.dnsOverrideKeys);
 
 ProfileOverrides _setProfileDns(ProfileOverrides overrides, _DnsState state) =>
     overrides.copyWith(dns: state.model, dnsOverrideKeys: state.keys);
 
-String _patchDnsDescription(AppLocalizations l) => l.dnsOverrideDesc;
+class DnsView extends ConsumerWidget {
+  const DnsView({super.key}) : profileId = null;
+  const DnsView.profile(this.profileId, {super.key});
+  final int? profileId;
 
-class DnsView extends OverrideView<DnsOverrideKey, Dns> {
-  /// The keys written over the DNS of every subscription and file profile.
-  const DnsView({super.key})
-    : super(
-        spec: const _DnsOverrideSpec(
-          PatchOverrideTarget(
-            get: _patchDns,
-            set: _setPatchDns,
-            description: _patchDnsDescription,
-          ),
-          keys: DnsOverrideKey.normalProfileKeys,
-        ),
-      );
-
-  DnsView.profile(int profileId, {super.key})
-    : super(
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (profileId case final id?) {
+      return OverrideView<DnsOverrideKey, Dns>(
         spec: _ProfileDnsOverrideSpec(
           ProfileOverrideTarget(
-            profileId,
+            id,
             get: _profileDns,
             set: _setProfileDns,
             issues: customProfileIssuesProvider(
-              profileId,
+              id,
             ).select((state) => state.dns),
           ),
         ),
       );
+    }
+    return IpingCoreSettingsPage(
+      backend: ref.watch(ipingBackendProvider),
+      kind: IpingCoreSettingsKind.dns,
+      excluded: {
+        for (final key in DnsOverrideKey.values)
+          if (!DnsOverrideKey.normalProfileKeys.contains(key))
+            'dns.${key.path}',
+      },
+      footer: context.appLocalizations.dnsOverrideDesc,
+    );
+  }
 }
 
 class _DnsOverrideSpec extends OverrideSpec<DnsOverrideKey, Dns> {
-  const _DnsOverrideSpec(this.target, {this.keys});
+  const _DnsOverrideSpec(this.target);
 
   @override
   final OverrideTarget<DnsOverrideKey, Dns> target;
-
-  final Set<DnsOverrideKey>? keys;
 
   @override
   String title(AppLocalizations l) => 'DNS';
 
   @override
-  List<DnsOverrideKey> get values =>
-      keys == null ? DnsOverrideKey.values : [...?keys];
+  List<DnsOverrideKey> get values => DnsOverrideKey.values;
 
   @override
   NullStatusIllustration get illustration => NullStatusIllustration.dns;

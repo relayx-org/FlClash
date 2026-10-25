@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -41,7 +42,16 @@ class AppPath {
   }
 
   void _bind() {
-    _dataDir = ResolveOnce(supportDirectory);
+    _dataDir = ResolveOnce(() async {
+      if (system.isIOS) {
+        final path = await const MethodChannel(
+          '$packageName/service',
+        ).invokeMethod<String>('homeDirectory');
+        if (path == null) throw StateError('iOS App Group is unavailable');
+        return Directory(path);
+      }
+      return supportDirectory();
+    });
     _downloadDir = ResolveOnce(downloadDirectory);
     _tempDir = ResolveOnce(temporaryDirectory);
     cacheDirectory().then(cacheDir.complete);
@@ -80,6 +90,9 @@ class AppPath {
   }
 
   Future<String> get databasePath async {
+    if (system.isIOS) {
+      return join((await supportDirectory()).path, 'database.sqlite');
+    }
     final mHomeDirPath = await homeDirPath;
     return join(mHomeDirPath, 'database.sqlite');
   }

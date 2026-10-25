@@ -1,8 +1,7 @@
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/ui/ui.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+export 'filter_text.dart';
 
 /// What mihomo's regexp2, asked through the core, rejects in each filter, ''
 /// where it accepts one, or null when the core cannot be asked.
@@ -34,24 +33,5 @@ extension FilterExt on Filter {
     final parts = filterParts(value);
     final own = filterParts(regex);
     return own.isNotEmpty && own.every(parts.contains);
-  }
-}
-
-class FilterRegexText extends StatelessWidget {
-  final String regex;
-
-  const FilterRegexText(this.regex, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      regex,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: AppTextStyle.footnote
-          .of(context)
-          .toJetBrainsMono
-          .copyWith(color: context.colorScheme.tertiary),
-    );
   }
 }

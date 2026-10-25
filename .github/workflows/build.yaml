@@ -57,6 +57,9 @@ jobs:
           - platform: android
             runner: [self-hosted, Linux, X64]
             arch: multi
+          - platform: ios
+            runner: [self-hosted, macOS, ARM64]
+            arch: arm64
           - platform: linux
             runner: [self-hosted, Linux, X64]
             arch: amd64
@@ -88,7 +91,7 @@ jobs:
             sleep 5
           done
           mkdir -p tool/ci
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/ci/cache.sh tool/ci/cache.ps1; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -127,7 +130,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.rust-version.outputs.toolchain }}
-          targets: ${{ matrix.platform == 'macos' && matrix.arch == 'amd64' && 'x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'ios' && 'aarch64-apple-ios' || matrix.platform == 'macos' && matrix.arch == 'amd64' && 'x86_64-apple-darwin' || '' }}
 
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
@@ -198,7 +201,7 @@ jobs:
           pub-cache: false
 
       - name: Setup Xcode
-        if: matrix.platform == 'macos'
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
         run: xcodebuild -version
 
       - name: Select macOS target architecture
@@ -252,6 +255,23 @@ jobs:
           security import "$CERT_FILE" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_FILE"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_FILE"
           security find-identity -v -p codesigning "$KEYCHAIN_FILE"
+
+      - name: Prepare iOS distribution signing
+        if: matrix.platform == 'ios'
+        env:
+          IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+          IOS_TUNNEL_PROVISIONING_PROFILE: ${{ secrets.IOS_TUNNEL_PROVISIONING_PROFILE }}
+        run: |
+          set -euo pipefail
+          : "${IOS_CERTIFICATE:?Set IOS_CERTIFICATE to the base64 Apple Distribution P12}"
+          : "${IOS_CERTIFICATE_PASSWORD:?Set IOS_CERTIFICATE_PASSWORD}"
+          : "${IOS_PROVISIONING_PROFILE:?Set the iPing App Store provisioning profile}"
+          : "${IOS_TUNNEL_PROVISIONING_PROFILE:?Set the PacketTunnel App Store provisioning profile}"
+          signing_dir="$(mktemp -d "$RUNNER_TEMP/iping-ios-signing-XXXXXX")"
+          printf 'IOS_SIGNING_DIR=%s\n' "$signing_dir" >> "$GITHUB_ENV"
+          python3 tool/ci/ios_signing.py prepare "$signing_dir"
 
       # setup-ndk stores r28c under a non-semver key that tool-cache cannot find.
       - name: Reuse cached NDK
@@ -321,6 +341,19 @@ jobs:
           xcrun lipo -verify_arch "$arch" "$app/Contents/MacOS/iPingCore"
           xcrun lipo -verify_arch "$arch" "$app/Contents/Frameworks/rust_api.framework/rust_api"
 
+      - name: Verify iOS IPA contents
+        if: matrix.platform == 'ios'
+        run: |
+          check="$RUNNER_TEMP/iping-ios-package"
+          mkdir -p "$check"
+          unzip -q dist/iPing-*-ios-arm64.ipa -d "$check"
+          xcrun lipo -verify_arch arm64 "$check/Payload/Runner.app/Runner"
+          xcrun lipo -verify_arch arm64 "$check/Payload/Runner.app/PlugIns/PacketTunnel.appex/PacketTunnel"
+          codesign --verify --deep --strict "$check/Payload/Runner.app"
+          codesign --verify --strict "$check/Payload/Runner.app/PlugIns/PacketTunnel.appex"
+          test -s "$check/Payload/Runner.app/embedded.mobileprovision"
+          test -s "$check/Payload/Runner.app/PlugIns/PacketTunnel.appex/embedded.mobileprovision"
+
       - name: Cleanup Android signing material
         if: always() && matrix.platform == 'android'
         run: |
@@ -341,17 +374,33 @@ jobs:
           fi
           rm -f "${APPLE_API_KEY_PATH:-}"
 
+      - name: Cleanup iOS signing material
+        if: always() && matrix.platform == 'ios'
+        run: |
+          if [ -n "${IOS_SIGNING_DIR:-}" ]; then
+            python3 tool/ci/ios_signing.py cleanup "$IOS_SIGNING_DIR"
+          fi
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
+          if-no-files-found: error
           overwrite: true
+
+  openwrt:
+    needs: release
+    uses: ./.github/workflows/openwrt.yaml
+    with:
+      ref: ${{ needs.release.outputs.sha }}
+      release_tag: ${{ needs.release.outputs.tag }}
+      build_packages: true
 
   upload:
     permissions:
       contents: write
-    needs: [release, build]
+    needs: [release, build, openwrt]
     runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Download packages

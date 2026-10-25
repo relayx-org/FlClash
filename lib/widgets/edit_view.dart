@@ -1,11 +1,10 @@
 part of 'input.dart';
 
 /// Public for `MapEditView`, whose entries are entered in a form.
-abstract class EditViewState<W extends ConsumerStatefulWidget, T>
-    extends ConsumerState<W> {
+abstract class EditViewState<W extends StatefulWidget, T> extends State<W> {
   List<T> _entries = [];
   late final List<T> _initialEntries;
-  final _selectionKey = uniqueId;
+  Set<String> _selected = {};
   bool _routeTakesResult = false;
 
   String get title;
@@ -47,22 +46,21 @@ abstract class EditViewState<W extends ConsumerStatefulWidget, T>
   }
 
   void _handleReorder(int oldIndex, int newIndex) {
-    _entries = _entries.copyAndReorder(oldIndex, newIndex);
+    _entries = List<T>.from(_entries);
+    _entries.insert(newIndex, _entries.removeAt(oldIndex));
     setState(() {});
   }
 
   void _handleSelected(T entry) {
-    ref.read(itemsProvider(_selectionKey).notifier).update((state) {
-      final newState = Set<String>.from(state)..addOrRemove(idOf(entry));
-      return newState;
+    setState(() {
+      final id = idOf(entry);
+      if (!_selected.remove(id)) _selected.add(id);
     });
   }
 
   void _handleSelectAll() {
     final ids = _entries.map(idOf).toSet();
-    ref.read(itemsProvider(_selectionKey).notifier).update((selected) {
-      return selected.containsAll(ids) ? {} : ids;
-    });
+    setState(() => _selected = _selected.containsAll(ids) ? {} : ids);
   }
 
   Future<void> _handleAdd() async {
@@ -85,27 +83,29 @@ abstract class EditViewState<W extends ConsumerStatefulWidget, T>
   }
 
   Future<void> _handleDelete() async {
-    final res = await dialogs.showMessage(
-      message: TextSpan(text: context.appLocalizations.deleteMultipTip(title)),
+    final res = await confirmChange(
+      context,
+      message: AppLocalizations.of(context).deleteMultipTip(title),
       destructive: true,
-      confirmText: context.appLocalizations.delete,
+      confirmText: AppLocalizations.of(context).delete,
     );
     if (res != true || !mounted) {
       return;
     }
-    final selected = ref.read(itemsProvider(_selectionKey));
+    final selected = _selected;
     _entries = _entries
         .where((entry) => !selected.contains(idOf(entry)))
         .toList();
-    ref.read(itemsProvider(_selectionKey).notifier).value = {};
+    setState(() => _selected = {});
     setState(() {});
   }
 
   Future<void> _handleReset() async {
-    final res = await dialogs.showMessage(
-      message: TextSpan(text: context.appLocalizations.resetPageChangesTip),
+    final res = await confirmChange(
+      context,
+      message: AppLocalizations.of(context).resetPageChangesTip,
       destructive: true,
-      confirmText: context.appLocalizations.reset,
+      confirmText: AppLocalizations.of(context).reset,
     );
     if (!mounted || res != true) {
       return;
@@ -145,13 +145,13 @@ abstract class EditViewState<W extends ConsumerStatefulWidget, T>
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final selected = ref.watch(itemsProvider(_selectionKey));
+    final appLocalizations = AppLocalizations.of(context);
+    final selected = _selected;
     final isEditing = selected.isNotEmpty;
     return CommonPopScope(
       onPop: isEditing
           ? (_) {
-              ref.read(itemsProvider(_selectionKey).notifier).value = {};
+              setState(() => _selected = {});
               return false;
             }
           : _routeTakesResult
@@ -235,11 +235,12 @@ abstract class EditViewState<W extends ConsumerStatefulWidget, T>
   }
 }
 
-class ListEditView extends ConsumerStatefulWidget {
+class ListEditView extends StatefulWidget {
   final String title;
   final List<String> items;
   final Widget Function(String item) titleBuilder;
   final int? itemMaxLength;
+  final bool multiline;
   final String? Function(String item)? itemValidator;
 
   const ListEditView({
@@ -248,11 +249,12 @@ class ListEditView extends ConsumerStatefulWidget {
     required this.items,
     required this.titleBuilder,
     this.itemMaxLength,
+    this.multiline = false,
     this.itemValidator,
   });
 
   @override
-  ConsumerState<ListEditView> createState() => _ListEditViewState();
+  State<ListEditView> createState() => _ListEditViewState();
 }
 
 class _ListEditViewState extends EditViewState<ListEditView, String> {
@@ -278,7 +280,7 @@ class _ListEditViewState extends EditViewState<ListEditView, String> {
 
   @override
   bool sameEntries(List<String> a, List<String> b) =>
-      stringListEquality.equals(a, b);
+      const ListEquality<String>().equals(a, b);
 
   @override
   Object popResult(List<String> entries) => entries;
@@ -291,6 +293,7 @@ class _ListEditViewState extends EditViewState<ListEditView, String> {
       entries: _entries,
       entry: entry,
       itemMaxLength: widget.itemMaxLength,
+      multiline: widget.multiline,
       itemValidator: widget.itemValidator,
     );
   }
@@ -303,13 +306,29 @@ Future<List<String>?> showListEntryDialog(
   String? entry,
   String? valueLabel,
   int? itemMaxLength,
+  bool multiline = false,
   String? Function(String item)? itemValidator,
 }) {
-  final appLocalizations = context.appLocalizations;
+  final appLocalizations = AppLocalizations.of(context);
   final label = valueLabel ?? appLocalizations.value;
 
   String? validator(String? value) {
-    final parsed = parseListInput(value ?? '', maxLength: itemMaxLength);
+    final parsed = multiline
+        ? ParsedInput(
+            entries: [
+              if (value != null && value.trim().isNotEmpty) value.trim(),
+            ],
+            skippedExisting: 0,
+            issues: [
+              if (itemMaxLength != null && (value?.length ?? 0) > itemMaxLength)
+                InputIssue(
+                  line: 1,
+                  raw: value!,
+                  kind: InputIssueKind.valueTooLong,
+                ),
+            ],
+          )
+        : parseListInput(value ?? '', maxLength: itemMaxLength);
     if (!parsed.isValid) {
       return appLocalizations.maxLengthTip(label, itemMaxLength!);
     }
@@ -326,13 +345,15 @@ Future<List<String>?> showListEntryDialog(
     return itemValidator?.call(next);
   }
 
-  return dialogs.showCommonDialog<List<String>>(
+  return showFloatingDialog<List<String>>(
+    context: context,
     child: EntryDialog<String>(
       title: entry == null ? appLocalizations.add : appLocalizations.edit,
       valueField: Field(label: label, value: entry ?? '', validator: validator),
       valueMaxLength: itemMaxLength,
-      toEntry: (value) => parseListInput(value).entries.single,
-      batch: entry != null
+      toEntry: (value) =>
+          multiline ? value.trim() : parseListInput(value).entries.single,
+      batch: entry != null || multiline
           ? null
           : BatchInput(
               label: title,

@@ -1,11 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
-import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
@@ -175,9 +174,9 @@ class DashboardFitText extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = globalState.measure
-            .computeTextSize(Text(text, style: style))
-            .width;
+        final width = MeasureScope.of(
+          context,
+        ).computeTextSize(Text(text, style: style)).width;
         if (width * _minScale <= constraints.maxWidth) {
           return FittedBox(
             fit: BoxFit.scaleDown,
@@ -369,7 +368,7 @@ class DashboardConnectedButton extends StatelessWidget {
   final double outer;
   final double inner;
   final Color background;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String semanticLabel;
   final Widget Function(Color foreground) builder;
 
@@ -381,6 +380,7 @@ class DashboardConnectedButton extends StatelessWidget {
     final colorScheme = context.colorScheme;
     return Semantics(
       button: true,
+      enabled: onTap != null,
       selected: selected,
       inMutuallyExclusiveGroup: true,
       label: semanticLabel,
@@ -614,19 +614,6 @@ class ShapePainter extends CustomPainter {
       oldDelegate.ring != ring;
 }
 
-/// Strokes [side] along a unit-square [path] drawn at [extent], placing it by
-/// [BorderSide.strokeAlign] with a scale about the center rather than an offset.
-void strokeUnitShape(Canvas canvas, Path path, double extent, BorderSide side) {
-  final scale = 1 + side.width * side.strokeAlign / extent;
-  canvas
-    ..save()
-    ..translate(0.5, 0.5)
-    ..scale(scale)
-    ..translate(-0.5, -0.5)
-    ..drawPath(path, side.toPaint()..strokeWidth = side.width / extent / scale)
-    ..restore();
-}
-
 /// The M3 switch at 52 × 32 with a 24 dp thumb in both states and no outline,
 /// so an off switch reads as a solid track.
 class DashboardSwitch extends StatelessWidget {
@@ -743,9 +730,9 @@ class DashboardSwitchRow extends StatelessWidget {
         DashboardSwitch.trackWidth;
     return titles.every(
       (title) =>
-          globalState.measure
-              .computeTextSize(Text(title, style: style))
-              .width <=
+          MeasureScope.of(
+            context,
+          ).computeTextSize(Text(title, style: style)).width <=
           room,
     );
   }

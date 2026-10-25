@@ -23,6 +23,21 @@ Android lib mode:
   initializes and synchronizes Android shared state, and closes the native service path exactly once.
 - Because Core is in the application process on Android, application RSS already includes Core memory.
 
+iOS lib mode:
+
+- `core/mobile` also binds an iOS XCFramework. `core/lib_ios.go` owns the library API; the desktop IPC implementation
+  and Android TUN callbacks are excluded from that build.
+- `ios/Runner/IOSService.swift` owns latest-intent VPN transitions through `NETunnelProviderManager`. Flutter uses the
+  same mobile service channels as Android. Profile setup completes before starting the extension.
+- `ios/PacketTunnel/PacketTunnelProvider.swift` owns the packet tunnel. Public `packetFlow` APIs exchange IP packets with
+  Mihomo through a datagram socket pair, with the four-byte Darwin address-family header added at the boundary.
+- The application-local Core handles stopped-state profile operations; active requests go to the extension. Both use
+  the App Group home for Core files. The Flutter database and each process's bbolt cache live in private Application
+  Support directories: persistent locks in the App Group trigger `0xdead10cc` when iOS suspends an app. The extension
+  does not depend on a running Flutter engine.
+- `ios/README.md` records signing, build, memory and device-validation requirements. The Runner scheme pre-action builds
+  the framework before Xcode resolves its inputs; desktop build hooks do not build the iOS Core.
+
 Desktop core mode:
 
 - Go core runs as a separate process with `CGO_ENABLED=0`.
@@ -219,6 +234,99 @@ re-applies the profile; keep-alive is forced off on Android, and only Linux hono
 ## Lifecycle Ownership And Convergence
 
 ### Shared Flutter Layer
+
+`lib/iping/backend.dart` is the platform-independent account, subscription, proxy,
+connection, log, and settings contract. Its state contains no credentials. `backend_native.dart`
+adapts existing session providers and delegates connection requests to `SetupAction`;
+it does not own processes or cache a second authoritative run state. The OpenWrt
+adapter in `openwrt/ui/lib/backend.dart` translates same-origin Agent API calls and background jobs.
+Shared presentation code uses backend capabilities for host-specific features.
+Proxy pages carry typed group summaries and nodes; connection queries have a bounded
+page size or explicitly request a full snapshot. Native proxy queries use the existing
+group and delay snapshots and run their filtering in an isolate. Native selection and
+delay scheduling remain with `ProxiesAction`. `lib/features/logs/controller.dart`
+owns shared search, keyword, and pause behavior over `lib/models/log.dart`; router
+snapshots retain their source text separately for export. Node search matches every
+term across name/type, and timeout filtering keeps the nodes when all matches have
+timed out. Both backends hide nodes in direct mode and respect hidden groups in rule
+mode, including the built-in GLOBAL group.
+
+`backend_telemetry.dart` owns typed telemetry and immutable traffic snapshots. Native
+`ipingTrafficProvider` projects the existing Core event history and counters; it
+does not start a second polling loop. Router telemetry is decoded in `RouterBackend`,
+whose bounded sampler resets on disconnects and counter resets. Both dashboards use
+the traffic cards in `traffic_frame.dart` and the pure `Mode` enum in `enum/mode.dart`.
+Mode controls call `IpingBackend.setMode`; native requests retain `SetupAction`'s
+config and GLOBAL-group behavior. The Agent saves modes while stopped and restores
+the prior settings if a live controller update fails. `ipingProxySelection` shares
+the select/pin/unpin policy while platform owners keep scheduling and persistence.
+
+Resource availability is declared by `IpingBackend.resourceKinds`: native icon-set
+libraries and router group-icon assignments are different resource kinds. The shared
+`IpingFiltersPage` uses `IpingResourceStore<Filter>` and `IpingResourceController` for
+fresh reads, named updates, ordering, deletion, validation, and acknowledged saves.
+Native filter catalogs are owned by `appSettingProvider`; router catalogs are an
+ordered `custom.filters` list. Selected filters on either platform create selector
+groups using Mihomo's live proxy/provider filtering. Both validate each
+backtick-separated pattern with regexp2. Canceling a pending validation invalidates
+its result; a started write retains its completion ownership. The provider-free
+`ListEditorView` owns list presentation and selection; `ListEditorPage` retains the
+native provider binding. `custom_proxy.dart` and `proxy_field.dart` are platform-free;
+`IpingCustomProxyEditor` owns both platforms' structured node form, option selection,
+secret visibility, and nested value lists. It keeps the current draft synchronously
+and invalidates pending Core verdicts when that draft changes. Native bindings retain
+share-link conversion, profile-reference warnings and nested-sheet exit handling.
+`IpingRuleProviderForm` shares name/URL validation and save/error feedback. Router
+forms additionally choose source behavior/format; native file import detects them.
+
+`IpingBackend.customProxies`, `ruleProviders`, `addedRules` and `scripts` expose the
+same resource stores and controller mutations as filters. Resource identifiers cross the boundary as strings;
+Native adapters return canonical database IDs after writes. Native writes await the
+existing optimistic database owners, preserving rollback and rename propagation.
+Rule-provider downloads, compilation, cache cleanup and referenced-profile applies
+remain in `ClashProvidersAction`. Platform-specific file/import and icon-library
+operations retain their existing owners. Router catalogs store typed objects, rather
+than YAML strings: proxies use `{id, definition, emptyOptions}`, providers use
+`{id, label, url, behavior, format}`. The Agent validates structure, bounds and duplicate
+IDs/names before building the profile; proxy validation uses a temporary Mihomo test
+configuration without starting the managed Core. Older YAML-list catalogs are not
+imported.
+
+`IpingResourceBindings` separates library persistence from application to a profile.
+The shared selection page carries profile identity through validation and saving.
+Native profiles store proxy/provider/filter/rule IDs in `ProfileOverrides.resources`;
+`Profile.scriptId`/`extendType` remain the authoritative script selection and are
+projected into the backend contract. Router bindings are keyed by account identity
+inside its private settings file. Scripts transform source config before selected
+resources and prepended rules; platform security/network overrides remain last.
+Both languages exercise `test/fixtures/iping_profile_resources.json`. Rule DTOs
+preserve structured fields instead of parsing raw strings, including comma payloads
+and MATCH target substitution. Native script file/database rollback stays with
+`ScriptsAction`, and its advanced editor/import paths use the shared controller.
+
+`backend_settings.dart` owns immutable editor snapshots and common validation, including
+port, DNS, and TUN rules. The `overrides` map lists keys that can follow the profile:
+`false` follows it, `true` selects an override, and an absent entry cannot be reset.
+A null DNS/TUN patch removes that override; false and empty collections are values.
+`settings_native.dart` preserves native model and override-key ownership while applying
+validated batches through the config notifier. Desktop TUN fields edit `tunOverride`;
+mobile fields edit VPN options through `tun`, preserving update/apply/restart behavior.
+App-wide DNS and network rows use `IpingCoreSettingsPage` with backend snapshots,
+validation and completion feedback. Native VPN, system proxy, interface and route
+controls are platform slots; profile-specific editors keep their database owner. Router settings finish only after their job. DNS/TUN overrides live in
+the router's local settings file. Reset fields follow `source.yaml` on later
+subscription updates. TUN enable/device and DNS enable/listen remain explicit router
+settings. A source is required for saves; no legacy configuration is imported. Native
+authentication and host preferences retain their existing platform owners.
+
+OpenWrt's `iping` Agent embeds the Web application, serves its authenticated HTTP API,
+and owns its private `iping-mihomo` child. procd supervises only the Agent. Core
+transitions serialize in `coreRuntime`, preserve the latest running intent, and close
+terminally. Configuration changes validate first and restore prior files and runtime
+on failure. Network leases and inherited process locks prevent competing owners;
+cleanup verifies interface and nftables identities. The Web access key creates signed
+HttpOnly sessions independently of account login. There is no LuCI/rpcd bridge.
+`openwrt/README.md` documents packaging and reserved network resources.
 
 `CoreController.start()`, `restart()`, `stop()`, and `close()` are the only shared lifecycle facade. `close()` is terminal;
 callers must not try to reuse a closed platform implementation.
@@ -1381,7 +1489,18 @@ that asks the OS for a permission, a global shortcut or a registration, must con
 
 `setup.dart` is the release build orchestrator: it writes `env.json` (`APP_ENV`), activates `flutter_distributor` from
 the `chen08209/flutter_distributor` fork pinned to a `v<version>-flclash.<n>` tag (cut a new tag there and bump
-`--git-ref` when the fork changes), and leaves the Core artifacts to the build hook.
+`--git-ref` when the fork changes), and leaves the Core artifacts to their existing build owners.
+On macOS, `setup.dart ios` exports a signed arm64 IPA with `flutter build ipa` and delegates signature,
+provisioning-profile and architecture verification to `tool/package_ios.dart`. With explicit export options it
+archives first, then signs through `xcodebuild -exportArchive`, allowing Xcode-managed distribution profiles.
+CI uses `tool/ci/ios_signing.py` to import an Apple Distribution P12 and separate App Store profiles for Runner
+and PacketTunnel, choosing the matching export signing style. The Runner scheme pre-action still owns its Go XCFramework.
+
+The release workflow includes iOS IPA output and calls the reusable OpenWrt workflow with the resolved release SHA.
+`tool/ci/openwrt_release.py` stamps the Agent/Web versions from `pubspec.yaml`, checks the expected Agent/Core package
+pair, and bundles each firmware/architecture combination with checksums and installation commands. Upload waits for
+both the native matrix and OpenWrt. Stable IPA/OpenWrt downloads are staged beside app-update artifacts in MinIO,
+while the automatic-update target set remains desktop/Android.
 
 The desktop Go core and the Rust helper are built by a Dart build hook; Android's Core is built by Gradle (see Android
 Core Build). `plugins/setup/hook/build.dart` only constructs

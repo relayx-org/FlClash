@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fl_clash/common/l10n_labels.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/pages/editor.dart';
+import 'package:fl_clash/iping/script_form.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -21,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../helpers/context_menu.dart';
+import '../helpers/app_paths.dart';
 import '../helpers/glyph_finders.dart';
 import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
@@ -30,14 +32,19 @@ class _TestScripts extends Scripts {
   _TestScripts(this.initial);
 
   final List<Script> initial;
-  final orders = <(int, int)>[];
+  final orders = <List<int>>[];
 
   @override
   Stream<List<Script>> build() => Stream.value(initial);
 
   @override
-  void order(int oldIndex, int newIndex) {
-    orders.add((oldIndex, newIndex));
+  Future<List<Script>> resourceSnapshot() async => state.value ?? initial;
+
+  @override
+  Future<void> orderResources(List<int> ids) async {
+    orders.add(ids);
+    final byId = {for (final item in state.value ?? initial) item.id: item};
+    state = AsyncData([for (final id in ids) byId[id]!]);
   }
 }
 
@@ -106,6 +113,13 @@ ProviderContainer _containerFor(
 }
 
 void main() {
+  late Directory home;
+  setUpAll(() async {
+    home = Directory.systemTemp.createTempSync('flclash-shared-script-view-');
+    await useAppPaths(home);
+  });
+  tearDownAll(() => home.deleteSync(recursive: true));
+
   testWidgets('proxies setting picks its style from a menu', (tester) async {
     final container = _containerFor(tester);
 
@@ -176,7 +190,7 @@ void main() {
         child: const TestApp(child: ScriptsView()),
       ),
     );
-    await tester.pump();
+    await settle(tester);
 
     expect(find.byType(ScriptsView), findsOneWidget);
     expect(find.text('Script 0'), findsOneWidget);
@@ -187,7 +201,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Add'));
     await tester.pumpAndSettle();
-    expect(find.text('Start from scratch'), findsOneWidget);
+    expect(find.text('Add'), findsOneWidget);
     expect(find.text('Import from URL'), findsOneWidget);
     expect(find.text('Import from file'), findsOneWidget);
   });
@@ -206,20 +220,20 @@ void main() {
         child: const TestApp(child: ScriptsView()),
       ),
     );
-    await tester.pump();
+    await settle(tester);
     await tester.tap(find.byTooltip('Add'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start from scratch'));
+    await tester.tap(find.text('Add'));
     await settle(tester, 18);
 
     await tester.enterText(
       find.descendant(
-        of: find.byType(EditorPage),
-        matching: find.byType(TextField),
+        of: find.byType(IpingScriptForm),
+        matching: find.byType(TextFormField),
       ),
       'Named',
     );
-    await tester.pump();
+    await settle(tester);
     await tester.binding.handlePopRoute();
     await settle(tester, 12);
 
@@ -256,7 +270,7 @@ void main() {
         child: const TestApp(child: ScriptsView()),
       ),
     );
-    await tester.pump();
+    await settle(tester);
 
     expect(find.text(url), findsNothing);
     expect(find.byType(LastUpdateTimeText), findsNWidgets(2));
@@ -278,7 +292,7 @@ void main() {
     expect(find.text('URL'), findsOneWidget);
 
     await tester.tap(find.text('Sync'));
-    await tester.pump();
+    await settle(tester);
 
     expect(action.updated, [remote]);
   });
@@ -306,7 +320,7 @@ void main() {
         child: const TestApp(child: ScriptsView()),
       ),
     );
-    await tester.pump();
+    await settle(tester);
 
     final to = tester.getCenter(find.text('Script 2'));
     final pressed = await tester.startGesture(
@@ -314,7 +328,7 @@ void main() {
     );
     await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
     await pressed.moveTo(to + const Offset(0, 100));
-    await tester.pump();
+    await settle(tester);
     await pressed.up();
     await tester.pumpAndSettle();
     expect(notifier.orders, isEmpty);
@@ -330,11 +344,14 @@ void main() {
     await gesture.moveTo(
       Offset(tester.getCenter(find.byType(SortHandle).first).dx, to.dy + 100),
     );
-    await tester.pump();
+    await settle(tester);
     await gesture.up();
+    await settle(tester, 20);
     await tester.pumpAndSettle();
 
-    expect(notifier.orders, [(0, 2)]);
+    expect(notifier.orders, [
+      [2, 3, 1],
+    ]);
   });
 
   testWidgets('scripts view renders an empty state without scripts', (

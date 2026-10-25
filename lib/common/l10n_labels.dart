@@ -3,22 +3,10 @@ import 'package:fl_clash/ui/color.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app_localizations.dart';
+import '../l10n/page_labels.dart';
 
 extension PageLabelL10n on PageLabel {
-  String get label {
-    final appLocalizations = currentAppLocalizations;
-    return switch (this) {
-      PageLabel.dashboard => appLocalizations.dashboard,
-      PageLabel.proxies => appLocalizations.proxies,
-      PageLabel.profiles => appLocalizations.profiles,
-      PageLabel.tools => appLocalizations.settings,
-      PageLabel.logs => appLocalizations.logs,
-      PageLabel.requests => appLocalizations.recentRequests,
-      PageLabel.resources => appLocalizations.resources,
-      PageLabel.connections => appLocalizations.liveConnections,
-      PageLabel.dns => appLocalizations.dnsQueries,
-    };
-  }
+  String get label => labelOf(currentAppLocalizations);
 }
 
 extension DnsQueryInitiatorL10n on DnsQueryInitiator {

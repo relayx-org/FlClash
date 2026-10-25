@@ -246,18 +246,6 @@ const _$CoreEventTypeEnumMap = {
   CoreEventType.dialerLoop: 'dialerLoop',
 };
 
-_Delay _$DelayFromJson(Map<String, dynamic> json) => _Delay(
-  name: json['name'] as String,
-  url: json['url'] as String,
-  value: (json['value'] as num?)?.toInt(),
-);
-
-Map<String, dynamic> _$DelayToJson(_Delay instance) => <String, dynamic>{
-  'name': instance.name,
-  'url': instance.url,
-  'value': instance.value,
-};
-
 _ProbeParams _$ProbeParamsFromJson(Map<String, dynamic> json) => _ProbeParams(
   url: json['url'] as String,
   proxyName: json['proxy-name'] as String? ?? '',

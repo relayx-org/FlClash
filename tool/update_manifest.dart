@@ -34,6 +34,11 @@ String? updateArtifactTarget(String name, String version) {
   return '${match[1]}-$arch-${match[3]}';
 }
 
+bool isDownloadOnlyArtifact(String name, String version) => RegExp(
+  '^iPing-${RegExp.escape(version)}-'
+  r'(?:ios-arm64\.ipa|openwrt-(?:24\.10|25\.12)-[A-Za-z0-9_-]+\.zip)$',
+).hasMatch(name);
+
 Future<Map<String, Object>> buildUpdateManifest({
   required Directory artifacts,
   required Directory output,
@@ -53,6 +58,7 @@ Future<Map<String, Object>> buildUpdateManifest({
   }
   final folder = '$version+$buildNumber';
   final assets = <String, Object>{};
+  final names = <String>{};
   await for (final entity in artifacts.list(
     recursive: true,
     followLinks: false,
@@ -60,8 +66,10 @@ Future<Map<String, Object>> buildUpdateManifest({
     if (entity is! File) continue;
     final name = p.basename(entity.path);
     final target = updateArtifactTarget(name, version);
-    if (target == null || !updateTargets.contains(target)) continue;
-    if (assets.containsKey(target)) {
+    final update = target != null && updateTargets.contains(target);
+    if (!update && !isDownloadOnlyArtifact(name, version)) continue;
+    if (!names.add(name)) throw StateError('Duplicate release artifact: $name');
+    if (update && assets.containsKey(target)) {
       throw StateError('Duplicate update artifact: $target');
     }
     final destination = File(p.join(output.path, folder, name));
@@ -69,6 +77,7 @@ Future<Map<String, Object>> buildUpdateManifest({
     await entity.copy(destination.path);
     final size = await destination.length();
     if (size == 0) throw StateError('Empty update artifact: $name');
+    if (!update) continue;
     assets[target] = {
       'url': baseUrl.resolve('$folder/$name').toString(),
       'size': size,

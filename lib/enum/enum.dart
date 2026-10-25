@@ -1,4 +1,11 @@
+export 'rule_target.dart';
+export 'rule_payload_error.dart';
+export 'proxy_field.dart';
 // ignore_for_file: constant_identifier_names
+
+export 'rule_action.dart';
+import 'rule_action.dart';
+import 'rule_payload_error.dart';
 
 import 'dart:io';
 
@@ -11,11 +18,21 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+export 'page_label.dart';
+export 'dns_mode.dart';
+export 'log_level.dart';
+export 'mode.dart';
+export '../ui/traffic_unit.dart';
+export '../ui/proxy_style.dart';
+export '../ui/record_tone.dart';
+export 'appearance.dart';
+
 enum SupportPlatform {
   Windows,
   MacOS,
   Linux,
-  Android;
+  Android,
+  IOS;
 
   static SupportPlatform get currentPlatform {
     if (system.isWindows) {
@@ -26,6 +43,8 @@ enum SupportPlatform {
       return SupportPlatform.Linux;
     } else if (system.isAndroid) {
       return SupportPlatform.Android;
+    } else if (system.isIOS) {
+      return SupportPlatform.IOS;
     }
     throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   }
@@ -84,20 +103,6 @@ enum LoadBalanceStrategy {
   const LoadBalanceStrategy(this.value);
 }
 
-enum IpVersion {
-  dual('dual'),
-  ipv4('ipv4'),
-  ipv6('ipv6'),
-  @JsonValue('ipv4-prefer')
-  ipv4Prefer('ipv4-prefer'),
-  @JsonValue('ipv6-prefer')
-  ipv6Prefer('ipv6-prefer');
-
-  final String value;
-
-  const IpVersion(this.value);
-}
-
 extension GroupTypeExtension on GroupType {
   static List<String> get valueList =>
       GroupType.values.map((e) => e.toString().split('.').last).toList();
@@ -115,42 +120,7 @@ extension GroupTypeExtension on GroupType {
 
 enum DelayTestPhase { queued, running }
 
-enum Mode { rule, global, direct }
-
 enum ViewMode { mobile, laptop, desktop }
-
-enum LogLevel { debug, info, warning, error, silent }
-
-enum RecordTone { neutral, warning, error }
-
-extension RecordToneExt on RecordTone {
-  Color? accentColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return switch (this) {
-      RecordTone.warning => colorScheme.warning,
-      RecordTone.error => colorScheme.error,
-      RecordTone.neutral => null,
-    };
-  }
-
-  Color labelColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return switch (this) {
-      RecordTone.neutral => colorScheme.onSurfaceVariant,
-      RecordTone.warning => colorScheme.onWarningContainer,
-      RecordTone.error => colorScheme.onErrorContainer,
-    };
-  }
-
-  Color labelContainerColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return switch (this) {
-      RecordTone.neutral => context.raisedSurfaceLevel.colorOf(colorScheme),
-      RecordTone.warning => colorScheme.warningContainer,
-      RecordTone.error => colorScheme.errorContainer,
-    };
-  }
-}
 
 enum MessageLevel { info, success, warning, error }
 
@@ -199,11 +169,7 @@ extension MessageLevelExt on MessageLevel {
   }
 }
 
-enum TrafficUnit { B, KB, MB, GB, TB }
-
 enum NavigationItemMode { mobile, desktop, more, moreFull }
-
-enum ProxiesSortType { none, delay, name }
 
 enum TunStack { gvisor, system, mixed, mips }
 
@@ -238,21 +204,6 @@ enum FindProcessMode { always, off }
 enum InterfaceNameMode { clear, follow, custom }
 
 enum RestoreOption { all, onlyProfiles }
-
-enum ProxiesType { tab, list }
-
-enum ProxiesLayout { loose, standard, tight }
-
-enum ProxyCardType { loose, standard, compact }
-
-enum DnsMode {
-  normal,
-  @JsonValue('fake-ip')
-  fakeIp,
-  @JsonValue('redir-host')
-  redirHost,
-  hosts,
-}
 
 enum DnsCacheAlgorithm { lru, arc }
 
@@ -428,8 +379,6 @@ enum HotAction {
   exit,
 }
 
-enum ProxiesIconStyle { filled, plain, hidden }
-
 enum EditorFontSize {
   standard(16),
   large(18),
@@ -538,101 +487,7 @@ extension GeoResourceExt on GeoResource {
   String get updatingKey => 'geo_resource_$name';
 }
 
-enum PageLabel {
-  dashboard,
-  proxies,
-  profiles,
-  tools,
-  logs,
-  requests,
-  resources,
-  connections,
-  dns,
-}
-
-enum RuleAction {
-  DOMAIN('DOMAIN'),
-  DOMAIN_SUFFIX('DOMAIN-SUFFIX'),
-  DOMAIN_KEYWORD('DOMAIN-KEYWORD'),
-  DOMAIN_REGEX('DOMAIN-REGEX'),
-  DOMAIN_WILDCARD('DOMAIN-WILDCARD'),
-  GEOSITE('GEOSITE'),
-  IP_CIDR('IP-CIDR'),
-  IP_CIDR6('IP-CIDR6'),
-  IP_SUFFIX('IP-SUFFIX'),
-  IP_ASN('IP-ASN'),
-  GEOIP('GEOIP'),
-  SRC_GEOIP('SRC-GEOIP'),
-  SRC_IP_ASN('SRC-IP-ASN'),
-  SRC_IP_CIDR('SRC-IP-CIDR'),
-  SRC_IP_SUFFIX('SRC-IP-SUFFIX'),
-  DST_PORT('DST-PORT'),
-  SRC_PORT('SRC-PORT'),
-  IN_PORT('IN-PORT'),
-  IN_TYPE('IN-TYPE'),
-  IN_USER('IN-USER'),
-  IN_NAME('IN-NAME'),
-  REMATCH_NAME('REMATCH-NAME'),
-  PROCESS_PATH('PROCESS-PATH'),
-  PROCESS_PATH_REGEX('PROCESS-PATH-REGEX'),
-  PROCESS_PATH_WILDCARD('PROCESS-PATH-WILDCARD'),
-  PROCESS_NAME('PROCESS-NAME'),
-  PROCESS_NAME_REGEX('PROCESS-NAME-REGEX'),
-  PROCESS_NAME_WILDCARD('PROCESS-NAME-WILDCARD'),
-  UID('UID'),
-  NETWORK('NETWORK'),
-  DSCP('DSCP'),
-  RULE_SET('RULE-SET'),
-  AND('AND'),
-  OR('OR'),
-  NOT('NOT'),
-  SUB_RULE('SUB-RULE'),
-  MATCH('MATCH');
-
-  final String value;
-
-  const RuleAction(this.value);
-
-  static List<RuleAction> get addedRuleActions {
-    return RuleAction.values
-        .where(
-          (item) => ![
-            RuleAction.MATCH,
-            RuleAction.RULE_SET,
-            RuleAction.SUB_RULE,
-          ].contains(item),
-        )
-        .toList();
-  }
-}
-
 extension RuleActionExt on RuleAction {
-  bool get hasParams => [
-    RuleAction.GEOIP,
-    RuleAction.IP_ASN,
-    RuleAction.IP_CIDR,
-    RuleAction.IP_CIDR6,
-    RuleAction.IP_SUFFIX,
-    RuleAction.RULE_SET,
-  ].contains(this);
-
-  bool get nestsRules => [
-    RuleAction.AND,
-    RuleAction.OR,
-    RuleAction.NOT,
-    RuleAction.SUB_RULE,
-  ].contains(this);
-
-  bool get hasCommaPayload => [
-    RuleAction.AND,
-    RuleAction.OR,
-    RuleAction.NOT,
-    RuleAction.SUB_RULE,
-    RuleAction.DOMAIN_REGEX,
-    RuleAction.PROCESS_NAME_REGEX,
-    RuleAction.PROCESS_PATH_REGEX,
-  ].contains(this);
-
   String getDesc(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     return switch (this) {
@@ -682,79 +537,6 @@ extension RuleActionExt on RuleAction {
   }
 }
 
-enum ProxyFieldKind { text, secret, number, toggle, choice, list }
-
-/// A key of a proxy definition the form edits, at [path] since the core reads
-/// transport, TLS and plugin settings from maps of their own.
-enum ProxyField {
-  username(['username']),
-  password(['password'], ProxyFieldKind.secret),
-  uuid(['uuid']),
-  psk(['psk'], ProxyFieldKind.secret),
-  key(['key'], ProxyFieldKind.secret),
-  privateKey(['private-key'], ProxyFieldKind.secret),
-  publicKey(['public-key']),
-  privateKeyPassphrase(['private-key-passphrase'], ProxyFieldKind.secret),
-  preSharedKey(['pre-shared-key'], ProxyFieldKind.secret),
-  authStr(['auth-str'], ProxyFieldKind.secret),
-  cipher(['cipher'], ProxyFieldKind.choice),
-  alterId(['alterId'], ProxyFieldKind.number),
-  protocol(['protocol'], ProxyFieldKind.choice),
-  obfs(['obfs'], ProxyFieldKind.choice),
-  transport(['transport'], ProxyFieldKind.choice),
-  up(['up']),
-  down(['down']),
-  network(['network'], ProxyFieldKind.choice),
-  flow(['flow'], ProxyFieldKind.choice),
-  wsPath(['ws-opts', 'path']),
-  wsHost(['ws-opts', 'headers', 'Host']),
-  grpcServiceName(['grpc-opts', 'grpc-service-name']),
-  xhttpPath(['xhttp-opts', 'path']),
-  xhttpHost(['xhttp-opts', 'host']),
-  tls(['tls'], ProxyFieldKind.toggle),
-  sni(['sni']),
-  servername(['servername']),
-  alpn(['alpn'], ProxyFieldKind.list),
-  skipCertVerify(['skip-cert-verify'], ProxyFieldKind.toggle),
-  clientFingerprint(['client-fingerprint'], ProxyFieldKind.choice),
-  realityPublicKey(['reality-opts', 'public-key']),
-  realityShortId(['reality-opts', 'short-id']),
-  plugin(['plugin'], ProxyFieldKind.choice),
-  pluginMode(['plugin-opts', 'mode']),
-  pluginHost(['plugin-opts', 'host']),
-  udpOverTcp(['udp-over-tcp'], ProxyFieldKind.toggle),
-  protocolParam(['protocol-param']),
-  obfsParam(['obfs-param']),
-  obfsPassword(['obfs-password'], ProxyFieldKind.secret),
-  obfsSecret(['obfs'], ProxyFieldKind.secret),
-  obfsMode(['obfs-opts', 'mode'], ProxyFieldKind.choice),
-  obfsHost(['obfs-opts', 'host']),
-  version(['version'], ProxyFieldKind.number),
-  ports(['ports']),
-  hopInterval(['hop-interval']),
-  congestionController(['congestion-controller'], ProxyFieldKind.choice),
-  udpRelayMode(['udp-relay-mode'], ProxyFieldKind.choice),
-  reduceRtt(['reduce-rtt'], ProxyFieldKind.toggle),
-  ip(['ip']),
-  ipv6(['ipv6']),
-  allowedIps(['allowed-ips'], ProxyFieldKind.list),
-  dns(['dns'], ProxyFieldKind.list),
-  remoteDnsResolve(['remote-dns-resolve'], ProxyFieldKind.toggle),
-  mtu(['mtu'], ProxyFieldKind.number),
-  tfo(['tfo'], ProxyFieldKind.toggle),
-  mptcp(['mptcp'], ProxyFieldKind.toggle),
-  interfaceName(['interface-name']),
-  routingMark(['routing-mark'], ProxyFieldKind.number),
-  ipVersion(['ip-version'], ProxyFieldKind.choice);
-
-  final List<String> path;
-  final ProxyFieldKind kind;
-
-  const ProxyField(this.path, [this.kind = ProxyFieldKind.text]);
-}
-
-enum RulePayloadError { network, numberRange, dscpRange }
-
 extension RulePayloadErrorExt on RulePayloadError {
   String getMessage(BuildContext context) {
     final appLocalizations = context.appLocalizations;
@@ -768,34 +550,6 @@ extension RulePayloadErrorExt on RulePayloadError {
 
 enum ExtendType { standard, script }
 
-enum RuleTarget {
-  DIRECT('DIRECT'),
-  REJECT('REJECT'),
-  REJECT_DROP('REJECT-DROP'),
-  PASS('PASS'),
-  PASS_RULE('PASS-RULE'),
-  COMPATIBLE('COMPATIBLE');
-
-  final String value;
-
-  const RuleTarget(this.value);
-
-  static final List<String> baseTargetNames = List.unmodifiable(
-    RuleTarget.values.map((item) => item.value),
-  );
-
-  static final Set<String> baseTargets = Set.unmodifiable(baseTargetNames);
-
-  /// The core adds GLOBAL only after it parses the groups, so a rule, a dialer
-  /// or a DNS server may name it while a group may not.
-  static final List<String> ruleTargetNames = List.unmodifiable([
-    ...baseTargetNames,
-    GroupName.GLOBAL.name,
-  ]);
-
-  static final Set<String> ruleTargets = Set.unmodifiable(ruleTargetNames);
-}
-
 enum ProviderKind { proxy, rule }
 
 enum RuleProviderBehavior { domain, ipcidr, classical }
@@ -803,10 +557,6 @@ enum RuleProviderBehavior { domain, ipcidr, classical }
 enum RuleProviderFormat { yaml, text, mrs }
 
 enum RestoreStrategy { compatible, override }
-
-enum TabAnimation { slide, fade }
-
-enum LiquidGlassMode { none, standard, ultra }
 
 enum Language { yaml, javaScript, json }
 

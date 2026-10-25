@@ -1,3 +1,7 @@
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/backend_resources.dart';
+import 'package:fl_clash/iping/resource_controller.dart';
+import 'package:fl_clash/iping/rule_provider_form.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -262,7 +266,52 @@ class _ClashProvidersViewState extends ConsumerState<ClashProvidersView> {
     if (res != true) {
       return;
     }
-    _providersAction.delProvider(provider);
+    await _mutateResources(
+      (controller) => controller.remove({provider.id.toString()}),
+    );
+  }
+
+  bool _resourceBusy = false;
+
+  Future<void> _mutateResources(
+    Future<bool> Function(IpingResourceController<IpingRuleProvider, String>)
+    mutation,
+  ) async {
+    if (_resourceBusy) return;
+    _resourceBusy = true;
+    final controller = IpingResourceController<IpingRuleProvider, String>(
+      ref.read(ipingBackendProvider).ruleProviders,
+      keyOf: (item) => item.id,
+    );
+    try {
+      await globalState.safeRun(() async {
+        if (!await controller.load()) {
+          throw MessageException(controller.error.toString());
+        }
+        if (!await mutation(controller)) {
+          throw MessageException(controller.error.toString());
+        }
+      });
+    } finally {
+      controller.dispose();
+      _resourceBusy = false;
+    }
+  }
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    final order = [
+      for (final provider
+          in ref.read(clashProvidersProvider).value ?? const <ClashProvider>[])
+        provider.id.toString(),
+    ];
+    if (oldIndex < 0 ||
+        newIndex < 0 ||
+        oldIndex >= order.length ||
+        newIndex >= order.length) {
+      return;
+    }
+    order.insert(newIndex, order.removeAt(oldIndex));
+    await _mutateResources((controller) => controller.reorderKeys(order));
   }
 
   bool _isEditable(ClashProvider provider) =>
@@ -373,7 +422,7 @@ class _ClashProvidersViewState extends ConsumerState<ClashProvidersView> {
             animation,
           );
         },
-        onReorderItem: ref.read(clashProvidersProvider.notifier).order,
+        onReorderItem: _handleReorder,
       ),
     );
   }
@@ -473,28 +522,29 @@ Future<void> _showClashProviderOptions(
   WidgetRef ref,
   ClashProvider provider,
 ) async {
-  final res = await showFormSheet<ClashProvider>(
-    context: context,
-    builder: (_) => _ProviderForm(
-      provider: provider,
-      reservedLabels: {
-        for (final item
-            in ref.read(clashProvidersProvider).value ??
-                const <ClashProvider>[])
-          if (item.id != provider.id) item.label,
-      },
-    ),
+  final controller = IpingResourceController<IpingRuleProvider, String>(
+    ref.read(ipingBackendProvider).ruleProviders,
+    keyOf: (item) => item.id,
   );
-  if (res == null) {
-    return;
+  try {
+    await showFormSheet<void>(
+      context: context,
+      builder: (_) => IpingRuleProviderForm(
+        provider: nativeIpingRuleProvider(provider),
+        reservedLabels: {
+          for (final item
+              in ref.read(clashProvidersProvider).value ??
+                  const <ClashProvider>[])
+            if (item.id != provider.id) item.label,
+        },
+        save: (value) =>
+            controller.put(value, replacing: provider.id.toString()),
+        errorOf: () => controller.error,
+      ),
+    );
+  } finally {
+    controller.dispose();
   }
-  await globalState.loadingRun(
-    () => ref
-        .read(clashProvidersActionProvider.notifier)
-        .putProvider(res, previous: provider),
-    title: res.label,
-    tag: LoadingTag.ruleProviders,
-  );
 }
 
 String? _validateProviderUrl(String? value) {
@@ -503,134 +553,8 @@ String? _validateProviderUrl(String? value) {
   if (url.isEmpty) {
     return appLocalizations.emptyTip(appLocalizations.url);
   }
-  final uri = Uri.tryParse(url);
-  if (uri == null || !uri.isScheme('http') && !uri.isScheme('https')) {
+  if (!isIpingProviderUrl(url)) {
     return appLocalizations.providerUrlTip;
   }
   return null;
-}
-
-enum _ProviderField { label, url }
-
-class _ProviderForm extends StatefulWidget {
-  const _ProviderForm({required this.provider, required this.reservedLabels});
-
-  final ClashProvider provider;
-  final Set<String> reservedLabels;
-
-  @override
-  State<_ProviderForm> createState() => _ProviderFormState();
-}
-
-class _ProviderFormState extends State<_ProviderForm> {
-  late final TextEditingController _labelController;
-  late final TextEditingController _urlController;
-  bool _attempted = false;
-
-  ClashProvider get _provider => widget.provider;
-
-  @override
-  void initState() {
-    super.initState();
-    _labelController = TextEditingController(text: _provider.label);
-    _urlController = TextEditingController(text: _provider.url);
-  }
-
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _urlController.dispose();
-    super.dispose();
-  }
-
-  ({_ProviderField field, String message})? _issue() {
-    final appLocalizations = context.appLocalizations;
-    final label = _labelController.text.trim();
-    if (label.isEmpty) {
-      return (
-        field: _ProviderField.label,
-        message: appLocalizations.emptyTip(appLocalizations.name),
-      );
-    }
-    if (widget.reservedLabels.contains(label)) {
-      return (
-        field: _ProviderField.label,
-        message: appLocalizations.existsTip(appLocalizations.name),
-      );
-    }
-    if (_provider.isRemote) {
-      if (_validateProviderUrl(_urlController.text) case final message?) {
-        return (field: _ProviderField.url, message: message);
-      }
-    }
-    return null;
-  }
-
-  void _handleChanged(String _) {
-    if (_attempted) {
-      setState(() {});
-    }
-  }
-
-  void _handleSubmit() {
-    if (_issue() != null) {
-      setState(() {
-        _attempted = true;
-      });
-      return;
-    }
-    Navigator.of(context).pop(
-      _provider.copyWith(
-        label: _labelController.text.trim(),
-        url: _urlController.text.trim(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final issue = _attempted ? _issue() : null;
-    return FormPage(
-      title: appLocalizations.options,
-      onSave: _handleSubmit,
-      error: issue?.message,
-      children: [
-        generateSection(
-          items: [
-            FormRow(
-              title: appLocalizations.name,
-              invalid: issue?.field == _ProviderField.label,
-              trailing: FormRowTextField(
-                controller: _labelController,
-                hintText: appLocalizations.required,
-                textInputAction: _provider.isRemote
-                    ? TextInputAction.next
-                    : TextInputAction.done,
-                inputFormatters: TextInputLimits.limit(TextInputLimits.name),
-                onChanged: _handleChanged,
-                onFieldSubmitted: _provider.isRemote
-                    ? null
-                    : (_) => _handleSubmit(),
-              ),
-            ),
-            if (_provider.isRemote)
-              FormRow(
-                title: appLocalizations.url,
-                invalid: issue?.field == _ProviderField.url,
-                trailing: FormRowTextField(
-                  controller: _urlController,
-                  hintText: appLocalizations.required,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  autocorrect: false,
-                  onChanged: _handleChanged,
-                  onFieldSubmitted: (_) => _handleSubmit(),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
 }

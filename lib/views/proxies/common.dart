@@ -2,6 +2,7 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/typography.dart';
+import 'package:fl_clash/ui/proxy_card.dart';
 import 'package:flutter/widgets.dart';
 
 const proxyGridSpacing = 8.0;
@@ -15,22 +16,11 @@ double get listHeaderHeight {
       2;
 }
 
-double getItemHeight(ProxyCardType proxyCardType) {
-  final measure = globalState.measure;
-  final baseHeight =
-      16 +
-      measure.textHeight(AppTextStyle.subheadline) * 2 +
-      measure.textHeight(AppTextStyle.footnote) +
-      8 +
-      4;
-  return switch (proxyCardType) {
-    ProxyCardType.loose =>
-      baseHeight + measure.textHeight(AppTextStyle.caption2) + 6,
-    ProxyCardType.standard => baseHeight,
-    ProxyCardType.compact =>
-      baseHeight - measure.textHeight(AppTextStyle.subheadline),
-  };
-}
+double getItemHeight(ProxyCardType proxyCardType) => proxyCardHeight(
+  globalState.measure,
+  compact: proxyCardType == ProxyCardType.compact,
+  loose: proxyCardType == ProxyCardType.loose,
+);
 
 double getRowExtent(ProxyCardType proxyCardType) =>
     getItemHeight(proxyCardType) + proxyGridSpacing;

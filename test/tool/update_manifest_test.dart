@@ -37,6 +37,49 @@ void main() {
     },
   );
 
+  test(
+    'iOS and OpenWrt downloads are staged alongside the app update packages',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'iping-extra-release-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final input = await Directory('${directory.path}/dist').create();
+      const names = [
+        'iPing-1.0.0-macos-arm64.zip',
+        'iPing-1.0.0-ios-arm64.ipa',
+        'iPing-1.0.0-openwrt-24.10-x86_64.zip',
+        'iPing-1.0.0-openwrt-25.12-aarch64_cortex-a53.zip',
+      ];
+      for (final name in names) {
+        await File('${input.path}/$name').writeAsBytes([1, 2]);
+      }
+      await File('${input.path}/iPing-0.9.0-ios-arm64.ipa').writeAsBytes([9]);
+      final output = Directory('${directory.path}/output');
+      final manifest = await buildUpdateManifest(
+        artifacts: input,
+        output: output,
+        version: '1.0.0',
+        buildNumber: 42,
+        baseUrl: Uri.parse('https://example.com/releases/'),
+        requireComplete: false,
+      );
+      expect((manifest['assets'] as Map).keys, ['macos-arm64-zip']);
+      for (final name in names) {
+        expect(await File('${output.path}/1.0.0+42/$name').readAsBytes(), [
+          1,
+          2,
+        ]);
+      }
+      expect(
+        await File(
+          '${output.path}/1.0.0+42/iPing-0.9.0-ios-arm64.ipa',
+        ).exists(),
+        isFalse,
+      );
+    },
+  );
+
   test('maps platform package filenames to runtime targets', () {
     expect(
       updateArtifactTarget('iPing-1.0.0-android-arm64-v8a.apk', '1.0.0'),

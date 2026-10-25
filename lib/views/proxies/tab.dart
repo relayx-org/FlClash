@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'card.dart';
 import 'common.dart';
+import 'page_presentation.dart';
 import 'group_tabs.dart';
 
 class ProxiesTabView extends ConsumerStatefulWidget {
@@ -185,39 +186,29 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
       ),
       child: controller == null
           ? const SizedBox.shrink()
-          : AppBarClearance(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 16),
-                    child: GroupTabs(controller: controller, groups: groups),
-                  ),
-                  Expanded(
-                    child: WidthBuilder(
-                      builder: (_, width) {
-                        final columns = getProxiesColumns(
-                          max(width - 32, 0),
-                          proxiesLayout,
-                        );
-                        _columns = columns;
-                        return TabBarView(
-                          controller: controller,
-                          children: [
-                            for (final group in groups)
-                              ProxyGroupView(
-                                key: ValueKey(group.name),
-                                controller: _scrollControllerOf(group.name),
-                                group: group,
-                                columns: columns,
-                                cardType: cardType,
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+          : WidthBuilder(
+              builder: (_, width) {
+                final columns = getProxiesColumns(
+                  max(width - 32, 0),
+                  proxiesLayout,
+                );
+                _columns = columns;
+                return ProxyTabsLayout(
+                  controller: controller,
+                  groups: [for (final group in groups) group.name],
+                  groupTabs: GroupTabs(controller: controller, groups: groups),
+                  pages: [
+                    for (final group in groups)
+                      ProxyGroupView(
+                        key: ValueKey(group.name),
+                        controller: _scrollControllerOf(group.name),
+                        group: group,
+                        columns: columns,
+                        cardType: cardType,
+                      ),
+                  ],
+                );
+              },
             ),
     );
   }
@@ -250,36 +241,22 @@ class ProxyGroupView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final proxies = group.all;
-    return CommonScrollBar(
+    return ProxyCardsGrid(
+      storageKey: _getPageStorageKey(ref),
       controller: controller,
-      thumbVisibility: true,
-      child: GridView.builder(
-        key: _getPageStorageKey(ref),
-        controller: controller,
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: 16 + BottomInsetScope.of(context),
-        ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisSpacing: proxyGridSpacing,
-          crossAxisSpacing: 8,
-          mainAxisExtent: getItemHeight(cardType),
-        ),
-        itemCount: proxies.length,
-        addAutomaticKeepAlives: false,
-        itemBuilder: (_, index) {
-          final proxy = proxies[index];
-          return ProxyCard(
-            testUrl: group.testUrl,
-            groupType: group.type,
-            type: cardType,
-            proxy: proxy,
-            groupName: group.name,
-          );
-        },
-      ),
+      columns: columns,
+      itemHeight: getItemHeight(cardType),
+      count: proxies.length,
+      itemBuilder: (_, index) {
+        final proxy = proxies[index];
+        return ProxyCard(
+          testUrl: group.testUrl,
+          groupType: group.type,
+          type: cardType,
+          proxy: proxy,
+          groupName: group.name,
+        );
+      },
     );
   }
 }

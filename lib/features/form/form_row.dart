@@ -1,7 +1,6 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/state.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -14,9 +13,21 @@ class InfoMessageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonMinIconButtonTheme(
       child: IconButton(
-        tooltip: context.appLocalizations.tip,
+        tooltip: AppLocalizations.of(context).tip,
         onPressed: () {
-          dialogs.showMessage(message: TextSpan(text: message));
+          showFloatingDialog<void>(
+            context: context,
+            child: CommonDialog(
+              title: AppLocalizations.of(context).tip,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context).confirm),
+                ),
+              ],
+              child: SelectableText(message),
+            ),
+          );
         },
         icon: GlyphIcon(
           AppGlyphs.info,
@@ -39,7 +50,7 @@ class EntryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     return CommonMinIconButtonTheme(
       child: ElasticButton(
         child: IconButton(
@@ -118,7 +129,7 @@ class FormRow extends StatelessWidget {
                     ),
                     child: Container(
                       alignment: Alignment.centerRight,
-                      height: globalState.measure.listRowHeight,
+                      height: MeasureScope.of(context).listRowHeight,
                       child: DefaultTextStyle.merge(
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -260,7 +271,7 @@ class _FormRowSecretTextFieldState extends State<FormRowSecretTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

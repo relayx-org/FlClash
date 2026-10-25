@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'edit.dart';
+import 'desktop_layout.dart';
 import 'layout.dart';
 import 'style.dart';
 import 'widget_registry.dart';
@@ -20,8 +21,6 @@ import 'widgets/widgets.dart';
 // Narrower columns leave the service grid's cells too tight for a status, so
 // the grid takes the memory card's column instead.
 const _memoryColumnMin = 290.0;
-
-const _maxColumnWidth = 440.0;
 
 class DashboardView extends ConsumerStatefulWidget {
   const DashboardView({super.key, this.platform});
@@ -125,161 +124,50 @@ class _DesktopDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final density = DashboardDensityScope.of(context);
-    final compact = density.isCompact;
     final scale = DashboardDensityScope.scaleOf(context);
-    final base = EdgeInsetsDirectional.fromSTEB(
-      16,
-      MediaQuery.paddingOf(context).top,
-      24,
-      24 + MediaQuery.paddingOf(context).bottom,
-    );
-    final topHeight = (compact ? 176 : 208) * scale;
-    final controlHeight = (compact ? 56 : 64) * scale;
-    final middleHeight = (compact ? 152 : 176) * scale;
-    final tablesHeight = connectionsTableMinHeight(density, scale);
-    final summaryHeight = (compact ? 112 : 120) * scale;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final room =
-            constraints.maxWidth - base.horizontal - gap * (columns - 1);
-        final column = math.min(room / columns, _maxColumnWidth * scale);
-        final inset = (room - column * columns) / 2;
-        final padding = base.copyWith(
-          start: base.start + inset,
-          end: base.end + inset,
+        final column = math.min(
+          (constraints.maxWidth - 40 - gap * (columns - 1)) / columns,
+          440 * scale,
         );
-        double span(int columns) => column * columns + gap * (columns - 1);
-        Widget row(List<(int, Widget)> cards) => Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: gap,
-          children: [
-            for (final (columns, card) in cards)
-              SizedBox(
-                width: span(columns),
-                child: RepaintBoundary(child: card),
-              ),
+        return DashboardDesktopLayout(
+          columns: columns,
+          gap: gap,
+          outbound: const CurrentOutboundCard(),
+          upload: const SpeedCard(direction: TrafficDirection.upload),
+          download: const SpeedCard(direction: TrafficDirection.download),
+          mode: const OutboundModeBar(),
+          controls: DashboardWidget.networkTakeover.platforms.contains(platform)
+              ? const [
+                  (1, NetworkTakeoverTile(TakeoverSwitch.systemProxy)),
+                  (1, NetworkTakeoverTile(TakeoverSwitch.tun)),
+                ]
+              : const [(2, VpnTile())],
+          middle: [
+            (1, const IntranetIpCard()),
+            (1, const ProfilesCard()),
+            if (columns == 2 || column >= _memoryColumnMin * scale) ...[
+              (1, const ServiceStatusCard()),
+              (1, const MemoryInfo()),
+            ] else
+              (2, const ServiceStatusCard()),
           ],
-        );
-        Widget sized(double height, Widget child) =>
-            SizedBox(height: height, child: child);
-        final switches =
-            DashboardWidget.networkTakeover.platforms.contains(platform)
-            ? const [
-                (1, NetworkTakeoverTile(TakeoverSwitch.systemProxy)),
-                (1, NetworkTakeoverTile(TakeoverSwitch.tun)),
-              ]
-            : const [(2, VpnTile())];
-        final half = columns ~/ 2;
-        final summaries = row([
-          (half, const ConnectionStatsCard()),
-          (half, const ProxyGroupsSummaryCard()),
-        ]);
-        if (columns == 2) {
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: padding,
-            child: Column(
-              spacing: gap,
-              children: [
-                sized(
-                  topHeight,
-                  const RepaintBoundary(child: CurrentOutboundCard()),
-                ),
-                sized(
-                  topHeight,
-                  row(const [
-                    (1, SpeedCard(direction: TrafficDirection.upload)),
-                    (1, SpeedCard(direction: TrafficDirection.download)),
-                  ]),
-                ),
-                sized(
-                  controlHeight,
-                  const RepaintBoundary(child: OutboundModeBar()),
-                ),
-                sized(controlHeight, row(switches)),
-                sized(
-                  middleHeight,
-                  row(const [(1, IntranetIpCard()), (1, ProfilesCard())]),
-                ),
-                sized(
-                  middleHeight,
-                  row(const [(1, ServiceStatusCard()), (1, MemoryInfo())]),
-                ),
-                sized(summaryHeight, summaries),
-              ],
-            ),
-          );
-        }
-        final rows = [
-          sized(
-            topHeight,
-            row(const [
-              (2, CurrentOutboundCard()),
-              (1, SpeedCard(direction: TrafficDirection.upload)),
-              (1, SpeedCard(direction: TrafficDirection.download)),
-            ]),
-          ),
-          sized(
-            controlHeight,
-            row([(2, const OutboundModeBar()), ...switches]),
-          ),
-          sized(
-            middleHeight,
-            row([
-              (1, const IntranetIpCard()),
-              (1, const ProfilesCard()),
-              if (column >= _memoryColumnMin * scale) ...[
-                (1, const ServiceStatusCard()),
-                (1, const MemoryInfo()),
-              ] else
-                (2, const ServiceStatusCard()),
-            ]),
-          ),
-        ];
-        final rowsHeight =
-            padding.vertical +
-            topHeight +
-            controlHeight +
-            middleHeight +
-            gap * 3;
-        final tablesFit = constraints.maxHeight >= rowsHeight + tablesHeight;
-        final fills = constraints.maxHeight >= rowsHeight + summaryHeight;
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: fills ? constraints.maxHeight : null,
-            child: Padding(
-              padding: padding,
-              child: Column(
-                spacing: gap,
-                children: [
-                  ...rows,
-                  if (tablesFit)
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: gap,
-                        children: const [
-                          Expanded(
-                            flex: 3,
-                            child: RepaintBoundary(
-                              child: ConnectionsTableCard(),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: RepaintBoundary(child: ProxyGroupsCard()),
-                          ),
-                        ],
-                      ),
-                    )
-                  else if (fills)
-                    Expanded(child: summaries)
-                  else
-                    sized(summaryHeight, summaries),
-                ],
+          summaries: const [ConnectionStatsCard(), ProxyGroupsSummaryCard()],
+          tablesMinHeight: connectionsTableMinHeight(density, scale),
+          tables: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: gap,
+            children: const [
+              Expanded(
+                flex: 3,
+                child: RepaintBoundary(child: ConnectionsTableCard()),
               ),
-            ),
+              Expanded(
+                flex: 2,
+                child: RepaintBoundary(child: ProxyGroupsCard()),
+              ),
+            ],
           ),
         );
       },

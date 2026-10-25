@@ -5,8 +5,11 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import 'tool/package_ios.dart';
+
 const _allTargets = <String, String>{
   'android': 'apk',
+  'ios': 'ipa',
   'linux': 'deb,appimage,rpm,zip',
   'macos': 'dmg,zip',
   'windows': 'exe,zip',
@@ -44,9 +47,9 @@ Future<void> main(List<String> args) async {
 
   final platform = rest.isNotEmpty ? rest.first : host;
 
-  if (platform != host && platform != 'android') {
+  if (!canBuildPlatform(platform, host)) {
     stderr.writeln(
-      'Cannot build "$platform" on $hostOs. Allowed: $host, android',
+      'Cannot build "$platform" on $hostOs. Allowed: $host, android${host == 'macos' ? ', ios' : ''}',
     );
     _showHelp(parser);
     exit(1);
@@ -127,7 +130,13 @@ Map<String, String> createBuildEnvironment(String env) {
   return {'APP_ENV': env};
 }
 
+bool canBuildPlatform(String platform, String host) =>
+    platform == host ||
+    platform == 'android' ||
+    host == 'macos' && platform == 'ios';
+
 String packageArchitecture(String platform, String pubspec, String host) {
+  if (platform == 'ios') return 'arm64';
   if (platform != 'macos') return host;
   final document = loadYaml(pubspec) as Map;
   final defines = (document['hooks'] as Map?)?['user_defines'] as Map?;
@@ -152,12 +161,17 @@ List<String> packagesNotBuildingAssets(String pubspec) {
 }
 
 String createPackageTargets(String platform, String? customTargets) {
+  if (platform == 'ios' && customTargets != null && customTargets != 'ipa') {
+    throw ArgumentError('iOS only supports the ipa package target');
+  }
   return customTargets ?? _allTargets[platform]!;
 }
 
 void _showHelp(ArgParser parser) {
   stderr.writeln('Usage: dart setup.dart [platform] [options]');
-  stderr.writeln('Platform: current host platform (default) or android');
+  stderr.writeln(
+    'Platform: current host platform (default), android, or ios on macOS',
+  );
   stderr.writeln();
   stderr.writeln('Default package targets:');
   _allTargets.forEach((p, t) => stderr.writeln('  $p: $t'));
@@ -188,6 +202,58 @@ Future<int> _package(
 
   final depExit = await _ensureDependencies(platform);
   if (depExit != 0) return depExit;
+
+  if (platform == 'ios') {
+    final exports = Directory(p.join(rootDir, 'build', 'ios', 'ipa'));
+    final exportOptions = Platform.environment['EXPORT_OPTIONS_PLIST'];
+    if (exportOptions != null &&
+        exportOptions.isNotEmpty &&
+        !await File(exportOptions).exists()) {
+      throw ArgumentError('iOS export options do not exist: $exportOptions');
+    }
+    // Flutter can exit successfully when archive export fails.
+    if (await exports.exists()) await exports.delete(recursive: true);
+    final build = await Process.start(
+      'flutter',
+      createIosBuildArguments(
+        flutterBuildArgs: flutterBuildArgs,
+        exportOptionsPlist: exportOptions,
+      ),
+      workingDirectory: rootDir,
+      mode: ProcessStartMode.inheritStdio,
+    );
+    final code = await build.exitCode;
+    if (code != 0) return code;
+    if (exportOptions != null && exportOptions.isNotEmpty) {
+      await exportSignedIosArchive(
+        rootDir: rootDir,
+        exportOptionsPlist: exportOptions,
+      );
+    }
+    final pubspec =
+        loadYaml(await File(p.join(rootDir, 'pubspec.yaml')).readAsString())
+            as Map;
+    final options =
+        loadYaml(
+              await File(
+                p.join(rootDir, 'distribute_options.yaml'),
+              ).readAsString(),
+            )
+            as Map;
+    final name = options['app_name'] as String;
+    final version = (pubspec['version'] as String).split('+').first;
+    await packageSignedIosIpa(
+      exports: exports,
+      output: File(
+        p.join(
+          rootDir,
+          options['output'] as String,
+          '$name-$version-ios-arm64.ipa',
+        ),
+      ),
+    );
+    return 0;
+  }
 
   final activateResult = await Process.run('dart', [
     'pub',

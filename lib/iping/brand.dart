@@ -1,5 +1,6 @@
 import 'package:fl_clash/ui/ui.dart';
-import 'package:fl_clash/widgets/icon.dart';
+import 'brand_image_native.dart'
+    if (dart.library.js_interop) 'brand_image_web.dart';
 import 'package:material_ui/material_ui.dart';
 
 class IpingLogo extends StatelessWidget {
@@ -15,9 +16,9 @@ class IpingLogo extends StatelessWidget {
         clipper: ShapeBorderClipper(shape: AppShape.all(AppCorner.fit(size))),
         child: SizedBox.square(
           dimension: size,
-          child: CommonTargetIcon(
-            src: src,
-            fallback: Image.asset('assets/images/icon.png'),
+          child: loadBrandImage(
+            src,
+            Image.asset('assets/images/icon.png', package: brandAssetPackage),
           ),
         ),
       ),

@@ -238,6 +238,27 @@ class Profiles extends _$Profiles {
     );
   }
 
+  Future<void> setResourceBindings(
+    int profileId,
+    IpingResourceBindings bindings,
+  ) async {
+    final profile = state.getProfile(profileId);
+    if (profile == null) throw StateError('profile not found');
+    final next = state.copyAndPut(
+      profile.copyWith(
+        overrides: profile.overrides.copyWith(
+          resources: bindings.copyWith(script: null),
+        ),
+        extendType: bindings.script == null
+            ? ExtendType.standard
+            : ExtendType.script,
+        scriptId: bindings.script == null ? null : int.parse(bindings.script!),
+      ),
+      (item) => item.id == profileId,
+    );
+    await _optimisticAsync(next, () => _serial(() => _putLatest([profileId])));
+  }
+
   /// Applies the changes [body] returns to the state too, so a put landing
   /// before the rows read back writes them rather than the profile as it was.
   Future<void> rewriteCustom(
@@ -330,10 +351,16 @@ class Scripts extends _$Scripts with AsyncNotifierMixin, OptimisticMixin {
     return settled(query.watch(), query.get);
   }
 
+  Future<List<Script>> resourceSnapshot() => database.scriptsDao.query().get();
+
   @override
   List<Script> get value => state.value ?? [];
 
   void put(Script script) {
+    unawaited(putAsync(script).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> putAsync(Script script) async {
     final next = List<Script>.from(value);
     final index = next.indexWhere((item) => item.id == script.id);
     if (index != -1) {
@@ -341,18 +368,34 @@ class Scripts extends _$Scripts with AsyncNotifierMixin, OptimisticMixin {
     } else {
       next.add(script);
     }
-    optimistic(next, () => database.scripts.put(script.toCompanion()));
+    await optimisticAsync(
+      next,
+      () => database.scripts.put(script.toCompanion()),
+    );
   }
 
   void del(int id) {
+    unawaited(delAsync(id).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> delAsync(int id) async {
     final next = List<Script>.from(value);
     final index = next.indexWhere((item) => item.id == id);
     if (index == -1) return;
     next.removeAt(index);
-    optimistic(next, () => database.scripts.remove((t) => t.id.equals(id)));
+    await optimisticAsync(
+      next,
+      () => database.scripts.remove((t) => t.id.equals(id)),
+    );
   }
 
   void order(int oldIndex, int newIndex) {
+    unawaited(
+      orderAsync(oldIndex, newIndex).catchError(_reportOptimisticFailure),
+    );
+  }
+
+  Future<void> orderAsync(int oldIndex, int newIndex) async {
     final next = value.copyAndReorder(oldIndex, newIndex);
     final changed = <ScriptsCompanion>[];
     next.forEachIndexed((index, item) {
@@ -361,7 +404,22 @@ class Scripts extends _$Scripts with AsyncNotifierMixin, OptimisticMixin {
         changed.add(item.toCompanion(index));
       }
     });
-    optimistic(next, () => database.scriptsDao.putAll(changed));
+    await optimisticAsync(next, () => database.scriptsDao.putAll(changed));
+  }
+
+  Future<void> orderResources(List<int> ids) async {
+    final previous = await resourceSnapshot();
+    final byId = {for (final item in previous) item.id: item};
+    final next = [for (final id in ids) ?byId.remove(id), ...byId.values];
+    final ordered = [
+      for (final (index, item) in next.indexed) item.copyWith(order: index),
+    ];
+    await optimisticAsync(
+      ordered,
+      () => database.scriptsDao.putAll([
+        for (final item in ordered) item.toCompanion(),
+      ]),
+    );
   }
 
   @override
@@ -382,10 +440,17 @@ class ClashProviders extends _$ClashProviders
     return settled(query.watch(), query.get);
   }
 
+  Future<List<ClashProvider>> resourceSnapshot() =>
+      database.clashProvidersDao.query().get();
+
   @override
   List<ClashProvider> get value => state.value ?? [];
 
   void put(ClashProvider provider) {
+    unawaited(putAsync(provider).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> putAsync(ClashProvider provider) async {
     final next = List<ClashProvider>.from(value);
     final index = next.indexWhere((item) => item.id == provider.id);
     final renamedFrom = index != -1 && next[index].label != provider.label
@@ -397,14 +462,14 @@ class ClashProviders extends _$ClashProviders
       next.add(provider);
     }
     if (renamedFrom == null) {
-      optimistic(
+      await optimisticAsync(
         next,
         () => database.clashProviders.put(provider.toCompanion()),
       );
       return;
     }
     final names = {renamedFrom: provider.label};
-    optimistic(
+    await optimisticAsync(
       next,
       () => ref.read(profilesProvider.notifier).rewriteCustom(() async {
         final profileIds = await database.profilesDao.customIds().get();
@@ -425,18 +490,36 @@ class ClashProviders extends _$ClashProviders
   }
 
   void del(int id) {
+    unawaited(delAsync(id).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> delAsync(int id) async {
     final next = List<ClashProvider>.from(value);
     final index = next.indexWhere((item) => item.id == id);
     if (index == -1) return;
     next.removeAt(index);
-    optimistic(
+    await optimisticAsync(
       next,
       () => database.clashProviders.remove((t) => t.id.equals(id)),
     );
   }
 
   void order(int oldIndex, int newIndex) {
-    final next = value.copyAndReorder(oldIndex, newIndex);
+    unawaited(
+      orderAsync(oldIndex, newIndex).catchError(_reportOptimisticFailure),
+    );
+  }
+
+  Future<void> orderAsync(int oldIndex, int newIndex) =>
+      _saveOrder(value.copyAndReorder(oldIndex, newIndex));
+
+  Future<void> orderResources(List<int> ids) async {
+    final current = await resourceSnapshot();
+    final byId = {for (final item in current) item.id: item};
+    await _saveOrder([for (final id in ids) ?byId.remove(id), ...byId.values]);
+  }
+
+  Future<void> _saveOrder(List<ClashProvider> next) async {
     final changed = <ClashProvidersCompanion>[];
     next.forEachIndexed((index, item) {
       if (item.order != index) {
@@ -444,7 +527,10 @@ class ClashProviders extends _$ClashProviders
         changed.add(item.toCompanion(index));
       }
     });
-    optimistic(next, () => database.clashProvidersDao.putAll(changed));
+    await optimisticAsync(
+      next,
+      () => database.clashProvidersDao.putAll(changed),
+    );
   }
 
   @override
@@ -611,6 +697,31 @@ class GlobalRules extends _$GlobalRules
   Stream<List<Rule>> build() {
     final query = database.rulesDao.queryGlobalRules();
     return settled(query.watch(), query.get);
+  }
+
+  Future<List<Rule>> resourceSnapshot() =>
+      database.rulesDao.queryGlobalRules().get();
+
+  Future<void> writeResources(List<Rule> items) async {
+    final keys = indexing.generateNKeys(items.length);
+    final next = [
+      for (final (index, item) in items.indexed)
+        item.copyWith(order: keys[index]),
+    ];
+    final previous = await resourceSnapshot();
+    final ids = next.map((item) => item.id).toSet();
+    await optimisticAsync(
+      next,
+      () => database.transaction(() async {
+        for (final item in next) {
+          await persistRule(item);
+        }
+        await database.rulesDao.delRules([
+          for (final item in previous)
+            if (!ids.contains(item.id)) item.id,
+        ]);
+      }),
+    );
   }
 
   @override
@@ -844,6 +955,9 @@ class CustomProxies extends _$CustomProxies
     return settled(query.watch(), query.get);
   }
 
+  Future<List<CustomProxy>> resourceSnapshot() =>
+      database.customProxiesDao.query().get();
+
   @override
   bool updateShouldNotify(
     AsyncValue<List<CustomProxy>> previous,
@@ -856,14 +970,22 @@ class CustomProxies extends _$CustomProxies
   List<CustomProxy> get value => state.value ?? [];
 
   void delAll(Iterable<int> ids) {
+    unawaited(delAllAsync(ids).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> delAllAsync(Iterable<int> ids) {
     final idSet = ids.toSet();
-    optimistic(
+    return optimisticAsync(
       value.where((item) => !idSet.contains(item.id)).toList(),
       () => database.customProxiesDao.delAll(idSet),
     );
   }
 
   void put(CustomProxy proxy) {
+    unawaited(putAsync(proxy).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> putAsync(CustomProxy proxy) {
     final previous = value;
     final index = previous.indexWhere((item) => item.id == proxy.id);
     final renamedFrom = index != -1 && previous[index].name != proxy.name
@@ -881,7 +1003,7 @@ class CustomProxies extends _$CustomProxies
       );
       next.add(nextProxy);
     }
-    optimistic(
+    return optimisticAsync(
       next,
       renamedFrom == null
           ? () => database.customProxies.put(nextProxy.toCompanion())
@@ -928,6 +1050,10 @@ class CustomProxies extends _$CustomProxies
 
   /// Upserts the kept rows, since a deleted one takes its dialers with it.
   void setAll(List<CustomProxy> proxies) {
+    unawaited(setAllAsync(proxies).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> setAllAsync(List<CustomProxy> proxies) {
     final orders = indexing.generateNKeys(proxies.length);
     final next = [
       for (final (index, proxy) in proxies.indexed)
@@ -938,7 +1064,7 @@ class CustomProxies extends _$CustomProxies
       for (final proxy in value)
         if (!ids.contains(proxy.id)) proxy.id,
     };
-    optimistic(
+    return optimisticAsync(
       next,
       () => database.transaction(() async {
         await database.batch(

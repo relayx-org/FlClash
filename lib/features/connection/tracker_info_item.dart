@@ -1,11 +1,11 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/config.dart';
+import '../../common/datetime.dart';
+import '../../common/num.dart';
+import '../../l10n/l10n.dart';
+import '../../models/tracker.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import '../../ui/ui.dart';
+import '../../ui/record.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 String _ruleText(TrackerInfo trackerInfo) {
   final rule = trackerInfo.rule;
@@ -42,7 +42,7 @@ void showTrackerInfoDetail(
   );
 }
 
-class TrackerInfoItem extends ConsumerWidget {
+class TrackerInfoItem extends StatelessWidget {
   final TrackerInfo trackerInfo;
   final bool isLive;
   final Function(String)? onClickKeyword;
@@ -59,13 +59,9 @@ class TrackerInfoItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, ref) {
-    final showIcon = ref.watch(
-      patchClashConfigProvider.select(
-        (state) =>
-            state.findProcessMode == FindProcessMode.always && system.isAndroid,
-      ),
-    );
+  Widget build(BuildContext context) {
+    final showIcon =
+        RecordPresentationScope.maybeOf(context)?.processIcon != null;
     return RecordListItem(
       onTap: () => showTrackerInfoDetail(context, trackerInfo, detailTitle),
       header: _buildHeader(context),
@@ -136,7 +132,7 @@ class _TrackerInfoBody extends StatelessWidget {
     this.onClickKeyword,
   });
 
-  Widget _buildTitle(RecordTextStyles styles) {
+  Widget _buildTitle(BuildContext context, RecordTextStyles styles) {
     final metadata = trackerInfo.metadata;
     final title = Text.rich(
       TextSpan(
@@ -162,7 +158,11 @@ class _TrackerInfoBody extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () => onClickKeyword?.call(process),
-          child: PackageIcon(packageName: process, size: 24),
+          child:
+              RecordPresentationScope.maybeOf(
+                context,
+              )?.processIcon?.call(context, process) ??
+              const SizedBox.shrink(),
         ),
         Flexible(child: title),
       ],
@@ -183,7 +183,7 @@ class _TrackerInfoBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 4,
       children: [
-        _buildTitle(styles),
+        _buildTitle(context, styles),
         Wrap(
           spacing: 6,
           runSpacing: 4,
@@ -220,8 +220,8 @@ class TrackerInfoDetailView extends StatelessWidget {
   const TrackerInfoDetailView({super.key, required this.trackerInfo});
 
   Widget _buildChains(BuildContext context) {
-    return DetailRow(
-      title: context.appLocalizations.proxyChains,
+    return RecordDetailRow(
+      title: AppLocalizations.of(context).proxyChains,
       value: Wrap(
         spacing: 6,
         runSpacing: 4,
@@ -245,13 +245,13 @@ class TrackerInfoDetailView extends StatelessWidget {
   List<Widget> _buildRows(List<(String, String)> entries) {
     return [
       for (final (title, value) in entries)
-        if (value.isNotEmpty) DetailRow.text(title: title, value: value),
+        if (value.isNotEmpty) RecordDetailRow.text(title: title, value: value),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     final metadata = trackerInfo.metadata;
     return ListView(
       padding: const EdgeInsets.symmetric(

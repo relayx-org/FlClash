@@ -147,16 +147,15 @@ void main() {
   testWidgets('the table keeps the newest rows, sorts every connection and '
       'counts them all', (tester) async {
     final core = _MockCore();
-    when(() => core.getConnections()).thenAnswer(
-      (_) async => [
-        for (var index = 0; index < 150; index++)
-          _connection(
-            index,
-            network: index < 130 ? 'tcp' : 'udp',
-            download: index == 0 ? 1 << 30 : index,
-          ),
-      ],
-    );
+    var snapshot = List<TrackerInfo>.unmodifiable([
+      for (var index = 0; index < 150; index++)
+        _connection(
+          index,
+          network: index < 130 ? 'tcp' : 'udp',
+          download: index == 0 ? 1 << 30 : index,
+        ),
+    ]);
+    when(() => core.getConnections()).thenAnswer((_) async => snapshot);
     final connections = ProviderContainer(
       overrides: [
         profilesProvider.overrideWith(TestProfiles.new),
@@ -197,6 +196,7 @@ void main() {
     expect(find.text('TCP 130'), findsOneWidget);
     expect(find.text('UDP 20'), findsOneWidget);
     expect(find.text('host-149.test'), findsOneWidget);
+    expect(snapshot.first.id, '0');
     final list = tester.widget<ListView>(find.byType(ListView));
     expect(list.childrenDelegate.estimatedChildCount, 100);
     expect(find.text('host-0.test'), findsNothing);
@@ -204,6 +204,14 @@ void main() {
     await tester.tap(find.text('Download'));
     await tester.pump();
     expect(find.text('host-0.test'), findsOneWidget);
+
+    snapshot = const [];
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(find.text('TCP 130'), findsNothing);
+    expect(find.text('UDP 20'), findsNothing);
+    expect(find.text('No data'), findsOneWidget);
+    expect(find.text('host-0.test'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 2));

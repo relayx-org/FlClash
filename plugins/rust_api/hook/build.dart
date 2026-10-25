@@ -16,12 +16,20 @@ void main(List<String> args) async {
   });
 }
 
-// rquickjs runs bindgen on Android, which must load the NDK's libclang; Linux
-// NDKs before r26 keep it under lib64, later ones and every macOS NDK under lib.
+// Android needs the NDK's libclang; iOS needs Xcode's libclang and SDK headers.
 Map<String, String> _bindgenEnvironment(BuildInput input) {
-  if (!input.config.buildCodeAssets ||
-      input.config.code.targetOS != OS.android) {
+  if (!input.config.buildCodeAssets) {
     return const {};
+  }
+  final code = input.config.code;
+  if (code.targetOS != OS.android && code.targetOS != OS.iOS) return const {};
+  final environment = <String, String>{};
+  if (code.targetOS == OS.iOS) {
+    final sdk = code.iOS.targetSdk.type;
+    final result = Process.runSync('xcrun', ['--sdk', sdk, '--show-sdk-path']);
+    if (result.exitCode != 0) throw StateError('Cannot locate the $sdk SDK');
+    environment['BINDGEN_EXTRA_CLANG_ARGS'] =
+        '-isysroot ${result.stdout.toString().trim()}';
   }
   final compiler = input.config.code.cCompiler?.compiler;
   if (compiler == null) {
@@ -33,11 +41,11 @@ Map<String, String> _bindgenEnvironment(BuildInput input) {
       '${llvmRoot.path}${Platform.pathSeparator}$name',
     );
     if (directory.existsSync() && directory.listSync().any(_isLibclang)) {
-      return {'LIBCLANG_PATH': directory.path};
+      return {...environment, 'LIBCLANG_PATH': directory.path};
     }
   }
   throw StateError(
-    'No libclang under ${llvmRoot.path} (lib or lib64); the NDK Flutter '
+    'No libclang under ${llvmRoot.path} (lib or lib64); the compiler Flutter '
     'passed cannot run bindgen for rquickjs',
   );
 }

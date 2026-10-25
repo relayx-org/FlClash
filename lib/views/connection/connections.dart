@@ -1,13 +1,11 @@
+import 'connections_page.dart';
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/core/method.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/features.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +29,7 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView>
         WidgetsBindingObserver,
         ActivePollingMixin<ConnectionsView>,
         RouteMotionHoldMixin<ConnectionsView> {
-  CoreController get _core => ref.read(coreHandlerProvider);
+  IpingBackend get _backend => ref.read(ipingBackendProvider);
 
   final _listController = TrackerInfoListController();
   final _speedRanker = TrackerSpeedRanker();
@@ -47,19 +45,6 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView>
 
   @override
   Duration get pollInterval => const Duration(seconds: 1);
-
-  List<IconButtonData> _buildActions() {
-    return [
-      IconButtonData(
-        glyph: AppGlyphs.clearAll,
-        tooltip: context.appLocalizations.closeConnections,
-        onPressed: () async {
-          unawaited(_core.closeConnections());
-          await _refreshConnections();
-        },
-      ),
-    ];
-  }
 
   @override
   Future<void> poll(PollGuard isCurrent) async {
@@ -83,7 +68,9 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView>
       final connectionsReader = widget.connectionsReader;
       return connectionsReader != null
           ? await connectionsReader()
-          : await _core.getConnections();
+          : (await _backend.readConnections(
+              const IpingConnectionQuery(limit: null),
+            )).items;
     } catch (error) {
       commonPrint.log(
         'updateConnections error: $error',
@@ -111,7 +98,7 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView>
   }
 
   Future<void> _handleBlockConnection(String id) async {
-    await _core.closeConnection(id);
+    await _backend.closeConnection(id);
     await _refreshConnections();
   }
 
@@ -125,90 +112,14 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    return CommonScaffold(
-      title: PageLabel.connections.label,
-      onKeywordsUpdate: _listController.updateKeywords,
-      searchState: AppBarSearchState(onSearch: _listController.search),
-      iconActions: _buildActions(),
-      body: ValueListenableBuilder<TrackerInfosState>(
-        valueListenable: _listController,
-        builder: (context, state, _) {
-          final connections = state.list;
-          Widget buildAction(TrackerInfo trackerInfo) {
-            return _BlockConnectionButton(
-              onPressed: () {
-                _handleBlockConnection(trackerInfo.id);
-              },
-            );
-          }
-
-          return NullStatusSwitcher(
-            isLoading: !_loaded,
-            isEmpty: connections.isEmpty,
-            isSearching: state.isSearching,
-            nullStatus: NullStatus(
-              label: appLocalizations.nullTip(appLocalizations.connections),
-              illustration: NullStatusIllustration.connections,
-            ),
-            child: RecordTableFrame<TrackerInfo>(
-              tableId: 'connections',
-              items: connections,
-              columnsOf: (width) => trackerInfoColumns(
-                context,
-                width: width,
-                isLive: true,
-                actionBuilder: buildAction,
-              ),
-              builder: (context, table, connections) => TrackerInfoAnimatedList(
-                controller: _scrollController,
-                padding: EdgeInsets.only(
-                  top: context.contentTopPadding,
-                  bottom: 16 + BottomInsetScope.of(context),
-                ),
-                trackerInfos: connections,
-                table: table,
-                detailTitle: appLocalizations.details(
-                  appLocalizations.connection,
-                ),
-                actionBuilder: buildAction,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// One per live row: an IconButton would add a theme animation to each.
-class _BlockConnectionButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _BlockConnectionButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: context.appLocalizations.blockConnection,
-      child: Semantics(
-        button: true,
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: AppShape.circle,
-          child: SizedBox.square(
-            dimension: 28,
-            child: Center(
-              child: GlyphIcon(
-                AppGlyphs.block,
-                size: 16,
-                color: context.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ConnectionsPage(
+    controller: _listController,
+    scrollController: _scrollController,
+    loaded: _loaded,
+    onClose: _handleBlockConnection,
+    onCloseAll: () async {
+      await _backend.closeConnections();
+      await _refreshConnections();
+    },
+  );
 }

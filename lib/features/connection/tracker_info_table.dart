@@ -1,8 +1,11 @@
 import 'dart:math';
 
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import '../../common/datetime.dart';
+import '../../common/num.dart';
+import '../../l10n/l10n.dart';
+import '../../models/tracker.dart';
+import '../../ui/ui.dart';
+import '../../ui/record_table.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'tracker_info_item.dart';
@@ -15,7 +18,7 @@ List<RecordColumn<TrackerInfo>> trackerInfoColumns(
   required bool isLive,
   Widget? Function(TrackerInfo trackerInfo)? actionBuilder,
 }) {
-  final appLocalizations = context.appLocalizations;
+  final appLocalizations = AppLocalizations.of(context);
   final wide = width >= recordWideTableWidth;
   // A live table spends its first extra width on the totals.
   final detailed = wide && (!isLive || width >= _fullLiveTableWidth);

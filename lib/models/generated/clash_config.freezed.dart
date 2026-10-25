@@ -677,303 +677,6 @@ as String?,
 
 }
 
-
-/// @nodoc
-mixin _$CustomProxy {
-
-@JsonKey(fromJson: Snowflake.buildId) int get id; Map<String, dynamic> get definition; String? get order;/// Options the form lists with no value yet, which [definition] cannot
-/// hold since the core reads every key in it.
- Set<ProxyField> get emptyOptions;
-/// Create a copy of CustomProxy
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$CustomProxyCopyWith<CustomProxy> get copyWith => _$CustomProxyCopyWithImpl<CustomProxy>(this as CustomProxy, _$identity);
-
-  /// Serializes this CustomProxy to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  final _this = this as CustomProxy;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomProxy&&(identical(other.id, _this.id) || other.id == _this.id)&&const DeepCollectionEquality().equals(other.definition, _this.definition)&&(identical(other.order, _this.order) || other.order == _this.order)&&const DeepCollectionEquality().equals(other.emptyOptions, _this.emptyOptions));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode {
-  final _this = this as CustomProxy;
-  return Object.hash(runtimeType,_this.id,const DeepCollectionEquality().hash(_this.definition),_this.order,const DeepCollectionEquality().hash(_this.emptyOptions));
-}
-
-@override
-String toString() {
-  final _this = this as CustomProxy;
-  return 'CustomProxy(id: ${_this.id}, definition: ${_this.definition}, order: ${_this.order}, emptyOptions: ${_this.emptyOptions})';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $CustomProxyCopyWith<$Res>  {
-  factory $CustomProxyCopyWith(CustomProxy value, $Res Function(CustomProxy) _then) = _$CustomProxyCopyWithImpl;
-@useResult
-$Res call({
-@JsonKey(fromJson: Snowflake.buildId) int id, Map<String, dynamic> definition, String? order, Set<ProxyField> emptyOptions
-});
-
-
-
-
-}
-/// @nodoc
-class _$CustomProxyCopyWithImpl<$Res>
-    implements $CustomProxyCopyWith<$Res> {
-  _$CustomProxyCopyWithImpl(this._self, this._then);
-
-  final CustomProxy _self;
-  final $Res Function(CustomProxy) _then;
-
-/// Create a copy of CustomProxy
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? definition = null,Object? order = freezed,Object? emptyOptions = null,}) {
-  return _then(CustomProxy(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,definition: null == definition ? _self.definition : definition // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as String?,emptyOptions: null == emptyOptions ? _self.emptyOptions : emptyOptions // ignore: cast_nullable_to_non_nullable
-as Set<ProxyField>,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [CustomProxy].
-extension CustomProxyPatterns on CustomProxy {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CustomProxy value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _CustomProxy() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CustomProxy value)  $default,){
-final _that = this;
-switch (_that) {
-case _CustomProxy():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CustomProxy value)?  $default,){
-final _that = this;
-switch (_that) {
-case _CustomProxy() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: Snowflake.buildId)  int id,  Map<String, dynamic> definition,  String? order,  Set<ProxyField> emptyOptions)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _CustomProxy() when $default != null:
-return $default(_that.id,_that.definition,_that.order,_that.emptyOptions);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: Snowflake.buildId)  int id,  Map<String, dynamic> definition,  String? order,  Set<ProxyField> emptyOptions)  $default,) {final _that = this;
-switch (_that) {
-case _CustomProxy():
-return $default(_that.id,_that.definition,_that.order,_that.emptyOptions);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: Snowflake.buildId)  int id,  Map<String, dynamic> definition,  String? order,  Set<ProxyField> emptyOptions)?  $default,) {final _that = this;
-switch (_that) {
-case _CustomProxy() when $default != null:
-return $default(_that.id,_that.definition,_that.order,_that.emptyOptions);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _CustomProxy implements CustomProxy {
-  const _CustomProxy({@JsonKey(fromJson: Snowflake.buildId) required this.id,  Map<String, dynamic> definition = const {}, this.order,  Set<ProxyField> emptyOptions = const {}}): _definition = definition,_emptyOptions = emptyOptions;
-  factory _CustomProxy.fromJson(Map<String, dynamic> json) => _$CustomProxyFromJson(json);
-
-@override@JsonKey(fromJson: Snowflake.buildId) final  int id;
- final  Map<String, dynamic> _definition;
-@override@JsonKey() Map<String, dynamic> get definition {
-  if (_definition is EqualUnmodifiableMapView) return _definition;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_definition);
-}
-
-@override final  String? order;
-/// Options the form lists with no value yet, which [definition] cannot
-/// hold since the core reads every key in it.
- final  Set<ProxyField> _emptyOptions;
-/// Options the form lists with no value yet, which [definition] cannot
-/// hold since the core reads every key in it.
-@override@JsonKey() Set<ProxyField> get emptyOptions {
-  if (_emptyOptions is EqualUnmodifiableSetView) return _emptyOptions;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableSetView(_emptyOptions);
-}
-
-
-/// Create a copy of CustomProxy
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$CustomProxyCopyWith<_CustomProxy> get copyWith => __$CustomProxyCopyWithImpl<_CustomProxy>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$CustomProxyToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomProxy&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.definition, _definition)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other.emptyOptions, _emptyOptions));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode {
-    return Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_definition),order,const DeepCollectionEquality().hash(_emptyOptions));
-}
-
-@override
-String toString() {
-    return 'CustomProxy(id: $id, definition: $definition, order: $order, emptyOptions: $emptyOptions)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$CustomProxyCopyWith<$Res> implements $CustomProxyCopyWith<$Res> {
-  factory _$CustomProxyCopyWith(_CustomProxy value, $Res Function(_CustomProxy) _then) = __$CustomProxyCopyWithImpl;
-@override @useResult
-$Res call({
-@JsonKey(fromJson: Snowflake.buildId) int id, Map<String, dynamic> definition, String? order, Set<ProxyField> emptyOptions
-});
-
-
-
-
-}
-/// @nodoc
-class __$CustomProxyCopyWithImpl<$Res>
-    implements _$CustomProxyCopyWith<$Res> {
-  __$CustomProxyCopyWithImpl(this._self, this._then);
-
-  final _CustomProxy _self;
-  final $Res Function(_CustomProxy) _then;
-
-/// Create a copy of CustomProxy
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? definition = null,Object? order = freezed,Object? emptyOptions = null,}) {
-  return _then(_CustomProxy(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,definition: null == definition ? _self._definition : definition // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as String?,emptyOptions: null == emptyOptions ? _self._emptyOptions : emptyOptions // ignore: cast_nullable_to_non_nullable
-as Set<ProxyField>,
-  ));
-}
-
-
-}
-
 /// @nodoc
 mixin _$ProxyDialer {
 
@@ -5419,7 +5122,7 @@ as List<int>,
 /// @nodoc
 mixin _$ProfileOverrides {
 
-@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
+ IpingResourceBindings get resources;@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5433,20 +5136,20 @@ $ProfileOverridesCopyWith<ProfileOverrides> get copyWith => _$ProfileOverridesCo
 @override
 bool operator ==(Object other) {
   final _this = this as ProfileOverrides;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.resources, _this.resources) || other.resources == _this.resources)&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProfileOverrides;
-  return Object.hash(runtimeType,_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
+  return Object.hash(runtimeType,_this.resources,_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
 }
 
 @override
 String toString() {
   final _this = this as ProfileOverrides;
-  return 'ProfileOverrides(dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
+  return 'ProfileOverrides(resources: ${_this.resources}, dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
 }
 
 
@@ -5457,11 +5160,11 @@ abstract mixin class $ProfileOverridesCopyWith<$Res>  {
   factory $ProfileOverridesCopyWith(ProfileOverrides value, $Res Function(ProfileOverrides) _then) = _$ProfileOverridesCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ IpingResourceBindings resources,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
-$DnsCopyWith<$Res> get dns;$NtpCopyWith<$Res> get ntp;$SnifferCopyWith<$Res> get sniffer;$ProfileTunCopyWith<$Res> get tun;
+$IpingResourceBindingsCopyWith<$Res> get resources;$DnsCopyWith<$Res> get dns;$NtpCopyWith<$Res> get ntp;$SnifferCopyWith<$Res> get sniffer;$ProfileTunCopyWith<$Res> get tun;
 
 }
 /// @nodoc
@@ -5474,9 +5177,10 @@ class _$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? resources = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(ProfileOverrides(
-dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
+resources: null == resources ? _self.resources : resources // ignore: cast_nullable_to_non_nullable
+as IpingResourceBindings,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self.dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable
 as Ntp,ntpOverrideKeys: null == ntpOverrideKeys ? _self.ntpOverrideKeys : ntpOverrideKeys // ignore: cast_nullable_to_non_nullable
@@ -5489,6 +5193,15 @@ as Map<String, ProxyProviderOptions>,
   ));
 }
 /// Create a copy of ProfileOverrides
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$IpingResourceBindingsCopyWith<$Res> get resources {
+  
+  return $IpingResourceBindingsCopyWith<$Res>(_self.resources, (value) {
+    return _then(_self.copyWith(resources: value));
+  });
+}/// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -5606,10 +5319,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IpingResourceBindings resources, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.resources,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return orElse();
 
 }
@@ -5627,10 +5340,10 @@ return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IpingResourceBindings resources, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides():
-return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.resources,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5647,10 +5360,10 @@ return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IpingResourceBindings resources, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.resources,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return null;
 
 }
@@ -5662,9 +5375,10 @@ return $default(_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,
 @JsonSerializable()
 
 class _ProfileOverrides implements ProfileOverrides {
-  const _ProfileOverrides({@JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
+  const _ProfileOverrides({this.resources = const IpingResourceBindings(), @JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
   factory _ProfileOverrides.fromJson(Map<String, dynamic> json) => _$ProfileOverridesFromJson(json);
 
+@override@JsonKey() final  IpingResourceBindings resources;
 @override@JsonKey(fromJson: Dns.safeDnsFromJson) final  Dns dns;
  final  Set<DnsOverrideKey> _dnsOverrideKeys;
 @override@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys {
@@ -5718,18 +5432,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.resources, resources) || other.resources == resources)&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
+    return Object.hash(runtimeType,resources,dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
 }
 
 @override
 String toString() {
-    return 'ProfileOverrides(dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
+    return 'ProfileOverrides(resources: $resources, dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
 }
 
 
@@ -5740,11 +5454,11 @@ abstract mixin class _$ProfileOverridesCopyWith<$Res> implements $ProfileOverrid
   factory _$ProfileOverridesCopyWith(_ProfileOverrides value, $Res Function(_ProfileOverrides) _then) = __$ProfileOverridesCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ IpingResourceBindings resources,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
-@override $DnsCopyWith<$Res> get dns;@override $NtpCopyWith<$Res> get ntp;@override $SnifferCopyWith<$Res> get sniffer;@override $ProfileTunCopyWith<$Res> get tun;
+@override $IpingResourceBindingsCopyWith<$Res> get resources;@override $DnsCopyWith<$Res> get dns;@override $NtpCopyWith<$Res> get ntp;@override $SnifferCopyWith<$Res> get sniffer;@override $ProfileTunCopyWith<$Res> get tun;
 
 }
 /// @nodoc
@@ -5757,9 +5471,10 @@ class __$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? resources = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(_ProfileOverrides(
-dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
+resources: null == resources ? _self.resources : resources // ignore: cast_nullable_to_non_nullable
+as IpingResourceBindings,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self._dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable
 as Ntp,ntpOverrideKeys: null == ntpOverrideKeys ? _self._ntpOverrideKeys : ntpOverrideKeys // ignore: cast_nullable_to_non_nullable
@@ -5773,6 +5488,15 @@ as Map<String, ProxyProviderOptions>,
 }
 
 /// Create a copy of ProfileOverrides
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$IpingResourceBindingsCopyWith<$Res> get resources {
+  
+  return $IpingResourceBindingsCopyWith<$Res>(_self.resources, (value) {
+    return _then(_self.copyWith(resources: value));
+  });
+}/// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -6705,303 +6429,6 @@ $ProviderOverrideCopyWith<$Res> get proxyOverride {
     return _then(_self.copyWith(proxyOverride: value));
   });
 }
-}
-
-
-/// @nodoc
-mixin _$Rule {
-
- int get id;@JsonKey(includeFromJson: false, includeToJson: false) int? get profileId; RuleAction get ruleAction; String? get content; String? get ruleTarget; String? get ruleProvider; String? get subRule; bool get noResolve; bool get src; String? get order;
-/// Create a copy of Rule
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$RuleCopyWith<Rule> get copyWith => _$RuleCopyWithImpl<Rule>(this as Rule, _$identity);
-
-  /// Serializes this Rule to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  final _this = this as Rule;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Rule&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.profileId, _this.profileId) || other.profileId == _this.profileId)&&(identical(other.ruleAction, _this.ruleAction) || other.ruleAction == _this.ruleAction)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.ruleTarget, _this.ruleTarget) || other.ruleTarget == _this.ruleTarget)&&(identical(other.ruleProvider, _this.ruleProvider) || other.ruleProvider == _this.ruleProvider)&&(identical(other.subRule, _this.subRule) || other.subRule == _this.subRule)&&(identical(other.noResolve, _this.noResolve) || other.noResolve == _this.noResolve)&&(identical(other.src, _this.src) || other.src == _this.src)&&(identical(other.order, _this.order) || other.order == _this.order));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode {
-  final _this = this as Rule;
-  return Object.hash(runtimeType,_this.id,_this.profileId,_this.ruleAction,_this.content,_this.ruleTarget,_this.ruleProvider,_this.subRule,_this.noResolve,_this.src,_this.order);
-}
-
-@override
-String toString() {
-  final _this = this as Rule;
-  return 'Rule(id: ${_this.id}, profileId: ${_this.profileId}, ruleAction: ${_this.ruleAction}, content: ${_this.content}, ruleTarget: ${_this.ruleTarget}, ruleProvider: ${_this.ruleProvider}, subRule: ${_this.subRule}, noResolve: ${_this.noResolve}, src: ${_this.src}, order: ${_this.order})';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $RuleCopyWith<$Res>  {
-  factory $RuleCopyWith(Rule value, $Res Function(Rule) _then) = _$RuleCopyWithImpl;
-@useResult
-$Res call({
- int id,@JsonKey(includeFromJson: false, includeToJson: false) int? profileId, RuleAction ruleAction, String? content, String? ruleTarget, String? ruleProvider, String? subRule, bool noResolve, bool src, String? order
-});
-
-
-
-
-}
-/// @nodoc
-class _$RuleCopyWithImpl<$Res>
-    implements $RuleCopyWith<$Res> {
-  _$RuleCopyWithImpl(this._self, this._then);
-
-  final Rule _self;
-  final $Res Function(Rule) _then;
-
-/// Create a copy of Rule
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? profileId = freezed,Object? ruleAction = null,Object? content = freezed,Object? ruleTarget = freezed,Object? ruleProvider = freezed,Object? subRule = freezed,Object? noResolve = null,Object? src = null,Object? order = freezed,}) {
-  return _then(Rule(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,profileId: freezed == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
-as int?,ruleAction: null == ruleAction ? _self.ruleAction : ruleAction // ignore: cast_nullable_to_non_nullable
-as RuleAction,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String?,ruleTarget: freezed == ruleTarget ? _self.ruleTarget : ruleTarget // ignore: cast_nullable_to_non_nullable
-as String?,ruleProvider: freezed == ruleProvider ? _self.ruleProvider : ruleProvider // ignore: cast_nullable_to_non_nullable
-as String?,subRule: freezed == subRule ? _self.subRule : subRule // ignore: cast_nullable_to_non_nullable
-as String?,noResolve: null == noResolve ? _self.noResolve : noResolve // ignore: cast_nullable_to_non_nullable
-as bool,src: null == src ? _self.src : src // ignore: cast_nullable_to_non_nullable
-as bool,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as String?,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [Rule].
-extension RulePatterns on Rule {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Rule value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _Rule() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Rule value)  $default,){
-final _that = this;
-switch (_that) {
-case _Rule():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Rule value)?  $default,){
-final _that = this;
-switch (_that) {
-case _Rule() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(includeFromJson: false, includeToJson: false)  int? profileId,  RuleAction ruleAction,  String? content,  String? ruleTarget,  String? ruleProvider,  String? subRule,  bool noResolve,  bool src,  String? order)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _Rule() when $default != null:
-return $default(_that.id,_that.profileId,_that.ruleAction,_that.content,_that.ruleTarget,_that.ruleProvider,_that.subRule,_that.noResolve,_that.src,_that.order);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(includeFromJson: false, includeToJson: false)  int? profileId,  RuleAction ruleAction,  String? content,  String? ruleTarget,  String? ruleProvider,  String? subRule,  bool noResolve,  bool src,  String? order)  $default,) {final _that = this;
-switch (_that) {
-case _Rule():
-return $default(_that.id,_that.profileId,_that.ruleAction,_that.content,_that.ruleTarget,_that.ruleProvider,_that.subRule,_that.noResolve,_that.src,_that.order);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(includeFromJson: false, includeToJson: false)  int? profileId,  RuleAction ruleAction,  String? content,  String? ruleTarget,  String? ruleProvider,  String? subRule,  bool noResolve,  bool src,  String? order)?  $default,) {final _that = this;
-switch (_that) {
-case _Rule() when $default != null:
-return $default(_that.id,_that.profileId,_that.ruleAction,_that.content,_that.ruleTarget,_that.ruleProvider,_that.subRule,_that.noResolve,_that.src,_that.order);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _Rule implements Rule {
-  const _Rule({this.id = -1, @JsonKey(includeFromJson: false, includeToJson: false) this.profileId, this.ruleAction = RuleAction.DOMAIN, this.content, this.ruleTarget, this.ruleProvider, this.subRule, this.noResolve = false, this.src = false, this.order});
-  factory _Rule.fromJson(Map<String, dynamic> json) => _$RuleFromJson(json);
-
-@override@JsonKey() final  int id;
-@override@JsonKey(includeFromJson: false, includeToJson: false) final  int? profileId;
-@override@JsonKey() final  RuleAction ruleAction;
-@override final  String? content;
-@override final  String? ruleTarget;
-@override final  String? ruleProvider;
-@override final  String? subRule;
-@override@JsonKey() final  bool noResolve;
-@override@JsonKey() final  bool src;
-@override final  String? order;
-
-/// Create a copy of Rule
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$RuleCopyWith<_Rule> get copyWith => __$RuleCopyWithImpl<_Rule>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$RuleToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Rule&&(identical(other.id, id) || other.id == id)&&(identical(other.profileId, profileId) || other.profileId == profileId)&&(identical(other.ruleAction, ruleAction) || other.ruleAction == ruleAction)&&(identical(other.content, content) || other.content == content)&&(identical(other.ruleTarget, ruleTarget) || other.ruleTarget == ruleTarget)&&(identical(other.ruleProvider, ruleProvider) || other.ruleProvider == ruleProvider)&&(identical(other.subRule, subRule) || other.subRule == subRule)&&(identical(other.noResolve, noResolve) || other.noResolve == noResolve)&&(identical(other.src, src) || other.src == src)&&(identical(other.order, order) || other.order == order));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode {
-    return Object.hash(runtimeType,id,profileId,ruleAction,content,ruleTarget,ruleProvider,subRule,noResolve,src,order);
-}
-
-@override
-String toString() {
-    return 'Rule(id: $id, profileId: $profileId, ruleAction: $ruleAction, content: $content, ruleTarget: $ruleTarget, ruleProvider: $ruleProvider, subRule: $subRule, noResolve: $noResolve, src: $src, order: $order)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$RuleCopyWith<$Res> implements $RuleCopyWith<$Res> {
-  factory _$RuleCopyWith(_Rule value, $Res Function(_Rule) _then) = __$RuleCopyWithImpl;
-@override @useResult
-$Res call({
- int id,@JsonKey(includeFromJson: false, includeToJson: false) int? profileId, RuleAction ruleAction, String? content, String? ruleTarget, String? ruleProvider, String? subRule, bool noResolve, bool src, String? order
-});
-
-
-
-
-}
-/// @nodoc
-class __$RuleCopyWithImpl<$Res>
-    implements _$RuleCopyWith<$Res> {
-  __$RuleCopyWithImpl(this._self, this._then);
-
-  final _Rule _self;
-  final $Res Function(_Rule) _then;
-
-/// Create a copy of Rule
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? profileId = freezed,Object? ruleAction = null,Object? content = freezed,Object? ruleTarget = freezed,Object? ruleProvider = freezed,Object? subRule = freezed,Object? noResolve = null,Object? src = null,Object? order = freezed,}) {
-  return _then(_Rule(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,profileId: freezed == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
-as int?,ruleAction: null == ruleAction ? _self.ruleAction : ruleAction // ignore: cast_nullable_to_non_nullable
-as RuleAction,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String?,ruleTarget: freezed == ruleTarget ? _self.ruleTarget : ruleTarget // ignore: cast_nullable_to_non_nullable
-as String?,ruleProvider: freezed == ruleProvider ? _self.ruleProvider : ruleProvider // ignore: cast_nullable_to_non_nullable
-as String?,subRule: freezed == subRule ? _self.subRule : subRule // ignore: cast_nullable_to_non_nullable
-as String?,noResolve: null == noResolve ? _self.noResolve : noResolve // ignore: cast_nullable_to_non_nullable
-as bool,src: null == src ? _self.src : src // ignore: cast_nullable_to_non_nullable
-as bool,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as String?,
-  ));
-}
-
-
 }
 
 

@@ -15,6 +15,8 @@ const linuxAppIconOutput = 'assets/images/linux/app_icon.png';
 const linuxAppIconSize = 512;
 const macosAppIconDir = 'macos/Runner/Assets.xcassets/AppIcon.appiconset';
 const macosAppIconSizes = [16, 32, 64, 128, 256, 512, 1024];
+const iosAppIconDir = 'ios/Runner/Assets.xcassets/AppIcon.appiconset';
+const iosLaunchImageDir = 'ios/Runner/Assets.xcassets/LaunchImage.imageset';
 
 /// Apple's icon grid keeps the 824pt body centred on a 1024pt canvas.
 const macosAppIconMargin = 256 * 100 / 1024;
@@ -78,6 +80,29 @@ Future<void> main() async {
         macosAppIcon,
         File('$macosAppIconDir/app_icon_$size.png'),
         size,
+      );
+    }
+    final iosIcon = File('${tempDir.path}/ios-app-icon.svg');
+    await iosIcon.writeAsString(
+      '<svg xmlns="http://www.w3.org/2000/svg" '
+      'xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">'
+      '<rect width="1024" height="1024" fill="white"/>'
+      '<image xlink:href="${raster.uri.pathSegments.last}" width="1024" height="1024"/>'
+      '</svg>',
+    );
+    await _writePng(
+      renderer,
+      iosIcon,
+      File('$iosAppIconDir/AppIcon.png'),
+      1024,
+    );
+    for (final scale in const [1, 2, 3]) {
+      final suffix = scale == 1 ? '' : '@${scale}x';
+      await _writePng(
+        renderer,
+        appIcon,
+        File('$iosLaunchImageDir/LaunchImage$suffix.png'),
+        168 * scale,
       );
     }
   } finally {

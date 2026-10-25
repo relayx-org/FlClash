@@ -1,3 +1,4 @@
+import 'package:fl_clash/ui/config_value.dart';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
@@ -133,9 +134,9 @@ class ConfigToggleItem extends _ConfigItem<bool> {
     AppLocalizations appLocalizations,
     bool value,
   ) {
-    return ListItem.toggle(
+    return ConfigToggleValue(
       leading: leading,
-      title: Text(title(appLocalizations)),
+      title: title(appLocalizations),
       value: value,
       onChanged: (value) => onChanged(ref, value),
     );
@@ -164,9 +165,9 @@ class ConfigOptionsItem<T> extends _ConfigItem<T> {
     AppLocalizations appLocalizations,
     T value,
   ) {
-    return ListItem<T>.options(
+    return ConfigOptionsValue<T>(
       leading: leading,
-      title: Text(title(appLocalizations)),
+      title: title(appLocalizations),
       subtitle: buildSubtitle(appLocalizations),
       options: options,
       value: value,
@@ -212,11 +213,9 @@ class ConfigTextItem extends _ConfigItem<String> {
   ) {
     final label = title(appLocalizations);
     final validator = this.validator;
-    return ListItem.input(
+    return ConfigTextValue(
       leading: leading,
-      title: Text(label),
-      subtitle: value.isEmpty ? null : Text(value),
-      dialogTitle: label,
+      title: label,
       value: value,
       maxLength: maxLength,
       keyboardType: keyboardType,

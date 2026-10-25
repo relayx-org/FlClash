@@ -1,3 +1,4 @@
+import 'package:fl_clash/features/form/selection_sheet_view.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
@@ -39,7 +40,6 @@ class _RecordingRules extends ProfileRules {
 class _RecordingCustomProxies extends CustomProxies {
   final List<CustomProxy> initial;
   final saved = <CustomProxy>[];
-  final replaced = <List<CustomProxy>>[];
 
   _RecordingCustomProxies(this.initial);
 
@@ -47,10 +47,31 @@ class _RecordingCustomProxies extends CustomProxies {
   Stream<List<CustomProxy>> build() => Stream.value(initial);
 
   @override
-  void put(CustomProxy proxy) => saved.add(proxy);
+  Future<List<CustomProxy>> resourceSnapshot() async => value;
 
   @override
-  void setAll(List<CustomProxy> proxies) => replaced.add(proxies);
+  void put(CustomProxy proxy) {
+    saved.add(proxy);
+    value = [
+      for (final item in value)
+        if (item.id != proxy.id) item,
+      proxy,
+    ];
+  }
+
+  @override
+  Future<void> putAsync(CustomProxy proxy) async => put(proxy);
+
+  @override
+  Future<void> setAllAsync(List<CustomProxy> proxies) async {
+    value = proxies;
+  }
+
+  @override
+  Future<void> delAllAsync(Iterable<int> ids) async {
+    final removed = ids.toSet();
+    value = value.where((item) => !removed.contains(item.id)).toList();
+  }
 }
 
 class _MockCore extends Mock implements CoreHandlerInterface {}
@@ -345,7 +366,7 @@ void main() {
       );
 
       expect(popped, isTrue);
-      final next = proxies.replaced.single;
+      final next = proxies.value;
       expect(next.map((proxy) => proxy.name), ['Home', 'WG', 'New']);
       expect(next.take(2), [home, wireGuard]);
       verify(() => core.decodeShareLinks(['vless://new#New'])).called(1);
@@ -378,14 +399,14 @@ void main() {
       await tester.tap(find.text(currentAppLocalizations.cancel));
       await tester.pumpAndSettle();
       expect(await popped, isFalse);
-      expect(proxies.replaced, isEmpty);
+      expect(proxies.value, [home]);
 
       popped = editor.onPop!(context, editor.title, 'ss://home#Away');
       await tester.pumpAndSettle();
       await tester.tap(find.text(currentAppLocalizations.confirm));
       await tester.pumpAndSettle();
       expect(await popped, isTrue);
-      expect(proxies.replaced.single.map((proxy) => proxy.name), ['Away']);
+      expect(proxies.value.map((proxy) => proxy.name), ['Away']);
 
       await _unmount(tester);
     });
@@ -414,7 +435,7 @@ void main() {
       await tester.tap(find.text(currentAppLocalizations.cancel));
       await tester.pump();
       expect(await popped, isFalse);
-      expect(proxies.replaced, isEmpty);
+      expect(proxies.value, isEmpty);
 
       await _unmount(tester);
     });
@@ -575,6 +596,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
+        proxies.saved,
+        isNotEmpty,
+        reason: find
+            .byType(Text)
+            .evaluate()
+            .map((element) => (element.widget as Text).data)
+            .join(' | '),
+      );
+      expect(
         proxies.saved.single.definition,
         allOf(
           containsPair('username', 'me'),
@@ -616,7 +646,9 @@ void main() {
       Finder row(String title) =>
           find.ancestor(of: find.text(title), matching: find.byType(FormRow));
       Finder offered(String title) => find.descendant(
-        of: find.byWidgetPredicate((widget) => widget is SelectionSheet),
+        of: find.byWidgetPredicate(
+          (widget) => widget is SelectionSheet || widget is SelectionSheetView,
+        ),
         matching: find.text(title),
       );
       Future<void> tapRow(String title) async {
@@ -780,7 +812,10 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(
           find.descendant(
-            of: find.byWidgetPredicate((widget) => widget is SelectionSheet),
+            of: find.byWidgetPredicate(
+              (widget) =>
+                  widget is SelectionSheet || widget is SelectionSheetView,
+            ),
             matching: find.text(title),
           ),
         );

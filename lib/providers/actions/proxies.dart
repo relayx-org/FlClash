@@ -102,7 +102,13 @@ class ProxiesAction extends _$ProxiesAction {
       String groupName,
       String proxyName,
     ) async {
-      await changeProxy(groupName: groupName, proxyName: proxyName);
+      await ref
+          .read(ipingBackendProvider)
+          .selectProxy(
+            groupName,
+            proxyName,
+            closeConnections: ref.read(appSettingProvider).closeConnections,
+          );
       updateGroupsDebounce();
     }, args: [groupName, proxyName]);
   }
@@ -174,9 +180,10 @@ class ProxiesAction extends _$ProxiesAction {
     _scheduleDelayFlush();
   }
 
-  Future<void> changeProxy({
+  Future<bool> changeProxy({
     required String groupName,
     required String proxyName,
+    bool? closeConnections,
   }) async {
     final profilesAction = ref.read(profilesActionProvider.notifier);
     final rollbackName =
@@ -201,13 +208,13 @@ class ProxiesAction extends _$ProxiesAction {
         currentAppLocalizations.changeProxyFailedTip,
         level: MessageLevel.error,
       );
-      return;
+      return false;
     }
     if (!result.changed) {
-      return;
+      return false;
     }
     try {
-      if (ref.read(appSettingProvider).closeConnections) {
+      if (closeConnections ?? ref.read(appSettingProvider).closeConnections) {
         await _core.closeConnections();
       } else {
         await _core.resetConnections();
@@ -218,6 +225,7 @@ class ProxiesAction extends _$ProxiesAction {
         logLevel: coreFailureLogLevel(error),
       );
     }
+    return true;
   }
 
   Future<String> updateProvider(
@@ -405,7 +413,9 @@ class ProxiesAction extends _$ProxiesAction {
       _scheduleDelayFlush();
     }
     try {
-      final delay = await _core.getDelay(target.testUrl, target.proxyName);
+      final delay = await ref
+          .read(ipingBackendProvider)
+          .testDelay(target.proxyName, url: target.testUrl);
       if (delay != null && !job.cancelled) {
         setDelay(delay);
       }

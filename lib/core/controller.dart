@@ -14,9 +14,10 @@ import 'package:path/path.dart';
 class CoreController {
   static CoreController? _instance;
   late CoreHandlerInterface _interface;
+  final bool _isIOS;
 
-  CoreController._internal() {
-    if (system.isAndroid) {
+  CoreController._internal() : _isIOS = system.isIOS {
+    if (system.isMobile) {
       _interface = coreLib!;
     } else {
       _interface = coreService!;
@@ -24,12 +25,12 @@ class CoreController {
   }
 
   @visibleForTesting
-  CoreController.test(this._interface) {
+  CoreController.test(this._interface) : _isIOS = false {
     _instance = this;
   }
 
   @visibleForTesting
-  CoreController.scoped(this._interface);
+  CoreController.scoped(this._interface, {bool isIOS = false}) : _isIOS = isIOS;
 
   @visibleForTesting
   static void resetInstance() {
@@ -177,6 +178,11 @@ class CoreController {
   }) async {
     if (preloadInvoke == null) {
       return _interface.setupConfig(params);
+    }
+    if (_isIOS) {
+      final result = await _interface.setupConfig(params);
+      if (result.isEmpty) await preloadInvoke();
+      return result;
     }
     final (result, _) = await (
       _interface.setupConfig(params),

@@ -1,3 +1,6 @@
+export '../iping/script_template.dart';
+export '../ui/appearance_defaults.dart';
+export 'list_limits.dart';
 // ignore_for_file: constant_identifier_names
 
 import 'dart:io';
@@ -24,8 +27,6 @@ const helperPortValue = 'Port';
 const helperSocketPath = '/run/iping/helper.sock';
 const helperProtocolVersionHeader = 'x-iping-helper-protocol';
 final helperProtocolVersion = Platform.isWindows ? '8' : '6';
-const maxTextScale = 1.4;
-const minTextScale = 0.8;
 
 const watchExecution = false;
 
@@ -113,25 +114,6 @@ const maxMobileWidth = 600;
 const maxLaptopWidth = 840;
 const defaultTestUrl = 'https://www.gstatic.com/generate_204';
 
-const shareLinkSchemes = {
-  'hysteria',
-  'hysteria2',
-  'hy2',
-  'hysteria2+realm',
-  'hy2+realm',
-  'tuic',
-  'trojan',
-  'vless',
-  'vmess',
-  'ss',
-  'ssr',
-  'socks',
-  'socks5',
-  'socks5h',
-  'anytls',
-  'mierus',
-};
-
 const stringListEquality = ListEquality<String>();
 const intListEquality = ListEquality<int>();
 const ruleListEquality = ListEquality<Rule>();
@@ -150,33 +132,7 @@ const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
 const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0xFF146B65;
-
-const maxLogsLength = 5000;
-const maxRequestsLength = 2000;
-const maxDnsQueriesLength = 3000;
-const pausedMaxLogsLength = maxLogsLength * 2;
-const pausedMaxRequestsLength = maxRequestsLength * 2;
-const pausedMaxDnsQueriesLength = maxDnsQueriesLength * 2;
-
 const trafficSampleLength = 30;
-
-// Apple's system colors, in the order of the macOS accent colors.
-const defaultPrimaryColors = [
-  defaultPrimaryColor,
-  0xFFAF52DE,
-  0xFFFF2D55,
-  0xFFFF3B30,
-  0xFFFF9500,
-  0xFFFFCC00,
-  0xFF34C759,
-  0xFF8E8E93,
-];
-
-const scriptTemplate = '''
-const main = (config) => {
-  return config;
-}''';
 
 const backupDatabaseName = 'database.sqlite';
 const configJsonName = 'config.json';

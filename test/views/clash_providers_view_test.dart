@@ -34,6 +34,12 @@ class _TestClashProviders extends ClashProviders {
   Stream<List<ClashProvider>> build() => Stream.value(initial);
 
   @override
+  Future<List<ClashProvider>> resourceSnapshot() async => value;
+
+  @override
+  Future<void> orderAsync(int oldIndex, int newIndex) async {}
+
+  @override
   void order(int oldIndex, int newIndex) {}
 }
 
@@ -64,7 +70,8 @@ class _RecordingClashProvidersAction extends ClashProvidersAction {
   }
 
   @override
-  void delProvider(ClashProvider provider) => deleted.add(provider);
+  Future<void> delProviderAsync(ClashProvider provider) async =>
+      deleted.add(provider);
 
   @override
   Future<List<Profile>> profilesUsing(ClashProvider provider) async => usedBy;

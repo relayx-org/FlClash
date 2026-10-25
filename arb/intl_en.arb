@@ -1064,5 +1064,32 @@
   "ipingExitCheck": "Current exit connectivity",
   "ipingExitOk": "The current exit responded successfully.",
   "ipingExitFailed": "The exit did not respond. Try another node and check again.",
-  "ipingDiagnosticsHint": "System DNS and exit checks are separate. A failed exit check does not by itself indicate a DNS fault. No network settings are changed."
+  "ipingDiagnosticsHint": "System DNS and exit checks are separate. A failed exit check does not by itself indicate a DNS fault. No network settings are changed.",
+  "invalidSettingTip": "The value for {name} is invalid.",
+  "@invalidSettingTip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routerAccessTitle": "Access your router",
+  "routerAccessKey": "Access key",
+  "routerAccessHint": "Run this command over SSH on the router to get its access key:",
+  "routerAccessInvalid": "The access key is incorrect.",
+  "routerAgentUnavailable": "Unable to reach the router agent. Check the service and retry.",
+  "routerOperationFailed": "The router could not complete the operation. Check its logs and retry.",
+  "routerServiceConflict": "Another proxy is using the required network resources. Stop it before connecting iPing.",
+  "routerBusy": "Another operation is in progress. Please wait.",
+  "routerSettingsHint": "Saved on this router. Applying changes restarts the iPing core and may interrupt connections.",
+  "routerResourcesHint": "Additional rules run before subscription rules. Custom nodes and filter groups are added to selector groups. Proxy and rule provider entries use Mihomo YAML.",
+  "routerIconsHint": "Use a group name as the key and an HTTP(S) image URL as the value.",
+  "routerScriptHint": "Define main(config) and return the modified profile. Scripts run on this router with a 3-second timeout and no network or file APIs.",
+  "groupIcons": "Group icons",
+  "resourceChangedTip": "The resource changed. Reload and try again.",
+  "ruleProviderBehavior": "Behavior",
+  "ruleProviderFormat": "Format",
+  "applyResources": "Apply resources to current profile",
+  "resourceSelectionHint": "Saving resources adds them to the library. Select the resources to apply to this profile. Selected nodes and filter groups are added to its selectors.",
+  "resourceLibraryHint": "Resources are stored in the library. Choose Apply resources to current profile to use them."
 }

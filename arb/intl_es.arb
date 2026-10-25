@@ -1064,5 +1064,32 @@
   "ipingExitCheck": "Conectividad de la salida actual",
   "ipingExitOk": "La salida actual respondió.",
   "ipingExitFailed": "La salida no respondió. Cambia de nodo y vuelve a comprobar.",
-  "ipingDiagnosticsHint": "El DNS y la salida se comprueban por separado. Un fallo de salida no implica un fallo de DNS. No se modifican ajustes de red."
+  "ipingDiagnosticsHint": "El DNS y la salida se comprueban por separado. Un fallo de salida no implica un fallo de DNS. No se modifican ajustes de red.",
+  "invalidSettingTip": "El valor de «{name}» no es válido.",
+  "@invalidSettingTip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routerAccessTitle": "Acceder al router",
+  "routerAccessKey": "Clave de acceso",
+  "routerAccessHint": "Ejecuta este comando por SSH en el router para obtener su clave de acceso:",
+  "routerAccessInvalid": "La clave de acceso es incorrecta.",
+  "routerAgentUnavailable": "No se puede conectar con el servicio del router. Compruébalo e inténtalo de nuevo.",
+  "routerOperationFailed": "El router no pudo completar la operación. Revisa sus registros e inténtalo de nuevo.",
+  "routerServiceConflict": "Otro proxy está usando los recursos de red necesarios. Deténlo antes de conectar iPing.",
+  "routerBusy": "Hay otra operación en curso. Espera un momento.",
+  "routerSettingsHint": "Los ajustes se guardan en el router. Aplicarlos reinicia el núcleo de iPing y puede interrumpir las conexiones.",
+  "routerResourcesHint": "Las reglas adicionales se ejecutan antes que las de la suscripción. Los nodos y grupos de filtros personalizados se añaden a los grupos de selección. Los nodos y proveedores de reglas usan Mihomo YAML.",
+  "routerIconsHint": "Use el nombre del grupo como clave y una URL de imagen HTTP(S) como valor.",
+  "routerScriptHint": "Defina main(config) y devuelva la configuración modificada. Los scripts se ejecutan en el router con un límite de 3 segundos, sin API de red ni archivos.",
+  "groupIcons": "Iconos de grupos",
+  "resourceChangedTip": "El recurso ha cambiado. Vuelve a cargarlo e inténtalo de nuevo.",
+  "ruleProviderBehavior": "Tipo de reglas",
+  "ruleProviderFormat": "Formato",
+  "applyResources": "Aplicar recursos al perfil actual",
+  "resourceSelectionHint": "Los recursos guardados se añaden a la biblioteca. Selecciona cuáles usar en este perfil. Los nodos y grupos de filtros elegidos se añaden a los selectores.",
+  "resourceLibraryHint": "Los recursos se guardan en la biblioteca. Selecciónalos en Aplicar recursos al perfil actual."
 }

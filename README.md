@@ -2,6 +2,10 @@
 
 Browser-based iPing login and automatic Mihomo subscriptions for Android, macOS, Windows, and Linux. Based on [FlClash](https://github.com/chen08209/FlClash), licensed under GPL-3.0; the original license and component notices are retained.
 
+An experimental [iOS target](ios/README.md) is available for signed device/internal-test builds.
+
+[OpenWrt](openwrt/README.md) uses an independent Agent with an embedded Flutter Web interface and a private Mihomo Core. It shares the application's UI and backend contract and requires no LuCI or Nikki plugin.
+
 ## Build
 
 Use Flutter 3.47.6, Go 1.27, and the Rust toolchain pinned in `plugins/rust_api/rust/rust-toolchain.toml`.

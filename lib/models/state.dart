@@ -1,3 +1,4 @@
+import 'filter.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/ui/color.dart';
 import 'package:material_ui/material_ui.dart';
@@ -228,6 +229,8 @@ abstract class MakeRealProfileState with _$MakeRealProfileState {
     required List<Rule> addedRules,
     required String defaultUA,
     @Default([]) List<String> authentication,
+    @Default([]) List<CustomProxy> resourceProxies,
+    @Default([]) List<Filter> resourceFilters,
     @Default({}) Map<String, dynamic> injectedProxyProviders,
     @Default({}) Map<String, dynamic> injectedRuleProviders,
     String? matchTarget,
@@ -265,6 +268,7 @@ abstract class SetupState with _$SetupState {
     @Default([]) List<ClashProvider> clashProviders,
     @Default({}) Map<String, int> profileProviders,
     @Default([]) List<CustomProxy> appProxies,
+    @Default([]) List<Filter> resourceFilters,
     @Default({}) Map<int, String> proxyDialers,
     String? matchTarget,
   }) = _SetupState;

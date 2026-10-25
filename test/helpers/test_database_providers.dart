@@ -8,6 +8,9 @@ class TestScripts extends Scripts {
 
   @override
   Stream<List<Script>> build() => Stream.value(initial);
+
+  @override
+  Future<List<Script>> resourceSnapshot() async => state.value ?? initial;
 }
 
 class TestGlobalRules extends GlobalRules {
@@ -17,6 +20,9 @@ class TestGlobalRules extends GlobalRules {
 
   @override
   Stream<List<Rule>> build() => Stream.value(initial);
+
+  @override
+  Future<List<Rule>> resourceSnapshot() async => state.value ?? initial;
 }
 
 class TestIconSets extends IconSets {
@@ -35,4 +41,8 @@ class TestClashProviders extends ClashProviders {
 
   @override
   Stream<List<ClashProvider>> build() => Stream.value(initial);
+
+  @override
+  Future<List<ClashProvider>> resourceSnapshot() async =>
+      state.value ?? initial;
 }

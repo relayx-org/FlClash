@@ -8,6 +8,9 @@ import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
+import 'package:fl_clash/ui/record.dart';
+import 'package:fl_clash/ui/record_table.dart';
+import 'package:fl_clash/widgets/icon.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/services.dart';
@@ -167,15 +170,42 @@ class AppViewScope extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = ref.watch(isMobileViewProvider);
-    return ViewScope(
-      size: ref.watch(viewSizeProvider),
-      isMobile: isMobile,
-      windowControls: windowControlsOverPage(
-        isMacOS: system.isMacOS,
-        version: ref.watch(versionProvider),
-        isMobileView: isMobile,
+    final showProcessIcon =
+        system.isAndroid &&
+        ref.watch(
+          patchClashConfigProvider.select(
+            (state) => state.findProcessMode == FindProcessMode.always,
+          ),
+        );
+    return RecordPresentationScope(
+      processIcon: showProcessIcon
+          ? (context, process) => PackageIcon(packageName: process, size: 24)
+          : null,
+      onCopied: (context) =>
+          context.showNotifier(context.appLocalizations.copySuccess),
+      child: RecordTablePreferencesScope(
+        widths: ref.watch(
+          appSettingProvider.select((state) => state.tableColumnWidths),
+        ),
+        onSave: (id, widths) => ref
+            .read(appSettingProvider.notifier)
+            .update(
+              (state) => state.copyWith(
+                tableColumnWidths: {...state.tableColumnWidths, id: widths}
+                  ..removeWhere((_, widths) => widths.isEmpty),
+              ),
+            ),
+        child: ViewScope(
+          size: ref.watch(viewSizeProvider),
+          isMobile: isMobile,
+          windowControls: windowControlsOverPage(
+            isMacOS: system.isMacOS,
+            version: ref.watch(versionProvider),
+            isMobileView: isMobile,
+          ),
+          child: child,
+        ),
       ),
-      child: child,
     );
   }
 }

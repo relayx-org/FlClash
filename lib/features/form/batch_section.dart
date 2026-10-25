@@ -1,5 +1,7 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/common/input_entries.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/widgets/input.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// A form's batch mode: one field of lines, and how many of them it adds.
@@ -23,10 +25,9 @@ class BatchSection<T> extends StatelessWidget {
     return generateSection(
       footer: parsed == null || controller.text.trim().isEmpty
           ? null
-          : context.appLocalizations.batchPreviewTip(
-              parsed.entries.length,
-              parsed.skippedExisting,
-            ),
+          : AppLocalizations.of(
+              context,
+            ).batchPreviewTip(parsed.entries.length, parsed.skippedExisting),
       items: [
         DecorationListItem(
           title: TextField(

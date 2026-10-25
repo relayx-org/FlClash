@@ -1,3 +1,4 @@
+import 'package:fl_clash/pages/home_presentation.dart';
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
@@ -230,49 +231,20 @@ class AppSidebarContainer extends ConsumerWidget {
     }
 
     final hasSidebar = viewMode != ViewMode.mobile;
-    final isLtr = Directionality.of(context) == TextDirection.ltr;
-    return Container(
-      color: blur ? Colors.transparent : page,
-      child: Row(
-        children: [
-          AnimatedVisibility.sidebar(
-            visible: hasSidebar,
-            child: Material(
-              color: blur
-                  ? chrome.withValues(alpha: kSidebarBlurOpacity)
-                  : chrome,
-              shape: BorderDirectional(end: Divider.createBorderSide(context)),
-              child: MediaQuery.removePadding(
-                context: context,
-                removeLeft: !isLtr,
-                removeRight: isLtr,
-                child: _Sidebar(
-                  items: navigationItems,
-                  currentIndex: currentIndex,
-                  viewMode: viewMode,
-                  onSelected: onSelected,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: ClipRect(
-              child: LayoutBuilder(
-                builder: (_, constraints) {
-                  _updateSideBarWidth(ref, constraints.maxWidth);
-                  return MediaQuery.removePadding(
-                    context: context,
-                    removeLeft: hasSidebar && isLtr,
-                    removeRight: hasSidebar && !isLtr,
-                    child: child,
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+    return AppSidebarFrame(
+      hasSidebar: hasSidebar,
+      backgroundColor: blur ? Colors.transparent : page,
+      chromeColor: blur
+          ? chrome.withValues(alpha: kSidebarBlurOpacity)
+          : chrome,
+      onContentWidthChanged: (width) => _updateSideBarWidth(ref, width),
+      sidebar: _Sidebar(
+        items: navigationItems,
+        currentIndex: currentIndex,
+        viewMode: viewMode,
+        onSelected: onSelected,
       ),
+      child: child,
     );
   }
 }

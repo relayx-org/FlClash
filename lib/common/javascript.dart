@@ -10,6 +10,14 @@ typedef ScriptEvaluator =
 @visibleForTesting
 ScriptEvaluator scriptEvaluator = evaluateScript;
 
+Future<void> validateScriptSyntax(String content) async {
+  await scriptEvaluator(
+    script:
+        'function main(config) { new Function(${jsonEncode(content)}); return config; }',
+    config: '{}',
+  );
+}
+
 Future<Map<String, dynamic>> handleEvaluate(
   String scriptContent,
   Map<String, dynamic> config,

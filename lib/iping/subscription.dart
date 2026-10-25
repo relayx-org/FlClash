@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'api.dart';
+import 'backend_native.dart';
 import 'providers.dart';
+import 'subscription_page.dart';
 
 class IpingSubscriptionDetails extends ConsumerWidget {
   const IpingSubscriptionDetails({super.key});
@@ -12,50 +14,19 @@ class IpingSubscriptionDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.appLocalizations;
-    final session = ref.watch(ipingSessionProvider);
-    return CommonScaffold(
-      title: l.subscriptionInfo,
-      body: Builder(
-        builder: (context) => ListView(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            context.appBarInset + 24,
-            24,
-            32 + BottomInsetScope.of(context),
-          ),
-          children: [
-            Text(
-              session.nodes > 0
-                  ? l.ipingNodeCount(session.nodes)
-                  : l.ipingNoNodes,
-              style: AppTextStyle.headline.of(context),
-            ),
-            if (session.updated case final updated?) ...[
-              const SizedBox(height: 12),
-              Text(
-                l.profileUpdatedAt(updated.getLastUpdateTimeDesc(context)),
-                style: AppTextStyle.footnote.of(context),
-              ),
-            ],
-            if (session.failure case final failure?) ...[
-              const SizedBox(height: 16),
-              IpingFailureText(failure: failure),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: session.busy
-                  ? null
-                  : ref.read(ipingSessionProvider.notifier).synchronize,
-              child: Text(session.busy ? l.ipingSyncing : l.ipingSync),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => dialogs.openUrl('$ipingSite/home'),
-              child: Text(l.ipingConsole),
-            ),
-          ],
-        ),
-      ),
+    final session = ref.watch(ipingBackendStateProvider);
+    final failure = ref.watch(
+      ipingSessionProvider.select((state) => state.failure),
+    );
+    return IpingSubscriptionPage(
+      nodes: session.nodes,
+      busy: session.busy,
+      updatedText: session.updated == null
+          ? null
+          : l.profileUpdatedAt(session.updated!.getLastUpdateTimeDesc(context)),
+      failure: failure == null ? null : IpingFailureText(failure: failure),
+      onSync: () => ref.read(ipingBackendProvider).synchronize(),
+      onConsole: () => dialogs.openUrl('$ipingSite/home'),
     );
   }
 }

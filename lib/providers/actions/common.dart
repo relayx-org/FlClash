@@ -12,12 +12,7 @@ class CommonAction extends _$CommonAction {
     final running = !ref.read(isStartProvider);
     unawaited(
       globalState.safeRun(
-        () => ref
-            .read(setupActionProvider.notifier)
-            .setRunning(
-              running,
-              initialize: running && !ref.read(initProvider),
-            ),
+        () => ref.read(ipingBackendProvider).setConnected(running),
       ),
     );
   }

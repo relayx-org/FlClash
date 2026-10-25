@@ -13,6 +13,10 @@ void main() {
       expect(appLocalizations.settings, isNotEmpty);
       expect(appLocalizations.secondsCount(30), contains('30'));
       expect(appLocalizations.geoUpdated('geoip'), contains('geoip'));
+      expect(
+        appLocalizations.invalidSettingTip('example'),
+        contains('example'),
+      );
     }
   });
 

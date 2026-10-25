@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/enum/enum.dart' show ExtendType;
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/clash_config.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -309,11 +310,31 @@ class _EditGlobalAddedRulesState extends ConsumerState<_EditGlobalAddedRules> {
 
   int get profileId => widget.profileId;
 
-  void _handleChange(bool status, int ruleId) {
-    if (status) {
-      ref.read(profileDisabledRuleIdsProvider(profileId).notifier).put(ruleId);
-    } else {
-      ref.read(profileDisabledRuleIdsProvider(profileId).notifier).del(ruleId);
+  bool _saving = false;
+
+  Future<void> _handleChange(bool selected, int ruleId) async {
+    if (_saving) return;
+    final profile = ref.read(profileProvider(profileId));
+    if (profile == null) return;
+    final rules = {...profile.overrides.resources.rules};
+    selected ? rules.add(ruleId.toString()) : rules.remove(ruleId.toString());
+    setState(() => _saving = true);
+    try {
+      await globalState.safeRun(
+        () => ref
+            .read(profilesProvider.notifier)
+            .setResourceBindings(
+              profileId,
+              profile.overrides.resources.copyWith(
+                rules: rules,
+                script: profile.extendType == ExtendType.script
+                    ? profile.scriptId?.toString()
+                    : null,
+              ),
+            ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -330,11 +351,11 @@ class _EditGlobalAddedRulesState extends ConsumerState<_EditGlobalAddedRules> {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
-    final disabledRuleIdsState = ref.watch(
-      profileDisabledRuleIdsProvider(profileId),
+    final selectedRuleIds = ref.watch(
+      profileProvider(profileId).select(
+        (profile) => profile?.overrides.resources.rules ?? const <String>{},
+      ),
     );
-    final disabledRuleIds = (disabledRuleIdsState.value ?? const <int>[])
-        .toSet();
     final rulesState = ref.watch(globalRulesProvider);
     final rules = (rulesState.value ?? [])
         .whereMatches(_query, (rule) => rule.searchFields, texts: _searchTexts)
@@ -343,7 +364,7 @@ class _EditGlobalAddedRulesState extends ConsumerState<_EditGlobalAddedRules> {
       title: appLocalizations.editGlobalRules,
       searchState: AppBarSearchState(onSearch: _handleSearch),
       body: NullStatusSwitcher(
-        isLoading: rulesState.isLoading || disabledRuleIdsState.isLoading,
+        isLoading: rulesState.isLoading,
         isEmpty: rules.isEmpty,
         isSearching: _query.isNotEmpty,
         nullStatus: NullStatus(
@@ -372,11 +393,13 @@ class _EditGlobalAddedRulesState extends ConsumerState<_EditGlobalAddedRules> {
                       return ItemPositionProvider(
                         position: position,
                         child: RuleStatusItem(
-                          status: !disabledRuleIds.contains(rule.id),
+                          status: selectedRuleIds.contains(rule.id.toString()),
                           rule: rule,
-                          onChange: (status) {
-                            _handleChange(!status, rule.id);
-                          },
+                          onChange: _saving
+                              ? null
+                              : (status) {
+                                  _handleChange(status, rule.id);
+                                },
                         ),
                       );
                     },

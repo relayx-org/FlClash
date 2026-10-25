@@ -15,6 +15,7 @@ class CoreLib extends CoreHandlerInterface {
   static CoreLib? _instance;
 
   final Service? _service;
+  final bool _isIOS;
 
   Completer<bool> _connectedCompleter = Completer<bool>();
   Future<CoreLifecycleResult>? _closeOperation;
@@ -22,10 +23,10 @@ class CoreLib extends CoreHandlerInterface {
   int _methodCallId = 0;
   bool _closed = false;
 
-  CoreLib._internal() : _service = service;
+  CoreLib._internal() : _service = service, _isIOS = system.isIOS;
 
   @visibleForTesting
-  CoreLib.scoped(Service this._service);
+  CoreLib.scoped(Service this._service, {bool isIOS = false}) : _isIOS = isIOS;
 
   @visibleForTesting
   static void resetInstance() {
@@ -94,7 +95,7 @@ class CoreLib extends CoreHandlerInterface {
     _connectedCompleter = Completer<bool>();
     final stopped = await _service?.shutdown() ?? true;
     if (!stopped) {
-      throw StateError('Android Core service shutdown failed');
+      throw StateError('Mobile Core service shutdown failed');
     }
     return CoreLifecycleResult(
       revision: revision,
@@ -116,6 +117,13 @@ class CoreLib extends CoreHandlerInterface {
   // that ends, so once it takes the command the Core's own answer is moot.
   @override
   Future<bool> startListener() async {
+    if (_isIOS) {
+      final error = await _service?.syncState(
+        globalState.container.read(sharedStateProvider),
+      );
+      if (error != null && error.isNotEmpty) throw StateError(error);
+      return await _service?.start() ?? false;
+    }
     await super.startListener();
     return await _service?.start() ?? false;
   }
@@ -123,6 +131,7 @@ class CoreLib extends CoreHandlerInterface {
   @override
   Future<bool> stopListener() async {
     final serviceStopped = await _service?.stop() ?? false;
+    if (_isIOS) return serviceStopped;
     await super.stopListener();
     return serviceStopped;
   }
@@ -167,4 +176,4 @@ class CoreLib extends CoreHandlerInterface {
   }
 }
 
-CoreLib? get coreLib => system.isAndroid ? CoreLib() : null;
+CoreLib? get coreLib => system.isMobile ? CoreLib() : null;

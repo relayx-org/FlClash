@@ -1,3 +1,6 @@
+import 'package:fl_clash/iping/profile_rules.dart';
+import 'package:fl_clash/iping/backend_resources.dart';
+import 'package:fl_clash/iping/profile_resources.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -113,7 +116,7 @@ Future<RealProfile> makeRealProfileTask(MakeRealProfileState data) async {
 }
 
 Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
-  final rawConfig = Map.from(data.rawConfig);
+  var rawConfig = Map<String, dynamic>.from(data.rawConfig);
   final realPatchConfig = data.realPatchConfig;
   final profilesPath = data.profilesPath;
   final profileId = data.profileId;
@@ -259,6 +262,11 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
       return;
     }
     final providers = rawConfig[section];
+    if (section == 'rule-providers' &&
+        providers is Map &&
+        injected.keys.any(providers.containsKey)) {
+      throw const IpingResourceException(IpingResourceIssue.duplicate);
+    }
     rawConfig[section] = {
       ...injected,
       if (providers is Map) ...providers.cast<String, dynamic>(),
@@ -328,51 +336,24 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
       };
     }
   }
-  List<String> rules = [];
-  if (data.rules.isEmpty) {
-    if (rawConfig['rules'] != null) {
-      rules = List<String>.from(rawConfig['rules']);
-    }
-    if (addedRules.isNotEmpty) {
-      final hasMatchPlaceholder = addedRules.any(
-        (item) => item.ruleTarget?.toUpperCase() == 'MATCH',
-      );
-      String? replacementTarget = data.matchTarget?.trim();
-      if (replacementTarget?.isEmpty == true) {
-        replacementTarget = null;
-      }
-
-      if (hasMatchPlaceholder && replacementTarget == null) {
-        replacementTarget = lastMatchTarget(rules);
-      }
-      final List<String> finalAddedRules;
-
-      if (replacementTarget?.isNotEmpty == true) {
-        finalAddedRules = [];
-        for (int i = 0; i < addedRules.length; i++) {
-          final parsed = addedRules[i];
-          if (parsed.ruleTarget?.toUpperCase() == 'MATCH') {
-            finalAddedRules.add(
-              parsed.copyWith(ruleTarget: replacementTarget).rawValue,
-            );
-          } else {
-            finalAddedRules.add(addedRules[i].rawValue);
-          }
-        }
-      } else {
-        finalAddedRules = addedRules.map((e) => e.rawValue).toList();
-      }
-      rules = [...finalAddedRules, ...rules];
-    }
-  } else {
-    rules = data.rules.map((item) => item.rawValue).toList();
-  }
+  final rules = prependIpingRules(
+    data.rules.isEmpty
+        ? List<String>.from(rawConfig['rules'] as List? ?? const [])
+        : data.rules.map((item) => item.rawValue).toList(),
+    addedRules,
+    matchTarget: data.matchTarget,
+  );
   if (data.proxyGroups.isNotEmpty) {
     rawConfig['proxy-groups'] = data.proxyGroups
         .map((item) => item.definition)
         .toList();
   }
   rawConfig['rules'] = rules;
+  rawConfig = applyIpingProfileResources(
+    rawConfig,
+    proxies: [for (final proxy in data.resourceProxies) proxy.definition],
+    filters: data.resourceFilters,
+  );
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
   return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));
 }

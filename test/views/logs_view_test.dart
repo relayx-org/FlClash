@@ -1,7 +1,10 @@
 import 'dart:math';
+import 'dart:async';
 
+import 'package:fl_clash/common/exception.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/views.dart';
@@ -9,9 +12,12 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../helpers/scrollbar.dart';
 import '../helpers/test_app.dart';
+
+class _Backend extends Mock implements IpingBackend {}
 
 void main() {
   const logCount = 200;
@@ -50,6 +56,55 @@ void main() {
   const hintKey = ValueKey('scrollbarHintPill');
 
   Finder hintFinder() => find.byKey(hintKey);
+
+  testWidgets('a backend failure is shown without adding another log', (
+    tester,
+  ) async {
+    final backend = _Backend();
+    when(backend.readLogs).thenAnswer(
+      (_) => Future<IpingLogSnapshot>.error(
+        const MessageException('Logs unavailable'),
+      ),
+    );
+    final scoped = ProviderContainer(
+      overrides: [ipingBackendProvider.overrideWithValue(backend)],
+    );
+    addTearDown(scoped.dispose);
+    globalState.container = scoped;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: scoped,
+        child: const TestApp(child: LogsView()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Logs unavailable'), findsOneWidget);
+    expect(scoped.read(logsProvider).list, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('a backend reply after disposal does not update the view', (
+    tester,
+  ) async {
+    final backend = _Backend();
+    final pending = Completer<IpingLogSnapshot>();
+    when(backend.readLogs).thenAnswer((_) => pending.future);
+    final scoped = ProviderContainer(
+      overrides: [ipingBackendProvider.overrideWithValue(backend)],
+    );
+    addTearDown(scoped.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: scoped,
+        child: const TestApp(child: LogsView()),
+      ),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    pending.complete(const IpingLogSnapshot(logs: []));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('holding the scrollbar thumb floats the time hint beside it', (
     tester,

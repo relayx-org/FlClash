@@ -1,4 +1,6 @@
 import 'package:fl_clash/features/form/form.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';
@@ -7,18 +9,27 @@ import 'package:fl_clash/views/config/general.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
 
-Future<ProviderContainer> _openPortForm(WidgetTester tester) async {
+class _Backend extends Mock implements IpingBackend {}
+
+Future<ProviderContainer> _openPortForm(
+  WidgetTester tester, {
+  IpingBackend? backend,
+}) async {
   tester.view.physicalSize = const Size(1000, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
   final container = ProviderContainer(
-    overrides: [profilesProvider.overrideWith(TestProfiles.new)],
+    overrides: [
+      profilesProvider.overrideWith(TestProfiles.new),
+      if (backend != null) ipingBackendProvider.overrideWithValue(backend),
+    ],
   );
   addTearDown(container.dispose);
   globalState.container = container;
@@ -154,5 +165,35 @@ void main() {
     expect(config.socksPort, 7893);
     expect(config.redirPort, 0);
     expect(config.tproxyPort, 0);
+  });
+
+  testWidgets('a backend failure keeps ports editable and allows retry', (
+    tester,
+  ) async {
+    final backend = _Backend();
+    when(() => backend.updateSettings(any())).thenThrow(
+      const IpingSettingsException('port', IpingSettingsIssue.portConflict),
+    );
+    final container = await _openPortForm(tester, backend: backend);
+    final before = container.read(patchClashConfigProvider);
+    await tester.enterText(_fields.first, '7900');
+    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(_fields, findsNWidgets(5));
+    expect(_banner('Please enter a different port'), findsOneWidget);
+    expect(container.read(patchClashConfigProvider), before);
+    when(() => backend.updateSettings(any())).thenAnswer((_) async {});
+    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(_fields, findsNothing);
+    verify(
+      () => backend.updateSettings({
+        'mixed-port': 7900,
+        'port': 0,
+        'socks-port': 0,
+        'redir-port': 0,
+        'tproxy-port': 0,
+      }),
+    ).called(2);
   });
 }

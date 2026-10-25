@@ -1,5 +1,7 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
@@ -77,10 +79,15 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ProviderContainer container;
+  late Set<IpingBackendCapability> capabilities;
 
   setUp(() {
+    capabilities = const {IpingBackendCapability.tun};
     container = ProviderContainer(
-      overrides: [profilesProvider.overrideWith(TestProfiles.new)],
+      overrides: [
+        profilesProvider.overrideWith(TestProfiles.new),
+        ipingBackendCapabilitiesProvider.overrideWith((ref) => capabilities),
+      ],
     );
     globalState.container = container;
     container.read(viewSizeProvider.notifier).value = const Size(1200, 1000);
@@ -264,6 +271,7 @@ void main() {
     testWidgets('a number shows the core default and resets to it', (
       tester,
     ) async {
+      capabilities = const {IpingBackendCapability.vpn};
       await pumpItem(tester, items().first);
       final l = currentAppLocalizations;
       expect(find.text('9000'), findsOneWidget);

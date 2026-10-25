@@ -1064,5 +1064,32 @@
   "ipingExitCheck": "当前出口连通性",
   "ipingExitOk": "当前出口检测成功。",
   "ipingExitFailed": "当前出口未响应，可切换节点后重新检测。",
-  "ipingDiagnosticsHint": "系统 DNS 与出口分别检测；出口失败不代表 DNS 故障。检测不会修改网络设置。"
+  "ipingDiagnosticsHint": "系统 DNS 与出口分别检测；出口失败不代表 DNS 故障。检测不会修改网络设置。",
+  "invalidSettingTip": "“{name}”的设置值无效。",
+  "@invalidSettingTip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routerAccessTitle": "访问路由器",
+  "routerAccessKey": "访问密钥",
+  "routerAccessHint": "通过 SSH 在路由器运行以下命令，获取访问密钥：",
+  "routerAccessInvalid": "访问密钥不正确。",
+  "routerAgentUnavailable": "无法连接路由器服务，请检查服务状态后重试。",
+  "routerOperationFailed": "路由器未能完成操作，请查看日志后重试。",
+  "routerServiceConflict": "其他代理正在使用所需的网络资源，请先停止它，再连接 iPing。",
+  "routerBusy": "其他操作正在进行，请稍候。",
+  "routerSettingsHint": "设置保存在路由器上，应用时会重启 iPing 内核，可能短暂中断连接。",
+  "routerResourcesHint": "附加规则优先于订阅规则。自定义节点和筛选分组会加入选择分组。节点和规则提供者条目使用 Mihomo YAML 格式。",
+  "routerIconsHint": "键填写分组名称，值填写 HTTP(S) 图片地址。",
+  "routerScriptHint": "定义 main(config) 并返回修改后的配置。脚本在路由器上执行，限时 3 秒，不提供网络和文件接口。",
+  "groupIcons": "分组图标",
+  "resourceChangedTip": "资源已发生变化，请重新加载后重试。",
+  "ruleProviderBehavior": "规则类型",
+  "ruleProviderFormat": "格式",
+  "applyResources": "应用资源到当前配置",
+  "resourceSelectionHint": "保存资源只会加入资源库。请在这里选择当前配置使用的资源，选中的节点和筛选组会加入选择组。",
+  "resourceLibraryHint": "资源保存在资源库中，通过“应用资源到当前配置”选择使用。"
 }

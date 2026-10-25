@@ -1,4 +1,3 @@
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:material_ui/material_ui.dart';
@@ -115,15 +114,23 @@ abstract final class DashboardCorner {
 }
 
 final _groupedFormat = NumberFormat.decimalPattern('en');
+final _compactFormat = NumberFormat.compact(locale: 'en');
 
 /// Grouped digits, as the design shows them, until they outgrow a third of a
 /// phone's width.
-String dashboardCount(int count) =>
-    count < 100000 ? _groupedFormat.format(count) : count.compact;
+String dashboardCount(int count) => count < 100000
+    ? _groupedFormat.format(count)
+    : _compactFormat.format(count);
 
 String dashboardTraffic(num bytes) {
-  final show = bytes.traffic;
-  return '${show.value} ${show.unit}';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  var value = bytes.toDouble();
+  var unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return '${value.toStringAsFixed(1).replaceFirst(RegExp(r'\.?0$'), '')} ${units[unit]}';
 }
 
 /// The dashboard's text roles; every figure reads in tabular digits.

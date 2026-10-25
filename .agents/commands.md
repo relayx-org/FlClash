@@ -15,7 +15,13 @@ dart setup.dart macos
 dart setup.dart linux
 dart setup.dart windows
 dart setup.dart android
+dart setup.dart ios # macOS host, signed App Store IPA
 ```
+
+The experimental iOS target also builds through `flutter build ios --debug`, with
+its Go XCFramework built by the Runner scheme pre-action. `setup.dart ios` packages
+a signed release/AOT IPA containing the packet tunnel extension. Signing secrets,
+simulator checks and the native test command are in `ios/README.md`.
 
 The desktop Go core and the Rust helper build automatically: Flutter runs
 `plugins/setup/hook/build.dart` on every `flutter build` and `flutter test`,
@@ -87,7 +93,12 @@ whose platform is missing cannot install that release.
 Publishing a GitHub Release starts the package builds. CI attaches
 the packages and `SHA256SUMS` to that release without replacing its description.
 Stable releases also run `publish-minio` after the upload succeeds; GitHub
-prereleases leave the production update manifest unchanged. All jobs share the existing `relayx-org` self-hosted runners.
+prereleases leave the production update manifest unchanged. iOS produces a signed
+arm64 IPA. The shared OpenWrt workflow builds matching Agent/Core bundles for each
+firmware branch and architecture from the same release SHA. Their downloadable IPA
+and ZIP files are attached to GitHub and copied to stable version directories in
+MinIO; the app-update target set remains desktop/Android. All jobs share the existing
+`relayx-org` self-hosted runners.
 The MinIO job uploads through `https://minio.long2ice.io` with path-style addressing; its
 public ingress must allow S3 upload methods under `/iping/releases/`. Configure
 `MINIO_ACCESS_KEY_ID` and `MINIO_SECRET_ACCESS_KEY` as CI secrets. Credentials
@@ -102,6 +113,11 @@ signature. macOS release jobs import `MACOS_CERTIFICATE` (base64 Developer ID P1
 with `MACOS_CERTIFICATE_PASSWORD` and sign with `CODESIGN_IDENTITY`. Apple notarization
 uses `APPLE_API_PRIVATE_KEY` (base64 P8), `APPLE_API_KEY`, and `APPLE_API_ISSUER`.
 The packaging hook signs and notarizes the app before creating both DMG and ZIP.
+iOS reuses GoRelay's `IOS_CERTIFICATE` (base64 Apple Distribution P12) and
+`IOS_CERTIFICATE_PASSWORD` convention. It requires iPing-specific App Store profiles
+in `IOS_PROVISIONING_PROFILE` and `IOS_TUNNEL_PROVISIONING_PROFILE`; both must enable
+the VPN and App Group capabilities. See `ios/README.md`. This workflow exports an
+IPA without uploading to TestFlight or App Store Connect.
 Linux uses the system package manager with elevation for DEB/RPM,
 or replaces the writable AppImage/ZIP installation. System permission and Android
 installation confirmations still apply.
@@ -195,8 +211,9 @@ It clips the icon to a superellipse and writes every tray from it: PNGs with Flu
 resolution variants to `assets/images/tray/unix/` and `assets/images/tray/macos/`, and multi-size `.ico`
 files to `assets/images/tray/windows/`. `status_1` (stopped) is grayscale, `status_2` (running) is the
 plain icon, and `status_3` (TUN) and `status_4` (safe mode) add a colored badge. The same shape becomes
-`windows/runner/resources/app_icon.ico`, `assets/images/linux/app_icon.png`, and the macOS
-`AppIcon.appiconset`, which keeps Apple's 824-on-1024 margin. `assets_source/images/icon/glyph.svg` is
+`windows/runner/resources/app_icon.ico`, `assets/images/linux/app_icon.png`, the iOS app and launch icons, and the macOS
+`AppIcon.appiconset`, which keeps Apple's 824-on-1024 margin. iOS uses an opaque square app icon and lets the system
+apply its icon mask. `assets_source/images/icon/glyph.svg` is
 only the site favicon and the geometry of the Android notification drawables
 `android/service/src/main/res/drawable/ic.xml` and `ic_service.xml`; change them together. `pubspec.yaml`
 declares the tray directories and `assets/images/linux/` with `platforms:` so each build only bundles

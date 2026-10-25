@@ -1,7 +1,16 @@
-part of '../general.dart';
+import 'dart:async';
+import 'package:fl_clash/common/input_limits.dart';
+import 'package:fl_clash/features/form/form_page.dart';
+import 'package:fl_clash/features/form/form_row.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/iping/backend_settings.dart';
+import 'package:fl_clash/iping/settings_error.dart';
+import 'package:fl_clash/ui/ui.dart';
+import 'package:fl_clash/widgets/confirmation.dart';
+import 'package:material_ui/material_ui.dart';
 
-const _minPort = 1024;
-const _maxPort = 49151;
+typedef PortValues = ({int mixed, int http, int socks, int redir, int tproxy});
+const defaultPortValues = (mixed: 7890, http: 0, socks: 0, redir: 0, tproxy: 0);
 
 class _PortField {
   final TextEditingController controller;
@@ -15,14 +24,24 @@ class _PortField {
   });
 }
 
-class _PortForm extends ConsumerStatefulWidget {
-  const _PortForm();
+class PortSettingsForm extends StatefulWidget {
+  const PortSettingsForm({
+    super.key,
+    required this.value,
+    required this.onSave,
+    this.defaults = defaultPortValues,
+  });
+  final PortValues value;
+  final PortValues defaults;
+  final FutureOr<void> Function(PortValues) onSave;
 
   @override
-  ConsumerState<_PortForm> createState() => _PortFormState();
+  State<PortSettingsForm> createState() => _PortFormState();
 }
 
-class _PortFormState extends ConsumerState<_PortForm> {
+class _PortFormState extends State<PortSettingsForm> {
+  bool _saving = false;
+  String? _error;
   late final TextEditingController _mixedPortController;
   late final TextEditingController _portController;
   late final TextEditingController _socksPortController;
@@ -33,17 +52,7 @@ class _PortFormState extends ConsumerState<_PortForm> {
   @override
   void initState() {
     super.initState();
-    final ports = ref.read(
-      patchClashConfigProvider.select((state) {
-        return (
-          mixed: state.mixedPort,
-          http: state.port,
-          socks: state.socksPort,
-          redir: state.redirPort,
-          tproxy: state.tproxyPort,
-        );
-      }),
-    );
+    final ports = widget.value;
     _mixedPortController = TextEditingController(text: ports.mixed.toString());
     _portController = TextEditingController(text: ports.http.toString());
     _socksPortController = TextEditingController(text: ports.socks.toString());
@@ -77,27 +86,34 @@ class _PortFormState extends ConsumerState<_PortForm> {
   }
 
   Future<void> _handleReset() async {
-    final res = await dialogs.showMessage(
-      message: TextSpan(text: context.appLocalizations.resetTip),
-      destructive: true,
-      confirmText: context.appLocalizations.reset,
+    final l = AppLocalizations.of(context);
+    final res = await confirmChange(
+      context,
+      message: l.resetTip,
+      confirmText: l.reset,
     );
-    if (res != true) {
-      return;
-    }
-    ref
-        .read(patchClashConfigProvider.notifier)
-        .update(
-          (state) => state.copyWith(
-            mixedPort: 7890,
-            port: 0,
-            socksPort: 0,
-            redirPort: 0,
-            tproxyPort: 0,
-          ),
+    if (res == true && mounted) await _save(widget.defaults);
+  }
+
+  Future<void> _save(PortValues values) async {
+    if (_saving) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(values);
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _error =
+              ipingSettingsErrorMessage(error, AppLocalizations.of(context)) ??
+              error.toString(),
         );
-    if (mounted) {
-      Navigator.of(context).pop();
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -109,21 +125,18 @@ class _PortFormState extends ConsumerState<_PortForm> {
   }
 
   void _handleUpdate() {
-    if (_issues(context.appLocalizations).isNotEmpty) {
+    if (_issues(AppLocalizations.of(context)).isNotEmpty) {
       return;
     }
-    ref
-        .read(patchClashConfigProvider.notifier)
-        .update(
-          (state) => state.copyWith(
-            mixedPort: int.parse(_mixedPortController.text),
-            port: int.parse(_portController.text),
-            socksPort: int.parse(_socksPortController.text),
-            redirPort: int.parse(_redirPortController.text),
-            tproxyPort: int.parse(_tProxyPortController.text),
-          ),
-        );
-    Navigator.of(context).pop();
+    unawaited(
+      _save((
+        mixed: int.parse(_mixedPortController.text),
+        http: int.parse(_portController.text),
+        socks: int.parse(_socksPortController.text),
+        redir: int.parse(_redirPortController.text),
+        tproxy: int.parse(_tProxyPortController.text),
+      )),
+    );
   }
 
   @visibleForTesting
@@ -140,16 +153,13 @@ class _PortFormState extends ConsumerState<_PortForm> {
     if (port == null) {
       return appLocalizations.numberTip(label);
     }
-    if (field.allowDisabled && port == 0) {
-      return null;
-    }
-    if (port < _minPort || port > _maxPort) {
+    if (!isIpingPortValid(port, allowDisabled: field.allowDisabled)) {
       return appLocalizations.portTip(label);
     }
     final others = _fields
         .where((item) => item != field)
         .map((item) => int.tryParse(item.controller.text.trim()));
-    if (others.contains(port)) {
+    if (hasIpingPortConflict(port, others)) {
       return appLocalizations.portConflictTip;
     }
     return null;
@@ -167,12 +177,13 @@ class _PortFormState extends ConsumerState<_PortForm> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     final issues = _issues(appLocalizations);
     return FormPage(
       title: appLocalizations.port,
       onSave: _handleUpdate,
-      error: issues.values.firstOrNull,
+      error: _error ?? issues.values.firstOrNull,
+      saving: _saving,
       children: [
         generateSection(
           items: [

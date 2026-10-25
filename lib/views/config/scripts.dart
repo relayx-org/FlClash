@@ -1,6 +1,9 @@
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/resource_controller.dart';
+import 'package:fl_clash/iping/scripts_page.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -30,130 +33,6 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
   void initState() {
     super.initState();
     _scriptsAction = ref.read(scriptsActionProvider.notifier);
-  }
-
-  Future<void> _handleDelete(Script script) async {
-    final appLocalizations = context.appLocalizations;
-    final res = await dialogs.showMessage(
-      title: appLocalizations.tip,
-      message: TextSpan(
-        text: appLocalizations.deleteTip(appLocalizations.script),
-      ),
-      destructive: true,
-      confirmText: appLocalizations.delete,
-    );
-    if (res != true || !mounted) {
-      return;
-    }
-    ref.read(scriptsProvider.notifier).del(script.id);
-    unawaited(_clearEffect(script.id));
-  }
-
-  Future<void> _clearEffect(int id) async {
-    final path = await appPath.getScriptPath(id.toString());
-    await File(path).safeDelete();
-  }
-
-  Widget _buildContent(List<Script> scripts, {required bool isLoading}) {
-    final appLocalizations = context.appLocalizations;
-    return NullStatusSwitcher(
-      isLoading: isLoading,
-      isEmpty: scripts.isEmpty,
-      nullStatus: NullStatus(
-        illustration: NullStatusIllustration.scripts,
-        label: appLocalizations.nullTip(appLocalizations.script),
-      ),
-      child: ReorderableListView.builder(
-        padding: const EdgeInsets.all(
-          16,
-        ).copyWith(top: context.contentTopPadding),
-        buildDefaultDragHandles: false,
-        itemCount: scripts.length,
-        itemBuilder: (_, index) => _buildItem(scripts, index),
-        proxyDecorator: (_, index, animation) {
-          return commonProxyDecorator(
-            _buildItem(scripts, index),
-            index,
-            animation,
-          );
-        },
-        onReorderItem: ref.read(scriptsProvider.notifier).order,
-      ),
-    );
-  }
-
-  List<CommonPopupMenuItem> _buildMenuItems(Script script) {
-    final appLocalizations = context.appLocalizations;
-    return [
-      CommonPopupMenuItem(
-        glyph: AppGlyphs.edit,
-        label: appLocalizations.edit,
-        onPressed: () {
-          _handleToEditor(script);
-        },
-      ),
-      if (script.url != null) ...[
-        CommonPopupMenuItem(
-          glyph: AppGlyphs.link,
-          label: appLocalizations.url,
-          onPressed: () {
-            _handleEditUrl(script);
-          },
-        ),
-        CommonPopupMenuItem(
-          glyph: AppGlyphs.sync,
-          label: appLocalizations.sync,
-          onPressed: () {
-            _handleUpdate(script);
-          },
-        ),
-      ],
-      CommonPopupMenuItem(
-        danger: true,
-        glyph: AppGlyphs.delete,
-        label: appLocalizations.delete,
-        onPressed: () {
-          _handleDelete(script);
-        },
-      ),
-    ];
-  }
-
-  Widget _buildItem(List<Script> scripts, int index) {
-    final script = scripts[index];
-    return SortableItem(
-      key: ValueKey(script.id),
-      index: index,
-      child: Consumer(
-        builder: (_, ref, child) => ContextMenuRegion(
-          menuItems: ref.watch(isUpdatingProvider(script.updatingKey))
-              ? null
-              : _buildMenuItems(script),
-          child: child!,
-        ),
-        child: ItemPositionProvider(
-          position: ItemPosition.get(index, scripts.length),
-          child: DecorationListItem(
-            contentPadding: const EdgeInsets.only(left: 16),
-            title: Text(
-              script.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              script.url != null
-                  ? context.appLocalizations.remote
-                  : context.appLocalizations.local,
-              style: context.listCaptionStyle,
-            ),
-            trailing: _ScriptTrailing(script: script),
-            onPressed: () {
-              _handleToEditor(script);
-            },
-          ),
-        ),
-      ),
-    );
   }
 
   Future<void> _handleEditUrl(Script script) async {
@@ -227,10 +106,17 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
       );
       return;
     }
-    final newScript =
-        await (script?.copyWith(label: label) ?? Script.create(label: label))
-            .save(content);
-    _scriptsAction.putScript(newScript);
+    if (!await _saveResource(
+      IpingScript(
+        id: script?.id.toString() ?? uniqueId,
+        label: label,
+        content: content,
+        url: script?.url,
+      ),
+      replacing: script?.id.toString(),
+    )) {
+      return;
+    }
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -261,28 +147,20 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
     return false;
   }
 
-  void _handleToEditor([Script? script]) {
+  Future<void> _handleToEditor([Script? script]) async {
     late final String raw;
-    unawaited(
-      BaseNavigator.push(
-        context,
-        EditorPage(
-          titleEditable: true,
-          title: script?.label ?? '',
-          onSave: (context, title, content) =>
-              _handleEditorSave(context, title, content, script: script),
-          onPop: (context, title, content) {
-            return _handleEditorPop(
-              context,
-              title,
-              content,
-              raw,
-              script: script,
-            );
-          },
-          language: Language.javaScript,
-          load: () async => raw = (await script?.content) ?? scriptTemplate,
-        ),
+    await BaseNavigator.push(
+      context,
+      EditorPage(
+        titleEditable: true,
+        title: script?.label ?? '',
+        onSave: (context, title, content) =>
+            _handleEditorSave(context, title, content, script: script),
+        onPop: (context, title, content) {
+          return _handleEditorPop(context, title, content, raw, script: script);
+        },
+        language: Language.javaScript,
+        load: () async => raw = (await script?.content) ?? scriptTemplate,
       ),
     );
   }
@@ -296,8 +174,23 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
       fileName.fileStem,
       fallback: context.appLocalizations.script,
     );
-    final script = await Script.create(label: label, url: url).save(content);
-    _scriptsAction.putScript(script);
+    await _saveResource(
+      IpingScript(id: uniqueId, label: label, content: content, url: url),
+    );
+  }
+
+  Future<bool> _saveResource(IpingScript script, {String? replacing}) async {
+    final controller = IpingResourceController<IpingScript, String>(
+      ref.read(ipingBackendProvider).scripts,
+      keyOf: (item) => item.id,
+    );
+    try {
+      final saved = await controller.put(script, replacing: replacing);
+      if (!saved) throw MessageException(controller.error.toString());
+      return true;
+    } finally {
+      controller.dispose();
+    }
   }
 
   Future<void> _handleImportFromUrl() async {
@@ -338,45 +231,91 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final scriptsState = ref.watch(scriptsProvider);
-    final scripts = scriptsState.value ?? [];
-    final isLoading = ref.watch(loadingProvider(LoadingTag.scripts));
-    return CommonScaffold(
-      canSort: scripts.length > 1,
-      isLoading: isLoading,
-      actions: [
-        CommonPopupBox(
-          targetBuilder: (open) {
-            return IconButton(
-              tooltip: appLocalizations.add,
-              onPressed: open,
-              icon: const GlyphIcon(AppGlyphs.addCircle),
-            );
+    final l = context.appLocalizations;
+    final sources = ref.watch(scriptsProvider).value ?? const <Script>[];
+    Script? sourceOf(IpingScript item) =>
+        sources.where((value) => value.id.toString() == item.id).firstOrNull;
+    return IpingScriptsPage(
+      store: ref.watch(ipingBackendProvider).scripts,
+      addMenuBuilder: (controller) => [
+        CommonPopupMenuItem(
+          glyph: AppGlyphs.cloudDownload,
+          label: l.importUrl,
+          onPressed: () async {
+            await _handleImportFromUrl();
+            await controller.load();
           },
-          popupBuilder: (_) => CommonPopupMenu(
-            items: [
-              CommonPopupMenuItem(
-                glyph: AppGlyphs.compose,
-                label: appLocalizations.startFromScratch,
-                onPressed: _handleToEditor,
-              ),
-              CommonPopupMenuItem(
-                glyph: AppGlyphs.cloudDownload,
-                label: appLocalizations.importUrl,
-                onPressed: _handleImportFromUrl,
-              ),
-              CommonPopupMenuItem(
-                glyph: AppGlyphs.importFile,
-                label: appLocalizations.importFile,
-                onPressed: _handleImportFromFile,
-              ),
-            ],
-          ),
+        ),
+        CommonPopupMenuItem(
+          glyph: AppGlyphs.importFile,
+          label: l.importFile,
+          onPressed: () async {
+            await _handleImportFromFile();
+            await controller.load();
+          },
         ),
       ],
-      body: _buildContent(scripts, isLoading: scriptsState.isLoading),
-      title: appLocalizations.script,
+      menuBuilder: (item, controller) {
+        final source = sourceOf(item);
+        return [
+          if (source != null)
+            CommonPopupMenuItem(
+              glyph: AppGlyphs.compose,
+              label: l.advancedConfig,
+              onPressed: () async {
+                await _handleToEditor(source);
+                await controller.load();
+              },
+            ),
+          if (source?.url != null) ...[
+            CommonPopupMenuItem(
+              glyph: AppGlyphs.link,
+              label: l.url,
+              onPressed: () async {
+                await _handleEditUrl(source!);
+                await controller.load();
+              },
+            ),
+            CommonPopupMenuItem(
+              glyph: AppGlyphs.sync,
+              label: l.sync,
+              onPressed: () async {
+                await _handleUpdate(source!);
+                await controller.load();
+              },
+            ),
+          ],
+        ];
+      },
+      itemBuilder: (context, item, index, editing, selected, toggle, edit) {
+        final source = sourceOf(item);
+        return DecorationListItem(
+          isSelected: selected,
+          title: Text(item.label),
+          subtitle: Text(
+            item.url == null ? l.local : l.remote,
+            style: context.listCaptionStyle,
+          ),
+          onPressed: editing ? toggle : edit,
+          trailing: editing
+              ? CommonCheckBox(
+                  value: selected,
+                  isCircle: true,
+                  onChanged: (_) => toggle(),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (source != null) _ScriptTrailing(script: source),
+                    CommonCheckBox(
+                      value: selected,
+                      isCircle: true,
+                      onChanged: (_) => toggle(),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }

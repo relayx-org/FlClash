@@ -196,6 +196,40 @@ void main() {
       preloadCompleter.complete();
       expect(await setupFuture, 'ok');
     });
+
+    test('iOS writes the profile before starting the extension', () async {
+      controller = CoreController.scoped(mock, isIOS: true);
+      const params = SetupParams(selectedMap: {}, testUrl: 'http://x.com');
+      final applied = Completer<String>();
+      var started = false;
+      when(() => mock.setupConfig(params)).thenAnswer((_) => applied.future);
+
+      final pending = controller.setupConfig(
+        params: params,
+        preloadInvoke: () async => started = true,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(started, isFalse);
+      applied.complete('');
+      expect(await pending, isEmpty);
+      expect(started, isTrue);
+    });
+
+    test('iOS keeps the VPN stopped after an invalid profile', () async {
+      controller = CoreController.scoped(mock, isIOS: true);
+      const params = SetupParams(selectedMap: {}, testUrl: 'http://x.com');
+      var started = false;
+      when(() => mock.setupConfig(params)).thenAnswer((_) async => 'invalid');
+
+      expect(
+        await controller.setupConfig(
+          params: params,
+          preloadInvoke: () async => started = true,
+        ),
+        'invalid',
+      );
+      expect(started, isFalse);
+    });
   });
 
   group('proxy methods', () {

@@ -218,6 +218,30 @@ void main() {
   });
 
   group('listeners', () {
+    test('iOS leaves listener ownership to the extension', () async {
+      lib = CoreLib.scoped(service, isIOS: true);
+      await lib.start();
+      service.calls.clear();
+
+      expect(await lib.startListener(), isTrue);
+      expect(service.calls, ['syncState', 'start']);
+      service.calls.clear();
+
+      expect(await lib.stopListener(), isTrue);
+      expect(service.calls, ['stop']);
+      expect(service.invokedCalls, isEmpty);
+    });
+
+    test('iOS refuses startup when shared state cannot be saved', () async {
+      lib = CoreLib.scoped(service, isIOS: true);
+      await lib.start();
+      service.calls.clear();
+      service.syncError = 'cannot save';
+
+      await expectLater(lib.startListener(), throwsStateError);
+      expect(service.calls, ['syncState']);
+    });
+
     test('a listener start is answered by the service', () async {
       await lib.start();
       service.onInvokeMethod = (_) =>

@@ -39,7 +39,7 @@ class ClashProvidersAction extends _$ClashProvidersAction {
       ),
       _ => compiled,
     };
-    ref.read(clashProvidersProvider.notifier).put(next);
+    await ref.read(clashProvidersProvider.notifier).putAsync(next);
     if (previous != null && previous.fileName != next.fileName) {
       unawaited(_clearCache(previous));
     }
@@ -155,6 +155,11 @@ class ClashProvidersAction extends _$ClashProvidersAction {
     unawaited(_clearCache(provider));
   }
 
+  Future<void> delProviderAsync(ClashProvider provider) async {
+    await ref.read(clashProvidersProvider.notifier).delAsync(provider.id);
+    await _clearCache(provider);
+  }
+
   Future<List<Profile>> profilesUsing(ClashProvider provider) {
     return profilesReferencing(ProviderKind.rule, provider.label);
   }
@@ -229,11 +234,14 @@ class ClashProvidersAction extends _$ClashProvidersAction {
     bool force = false,
   }) async {
     final profile = ref.read(currentProfileProvider);
-    if (profile == null ||
-        profile.type != ProfileType.custom ||
-        !await isReferenced(profile.id)) {
+    if (profile == null) return;
+    final bound = !profile.overrides.resources.isEmpty;
+    if (!bound &&
+        (profile.type != ProfileType.custom ||
+            !await isReferenced(profile.id))) {
       return;
     }
+    ref.invalidate(setupStateProvider(profile.id));
     ref
         .read(setupActionProvider.notifier)
         .applyProfileDebounce(silence: true, force: force);

@@ -1064,5 +1064,32 @@
   "ipingExitCheck": "Connectivité de la sortie actuelle",
   "ipingExitOk": "La sortie actuelle a répondu.",
   "ipingExitFailed": "La sortie ne répond pas. Changez de nœud et réessayez.",
-  "ipingDiagnosticsHint": "Le DNS et la sortie sont vérifiés séparément. Un échec de sortie ne suffit pas à diagnostiquer le DNS. Les réglages réseau restent inchangés."
+  "ipingDiagnosticsHint": "Le DNS et la sortie sont vérifiés séparément. Un échec de sortie ne suffit pas à diagnostiquer le DNS. Les réglages réseau restent inchangés.",
+  "invalidSettingTip": "La valeur de « {name} » n’est pas valide.",
+  "@invalidSettingTip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routerAccessTitle": "Accéder au routeur",
+  "routerAccessKey": "Clé d’accès",
+  "routerAccessHint": "Exécutez cette commande sur le routeur via SSH pour obtenir sa clé d’accès :",
+  "routerAccessInvalid": "La clé d’accès est incorrecte.",
+  "routerAgentUnavailable": "Impossible de joindre le service du routeur. Vérifiez-le et réessayez.",
+  "routerOperationFailed": "Le routeur n’a pas pu terminer l’opération. Consultez ses journaux et réessayez.",
+  "routerServiceConflict": "Un autre proxy utilise les ressources réseau nécessaires. Arrêtez-le avant de connecter iPing.",
+  "routerBusy": "Une autre opération est en cours. Veuillez patienter.",
+  "routerSettingsHint": "Les réglages sont enregistrés sur le routeur. Leur application redémarre le cœur iPing et peut interrompre les connexions.",
+  "routerResourcesHint": "Les règles supplémentaires précèdent celles de l’abonnement. Les nœuds et groupes de filtres personnalisés sont ajoutés aux groupes de sélection. Les nœuds et fournisseurs de règles utilisent Mihomo YAML.",
+  "routerIconsHint": "Utilisez le nom du groupe comme clé et une URL d’image HTTP(S) comme valeur.",
+  "routerScriptHint": "Définissez main(config) et renvoyez la configuration modifiée. Les scripts s’exécutent sur le routeur avec un délai de 3 secondes, sans API réseau ni fichiers.",
+  "groupIcons": "Icônes des groupes",
+  "resourceChangedTip": "La ressource a changé. Rechargez-la et réessayez.",
+  "ruleProviderBehavior": "Type de règles",
+  "ruleProviderFormat": "Format",
+  "applyResources": "Appliquer les ressources au profil actuel",
+  "resourceSelectionHint": "Les ressources enregistrées sont ajoutées à la bibliothèque. Sélectionnez celles à utiliser dans ce profil. Les nœuds et groupes de filtres sélectionnés sont ajoutés aux sélecteurs.",
+  "resourceLibraryHint": "Les ressources sont conservées dans la bibliothèque. Sélectionnez-les dans l’application au profil actuel."
 }

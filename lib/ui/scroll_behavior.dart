@@ -26,7 +26,7 @@ class BaseScrollBehavior extends MaterialScrollBehavior {
     PointerDeviceKind.stylus,
     PointerDeviceKind.invertedStylus,
     PointerDeviceKind.trackpad,
-    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+    if (kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux)
       PointerDeviceKind.mouse,
     PointerDeviceKind.unknown,
   };

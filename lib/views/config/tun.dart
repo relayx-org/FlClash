@@ -4,6 +4,7 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/views/config/override.dart';
 import 'package:fl_clash/widgets/widgets.dart';
+import 'backend_override.dart';
 
 extension on TunOverrideKey {
   String label(AppLocalizations l) => switch (this) {
@@ -89,16 +90,20 @@ ProfileOverrides _setProfileTun(ProfileOverrides overrides, _TunState state) =>
 
 String _patchTunDescription(AppLocalizations l) => l.tunOverrideDesc;
 
+Map<String, Object?> _tunValues(ProfileTun tun) => tun.toJson();
+
 String _profileTunDescription(AppLocalizations l) => l.profileTunSettingsDesc;
 
 OverrideSpec<TunOverrideKey, ProfileTun> appTunOverrideSpec({
   required bool isLinux,
   required bool isWindows,
 }) => _TunOverrideSpec(
-  const PatchOverrideTarget(
+  const BackendOverrideTarget(
     get: _patchTun,
     set: _setPatchTun,
     description: _patchTunDescription,
+    section: 'tun',
+    values: _tunValues,
   ),
   isLinux: isLinux,
   isWindows: isWindows,

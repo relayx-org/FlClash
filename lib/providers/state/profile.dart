@@ -60,6 +60,8 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
       : ref.watch(
           patchClashConfigProvider.select(
             (state) => ProfileOverrides(
+              resources:
+                  profile?.overrides.resources ?? const IpingResourceBindings(),
               dns: state.dns,
               dnsOverrideKeys: state.dnsOverrideKeys.intersection(
                 DnsOverrideKey.normalProfileKeys,
@@ -70,6 +72,9 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
           ),
         );
   final allProfileProviders = ref.watch(profileProvidersProvider);
+  final filters = ref.watch(
+    appSettingProvider.select((value) => value.filters),
+  );
   List<ProxyGroup> proxyGroups = [];
   List<Rule> rules = [];
   List<Rule> addedRules = [];
@@ -90,12 +95,30 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
             in await database.proxyDialersDao.query(profileId).get())
           dialer.proxyId: dialer.target,
       };
-    } else if (extendType == ExtendType.standard) {
-      addedRules = await database.rulesDao.queryAddedRules(profileId).get();
-    } else if (extendType == ExtendType.script) {
+    }
+    final availableRules = [
+      ...await database.rulesDao.queryGlobalRules().get(),
+      if (profileType != ProfileType.custom)
+        ...await database.rulesDao.queryProfileRules(profileId).get(),
+    ];
+    addedRules = [
+      for (final item in availableRules)
+        if (overrides.resources.rules.contains(item.id.toString()) ||
+            profileType != ProfileType.custom &&
+                extendType == ExtendType.standard &&
+                item.profileId != null)
+          item,
+    ];
+    if (extendType == ExtendType.script) {
       script = scriptId == null
           ? null
           : await database.scriptsDao.get(scriptId).getSingleOrNull();
+    }
+  }
+  if (profileId != null && !overrides.resources.isEmpty) {
+    if (profileType != ProfileType.custom) {
+      appProxies = await database.customProxiesDao.query().get();
+      clashProviders = await database.clashProvidersDao.query().get();
     }
   }
   return SetupState(
@@ -103,6 +126,10 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     profileProviders: profileProviders,
     appProxies: appProxies,
     proxyDialers: proxyDialers,
+    resourceFilters: [
+      for (final filter in filters)
+        if (overrides.resources.filters.contains(filter.label)) filter,
+    ],
     rules: rules,
     proxyGroups: proxyGroups,
     profileId: profileId,

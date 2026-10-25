@@ -1,5 +1,7 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +19,10 @@ class UserAgentsView extends ConsumerStatefulWidget {
 }
 
 class _UserAgentsViewState extends ConsumerState<UserAgentsView> {
-  String? get _selected => ref.read(patchClashConfigProvider).globalUa;
+  String? get _selected {
+    final value = ref.read(ipingSettingsProvider).text('global-ua');
+    return value.isEmpty ? null : value;
+  }
 
   List<String> get _entries =>
       _visibleUserAgents(ref.read(appSettingProvider).userAgents, _selected);
@@ -29,9 +34,11 @@ class _UserAgentsViewState extends ConsumerState<UserAgentsView> {
   }
 
   void _select(String? userAgent) {
-    ref
-        .read(patchClashConfigProvider.notifier)
-        .update((state) => state.copyWith(globalUa: userAgent));
+    globalState.safeRun(
+      () => ref.read(ipingBackendProvider).updateSettings({
+        'global-ua': userAgent,
+      }),
+    );
   }
 
   Future<String?> _showInputDialog([String? userAgent]) async {
@@ -156,9 +163,10 @@ class _UserAgentsViewState extends ConsumerState<UserAgentsView> {
       appSettingProvider.select((state) => state.userAgents),
     );
     final selected = ref.watch(
-      patchClashConfigProvider.select((state) => state.globalUa),
+      ipingSettingsProvider.select((state) => state.text('global-ua')),
     );
-    final entries = _visibleUserAgents(userAgents, selected);
+    final selectedUa = selected.isEmpty ? null : selected;
+    final entries = _visibleUserAgents(userAgents, selectedUa);
     return CommonScaffold(
       canSort: entries.length > 1,
       title: appLocalizations.userAgent,
@@ -178,17 +186,17 @@ class _UserAgentsViewState extends ConsumerState<UserAgentsView> {
           position: ItemPosition.get(0, entries.length + 1),
           child: _UserAgentItem(
             label: appLocalizations.defaultText,
-            isSelected: selected == null,
+            isSelected: selectedUa == null,
             onSelected: () {
               _select(null);
             },
           ),
         ),
         itemCount: entries.length,
-        itemBuilder: (_, index) => _buildItem(entries, index, selected),
+        itemBuilder: (_, index) => _buildItem(entries, index, selectedUa),
         proxyDecorator: (_, index, animation) {
           return commonProxyDecorator(
-            _buildItem(entries, index, selected),
+            _buildItem(entries, index, selectedUa),
             index,
             animation,
           );

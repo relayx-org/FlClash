@@ -119,7 +119,7 @@ final class ProfilesProvider
   }
 }
 
-String _$profilesHash() => r'60f47803bd141627e5354018339d13704b00d31e';
+String _$profilesHash() => r'9ff1c1ae097dd87f371456fc27f3572582e80e21';
 
 abstract class _$Profiles extends $Notifier<List<Profile>> {
   List<Profile> build();
@@ -163,7 +163,7 @@ final class ScriptsProvider
   Scripts create() => Scripts();
 }
 
-String _$scriptsHash() => r'f88f4a2c9960c884fbc2317f754f0f968340ade2';
+String _$scriptsHash() => r'11dcd8f08634ba460a418d78fd8b926d04965984';
 
 abstract class _$Scripts extends $StreamNotifier<List<Script>> {
   Stream<List<Script>> build();
@@ -207,7 +207,7 @@ final class ClashProvidersProvider
   ClashProviders create() => ClashProviders();
 }
 
-String _$clashProvidersHash() => r'00588fa9c7300d3319d97d61962e898d29497188';
+String _$clashProvidersHash() => r'483db5a569b1554d96495580ebdfa06ccaf43559';
 
 abstract class _$ClashProviders extends $StreamNotifier<List<ClashProvider>> {
   Stream<List<ClashProvider>> build();
@@ -296,7 +296,7 @@ final class GlobalRulesProvider
   GlobalRules create() => GlobalRules();
 }
 
-String _$globalRulesHash() => r'bde720c56b4914d6fc0190be3a80594840b21e47';
+String _$globalRulesHash() => r'b3dd3692f8b3dff5e33f97fd71a4dd954a08cf80';
 
 abstract class _$GlobalRules extends $StreamNotifier<List<Rule>> {
   Stream<List<Rule>> build();
@@ -599,7 +599,7 @@ final class CustomProxiesProvider
   CustomProxies create() => CustomProxies();
 }
 
-String _$customProxiesHash() => r'77e62a3276ffd7ca1d05f656199049570fb0c73a';
+String _$customProxiesHash() => r'ec82c2b2ab16200440a4472c55dd8453dc3e7f30';
 
 abstract class _$CustomProxies extends $StreamNotifier<List<CustomProxy>> {
   Stream<List<CustomProxy>> build();

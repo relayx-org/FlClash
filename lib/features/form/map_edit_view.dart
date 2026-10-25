@@ -1,9 +1,11 @@
-import 'package:fl_clash/common/common.dart';
+import 'package:collection/collection.dart';
+import 'package:fl_clash/common/input_entries.dart';
+import 'package:fl_clash/common/input_limits.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/widgets/input.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'batch_section.dart';
 import 'form_page.dart';
@@ -11,7 +13,7 @@ import 'form_row.dart';
 
 typedef _Entry = MapEntry<String, String>;
 
-class MapEditView extends ConsumerStatefulWidget {
+class MapEditView extends StatefulWidget {
   final String title;
   final Map<String, String> entries;
   final Widget Function(MapEntry<String, String> item) titleBuilder;
@@ -30,7 +32,7 @@ class MapEditView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<MapEditView> createState() => _MapEditViewState();
+  State<MapEditView> createState() => _MapEditViewState();
 }
 
 class _MapEditViewState extends EditViewState<MapEditView, _Entry> {
@@ -51,7 +53,7 @@ class _MapEditViewState extends EditViewState<MapEditView, _Entry> {
 
   @override
   bool sameEntries(List<_Entry> a, List<_Entry> b) =>
-      stringAndStringMapEntryListEquality.equals(a, b);
+      const ListEquality<MapEntry<String, String>>().equals(a, b);
 
   @override
   Object popResult(List<_Entry> entries) =>
@@ -103,14 +105,14 @@ class _MapEntryFormState extends State<_MapEntryForm> {
   bool _attempted = false;
   ParsedInput<_Entry>? _parsed;
 
-  String get _keyLabel => context.appLocalizations.key;
+  String get _keyLabel => AppLocalizations.of(context).key;
 
-  String get _valueLabel => context.appLocalizations.value;
+  String get _valueLabel => AppLocalizations.of(context).value;
 
   BatchInput<_Entry> get _batchInput {
     return BatchInput(
       label: widget.listTitle,
-      formatTip: context.appLocalizations.batchMapInputTip,
+      formatTip: AppLocalizations.of(context).batchMapInputTip,
       parse: (text) => parseMapInput(
         text,
         existingKeys: widget.existingKeys,
@@ -138,7 +140,7 @@ class _MapEntryFormState extends State<_MapEntryForm> {
   }
 
   String _batchIssueMessage(InputIssue issue) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     return switch (issue.kind) {
       InputIssueKind.keyTooLong => appLocalizations.maxLengthTip(
         _keyLabel,
@@ -155,7 +157,7 @@ class _MapEntryFormState extends State<_MapEntryForm> {
   }
 
   ({_MapEntryField field, String message})? _issue() {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     final key = _keyController.text.trim();
     if (key.isEmpty) {
       return (
@@ -231,7 +233,7 @@ class _MapEntryFormState extends State<_MapEntryForm> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
+    final appLocalizations = AppLocalizations.of(context);
     final issue = _attempted && !_isBatch ? _issue() : null;
     return FormPage(
       title: _isBatch

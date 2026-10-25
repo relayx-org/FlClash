@@ -1,10 +1,14 @@
+import 'package:fl_clash/features/form/custom_proxy_editor.dart';
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/backend_resources.dart';
+import 'package:fl_clash/iping/resource_controller.dart';
+import 'package:fl_clash/iping/filters_page.dart';
 import 'dart:async';
+import 'package:fl_clash/state.dart';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/form/form.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart' hide FileInfo;
 import 'package:fl_clash/pages/editor.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -14,140 +18,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'quick_edit.dart';
-
-extension on ProxyField {
-  String label(AppLocalizations l) => switch (this) {
-    ProxyField.username => l.username,
-    ProxyField.password => l.password,
-    ProxyField.uuid => 'UUID',
-    ProxyField.psk || ProxyField.preSharedKey => l.preSharedKey,
-    ProxyField.authStr => l.password,
-    ProxyField.key => l.secretKey,
-    ProxyField.privateKey => l.privateKey,
-    ProxyField.publicKey => l.publicKey,
-    ProxyField.privateKeyPassphrase => l.privateKeyPassphrase,
-    ProxyField.cipher => l.cipher,
-    ProxyField.alterId => 'Alter ID',
-    ProxyField.protocol => l.protocol,
-    ProxyField.obfs => l.obfs,
-    ProxyField.transport => l.transport,
-    ProxyField.network => l.network,
-    ProxyField.up => l.uploadBandwidth,
-    ProxyField.down => l.downloadBandwidth,
-    ProxyField.flow => 'Flow',
-    ProxyField.wsPath => 'WebSocket Path',
-    ProxyField.wsHost => 'WebSocket Host',
-    ProxyField.grpcServiceName => 'gRPC Service Name',
-    ProxyField.xhttpPath => 'XHTTP Path',
-    ProxyField.xhttpHost => 'XHTTP Host',
-    ProxyField.tls => 'TLS',
-    ProxyField.sni || ProxyField.servername => 'SNI',
-    ProxyField.alpn => 'ALPN',
-    ProxyField.skipCertVerify => l.skipCertVerify,
-    ProxyField.clientFingerprint => l.clientFingerprint,
-    ProxyField.realityPublicKey => 'Reality Public Key',
-    ProxyField.realityShortId => 'Reality Short ID',
-    ProxyField.plugin => l.plugin,
-    ProxyField.pluginMode => l.pluginMode,
-    ProxyField.pluginHost => l.pluginHost,
-    ProxyField.udpOverTcp => 'UDP over TCP',
-    ProxyField.protocolParam => l.protocolParam,
-    ProxyField.obfsParam => l.obfsParam,
-    ProxyField.obfsPassword || ProxyField.obfsSecret => l.obfsPassword,
-    ProxyField.obfsMode => l.obfsMode,
-    ProxyField.obfsHost => l.obfsHost,
-    ProxyField.version => l.protocolVersion,
-    ProxyField.ports => l.portHopping,
-    ProxyField.hopInterval => l.hopInterval,
-    ProxyField.congestionController => l.congestionControl,
-    ProxyField.udpRelayMode => l.udpRelayMode,
-    ProxyField.reduceRtt => '0-RTT',
-    ProxyField.ip => 'IPv4',
-    ProxyField.ipv6 => 'IPv6',
-    ProxyField.allowedIps => l.allowedIps,
-    ProxyField.dns => 'DNS',
-    ProxyField.remoteDnsResolve => l.remoteDnsResolve,
-    ProxyField.mtu => 'MTU',
-    ProxyField.tfo => 'TCP Fast Open',
-    ProxyField.mptcp => 'MPTCP',
-    ProxyField.interfaceName => l.interfaceName,
-    ProxyField.routingMark => l.routingMark,
-    ProxyField.ipVersion => l.ipVersion,
-  };
-
-  bool get isCredential => switch (this) {
-    ProxyField.username ||
-    ProxyField.password ||
-    ProxyField.uuid ||
-    ProxyField.psk ||
-    ProxyField.key ||
-    ProxyField.privateKey ||
-    ProxyField.publicKey ||
-    ProxyField.privateKeyPassphrase ||
-    ProxyField.preSharedKey ||
-    ProxyField.authStr => true,
-    _ => false,
-  };
-
-  _OptionSection get section => switch (this) {
-    _ when isCredential => _OptionSection.authentication,
-    ProxyField.network ||
-    ProxyField.flow ||
-    ProxyField.wsPath ||
-    ProxyField.wsHost ||
-    ProxyField.grpcServiceName ||
-    ProxyField.xhttpPath ||
-    ProxyField.xhttpHost => _OptionSection.transport,
-    ProxyField.tls ||
-    ProxyField.sni ||
-    ProxyField.servername ||
-    ProxyField.alpn ||
-    ProxyField.skipCertVerify ||
-    ProxyField.clientFingerprint ||
-    ProxyField.realityPublicKey ||
-    ProxyField.realityShortId => _OptionSection.tls,
-    ProxyField.tfo ||
-    ProxyField.mptcp ||
-    ProxyField.interfaceName ||
-    ProxyField.routingMark ||
-    ProxyField.ipVersion => _OptionSection.connection,
-    _ => _OptionSection.other,
-  };
-
-  int get maxLength => switch (this) {
-    ProxyField.username => TextInputLimits.userName,
-    ProxyField.interfaceName || ProxyField.alpn => TextInputLimits.name,
-    ProxyField.ip ||
-    ProxyField.ipv6 ||
-    ProxyField.allowedIps => TextInputLimits.cidr,
-    ProxyField.dns => TextInputLimits.dnsServer,
-    ProxyField.wsPath || ProxyField.xhttpPath => TextInputLimits.url,
-    _ when kind == ProxyFieldKind.number => TextInputLimits.number,
-    _ => TextInputLimits.domain,
-  };
-
-  String? get hintText => switch (this) {
-    ProxyField.up || ProxyField.down => '100 Mbps',
-    ProxyField.ports => '443,8000-9000',
-    _ => null,
-  };
-}
-
-enum _OptionSection {
-  authentication,
-  transport,
-  tls,
-  other,
-  connection;
-
-  String label(AppLocalizations l) => switch (this) {
-    authentication => l.authentication,
-    transport => l.transport,
-    tls => 'TLS',
-    other => l.other,
-    connection => l.connection,
-  };
-}
 
 class CustomProxiesView extends ConsumerStatefulWidget {
   const CustomProxiesView({super.key});
@@ -193,8 +63,49 @@ class _CustomProxiesViewState extends ConsumerState<CustomProxiesView> {
       proxy.copyWith(emptyOptions: const {}),
   ];
 
-  void _handleReorder(int oldIndex, int newIndex) {
-    ref.read(customProxiesProvider.notifier).order(oldIndex, newIndex);
+  bool _resourceBusy = false;
+
+  Future<bool> _mutateResources(
+    Future<bool> Function(IpingResourceController<IpingCustomProxy, String>)
+    mutation,
+  ) async {
+    if (_resourceBusy) return false;
+    _resourceBusy = true;
+    final controller = IpingResourceController<IpingCustomProxy, String>(
+      ref.read(ipingBackendProvider).customProxies,
+      keyOf: (item) => item.id,
+    );
+    try {
+      return await globalState.safeRun(() async {
+            if (!await controller.load()) {
+              throw MessageException(controller.error.toString());
+            }
+            if (!await mutation(controller)) {
+              throw MessageException(controller.error.toString());
+            }
+            return true;
+          }) ??
+          false;
+    } finally {
+      controller.dispose();
+      _resourceBusy = false;
+    }
+  }
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    final order = [
+      for (final proxy
+          in ref.read(customProxiesProvider).value ?? const <CustomProxy>[])
+        proxy.id.toString(),
+    ];
+    if (oldIndex < 0 ||
+        newIndex < 0 ||
+        oldIndex >= order.length ||
+        newIndex >= order.length) {
+      return;
+    }
+    order.insert(newIndex, order.removeAt(oldIndex));
+    await _mutateResources((controller) => controller.reorderKeys(order));
   }
 
   void _handleSearch(String query) {
@@ -233,10 +144,12 @@ class _CustomProxiesViewState extends ConsumerState<CustomProxiesView> {
     if (res != true || !mounted) {
       return;
     }
-    ref.read(customProxiesProvider.notifier).delAll(ids);
-    setState(() {
-      _selected = kept;
-    });
+    final removed = await _mutateResources(
+      (controller) => controller.remove({for (final id in ids) id.toString()}),
+    );
+    if (removed && mounted) {
+      setState(() => _selected = kept);
+    }
   }
 
   Future<void> _handleQuickEdit() async {
@@ -258,7 +171,6 @@ class _CustomProxiesViewState extends ConsumerState<CustomProxiesView> {
     if (!mounted) {
       return;
     }
-    final notifier = ref.read(customProxiesProvider.notifier);
     return showCustomQuickEdit(
       context,
       title: appLocalizations.proxies,
@@ -287,7 +199,13 @@ class _CustomProxiesViewState extends ConsumerState<CustomProxiesView> {
         if (!await _confirmReplaced(previous, proxies)) {
           throw const QuickEditCancelled();
         }
-        notifier.setAll(proxies);
+        if (!await _mutateResources(
+          (controller) => controller.replaceAll([
+            for (final proxy in proxies) nativeIpingCustomProxy(proxy),
+          ]),
+        )) {
+          throw const QuickEditCancelled();
+        }
       },
     );
   }
@@ -719,12 +637,11 @@ Future<bool> _handleSaveCustomProxy(
   );
   if (issues.isEmpty) {
     try {
-      final errors = await ref.read(coreHandlerProvider).validateProxies([
-        proxy.definition,
-      ]);
-      if (errors.first.isNotEmpty) {
-        issues.add(CustomIssue.coreRejected(errors.first));
-      }
+      final error = await ref
+          .read(ipingBackendProvider)
+          .customProxies
+          .validate(nativeIpingCustomProxy(proxy));
+      if (error != null) issues.add(CustomIssue.coreRejected(error));
     } catch (error) {
       issues.add(CustomIssue.coreRejected(compactError(error)));
     }
@@ -744,84 +661,51 @@ Future<bool> _handleSaveCustomProxy(
     return false;
   }
   final saved = proxy.id == -1 ? proxy.copyWith(id: snowflake.id) : proxy;
-  ref.read(customProxiesProvider.notifier).put(saved);
+  final controller = IpingResourceController<IpingCustomProxy, String>(
+    ref.read(ipingBackendProvider).customProxies,
+    keyOf: (item) => item.id,
+  );
+  try {
+    if (!await controller.put(
+      nativeIpingCustomProxy(saved),
+      replacing: proxy.id == -1 ? null : proxy.id.toString(),
+    )) {
+      if (context.mounted) {
+        await showSaveBlocked(
+          context,
+          resourceErrorMessage(
+            controller.error,
+            context.appLocalizations,
+            label: context.appLocalizations.proxies,
+          ),
+        );
+      }
+      return false;
+    }
+  } finally {
+    controller.dispose();
+  }
   // The closing form would otherwise take its stored copy for another proxy
   // with its name.
   ref.read(customProxyProvider.notifier).value = saved;
   return true;
 }
 
-class _EditCustomProxyView extends ConsumerStatefulWidget {
+class _EditCustomProxyView extends ConsumerWidget {
   const _EditCustomProxyView();
 
-  @override
-  ConsumerState<_EditCustomProxyView> createState() =>
-      _EditCustomProxyViewState();
-}
-
-class _EditCustomProxyViewState extends ConsumerState<_EditCustomProxyView> {
-  static const _validateDelay = Duration(milliseconds: 400);
-
-  late final bool _isNew;
-  Timer? _validateTimer;
-  int _validateRequest = 0;
-  String? _coreError;
-  bool _saving = false;
-  bool _submitted = false;
-  var _revealed = <String>{};
-  late Set<ProxyField> _shown;
-
-  /// Added options not given a value since, the only ones a save keeps empty.
-  late Set<ProxyField> _untouched;
-
-  /// Bumped when the whole mapping is replaced, so the fields drop the text
-  /// they were initialized with.
-  int _revision = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    final proxy = ref.read(customProxyProvider);
-    _isNew = proxy.id == -1;
-    _shown = _shownIn(proxy);
-    _untouched = {
-      for (final field in proxy.emptyOptions)
-        if (proxy.valueOf(field) == null) field,
-    };
-    NestedFormSheet.bindSave(context, _handleSave);
-    ref.listenManual(customProxyProvider, (_, proxy) {
-      _untouched.removeWhere((field) => proxy.valueOf(field) != null);
-    });
-    ref.listenManual(
-      customProxyProvider.select((state) => state.definition),
-      (_, _) => _scheduleValidate(),
-      fireImmediately: true,
-    );
-  }
-
-  @override
-  void dispose() {
-    _validateTimer?.cancel();
-    super.dispose();
-  }
-
-  void _scheduleValidate() {
-    _validateTimer?.cancel();
-    _validateTimer = Timer(_validateDelay, _validate);
-  }
-
-  Future<void> _handleQuickEdit() async {
-    final appLocalizations = context.appLocalizations;
+  Future<Map<String, dynamic>?> _quickEdit(
+    BuildContext context,
+    WidgetRef ref,
+    CustomProxy proxy,
+  ) async {
+    final l = context.appLocalizations;
     final core = ref.read(coreHandlerProvider);
     var link = '';
     try {
-      link = (await core.encodeShareLinks([
-        ref.read(customProxyProvider).definition,
-      ])).single;
+      link = (await core.encodeShareLinks([proxy.definition])).single;
     } catch (_) {}
-    if (!mounted) {
-      return;
-    }
+    if (!context.mounted) return null;
     final definition = await dialogs.showCommonDialog<Map<String, dynamic>>(
       child: _ShareLinkDialog(
         initialLink: link,
@@ -831,11 +715,9 @@ class _EditCustomProxyViewState extends ConsumerState<_EditCustomProxyView> {
             if (link.isNotEmpty) link,
           ]);
           final definitions = results.first;
-          if (definitions.isEmpty) {
-            throw MessageException(appLocalizations.shareLinksInvalid);
-          }
+          if (definitions.isEmpty) throw MessageException(l.shareLinksInvalid);
           if (definitions.length > 1) {
-            throw MessageException(appLocalizations.singleShareLinkOnly);
+            throw MessageException(l.singleShareLinkOnly);
           }
           return withUnlinkedFields(
             definitions.single,
@@ -845,737 +727,90 @@ class _EditCustomProxyViewState extends ConsumerState<_EditCustomProxyView> {
         },
       ),
     );
-    if (definition == null || !mounted) {
-      return;
-    }
-    _fillFromLink(definition);
-  }
-
-  void _fillFromLink(Map<String, dynamic> definition) {
+    if (definition == null || !context.mounted) return null;
     final current = ref.read(customProxyProvider);
-    final named = (definition['name'] ?? '') == '' && current.name.isNotEmpty
-        ? {...definition, 'name': current.name}
-        : importedCustomProxies(
-            [definition],
-            groupNames: ref.read(customGroupNamesProvider).value ?? const {},
-            existing: [
-              for (final proxy in ref.read(customProxiesProvider).value ?? [])
-                if (proxy.id != current.id) proxy,
-            ],
-          ).single.definition;
-    final next = _withShown(current.copyWith(definition: named), {
-      for (final field in _shown)
-        if (current.valueOf(field) == null) field,
-    });
-    ref.read(customProxyProvider.notifier).value = next;
-    setState(() {
-      _shown = _shownIn(next);
-      _revision++;
-    });
-  }
-
-  static Set<ProxyField> _shownIn(CustomProxy proxy) => {
-    for (final field in proxy.options)
-      if (proxy.valueOf(field) != null || proxy.emptyOptions.contains(field))
-        field,
-  };
-
-  CustomProxy _withShown(CustomProxy proxy, Set<ProxyField> shown) =>
-      proxy.copyWith(
-        emptyOptions: {
-          for (final field in shown)
-            if (proxy.valueOf(field) == null && _untouched.contains(field))
-              field,
-        },
-      );
-
-  /// Keeps a row for every option [proxy] offers that has a value, was shown,
-  /// or was [unlocked] by the change that led to [proxy].
-  void _syncShown(
-    CustomProxy proxy, {
-    Iterable<ProxyField> unlocked = const [],
-  }) {
-    final shown = {
-      for (final field in proxy.options)
-        if (_shown.contains(field) ||
-            unlocked.contains(field) ||
-            proxy.valueOf(field) != null)
-          field,
-    };
-    _untouched.addAll(unlocked.where((field) => proxy.valueOf(field) == null));
-    ref.read(customProxyProvider.notifier).value = _withShown(proxy, shown);
-    setState(() {
-      _shown = shown;
-    });
-  }
-
-  Future<void> _validate() async {
-    final request = ++_validateRequest;
-    final definition = ref.read(customProxyProvider).definition;
-    String? error;
-    try {
-      final errors = await ref.read(coreHandlerProvider).validateProxies([
-        definition,
-      ]);
-      error = errors.first.isEmpty ? null : errors.first;
-    } catch (_) {
-      error = null;
+    if ((definition['name'] ?? '') == '' && current.name.isNotEmpty) {
+      return {...definition, 'name': current.name};
     }
-    if (!mounted || request != _validateRequest || error == _coreError) {
-      return;
-    }
-    setState(() {
-      _coreError = error;
-    });
-  }
-
-  void _update(String key, Object? value) {
-    ref
-        .read(customProxyProvider.notifier)
-        .update((state) => state.withValue(key, value));
-  }
-
-  void _updateField(ProxyField field, Object? value) {
-    ref
-        .read(customProxyProvider.notifier)
-        .update((state) => state.withField(field, value));
-  }
-
-  String? _requiredHint(CustomProxy proxy, String key) =>
-      proxy.requiredKeys.contains(key)
-      ? context.appLocalizations.required
-      : null;
-
-  void _updateOption(ProxyField field, Object? value) {
-    final proxy = ref.read(customProxyProvider);
-    final next = proxy.withField(field, value);
-    final offered = proxy.options;
-    _syncShown(
-      next,
-      unlocked: [
-        for (final option in next.options)
-          if (!offered.contains(option)) option,
+    return importedCustomProxies(
+      [definition],
+      groupNames: ref.read(customGroupNamesProvider).value ?? const {},
+      existing: [
+        for (final item in ref.read(customProxiesProvider).value ?? [])
+          if (item.id != current.id) item,
       ],
-    );
+    ).single.definition;
   }
 
-  Widget _buildTextItem({
-    required String title,
-    required String key,
-    required String? value,
-    required int maxLength,
-    String? hintText,
-    bool digitsOnly = false,
-    bool policyName = false,
-    bool invalid = false,
-    bool obscureText = false,
-    Widget? leading,
-    Widget? suffix,
-    ValueChanged<Object?>? onChanged,
-  }) {
-    final update = onChanged ?? (Object? value) => _update(key, value);
-    final field = FormRowTextField(
-      key: ValueKey('$key-$_revision'),
-      initialValue: value,
-      obscureText: obscureText,
-      keyboardType: digitsOnly ? TextInputType.number : TextInputType.text,
-      inputFormatters: digitsOnly
-          ? TextInputLimits.digitsOnly(maxLength)
-          : policyName
-          ? TextInputLimits.policyName(maxLength)
-          : TextInputLimits.limit(maxLength),
-      onChanged: (value) {
-        update(digitsOnly ? int.tryParse(value) : value);
-      },
-      hintText: hintText ?? context.appLocalizations.optional,
-    );
-    return FormRow(
-      title: title,
-      invalid: invalid,
-      leading: leading,
-      trailing: suffix == null
-          ? field
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(child: field),
-                suffix,
-              ],
-            ),
-    );
-  }
-
-  Widget _buildSecretItem({
-    required String title,
-    required String key,
-    required String? value,
-    String? hintText,
-    Widget? leading,
-    ValueChanged<Object?>? onChanged,
-  }) {
-    final appLocalizations = context.appLocalizations;
-    final revealed = _revealed.contains(key);
-    return _buildTextItem(
-      title: title,
-      key: key,
-      value: value,
-      maxLength: TextInputLimits.password,
-      hintText: hintText,
-      obscureText: !revealed,
-      leading: leading,
-      onChanged: onChanged,
-      suffix: CommonMinIconButtonTheme(
-        child: IconButton(
-          tooltip: revealed
-              ? appLocalizations.hidePassword
-              : appLocalizations.showPassword,
-          onPressed: () {
-            setState(() {
-              _revealed = {..._revealed}..addOrRemove(key);
-            });
-          },
-          icon: GlyphIcon(revealed ? AppGlyphs.eyeOff : AppGlyphs.eye),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchItem({
-    required String title,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    Widget? leading,
-  }) {
-    return FormRow(
-      title: title,
-      leading: leading,
-      onPressed: () => onChanged(!value),
-      trailing: Switch(value: value, onChanged: onChanged),
-    );
-  }
-
-  Widget _buildField(CustomProxy proxy, ProxyField field, {Widget? leading}) {
-    final appLocalizations = context.appLocalizations;
-    final title = field.label(appLocalizations);
-    final key = field.path.join('.');
-    final value = proxy.valueOf(field);
-    final hintText = _requiredHint(proxy, key);
-    void update(Object? value) => _updateField(field, value);
-    return switch (field.kind) {
-      ProxyFieldKind.text || ProxyFieldKind.number => _buildTextItem(
-        title: title,
-        key: key,
-        value: value?.toString(),
-        maxLength: field.maxLength,
-        hintText: field.hintText ?? hintText,
-        digitsOnly: field.kind == ProxyFieldKind.number,
-        leading: leading,
-        onChanged: update,
-      ),
-      ProxyFieldKind.secret => _buildSecretItem(
-        title: title,
-        key: key,
-        value: value?.toString(),
-        hintText: hintText,
-        leading: leading,
-        onChanged: update,
-      ),
-      ProxyFieldKind.toggle => _buildSwitchItem(
-        title: title,
-        value: value == true,
-        leading: leading,
-        onChanged: update,
-      ),
-      ProxyFieldKind.choice => _buildPickerItem(
-        title: title,
-        value: value?.toString() ?? hintText ?? appLocalizations.optional,
-        leading: leading,
-        onPressed: () => _handleSelectChoice(field),
-      ),
-      ProxyFieldKind.list => _buildListItem(
-        proxy,
-        title: title,
-        key: key,
-        itemMaxLength: field.maxLength,
-        leading: leading,
-      ),
-    };
-  }
-
-  Future<void> _handleSelectType() async {
-    final res = await _selectChoice(
-      title: context.appLocalizations.proxyType,
-      items: customProxyTypes,
-      selectedOf: (state) => state.type,
-    );
-    if (res == null) {
-      return;
-    }
-    _syncShown(ref.read(customProxyProvider).withType(res));
-  }
-
-  Future<void> _handleSelectChoice(ProxyField field) async {
-    final res = await _selectChoice(
-      title: field.label(context.appLocalizations),
-      items: ref.read(customProxyProvider).choicesOf(field),
-      selectedOf: (state) => state.valueOf(field)?.toString(),
-    );
-    if (res == null) {
-      return;
-    }
-    _updateOption(field, res);
-  }
-
-  Future<String?> _selectChoice({
-    required String title,
-    required List<String> items,
-    required String? Function(CustomProxy state) selectedOf,
-  }) {
-    return Navigator.of(context).push(
-      PagedSheetRoute(
-        builder: (context) => SelectionSheet<String>(
-          title: title,
-          sections: [SelectionSection(items: items)],
-          labelBuilder: (item) => item,
-          selectedOf: (ref) =>
-              ref.watch(customProxyProvider.select(selectedOf)),
-          onSelected: (item) => Navigator.of(context).pop(item),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPickerItem({
-    required String title,
-    required String value,
-    required VoidCallback onPressed,
-    Widget? leading,
-  }) {
-    return FormRow(
-      title: title,
-      leading: leading,
-      onPressed: onPressed,
-      trailing: Row(
-        spacing: 4,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              value,
-              style: context.listTitleStyle.copyWith(
-                color: context.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const GlyphIcon(AppGlyphs.chevronForward),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeItem(String type) {
-    return _buildPickerItem(
-      title: context.appLocalizations.proxyType,
-      value: type,
-      onPressed: _handleSelectType,
-    );
-  }
-
-  Widget _buildListItem(
-    CustomProxy proxy, {
-    required String title,
-    required String key,
-    required int itemMaxLength,
-    Widget? leading,
-  }) {
-    final appLocalizations = context.appLocalizations;
-    final items = proxy.stringsOf(key);
-    return _buildPickerItem(
-      title: title,
-      value: items.isEmpty
-          ? appLocalizations.none
-          : appLocalizations.itemsCount(items.length),
-      leading: leading,
-      onPressed: () => Navigator.of(context).push(
-        PagedSheetRoute<void>(
-          builder: (_) => _ProxyValuesView(
-            title: title,
-            field: key,
-            itemMaxLength: itemMaxLength,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleAddOption(List<ProxyField> fields) {
-    final appLocalizations = context.appLocalizations;
-    final sections = {
-      for (final section in _OptionSection.values)
-        section: [
-          for (final field in fields)
-            if (field.section == section) field,
-        ],
-    };
-    Navigator.of(context).push(
-      PagedSheetRoute(
-        builder: (_) => SelectionSheet<ProxyField>(
-          title: appLocalizations.addSettingEntry,
-          sections: [
-            for (final MapEntry(:key, :value) in sections.entries)
-              if (value.isNotEmpty)
-                SelectionSection(
-                  label: key.label(appLocalizations),
-                  items: value,
-                ),
-          ],
-          labelBuilder: (field) => field.label(appLocalizations),
-          selectedOf: (_) => null,
-          removeOnSelect: true,
-          onSelected: _handleAddedOption,
-        ),
-      ),
-    );
-  }
-
-  void _handleAddedOption(ProxyField field) {
-    if (!mounted) {
-      return;
-    }
-    final proxy = ref.read(customProxyProvider);
-    final initial = switch (field.kind) {
-      ProxyFieldKind.toggle => true,
-      ProxyFieldKind.choice => proxy.choicesOf(field).firstOrNull,
-      _ => null,
-    };
-    final value = proxy.valueOf(field) ?? initial;
-    _shown = {..._shown, field};
-    if (value == null) {
-      _untouched.add(field);
-    }
-    _updateOption(field, value);
-  }
-
-  void _handleRemoveOption(ProxyField field) {
-    _shown = {..._shown}..remove(field);
-    _updateOption(field, null);
-  }
-
-  Widget _buildOptions(CustomProxy proxy) {
-    final appLocalizations = context.appLocalizations;
-    final options = proxy.options;
-    final remaining = [
-      for (final field in options)
-        if (!_shown.contains(field)) field,
-    ];
-    void handleAdd() => _handleAddOption(remaining);
-    return generateAnimatedSection(
-      title: appLocalizations.options,
-      items: [
-        for (final field in options)
-          if (_shown.contains(field))
-            KeyedSubtree(
-              key: ValueKey(field),
-              child: _buildField(
-                proxy,
-                field,
-                leading: EntryButton.remove(
-                  onPressed: () => _handleRemoveOption(field),
-                ),
-              ),
-            ),
-        if (remaining.isNotEmpty)
-          FormRow(
-            key: const ValueKey(#add),
-            leading: EntryButton.add(onPressed: handleAdd),
-            title: appLocalizations.addSettingEntry,
-            titleStyle: TextStyle(color: context.colorScheme.primary),
-            onPressed: handleAdd,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildEasyTierSection(CustomProxy proxy) {
-    final appLocalizations = context.appLocalizations;
-    final definition = proxy.definition;
-    return generateSection(
-      title: appLocalizations.network,
-      items: [
-        _buildTextItem(
-          title: appLocalizations.networkName,
-          key: 'network-name',
-          value: definition['network-name']?.toString(),
-          maxLength: TextInputLimits.name,
-          hintText: appLocalizations.networkName,
-        ),
-        _buildSecretItem(
-          title: appLocalizations.networkSecret,
-          key: 'network-secret',
-          value: definition['network-secret']?.toString(),
-        ),
-        _buildListItem(
-          proxy,
-          title: appLocalizations.peers,
-          key: 'peers',
-          itemMaxLength: TextInputLimits.uri,
-        ),
-        _buildTextItem(
-          title: appLocalizations.virtualIpv4,
-          key: 'ipv4',
-          value: definition['ipv4']?.toString(),
-          maxLength: TextInputLimits.cidr,
-          hintText: 'DHCP',
-        ),
-        _buildTextItem(
-          title: appLocalizations.hostname,
-          key: 'hostname',
-          value: definition['hostname']?.toString(),
-          maxLength: TextInputLimits.domain,
-        ),
-        _buildListItem(
-          proxy,
-          title: appLocalizations.exitNodes,
-          key: 'exit-nodes',
-          itemMaxLength: TextInputLimits.cidr,
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleDelete() async {
-    final appLocalizations = context.appLocalizations;
+  Future<bool> _delete(BuildContext context, WidgetRef ref) async {
+    final l = context.appLocalizations;
     final id = ref.read(customProxyProvider).id;
-    final message = await _deleteMessage(ref, {
-      id,
-    }, appLocalizations.deleteTip(appLocalizations.proxies));
-    if (!mounted) {
-      return;
+    final message = await _deleteMessage(ref, {id}, l.deleteTip(l.proxies));
+    if (!context.mounted) return false;
+    if (await dialogs.showMessage(
+              message: TextSpan(text: message),
+              destructive: true,
+              confirmText: l.delete,
+            ) !=
+            true ||
+        !context.mounted) {
+      return false;
     }
-    final res = await dialogs.showMessage(
-      message: TextSpan(text: message),
-      destructive: true,
-      confirmText: appLocalizations.delete,
+    final controller = IpingResourceController<IpingCustomProxy, String>(
+      ref.read(ipingBackendProvider).customProxies,
+      keyOf: (item) => item.id,
     );
-    if (res == true && mounted) {
-      ref.read(customProxiesProvider.notifier).delAll([id]);
-      context.safeNestedPop();
-    }
-  }
-
-  Future<void> _handleSave() async {
-    if (_saving) return;
-    _saving = true;
-    ref
-        .read(customProxyProvider.notifier)
-        .update((state) => _withShown(state, _shown));
     try {
-      String? coreError;
-      final saved = await _handleSaveCustomProxy(
-        context,
-        ref,
-        onCoreRejected: (message) => coreError = message,
-      );
-      if (!mounted) return;
-      if (saved) {
-        context.safeNestedPop();
-        return;
-      }
-      setState(() {
-        _submitted = true;
-        _coreError = coreError ?? _coreError;
-      });
-    } finally {
-      _saving = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final proxy = ref.watch(customProxyProvider);
-    final showIncomplete = !_isNew || _submitted;
-    final issues = [
-      ...customProxyIssues(
-        proxy,
-        proxies: ref.watch(customProxiesProvider).value ?? const [],
-        groupNames: ref.watch(customGroupNamesProvider).value ?? const {},
-      ),
-      if (_coreError != null) CustomIssue.coreRejected(_coreError!),
-    ].where((issue) => showIncomplete || !issue.isIncomplete).toList();
-    final nameInvalid = issues.any(
-      (issue) =>
-          issue is EmptyNameIssue ||
-          issue is ReservedNameIssue ||
-          issue is DuplicateNameIssue,
-    );
-    final easyTier = proxy.type == 'easytier';
-    final fields = proxy.fields;
-    return CommonScaffold(
-      iconActions: [
-        customQuickEditAction(context, onPressed: _handleQuickEdit),
-      ],
-      confirmationAction: customSaveAction(context, onPressed: _handleSave),
-      body: CustomScrollView(
-        slivers: [
-          SliverCustomIssuesBanner(issues: issues),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-            ).copyWith(bottom: 20),
-            sliver: SliverList.list(
-              children: [
-                generateSection(
-                  title: appLocalizations.basicInfo,
-                  items: [
-                    _buildTextItem(
-                      title: appLocalizations.name,
-                      key: 'name',
-                      value: proxy.name,
-                      maxLength: TextInputLimits.proxyName,
-                      hintText: appLocalizations.name,
-                      policyName: true,
-                      invalid: nameInvalid,
-                    ),
-                    _buildTypeItem(proxy.type),
-                    if (!easyTier) ...[
-                      _buildTextItem(
-                        title: appLocalizations.server,
-                        key: 'server',
-                        value: proxy.server,
-                        maxLength: TextInputLimits.domain,
-                        hintText: _requiredHint(proxy, 'server'),
-                      ),
-                      _buildTextItem(
-                        title: appLocalizations.port,
-                        key: 'port',
-                        value: proxy.port?.toString(),
-                        maxLength: TextInputLimits.port,
-                        hintText: _requiredHint(proxy, 'port'),
-                        digitsOnly: true,
-                      ),
-                    ],
-                    for (final field in fields)
-                      if (!field.isCredential) _buildField(proxy, field),
-                    _buildSwitchItem(
-                      title: 'UDP',
-                      value: proxy.definition['udp'] == true,
-                      onChanged: (value) => _update('udp', value),
-                    ),
-                  ],
-                ),
-                if (easyTier) _buildEasyTierSection(proxy),
-                generateSection(
-                  title: appLocalizations.authentication,
-                  items: [
-                    for (final field in fields)
-                      if (field.isCredential) _buildField(proxy, field),
-                  ],
-                ),
-                _buildOptions(proxy),
-                generateSection(
-                  title: appLocalizations.action,
-                  items: [
-                    if (!_isNew)
-                      FormRow(
-                        title: appLocalizations.delete,
-                        titleStyle: TextStyle(color: context.colorScheme.error),
-                        onPressed: _handleDelete,
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      title: _isNew
-          ? appLocalizations.addCustomProxy
-          : appLocalizations.editProxy,
-    );
-  }
-}
-
-/// Writes each change straight into the form, since a sheet page's back
-/// button pops it without a result.
-class _ProxyValuesView extends ConsumerWidget {
-  final String title;
-  final String field;
-  final int itemMaxLength;
-
-  const _ProxyValuesView({
-    required this.title,
-    required this.field,
-    required this.itemMaxLength,
-  });
-
-  List<String> _valuesOf(WidgetRef ref) =>
-      ref.read(customProxyProvider).stringsOf(field);
-
-  void _save(WidgetRef ref, List<String> values) {
-    ref
-        .read(customProxyProvider.notifier)
-        .update(
-          (state) => state.withValue(field, values.isEmpty ? null : values),
+      final saved = await controller.remove({id.toString()});
+      if (!saved && context.mounted) {
+        await showSaveBlocked(
+          context,
+          resourceErrorMessage(controller.error, l, label: l.proxies),
         );
-  }
-
-  Future<void> _handleAddOrUpdate(
-    BuildContext context,
-    WidgetRef ref, [
-    String? value,
-  ]) async {
-    final res = await showListEntryDialog(
-      context,
-      title: title,
-      entries: _valuesOf(ref),
-      entry: value,
-      itemMaxLength: itemMaxLength,
-    );
-    if (res == null || res.isEmpty || !context.mounted) {
-      return;
+      }
+      return saved;
+    } finally {
+      controller.dispose();
     }
-    final values = _valuesOf(ref);
-    _save(
-      ref,
-      value == null
-          ? [...values, ...res]
-          : [for (final item in values) item == value ? res.single : item],
-    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListEditorPage<String, String>(
-      title: title,
-      idOf: (value) => value,
-      itemsOf: (ref) => ref.watch(
-        customProxyProvider.select((state) => state.stringsOf(field)),
+    final proxy = ref.watch(customProxyProvider);
+    final issues = customProxyIssues(
+      proxy,
+      proxies: ref.watch(customProxiesProvider).value ?? const [],
+      groupNames: ref.watch(customGroupNamesProvider).value ?? const {},
+    );
+    return IpingCustomProxyEditor(
+      proxy: proxy,
+      isNew: proxy.id == -1,
+      onChanged: (value) =>
+          ref.read(customProxyProvider.notifier).value = value,
+      validate: (value) => ref
+          .read(ipingBackendProvider)
+          .customProxies
+          .validate(nativeIpingCustomProxy(value)),
+      save: (onRejected) =>
+          _handleSaveCustomProxy(context, ref, onCoreRejected: onRejected),
+      showSaveProgress: false,
+      close: () => context.safeNestedPop(),
+      bindSave: (save) => NestedFormSheet.bindSave(context, save),
+      quickEdit: (value) => _quickEdit(context, ref, value),
+      delete: () => _delete(context, ref),
+      nameInvalid: issues.any(
+        (issue) =>
+            issue is EmptyNameIssue ||
+            issue is ReservedNameIssue ||
+            issue is DuplicateNameIssue,
       ),
-      itemBuilder:
-          (
-            context,
-            ref,
-            value,
-            index,
-            isEditing,
-            isSelected,
-            onToggleSelected,
-          ) => SelectedDecorationListItem(
-            title: Text(value),
-            isEditing: isEditing,
-            isSelected: isSelected,
-            onSelected: onToggleSelected,
-            onPressed: () => _handleAddOrUpdate(context, ref, value),
-          ),
-      onReorder: (oldIndex, newIndex) =>
-          _save(ref, _valuesOf(ref).copyAndReorder(oldIndex, newIndex)),
-      onAdd: () => _handleAddOrUpdate(context, ref),
-      onDelete: (values) => _save(ref, [
-        for (final value in _valuesOf(ref))
-          if (!values.contains(value)) value,
-      ]),
-      emptyLabel: context.appLocalizations.nullTip(title),
+      issuesBuilder: (context, error, submitted) => CustomIssuesBanner(
+        issues: [...issues, if (error != null) CustomIssue.coreRejected(error)]
+            .where(
+              (issue) => proxy.id != -1 || submitted || !issue.isIncomplete,
+            )
+            .toList(),
+      ),
     );
   }
 }

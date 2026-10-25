@@ -700,6 +700,8 @@ void main() {
       required int version,
       required Size viewSize,
     }) async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
       container = ProviderContainer(
         overrides: [
           versionProvider.overrideWithBuild((_, _) => version),

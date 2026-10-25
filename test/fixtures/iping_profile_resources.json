@@ -1,0 +1,109 @@
+{
+  "source": {
+    "proxies": [
+      {
+        "name": "fixture",
+        "type": "direct"
+      }
+    ],
+    "proxy-groups": [
+      {
+        "name": "PROXY",
+        "type": "select",
+        "proxies": [
+          "fixture"
+        ]
+      }
+    ],
+    "rules": [
+      "MATCH,DIRECT"
+    ]
+  },
+  "values": {
+    "custom.bindings": {
+      "proxies": [
+        "p"
+      ],
+      "providers": [],
+      "filters": [
+        "Asia"
+      ],
+      "rules": [
+        "r"
+      ],
+      "script": "s"
+    },
+    "custom.proxies": [
+      {
+        "id": "p",
+        "definition": {
+          "name": "Home",
+          "type": "direct"
+        }
+      }
+    ],
+    "custom.filters": [
+      {
+        "label": "Asia",
+        "regex": "(?<=hk)1`jp"
+      }
+    ],
+    "custom.rules": [
+      {
+        "id": "r",
+        "definition": {
+          "ruleAction": "DOMAIN_REGEX",
+          "content": "^(a,b)\\.example$",
+          "ruleTarget": "MATCH",
+          "ruleProvider": null,
+          "subRule": null,
+          "noResolve": false,
+          "src": false
+        }
+      }
+    ],
+    "custom.scripts": [
+      {
+        "id": "s",
+        "label": "Transform",
+        "content": "const main = async (config) => { config['proxy-groups'][0].proxies.push('DIRECT'); config.rules = ['MATCH,PROXY']; return config; };"
+      }
+    ]
+  },
+  "expected": {
+    "proxies": [
+      {
+        "name": "fixture",
+        "type": "direct"
+      },
+      {
+        "name": "Home",
+        "type": "direct"
+      }
+    ],
+    "proxy-groups": [
+      {
+        "name": "PROXY",
+        "type": "select",
+        "proxies": [
+          "fixture",
+          "DIRECT",
+          "Home",
+          "Asia"
+        ]
+      },
+      {
+        "name": "Asia",
+        "type": "select",
+        "include-all-proxies": true,
+        "include-all-providers": true,
+        "filter": "(?<=hk)1`jp"
+      }
+    ],
+    "rules": [
+      "DOMAIN-REGEX,^(a,b)\\.example$,PROXY",
+      "MATCH,PROXY"
+    ],
+    "proxy-providers": {}
+  }
+}

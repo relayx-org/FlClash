@@ -1,3 +1,4 @@
+import 'package:fl_clash/features/form/list_editor_view.dart';
 import 'dart:async';
 
 import 'package:fl_clash/common/app_localizations.dart';
@@ -83,10 +84,20 @@ class _RecordingCustomProxies extends CustomProxies {
   Stream<List<CustomProxy>> build() => Stream.value(initial);
 
   @override
+  Future<List<CustomProxy>> resourceSnapshot() async => value;
+
+  @override
   void put(CustomProxy proxy) {
     saved.add(proxy);
-    value = [...value, proxy];
+    value = [
+      for (final item in value)
+        if (item.id != proxy.id) item,
+      proxy,
+    ];
   }
+
+  @override
+  Future<void> putAsync(CustomProxy proxy) async => put(proxy);
 }
 
 class _RecordingProxyDialers extends ProxyDialers {
@@ -1557,7 +1568,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(
       find.descendant(
-        of: find.byType(ListEditorPage<String, String>),
+        of: find.byType(ListEditorView<String, String>),
         matching: find.byTooltip(l10n.add),
       ),
     );

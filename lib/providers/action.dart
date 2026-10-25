@@ -16,6 +16,7 @@ import 'package:fl_clash/providers/actions/system_exit.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/iping/update_provider.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';

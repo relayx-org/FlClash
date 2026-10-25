@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:fl_clash/models/models.dart';
+import '../../models/tracker.dart';
 
 class _SpeedSample {
   final int upload;

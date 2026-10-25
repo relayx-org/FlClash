@@ -1,9 +1,9 @@
-import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'custom_issue.dart';
+import '../../ui/error_banner.dart';
 
 /// A form [showFormSheet] opens: grouped rows under a bar whose check saves,
 /// with why the last save was refused above them.
@@ -34,7 +34,7 @@ class FormPage extends StatelessWidget {
       iconActions: actions,
       confirmationAction: IconButtonData(
         glyph: AppGlyphs.check,
-        tooltip: saveLabel ?? context.appLocalizations.save,
+        tooltip: saveLabel ?? AppLocalizations.of(context).save,
         isLoading: saving,
         onPressed: saving ? null : onSave,
       ),

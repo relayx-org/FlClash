@@ -1,7 +1,7 @@
 import 'package:fl_clash/common/app_ports.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/ui/icons/app_glyphs.dart';
+import 'package:fl_clash/views/page_destination.dart';
 import 'package:fl_clash/views/views.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -15,13 +15,13 @@ class Navigation implements NavigationPort {
   }) {
     return [
       NavigationItem(
-        glyph: AppGlyphs.dashboard,
+        glyph: PageLabel.dashboard.glyph,
         label: PageLabel.dashboard,
         builder: (_) =>
             const DashboardView(key: GlobalObjectKey(PageLabel.dashboard)),
       ),
       NavigationItem(
-        glyph: AppGlyphs.proxies,
+        glyph: PageLabel.proxies.glyph,
         label: PageLabel.proxies,
         builder: (_) =>
             const ProxiesView(key: GlobalObjectKey(PageLabel.proxies)),
@@ -30,35 +30,35 @@ class Navigation implements NavigationPort {
             : [],
       ),
       NavigationItem(
-        glyph: AppGlyphs.requests,
+        glyph: PageLabel.requests.glyph,
         label: PageLabel.requests,
         builder: (_) =>
             const RequestsView(key: GlobalObjectKey(PageLabel.requests)),
         modes: [NavigationItemMode.moreFull],
       ),
       NavigationItem(
-        glyph: AppGlyphs.connections,
+        glyph: PageLabel.connections.glyph,
         label: PageLabel.connections,
         builder: (_) =>
             const ConnectionsView(key: GlobalObjectKey(PageLabel.connections)),
         modes: [NavigationItemMode.desktop, NavigationItemMode.moreFull],
       ),
       NavigationItem(
-        glyph: AppGlyphs.dns,
+        glyph: PageLabel.dns.glyph,
         label: PageLabel.dns,
         builder: (_) =>
             const DnsQueriesView(key: GlobalObjectKey(PageLabel.dns)),
         modes: [NavigationItemMode.moreFull],
       ),
       NavigationItem(
-        glyph: AppGlyphs.resources,
+        glyph: PageLabel.resources.glyph,
         label: PageLabel.resources,
         builder: (_) =>
             const ResourcesView(key: GlobalObjectKey(PageLabel.resources)),
         modes: [NavigationItemMode.more],
       ),
       NavigationItem(
-        glyph: AppGlyphs.logs,
+        glyph: PageLabel.logs.glyph,
         label: PageLabel.logs,
         builder: (_) => const LogsView(key: GlobalObjectKey(PageLabel.logs)),
         modes: openLogs
@@ -66,7 +66,7 @@ class Navigation implements NavigationPort {
             : [],
       ),
       NavigationItem(
-        glyph: AppGlyphs.settings,
+        glyph: PageLabel.tools.glyph,
         label: PageLabel.tools,
         builder: (_) => const ToolsView(key: GlobalObjectKey(PageLabel.tools)),
         modes: [NavigationItemMode.desktop, NavigationItemMode.mobile],

@@ -8691,6 +8691,201 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `The value for {name} is invalid.`
+  String invalidSettingTip(String name) {
+    return Intl.message(
+      'The value for $name is invalid.',
+      name: 'invalidSettingTip',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Access your router`
+  String get routerAccessTitle {
+    return Intl.message(
+      'Access your router',
+      name: 'routerAccessTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access key`
+  String get routerAccessKey {
+    return Intl.message(
+      'Access key',
+      name: 'routerAccessKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Run this command over SSH on the router to get its access key:`
+  String get routerAccessHint {
+    return Intl.message(
+      'Run this command over SSH on the router to get its access key:',
+      name: 'routerAccessHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The access key is incorrect.`
+  String get routerAccessInvalid {
+    return Intl.message(
+      'The access key is incorrect.',
+      name: 'routerAccessInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to reach the router agent. Check the service and retry.`
+  String get routerAgentUnavailable {
+    return Intl.message(
+      'Unable to reach the router agent. Check the service and retry.',
+      name: 'routerAgentUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The router could not complete the operation. Check its logs and retry.`
+  String get routerOperationFailed {
+    return Intl.message(
+      'The router could not complete the operation. Check its logs and retry.',
+      name: 'routerOperationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Another proxy is using the required network resources. Stop it before connecting iPing.`
+  String get routerServiceConflict {
+    return Intl.message(
+      'Another proxy is using the required network resources. Stop it before connecting iPing.',
+      name: 'routerServiceConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Another operation is in progress. Please wait.`
+  String get routerBusy {
+    return Intl.message(
+      'Another operation is in progress. Please wait.',
+      name: 'routerBusy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saved on this router. Applying changes restarts the iPing core and may interrupt connections.`
+  String get routerSettingsHint {
+    return Intl.message(
+      'Saved on this router. Applying changes restarts the iPing core and may interrupt connections.',
+      name: 'routerSettingsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Additional rules run before subscription rules. Custom nodes and filter groups are added to selector groups. Proxy and rule provider entries use Mihomo YAML.`
+  String get routerResourcesHint {
+    return Intl.message(
+      'Additional rules run before subscription rules. Custom nodes and filter groups are added to selector groups. Proxy and rule provider entries use Mihomo YAML.',
+      name: 'routerResourcesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use a group name as the key and an HTTP(S) image URL as the value.`
+  String get routerIconsHint {
+    return Intl.message(
+      'Use a group name as the key and an HTTP(S) image URL as the value.',
+      name: 'routerIconsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Define main(config) and return the modified profile. Scripts run on this router with a 3-second timeout and no network or file APIs.`
+  String get routerScriptHint {
+    return Intl.message(
+      'Define main(config) and return the modified profile. Scripts run on this router with a 3-second timeout and no network or file APIs.',
+      name: 'routerScriptHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Group icons`
+  String get groupIcons {
+    return Intl.message('Group icons', name: 'groupIcons', desc: '', args: []);
+  }
+
+  /// `The resource changed. Reload and try again.`
+  String get resourceChangedTip {
+    return Intl.message(
+      'The resource changed. Reload and try again.',
+      name: 'resourceChangedTip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Behavior`
+  String get ruleProviderBehavior {
+    return Intl.message(
+      'Behavior',
+      name: 'ruleProviderBehavior',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Format`
+  String get ruleProviderFormat {
+    return Intl.message(
+      'Format',
+      name: 'ruleProviderFormat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply resources to current profile`
+  String get applyResources {
+    return Intl.message(
+      'Apply resources to current profile',
+      name: 'applyResources',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saving resources adds them to the library. Select the resources to apply to this profile. Selected nodes and filter groups are added to its selectors.`
+  String get resourceSelectionHint {
+    return Intl.message(
+      'Saving resources adds them to the library. Select the resources to apply to this profile. Selected nodes and filter groups are added to its selectors.',
+      name: 'resourceSelectionHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resources are stored in the library. Choose Apply resources to current profile to use them.`
+  String get resourceLibraryHint {
+    return Intl.message(
+      'Resources are stored in the library. Choose Apply resources to current profile to use them.',
+      name: 'resourceLibraryHint',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

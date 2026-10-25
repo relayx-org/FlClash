@@ -1760,50 +1760,53 @@ void main() {
       expect(group['include-all-providers'], isTrue);
     });
 
-    test('only a subscription profile runs its script extension', () async {
-      final engine = scriptEvaluator;
-      addTearDown(() => scriptEvaluator = engine);
-      final evaluated = <String>[];
-      scriptEvaluator =
-          ({required String script, required String config}) async {
-            evaluated.add(script);
-            return config;
-          };
-      final script = await Script(
-        id: 77,
-        label: 'script',
-        lastUpdateTime: DateTime(2026),
-      ).save('const main = (config) => config;');
-      final core = _MockCoreHandlerInterface();
-      when(() => core.getConfig(any())).thenAnswer((_) async => {});
-      final scoped = ProviderContainer(
-        overrides: [
-          connectedAccountOverride,
-          coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
-          setupActionProvider.overrideWith(SetupAction.new),
-        ],
-      );
-      addTearDown(scoped.dispose);
-      Future<void> build(ProfileType type) => scoped
-          .read(setupActionProvider.notifier)
-          .getProfile(
-            setupState: nullProfileSetupState.copyWith(
-              profileId: 5,
-              profileType: type,
-              extendType: ExtendType.script,
-              script: script,
-            ),
-            patchConfig: const PatchClashConfig(),
-          );
+    test(
+      'custom and subscription profiles run their selected script',
+      () async {
+        final engine = scriptEvaluator;
+        addTearDown(() => scriptEvaluator = engine);
+        final evaluated = <String>[];
+        scriptEvaluator =
+            ({required String script, required String config}) async {
+              evaluated.add(script);
+              return config;
+            };
+        final script = await Script(
+          id: 77,
+          label: 'script',
+          lastUpdateTime: DateTime(2026),
+        ).save('const main = (config) => config;');
+        final core = _MockCoreHandlerInterface();
+        when(() => core.getConfig(any())).thenAnswer((_) async => {});
+        final scoped = ProviderContainer(
+          overrides: [
+            connectedAccountOverride,
+            coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+            setupActionProvider.overrideWith(SetupAction.new),
+          ],
+        );
+        addTearDown(scoped.dispose);
+        Future<void> build(ProfileType type) => scoped
+            .read(setupActionProvider.notifier)
+            .getProfile(
+              setupState: nullProfileSetupState.copyWith(
+                profileId: 5,
+                profileType: type,
+                extendType: ExtendType.script,
+                script: script,
+              ),
+              patchConfig: const PatchClashConfig(),
+            );
 
-      await build(ProfileType.custom);
-      expect(evaluated, isEmpty);
-      verifyNever(() => core.getConfig(any()));
+        await build(ProfileType.custom);
+        expect(evaluated, hasLength(1));
+        verifyNever(() => core.getConfig(any()));
 
-      await build(ProfileType.file);
-      expect(evaluated, hasLength(1));
-      verify(() => core.getConfig(any())).called(1);
-    });
+        await build(ProfileType.file);
+        expect(evaluated, hasLength(2));
+        verify(() => core.getConfig(any())).called(1);
+      },
+    );
 
     test(
       'a rejected setupConfig without a handoff reports failure, not success',
