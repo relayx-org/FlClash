@@ -1,0 +1,251 @@
+#!/bin/sh
+set -eu
+
+work=''
+restore_service=0
+repositories_updated=0
+auto_update=''
+mode=install
+scheduled=0
+
+fail() { echo "iPing: $*" >&2; exit 1; }
+
+cleanup() {
+    result=$?
+    trap - 0
+    if [ "$restore_service" = 1 ]; then
+        IPING_UPDATE_START=1 /etc/init.d/iping start || echo 'iPing: could not restore the service' >&2
+    fi
+    [ -z "$work" ] || rm -rf "$work"
+    exit "$result"
+}
+
+update_repositories() {
+    [ "$repositories_updated" = 0 ] || return 0
+    "$manager" update
+    repositories_updated=1
+}
+
+detect_platform() {
+    [ -f /etc/openwrt_release ] || fail 'this installer requires OpenWrt'
+    # shellcheck source=/dev/null
+    . /etc/openwrt_release
+    case "${DISTRIB_RELEASE:-}" in
+        24.10|24.10.*) branch=24.10; manager=opkg; extension=ipk ;;
+        25.12|25.12.*) branch=25.12; manager=apk; extension=apk ;;
+        *) fail "unsupported OpenWrt release: ${DISTRIB_RELEASE:-unknown}" ;;
+    esac
+    command -v "$manager" >/dev/null || fail "missing package manager: $manager"
+    arch=${DISTRIB_ARCH:-}
+    if [ -z "$arch" ]; then
+        if [ "$manager" = opkg ]; then
+            arch=$(opkg print-architecture | sort -nk3 | tail -n1 | awk '{print $2}')
+        else
+            arch=$(apk --print-arch)
+        fi
+    fi
+    case "$arch" in ''|*[!a-zA-Z0-9_-]*) fail 'cannot determine the OpenWrt package architecture' ;; esac
+}
+
+ensure_tools() {
+    set --
+    for tool in curl jsonfilter unzip flock; do
+        command -v "$tool" >/dev/null || set -- "$@" "$tool"
+    done
+    if [ "$#" -gt 0 ]; then
+        [ "$scheduled" = 0 ] || fail 'update dependencies are missing; rerun the installer'
+        update_repositories
+        if [ "$manager" = opkg ]; then
+            opkg install ca-bundle "$@"
+        else
+            apk add ca-bundle "$@"
+        fi
+    fi
+    command -v sha256sum >/dev/null || fail 'sha256sum is required'
+}
+
+schedule_updates() {
+    mkdir -p /etc/crontabs
+    cron=$(mktemp /tmp/iping-cron.XXXXXX)
+    if [ -f /etc/crontabs/root ]; then
+        sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
+    fi
+    schedule_enabled=$(uci -q get iping.config.auto_update || echo 1)
+    if [ "$schedule_enabled" = 1 ]; then
+        minute=$(uci -q get iping.config.update_minute || true)
+        case "$minute" in
+            ''|*[!0-9]*) minute=$(od -An -N2 -tu2 /dev/urandom | tr -d ' '); minute=$((minute % 60)) ;;
+        esac
+        [ "$minute" -le 59 ] || { rm -f "$cron"; fail 'update_minute must be between 0 and 59'; }
+        uci set "iping.config.update_minute=$minute"
+        uci commit iping
+        printf '%s 4 * * * /usr/libexec/iping/update --scheduled 2>&1 | logger -t iping-update # iping-auto-update\n' "$minute" >> "$cron"
+    fi
+    crontab "$cron"
+    rm -f "$cron"
+    if [ "$schedule_enabled" = 1 ]; then
+        /etc/init.d/cron enable
+        /etc/init.d/cron restart
+    elif /etc/init.d/cron running; then
+        /etc/init.d/cron restart
+    fi
+}
+
+download() {
+    curl --fail --location --silent --show-error --retry 3 --connect-timeout 15 \
+        --max-time 300 --proto '=https' --proto-redir '=https' --output "$2" "$1"
+    [ -s "$2" ] || fail "empty download: $1"
+}
+
+field() { jsonfilter -i "$work/latest.json" -e "$1"; }
+
+valid_version() { echo "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\+[1-9][0-9]{0,14}$'; }
+
+newer() {
+    awk -v incoming="$1" -v current="$2" 'BEGIN {
+        split(incoming, n, /[.+]/); split(current, c, /[.+]/);
+        for (i = 1; i <= 4; i++) {
+            if (n[i] + 0 > c[i] + 0) exit 0;
+            if (n[i] + 0 < c[i] + 0) exit 1;
+        }
+        exit 1;
+    }'
+}
+
+unpack_packages() {
+    unzip -p "$work/bundle.zip" SHA256SUMS > "$work/SHA256SUMS"
+    agent_package=''
+    core_package=''
+    while read -r digest name extra; do
+        if [ -n "$extra" ] || [ "${#digest}" != 64 ]; then fail 'invalid package checksums'; fi
+        case "$digest" in *[!0-9a-f]*) fail 'invalid package checksum' ;; esac
+        if [ "$extension" = ipk ]; then
+            expected="iping_${version}-r${build}_${arch}.ipk"
+        else
+            expected="iping-${version}-r${build}.apk"
+        fi
+        case "$name" in ''|*[!a-zA-Z0-9_.-]*) fail 'invalid package filename' ;; esac
+        if [ "$name" = "$expected" ] && [ -z "$agent_package" ]; then
+            agent_package="$work/$name"
+        else
+            case "$extension:$name" in
+                ipk:iping-mihomo_*_"$arch".ipk|apk:iping-mihomo-*.apk)
+                    [ -z "$core_package" ] || fail 'duplicate Core package'
+                    core_package="$work/$name" ;;
+                *) fail "unexpected package: $name" ;;
+            esac
+        fi
+        unzip -p "$work/bundle.zip" "$name" > "$work/$name"
+        [ -s "$work/$name" ] || fail "empty package: $name"
+        printf '%s  %s\n' "$digest" "$work/$name" | sha256sum -c -
+    done < "$work/SHA256SUMS"
+    if [ -z "$agent_package" ] || [ -z "$core_package" ]; then fail 'the release must contain Agent and Core packages'; fi
+}
+
+show_address() {
+    address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
+    listener=$(uci -q get iping.config.web_listen || echo '0.0.0.0:19091')
+    echo "iPing is ready: http://$address:${listener##*:}/"
+    echo 'Open the address and sign in with your iPing account.'
+}
+
+main() {
+    [ "$(id -u)" = 0 ] || fail 'run this installer as root'
+    case "${1:-}" in
+        auto)
+            case "${2:-}" in on) value=1 ;; off) value=0 ;; *) fail 'usage: iping-update auto on|off' ;; esac
+            uci set "iping.config.auto_update=$value"
+            uci commit iping
+            schedule_updates
+            exit 0 ;;
+        schedule) schedule_updates; exit 0 ;;
+    esac
+    for argument in "$@"; do
+        case "$argument" in
+            install|update|check) mode=$argument ;;
+            --scheduled) mode=update; scheduled=1 ;;
+            --no-auto-update) auto_update=0 ;;
+            --auto-update) auto_update=1 ;;
+            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off] [--no-auto-update]'; exit 0 ;;
+            *) fail "unknown argument: $argument" ;;
+        esac
+    done
+    if [ "$scheduled" = 1 ] && [ "$(uci -q get iping.config.auto_update || echo 1)" != 1 ]; then exit 0; fi
+    detect_platform
+    ensure_tools
+    mkdir -p /var/lock
+    exec 9>/var/lock/iping-update.lock
+    flock -n 9 || fail 'another iPing installation or update is running'
+    work=$(mktemp -d /tmp/iping-update.XXXXXX)
+    trap cleanup 0
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    base_url=${IPING_UPDATE_BASE_URL:-$(uci -q get iping.config.update_url || echo 'https://video.iping.my/releases/')}
+    case "$base_url" in https://*/*/) ;; *) fail 'the update URL must use HTTPS and end in /' ;; esac
+    download "${base_url}latest.json" "$work/latest.json"
+    [ "$(field '@.schemaVersion')" = 1 ] || fail 'unsupported update manifest'
+    [ "$(field '@.packageId')" = my.iping.client ] || fail 'invalid update package ID'
+    version=$(field '@.version')
+    build=$(field '@.buildNumber')
+    target="$version+$build"
+    valid_version "$target" || fail 'invalid release version'
+    filename="iPing-${version}-openwrt-${branch}-${arch}.zip"
+    key="@.downloads[\"openwrt-${branch}-${arch}\"]"
+    url=$(field "$key.url")
+    size=$(field "$key.size")
+    digest=$(field "$key.sha256")
+    [ "$url" = "${base_url}${target}/${filename}" ] || fail "no matching release for OpenWrt $branch / $arch"
+    case "$size" in ''|*[!0-9]*) fail 'invalid release size' ;; esac
+    if [ "${#size}" -gt 10 ] || [ "$size" -le 0 ]; then fail 'invalid release size'; fi
+    [ "${#digest}" = 64 ] || fail 'invalid release checksum'
+    case "$digest" in *[!0-9a-f]*) fail 'invalid release checksum' ;; esac
+    installed=$(cat /usr/share/iping/version 2>/dev/null || true)
+    if [ -n "$installed" ]; then
+        valid_version "$installed" || fail 'invalid installed version'
+        if ! newer "$target" "$installed"; then
+            echo "iPing $installed is current; no update needed."
+            if [ "$mode" = install ]; then
+                if [ -n "$auto_update" ]; then uci set "iping.config.auto_update=$auto_update"; uci commit iping; fi
+                schedule_updates
+                /etc/init.d/iping enable
+                IPING_UPDATE_START=1 /etc/init.d/iping start
+                show_address
+            fi
+            exit 0
+        fi
+    fi
+    echo "iPing: ${installed:-not installed} -> $target (OpenWrt $branch / $arch)"
+    [ "$mode" != check ] || exit 0
+    available=$(df -Pk /tmp | awk 'END { print $4 * 1024 }')
+    awk -v available="$available" -v size="$size" 'BEGIN { exit !(available >= size * 2 + 8388608) }' || fail 'not enough temporary space for download and verification'
+    download "$url" "$work/bundle.zip"
+    [ "$(wc -c < "$work/bundle.zip" | tr -d ' ')" = "$size" ] || fail 'incomplete release download'
+    printf '%s  %s\n' "$digest" "$work/bundle.zip" | sha256sum -c -
+    unpack_packages
+    update_repositories
+    was_running=0
+    if [ -x /etc/init.d/iping ] && /etc/init.d/iping running; then was_running=1; fi
+    if [ "$was_running" = 1 ]; then
+        restore_service=1
+        /etc/init.d/iping stop
+    fi
+    if [ "$manager" = opkg ]; then
+        opkg install "$core_package" "$agent_package"
+    else
+        apk add --allow-untrusted --upgrade "$core_package" "$agent_package"
+    fi
+    [ "$(cat /usr/share/iping/version)" = "$target" ] || fail 'the package manager did not install the expected version'
+    if [ -n "$auto_update" ]; then uci set "iping.config.auto_update=$auto_update"; fi
+    if [ -n "${IPING_UPDATE_BASE_URL:-}" ]; then uci set "iping.config.update_url=$base_url"; fi
+    uci commit iping
+    schedule_updates
+    if [ "$mode" = install ]; then /etc/init.d/iping enable; fi
+    if [ "$mode" = install ] || [ "$was_running" = 1 ]; then
+        IPING_UPDATE_START=1 /etc/init.d/iping start
+    fi
+    restore_service=0
+    echo "iPing $target installed."
+    [ "$scheduled" = 1 ] || show_address
+}
+
+main "$@"

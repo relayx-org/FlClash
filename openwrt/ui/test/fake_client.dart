@@ -3,17 +3,6 @@ import 'dart:async';
 import 'package:iping_openwrt/client.dart';
 
 class FakeRouterClient implements RouterClient {
-  bool authorized = true;
-  Completer<bool>? authorization;
-  bool failAuthorization = false;
-  @override
-  Future<bool> authorize([String? key]) async {
-    if (failAuthorization) throw const RouterException('agent_unavailable');
-    if (authorization case final pending?) return pending.future;
-    if (key != null) authorized = key == 'test-key';
-    return authorized;
-  }
-
   FakeRouterClient({this.signedIn = true}) {
     sourceSettings.addAll(settings);
     for (final key in settings.keys) {

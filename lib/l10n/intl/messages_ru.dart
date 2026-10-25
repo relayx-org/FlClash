@@ -1750,16 +1750,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Исключённые адреса маршрутов",
     ),
-    "routerAccessHint": MessageLookupByLibrary.simpleMessage(
-      "Подключитесь к роутеру по SSH и выполните команду, чтобы получить ключ доступа:",
-    ),
-    "routerAccessInvalid": MessageLookupByLibrary.simpleMessage(
-      "Неверный ключ доступа.",
-    ),
-    "routerAccessKey": MessageLookupByLibrary.simpleMessage("Ключ доступа"),
-    "routerAccessTitle": MessageLookupByLibrary.simpleMessage(
-      "Доступ к роутеру",
-    ),
     "routerAgentUnavailable": MessageLookupByLibrary.simpleMessage(
       "Не удалось подключиться к службе роутера. Проверьте её состояние и повторите попытку.",
     ),

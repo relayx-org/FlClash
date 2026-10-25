@@ -1381,14 +1381,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("다시 시도"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("라우팅 주소"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("라우팅 제외 주소"),
-    "routerAccessHint": MessageLookupByLibrary.simpleMessage(
-      "라우터에 SSH로 접속한 뒤 다음 명령을 실행하여 접속 키를 확인하세요:",
-    ),
-    "routerAccessInvalid": MessageLookupByLibrary.simpleMessage(
-      "접속 키가 올바르지 않습니다.",
-    ),
-    "routerAccessKey": MessageLookupByLibrary.simpleMessage("접속 키"),
-    "routerAccessTitle": MessageLookupByLibrary.simpleMessage("라우터 접속"),
     "routerAgentUnavailable": MessageLookupByLibrary.simpleMessage(
       "라우터 서비스에 연결할 수 없습니다. 서비스 상태를 확인한 뒤 다시 시도하세요.",
     ),

@@ -6,9 +6,6 @@ import 'client.dart';
 @JS('ipingRequest')
 external JSPromise<JSString> _request(JSString method, JSString args);
 
-@JS('ipingAuthorize')
-external JSPromise<JSBoolean> _authorize(JSString key);
-
 @JS('ipingSignIn')
 external JSPromise<JSAny?> _signIn(JSBoolean register);
 
@@ -28,15 +25,6 @@ external void _writePreferences(JSString value);
 
 class WebRouterClient implements RouterClient {
   const WebRouterClient();
-
-  @override
-  Future<bool> authorize([String? key]) async {
-    try {
-      return (await _authorize((key ?? '').toJS).toDart).toDart;
-    } catch (error) {
-      throw RouterException(_errorCode(error));
-    }
-  }
 
   @override
   Map<String, Object?> readPreferences() {

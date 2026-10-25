@@ -17,7 +17,6 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'client.dart';
-import 'access.dart';
 import 'controller.dart';
 import 'pages.dart';
 
@@ -47,9 +46,6 @@ class RouterAppState extends State<RouterApp> {
     widget.client.readPreferences(),
   );
   int _revision = 0;
-  bool? _authorized;
-  bool _authorizing = false;
-  String? _accessError;
   static RouterAppState of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<RouterPreferencesScope>()!.app;
   ThemeMode get themeMode => preferences.themeMode;
@@ -69,62 +65,8 @@ class RouterAppState extends State<RouterApp> {
   @override
   void initState() {
     super.initState();
-    unawaited(authorize());
+    unawaited(_controller.initialize());
   }
-
-  Future<void> authorize([String? key]) async {
-    if (_authorizing) return;
-    setState(() {
-      _revision++;
-      _authorizing = true;
-      _accessError = null;
-    });
-    try {
-      final accepted = await widget.client.authorize(key);
-      if (!mounted) return;
-      if (accepted) {
-        _controller.accessExpired = false;
-        if (_controller.initialized) {
-          await _controller.refresh();
-        } else {
-          await _controller.initialize();
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _revision++;
-          _authorized = accepted;
-          if (!accepted && key != null) _accessError = 'access_invalid';
-        });
-      }
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _revision++;
-          _authorized = false;
-          _accessError = error is RouterException
-              ? error.message
-              : 'agent_unavailable';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _revision++;
-          _authorizing = false;
-        });
-      }
-    }
-  }
-
-  Widget accessPage(BuildContext context) => RouterAccessPage(
-    loading: _authorized == null,
-    busy: _authorizing,
-    error: _accessError == null
-        ? null
-        : routerErrorMessage(_accessError!, AppLocalizations.of(context)),
-    onSubmit: authorize,
-  );
 
   void updateAppearance({
     ThemeMode? theme,
@@ -263,10 +205,6 @@ class _Gate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = RouterScope.of(context);
-    final app = RouterAppState.of(context);
-    if (app._authorized != true || controller.accessExpired) {
-      return app.accessPage(context);
-    }
     if (!controller.initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

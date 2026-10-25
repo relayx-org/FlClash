@@ -5,6 +5,7 @@
 另有实验性 [iOS 版本](ios/README.md)，用于签名后的真机开发与内测。
 
 [OpenWrt 版本](openwrt/README.md) 使用独立 Agent、内嵌 Flutter Web 界面和专用 Mihomo 内核，与客户端共享界面和后端接口，不依赖 LuCI 或 Nikki 插件。
+OpenWrt 提供[一键安装脚本](openwrt/README.md#use)，自动识别软件包架构、设置开机启动并支持每日稳定版更新；Web 界面直接使用 iPing 账号登录。
 
 ## 开发与构建
 

@@ -1073,10 +1073,6 @@
       }
     }
   },
-  "routerAccessTitle": "Access your router",
-  "routerAccessKey": "Access key",
-  "routerAccessHint": "Run this command over SSH on the router to get its access key:",
-  "routerAccessInvalid": "The access key is incorrect.",
   "routerAgentUnavailable": "Unable to reach the router agent. Check the service and retry.",
   "routerOperationFailed": "The router could not complete the operation. Check its logs and retry.",
   "routerServiceConflict": "Another proxy is using the required network resources. Stop it before connecting iPing.",

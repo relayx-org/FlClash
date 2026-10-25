@@ -319,13 +319,14 @@ subscription updates. TUN enable/device and DNS enable/listen remain explicit ro
 settings. A source is required for saves; no legacy configuration is imported. Native
 authentication and host preferences retain their existing platform owners.
 
-OpenWrt's `iping` Agent embeds the Web application, serves its authenticated HTTP API,
+OpenWrt's `iping` Agent embeds the Web application, serves its local HTTP API,
 and owns its private `iping-mihomo` child. procd supervises only the Agent. Core
 transitions serialize in `coreRuntime`, preserve the latest running intent, and close
 terminally. Configuration changes validate first and restore prior files and runtime
 on failure. Network leases and inherited process locks prevent competing owners;
-cleanup verifies interface and nftables identities. The Web access key creates signed
-HttpOnly sessions independently of account login. There is no LuCI/rpcd bridge.
+cleanup verifies interface and nftables identities. Local Web access needs no extra key;
+the API retains LAN and same-origin checks, and HttpOnly browser cookies bind account
+login attempts to their initiating browser. There is no LuCI/rpcd bridge.
 `openwrt/README.md` documents packaging and reserved network resources.
 
 `CoreController.start()`, `restart()`, `stop()`, and `close()` are the only shared lifecycle facade. `close()` is terminal;
@@ -1500,7 +1501,9 @@ The release workflow includes iOS IPA output and calls the reusable OpenWrt work
 `tool/ci/openwrt_release.py` stamps the Agent/Web versions from `pubspec.yaml`, checks the expected Agent/Core package
 pair, and bundles each firmware/architecture combination with checksums and installation commands. Upload waits for
 both the native matrix and OpenWrt. Stable IPA/OpenWrt downloads are staged beside app-update artifacts in MinIO,
-while the automatic-update target set remains desktop/Android.
+while native automatic-update assets remain desktop/Android. The manifest exposes iOS/OpenWrt downloads separately;
+OpenWrt uses its packaged BusyBox-compatible updater and a daily cron job. The bootstrap installer is published
+alongside the versioned downloads before replacing the stable manifest.
 
 The desktop Go core and the Rust helper are built by a Dart build hook; Android's Core is built by Gradle (see Android
 Core Build). `plugins/setup/hook/build.dart` only constructs

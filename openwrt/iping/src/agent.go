@@ -101,10 +101,6 @@ func serveAgent() error {
 		return failure("busy")
 	}
 	a.core = &coreRuntime{app: a}
-	key, err := a.accessKey()
-	if err != nil {
-		return err
-	}
 	address, err := a.webAddress(ctx)
 	if err != nil {
 		return err
@@ -127,7 +123,7 @@ func serveAgent() error {
 		return err
 	}
 	server := &http.Server{Handler: a.handler(), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second}
-	webServer := &http.Server{Handler: a.webHandler(key), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 30 * time.Second}
+	webServer := &http.Server{Handler: a.webHandler(), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 30 * time.Second}
 	stopped := make(chan error, 2)
 	go func() { stopped <- server.Serve(listener) }()
 	go func() { stopped <- webServer.Serve(webListener) }()

@@ -20,7 +20,9 @@ on:
       - 'test/**'
       - 'pubspec.*'
       - '.github/workflows/openwrt.yaml'
+      - '.github/workflows/build.yaml'
       - 'tool/ci/openwrt_release.py'
+      - 'tool/update_manifest.dart'
 
 permissions:
   contents: read
@@ -37,7 +39,11 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
       - name: Check package release tooling
+        env:
+          IPING_INSTALLER_TEST_IMAGE: busybox:1.37.0
         run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
+      - name: Check installer shell compatibility
+        run: docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -93,6 +99,15 @@ jobs:
 
       - name: Build shared Flutter interface
         run: bash openwrt/build_ui.sh
+
+      - name: Prepare the one-command installer
+        run: install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/install-openwrt.sh"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-openwrt-installer
+          path: ${{ runner.temp }}/install-openwrt.sh
+          if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
         with:

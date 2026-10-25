@@ -412,7 +412,7 @@ jobs:
 
       - name: Generate checksums
         working-directory: dist
-        run: sha256sum ./iPing-* > SHA256SUMS
+        run: sha256sum ./iPing-* ./install-openwrt.sh > SHA256SUMS
 
       - name: Attach packages to the published release
         env:

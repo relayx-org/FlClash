@@ -1405,14 +1405,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("再試行"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("ルートアドレス"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("ルート除外アドレス"),
-    "routerAccessHint": MessageLookupByLibrary.simpleMessage(
-      "ルーターに SSH 接続して次のコマンドを実行し、アクセスキーを取得してください：",
-    ),
-    "routerAccessInvalid": MessageLookupByLibrary.simpleMessage(
-      "アクセスキーが正しくありません。",
-    ),
-    "routerAccessKey": MessageLookupByLibrary.simpleMessage("アクセスキー"),
-    "routerAccessTitle": MessageLookupByLibrary.simpleMessage("ルーターにアクセス"),
     "routerAgentUnavailable": MessageLookupByLibrary.simpleMessage(
       "ルーターのサービスに接続できません。サービスを確認して再試行してください。",
     ),

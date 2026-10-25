@@ -15,12 +15,6 @@
    return result.data ?? null;
   } finally { clearTimeout(timeout); }
  }
- window.ipingAuthorize = async key => {
-  const data = await fetchJson('/api/session', key === '' ? {} : {
-   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key })
-  });
-  return data?.authenticated === true;
- };
  window.ipingRequest = async (method, args) => JSON.stringify(await fetchJson('/api/' + encodeURIComponent(method), {
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: args
  }));

@@ -1,7 +1,6 @@
 import 'package:fl_clash/l10n/l10n.dart';
 
 abstract interface class RouterClient {
-  Future<bool> authorize([String? key]);
   Future<Object?> call(String method, [Map<String, Object?> args = const {}]);
   Future<void> signIn({bool register = false});
   void cancelSignIn();
@@ -21,7 +20,6 @@ class RouterException implements Exception {
 }
 
 String routerErrorMessage(String code, AppLocalizations l) => switch (code) {
-  'access_invalid' || 'access_required' => l.routerAccessInvalid,
   'agent_unavailable' => l.routerAgentUnavailable,
   'service_conflict' => l.routerServiceConflict,
   'busy' => l.routerBusy,

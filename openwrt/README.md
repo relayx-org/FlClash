@@ -72,24 +72,48 @@ download directory.
 
 ## Use
 
-Install `iping-mihomo`, `iping`, and their dependencies. Installation enables and
-starts `/etc/init.d/iping`. Open `http://<router-LAN-address>:19091/` and enter the
-Web access key printed over SSH by:
+Run this command over SSH as root after the first stable release containing OpenWrt
+packages has been published:
 
 ```sh
-/usr/libexec/iping/agent token
+wget -qO /tmp/iping-install.sh https://video.iping.my/releases/install-openwrt.sh && sh /tmp/iping-install.sh
 ```
 
-The key is created on first use and stored privately in `/etc/iping/web-key`.
-Successful authorization creates a signed HttpOnly, SameSite Strict browser
-cookie valid for twelve hours. The HTTP server accepts private, loopback, and
-link-local clients; state-changing API calls also require the same Origin.
+The installer reads the firmware branch and exact package architecture from OpenWrt,
+installs its download tools and package dependencies, and verifies the release ZIP's
+size and SHA-256 plus both packages' checksums before installing. It enables the
+Agent at boot and prints its Web address. Open `http://<router-LAN-address>:19091/`
+and sign in with your iPing account. There is no separate router access key.
 
-After authorizing the router, sign in to the iPing account in the Web interface.
+Automatic updates are enabled by default. A local cron task checks the stable update
+manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
+when the version/build is newer; it does not execute a downloaded installer or upgrade
+unrelated system packages. Download and verification finish before the Agent is stopped.
+Updates use the package manager and preserve `/etc/iping/` and UCI configuration. A
+running Agent is restarted after updating; an Agent that was stopped remains stopped.
+An installation failure attempts to restart the service and is recorded through
+`logread -e iping-update`; package replacement is not an atomic rollback.
+
+```sh
+iping-update check       # Check for a newer stable build
+iping-update update      # Update now
+iping-update auto off    # Disable daily updates
+iping-update auto on     # Enable daily updates
+```
+
+For installation without automatic updates, run `sh /tmp/iping-install.sh --no-auto-update`.
+Re-running the installer preserves an existing update preference unless explicitly
+changed. Stop other transparent proxy services before connecting iPing.
+
+Manual package installation remains available: unzip the matching release bundle,
+verify `SHA256SUMS`, and run its `INSTALL.txt` command. Installation enables and starts
+`/etc/init.d/iping`. The HTTP server accepts private, loopback, and link-local clients;
+state-changing API calls require the same Origin. Browser cookies only bind pending
+account sign-in to the browser that started it.
+
 Browser login uses a one-time code, state, and PKCE verifier; pending login is
-bound to the authorized browser session. Allow its login popup. The account
+bound to the initiating browser session. Allow its login popup. The account
 session and subscription credentials stay in the Agent's private data directory.
-The account login and the router access key serve different purposes.
 
 Sync downloads and validates the subscription before installing it. Connect
 starts the private Core; disconnect stops that process and releases its network
@@ -103,6 +127,7 @@ config iping 'config'
     option site 'https://iping.my'
     option enabled '0'
     option web_listen '0.0.0.0:19091'
+    option auto_update '1'
 ```
 
 Changing the site or Web listener requires `/etc/init.d/iping restart`. Core
@@ -114,7 +139,7 @@ with a JSON request on stdin.
 
 `/etc/iping/` contains the account session, original subscription `source.yaml`,
 local overrides `settings.json`, validated `profile.yaml`, and private controller
-and Web keys. `/var/run/iping/` contains the running profile, job state, bounded
+keys. `/var/run/iping/` contains the running profile, job state, bounded
 Core log, process locks, Unix socket, and network lease. The package preserves
 its own data across sysupgrade; no older plugin configuration is migrated.
 

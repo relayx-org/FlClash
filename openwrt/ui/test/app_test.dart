@@ -12,7 +12,7 @@ import 'package:fl_clash/views/settings_page.dart';
 import 'package:fl_clash/views/proxies/list_presentation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iping_openwrt/app.dart';
-import 'package:iping_openwrt/access.dart';
+import 'package:fl_clash/iping/login_page.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fake_client.dart';
@@ -59,45 +59,10 @@ void main() {
     },
   );
 
-  testWidgets('owner key gates API calls and permits retry', (tester) async {
-    tester.view.physicalSize = const Size(1200, 1000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    final client = FakeRouterClient()..authorized = false;
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: _DependencyAssets(),
-        child: RouterApp(client: client),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byType(RouterAccessPage), findsOneWidget);
-    expect(client.calls, isEmpty);
-    final l = AppLocalizations.current;
-    await tester.enterText(find.byType(TextFormField), 'wrong-key');
-    await tester.tap(find.text(l.submit));
-    await tester.pumpAndSettle();
-    expect(find.text(l.routerAccessInvalid), findsOneWidget);
-    expect(client.calls, isEmpty);
-    await tester.enterText(find.byType(TextFormField), 'test-key');
-    await tester.tap(find.text(l.submit));
-    await tester.pumpAndSettle();
-    expect(find.byType(RouterAccessPage), findsNothing);
-    expect(find.byType(NavigationSidebar), findsOneWidget);
-    expect(client.calls, contains('status'));
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-  });
-
-  testWidgets('owner authorization failure clears busy and can retry', (
+  testWidgets('opens iPing sign-in without a router access key', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1200, 1000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    final client = FakeRouterClient()..failAuthorization = true;
+    final client = FakeRouterClient(signedIn: false);
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: _DependencyAssets(),
@@ -105,30 +70,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final l = AppLocalizations.current;
-    expect(find.text(l.routerAgentUnavailable), findsOneWidget);
-    final submit = find.widgetWithText(FilledButton, l.submit);
-    expect(tester.widget<FilledButton>(submit).onPressed, isNotNull);
-    client.failAuthorization = false;
-    await tester.enterText(find.byType(TextFormField), 'test-key');
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
-    expect(find.byType(RouterAccessPage), findsNothing);
+    expect(find.byType(IpingLoginPage), findsOneWidget);
+    expect(client.calls, contains('status'));
+    expect(find.text('/usr/libexec/iping/agent token'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
-  });
-
-  testWidgets('pending owner authorization tolerates disposal', (tester) async {
-    final pending = Completer<bool>();
-    final client = FakeRouterClient()..authorization = pending;
-    await tester.pumpWidget(RouterApp(client: client));
-    await tester.pump();
-    expect(client.calls, isEmpty);
-    await tester.pumpWidget(const SizedBox.shrink());
-    pending.complete(true);
-    await tester.pumpAndSettle();
-    expect(client.calls, isEmpty);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets(

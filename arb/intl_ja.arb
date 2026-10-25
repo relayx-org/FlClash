@@ -1073,10 +1073,6 @@
       }
     }
   },
-  "routerAccessTitle": "ルーターにアクセス",
-  "routerAccessKey": "アクセスキー",
-  "routerAccessHint": "ルーターに SSH 接続して次のコマンドを実行し、アクセスキーを取得してください：",
-  "routerAccessInvalid": "アクセスキーが正しくありません。",
   "routerAgentUnavailable": "ルーターのサービスに接続できません。サービスを確認して再試行してください。",
   "routerOperationFailed": "操作を完了できませんでした。ルーターのログを確認して再試行してください。",
   "routerServiceConflict": "別のプロキシが必要なネットワークリソースを使用しています。停止してから iPing に接続してください。",

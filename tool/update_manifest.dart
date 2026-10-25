@@ -34,10 +34,13 @@ String? updateArtifactTarget(String name, String version) {
   return '${match[1]}-$arch-${match[3]}';
 }
 
-bool isDownloadOnlyArtifact(String name, String version) => RegExp(
-  '^iPing-${RegExp.escape(version)}-'
-  r'(?:ios-arm64\.ipa|openwrt-(?:24\.10|25\.12)-[A-Za-z0-9_-]+\.zip)$',
-).hasMatch(name);
+String? downloadArtifactTarget(String name, String version) {
+  final match = RegExp(
+    '^iPing-${RegExp.escape(version)}-'
+    r'(ios-arm64\.ipa|openwrt-(?:24\.10|25\.12)-[A-Za-z0-9_-]+\.zip)$',
+  ).firstMatch(name);
+  return match == null ? null : p.basenameWithoutExtension(match[1]!);
+}
 
 Future<Map<String, Object>> buildUpdateManifest({
   required Directory artifacts,
@@ -58,6 +61,7 @@ Future<Map<String, Object>> buildUpdateManifest({
   }
   final folder = '$version+$buildNumber';
   final assets = <String, Object>{};
+  final downloads = <String, Object>{};
   final names = <String>{};
   await for (final entity in artifacts.list(
     recursive: true,
@@ -67,7 +71,9 @@ Future<Map<String, Object>> buildUpdateManifest({
     final name = p.basename(entity.path);
     final target = updateArtifactTarget(name, version);
     final update = target != null && updateTargets.contains(target);
-    if (!update && !isDownloadOnlyArtifact(name, version)) continue;
+    final download = downloadArtifactTarget(name, version);
+    final installer = name == 'install-openwrt.sh';
+    if (!update && download == null && !installer) continue;
     if (!names.add(name)) throw StateError('Duplicate release artifact: $name');
     if (update && assets.containsKey(target)) {
       throw StateError('Duplicate update artifact: $target');
@@ -77,13 +83,20 @@ Future<Map<String, Object>> buildUpdateManifest({
     await entity.copy(destination.path);
     final size = await destination.length();
     if (size == 0) throw StateError('Empty update artifact: $name');
-    if (!update) continue;
-    assets[target] = {
+    final metadata = {
       'url': baseUrl.resolve('$folder/$name').toString(),
       'size': size,
       'sha256': (await sha256.bind(destination.openRead()).first).toString(),
       'format': p.extension(name).substring(1),
     };
+    if (update) {
+      assets[target] = metadata;
+    } else {
+      downloads[download ?? 'openwrt-installer'] = metadata;
+      if (installer) {
+        await destination.copy(p.join(output.path, name));
+      }
+    }
   }
   final missing = updateTargets.difference(assets.keys.toSet());
   if (assets.isEmpty || (requireComplete && missing.isNotEmpty)) {
@@ -96,6 +109,7 @@ Future<Map<String, Object>> buildUpdateManifest({
     'buildNumber': buildNumber,
     'notes': notes,
     'assets': assets,
+    'downloads': downloads,
   };
   await File(
     p.join(output.path, 'latest.json'),

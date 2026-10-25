@@ -1073,10 +1073,6 @@
       }
     }
   },
-  "routerAccessTitle": "라우터 접속",
-  "routerAccessKey": "접속 키",
-  "routerAccessHint": "라우터에 SSH로 접속한 뒤 다음 명령을 실행하여 접속 키를 확인하세요:",
-  "routerAccessInvalid": "접속 키가 올바르지 않습니다.",
   "routerAgentUnavailable": "라우터 서비스에 연결할 수 없습니다. 서비스 상태를 확인한 뒤 다시 시도하세요.",
   "routerOperationFailed": "라우터가 작업을 완료하지 못했습니다. 로그를 확인한 뒤 다시 시도하세요.",
   "routerServiceConflict": "다른 프록시가 필요한 네트워크 리소스를 사용하고 있습니다. 먼저 해당 프록시를 중지한 뒤 iPing에 연결하세요.",

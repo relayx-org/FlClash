@@ -1073,10 +1073,6 @@
       }
     }
   },
-  "routerAccessTitle": "Accéder au routeur",
-  "routerAccessKey": "Clé d’accès",
-  "routerAccessHint": "Exécutez cette commande sur le routeur via SSH pour obtenir sa clé d’accès :",
-  "routerAccessInvalid": "La clé d’accès est incorrecte.",
   "routerAgentUnavailable": "Impossible de joindre le service du routeur. Vérifiez-le et réessayez.",
   "routerOperationFailed": "Le routeur n’a pas pu terminer l’opération. Consultez ses journaux et réessayez.",
   "routerServiceConflict": "Un autre proxy utilise les ressources réseau nécessaires. Arrêtez-le avant de connecter iPing.",

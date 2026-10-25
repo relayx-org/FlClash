@@ -6,6 +6,68 @@ import '../../tool/update_manifest.dart';
 
 void main() {
   test(
+    'OpenWrt downloads and bootstrap share the published update manifest',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'iping-router-update-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final artifacts = await Directory('${directory.path}/artifacts').create();
+      final output = Directory('${directory.path}/output');
+      for (final name in [
+        'iPing-1.2.3-macos-arm64.zip',
+        'iPing-1.2.3-openwrt-24.10-mipsel_24kc.zip',
+        'iPing-1.2.3-openwrt-25.12-aarch64_cortex-a53.zip',
+        'install-openwrt.sh',
+      ]) {
+        await File('${artifacts.path}/$name').writeAsBytes([1, 2, 3]);
+      }
+      final manifest = await buildUpdateManifest(
+        artifacts: artifacts,
+        output: output,
+        version: '1.2.3',
+        buildNumber: 42,
+        baseUrl: Uri.parse('https://video.iping.my/releases/'),
+        requireComplete: false,
+      );
+      final downloads = manifest['downloads']! as Map;
+      expect(
+        downloads.keys,
+        containsAll([
+          'openwrt-24.10-mipsel_24kc',
+          'openwrt-25.12-aarch64_cortex-a53',
+          'openwrt-installer',
+        ]),
+      );
+      final router = downloads['openwrt-24.10-mipsel_24kc'] as Map;
+      expect(
+        router['url'],
+        'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-24.10-mipsel_24kc.zip',
+      );
+      expect(router['sha256'], hasLength(64));
+      expect(router['size'], 3);
+      expect((manifest['assets']! as Map).keys, ['macos-arm64-zip']);
+      expect(await File('${output.path}/install-openwrt.sh').readAsBytes(), [
+        1,
+        2,
+        3,
+      ]);
+      expect(
+        await File('${output.path}/1.2.3+42/install-openwrt.sh').readAsBytes(),
+        [1, 2, 3],
+      );
+      expect(
+        downloadArtifactTarget('iPing-1.2.3-ios-arm64.zip', '1.2.3'),
+        isNull,
+      );
+      expect(
+        downloadArtifactTarget('iPing-1.2.3-openwrt-24.10-x86_64.ipa', '1.2.3'),
+        isNull,
+      );
+    },
+  );
+
+  test(
     'accepts the supported desktop matrix without Windows or Linux ARM64',
     () async {
       final directory = await Directory.systemTemp.createTemp('iping-matrix-');

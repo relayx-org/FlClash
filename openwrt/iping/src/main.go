@@ -108,20 +108,6 @@ func newApp() (*app, error) {
 }
 
 func main() {
-	if len(os.Args) == 2 && os.Args[1] == "token" {
-		a, err := newApp()
-		if err != nil {
-			os.Stderr.WriteString(err.Error() + "\n")
-			os.Exit(1)
-		}
-		key, err := a.accessKey()
-		if err != nil {
-			os.Stderr.WriteString(err.Error() + "\n")
-			os.Exit(1)
-		}
-		os.Stdout.WriteString(key + "\n")
-		return
-	}
 	if len(os.Args) == 2 && os.Args[1] == "list" {
 		json.NewEncoder(os.Stdout).Encode(methods)
 		return

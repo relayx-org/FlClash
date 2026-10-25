@@ -1073,10 +1073,6 @@
       }
     }
   },
-  "routerAccessTitle": "访问路由器",
-  "routerAccessKey": "访问密钥",
-  "routerAccessHint": "通过 SSH 在路由器运行以下命令，获取访问密钥：",
-  "routerAccessInvalid": "访问密钥不正确。",
   "routerAgentUnavailable": "无法连接路由器服务，请检查服务状态后重试。",
   "routerOperationFailed": "路由器未能完成操作，请查看日志后重试。",
   "routerServiceConflict": "其他代理正在使用所需的网络资源，请先停止它，再连接 iPing。",

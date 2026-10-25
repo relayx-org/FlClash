@@ -1792,16 +1792,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Direcciones excluidas de la ruta",
     ),
-    "routerAccessHint": MessageLookupByLibrary.simpleMessage(
-      "Ejecuta este comando por SSH en el router para obtener su clave de acceso:",
-    ),
-    "routerAccessInvalid": MessageLookupByLibrary.simpleMessage(
-      "La clave de acceso es incorrecta.",
-    ),
-    "routerAccessKey": MessageLookupByLibrary.simpleMessage("Clave de acceso"),
-    "routerAccessTitle": MessageLookupByLibrary.simpleMessage(
-      "Acceder al router",
-    ),
     "routerAgentUnavailable": MessageLookupByLibrary.simpleMessage(
       "No se puede conectar con el servicio del router. Compruébalo e inténtalo de nuevo.",
     ),

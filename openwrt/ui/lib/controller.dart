@@ -27,7 +27,6 @@ class RouterController extends ChangeNotifier {
   Timer? _timer;
   int revision = 0;
   bool initialized = false;
-  bool accessExpired = false;
   bool pending = false;
   bool authorizing = false;
   bool _refreshing = false;
@@ -65,7 +64,7 @@ class RouterController extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    if (_refreshing || _disposed || accessExpired) return;
+    if (_refreshing || _disposed) return;
     _refreshing = true;
     try {
       final nextStatus = await backend.readState();
@@ -80,10 +79,6 @@ class RouterController extends ChangeNotifier {
         telemetry = IpingTelemetry(mode: signedIn ? telemetry.mode : Mode.rule);
       }
     } catch (exception) {
-      if (exception is RouterException &&
-          exception.message == 'access_required') {
-        accessExpired = true;
-      }
       error = exception.toString();
     } finally {
       _refreshing = false;

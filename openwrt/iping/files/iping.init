@@ -5,6 +5,11 @@ STOP=10
 USE_PROCD=1
 
 start_service() {
+	if [ "${IPING_UPDATE_START:-0}" != 1 ]; then
+		mkdir -p /var/lock
+		exec 8>/var/lock/iping-update.lock
+		flock -n 8 || return 0
+	fi
 	procd_open_instance agent
 	procd_set_param command /usr/libexec/iping/agent agent
 	procd_set_param respawn 3600 5 0

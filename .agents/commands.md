@@ -97,7 +97,9 @@ prereleases leave the production update manifest unchanged. iOS produces a signe
 arm64 IPA. The shared OpenWrt workflow builds matching Agent/Core bundles for each
 firmware branch and architecture from the same release SHA. Their downloadable IPA
 and ZIP files are attached to GitHub and copied to stable version directories in
-MinIO; the app-update target set remains desktop/Android. All jobs share the existing
+MinIO; native app-update targets remain desktop/Android. The manifest also carries a `downloads` map
+with hashes and sizes for iOS/OpenWrt. `install-openwrt.sh` is published at the stable download root;
+OpenWrt installs its packaged `iping-update` command and a configurable daily cron task. All jobs share the existing
 `relayx-org` self-hosted runners.
 The MinIO job uploads through `https://minio.long2ice.io` with path-style addressing; its
 public ingress must allow S3 upload methods under `/iping/releases/`. Configure

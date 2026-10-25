@@ -5,6 +5,7 @@ Browser-based iPing login and automatic Mihomo subscriptions for Android, macOS,
 An experimental [iOS target](ios/README.md) is available for signed device/internal-test builds.
 
 [OpenWrt](openwrt/README.md) uses an independent Agent with an embedded Flutter Web interface and a private Mihomo Core. It shares the application's UI and backend contract and requires no LuCI or Nikki plugin.
+The OpenWrt [one-command installer](openwrt/README.md#use) detects the package architecture, enables startup and supports daily stable updates; Web access needs only the iPing account login.
 
 ## Build
 

@@ -8702,46 +8702,6 @@ class AppLocalizations {
     );
   }
 
-  /// `Access your router`
-  String get routerAccessTitle {
-    return Intl.message(
-      'Access your router',
-      name: 'routerAccessTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Access key`
-  String get routerAccessKey {
-    return Intl.message(
-      'Access key',
-      name: 'routerAccessKey',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Run this command over SSH on the router to get its access key:`
-  String get routerAccessHint {
-    return Intl.message(
-      'Run this command over SSH on the router to get its access key:',
-      name: 'routerAccessHint',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `The access key is incorrect.`
-  String get routerAccessInvalid {
-    return Intl.message(
-      'The access key is incorrect.',
-      name: 'routerAccessInvalid',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Unable to reach the router agent. Check the service and retry.`
   String get routerAgentUnavailable {
     return Intl.message(

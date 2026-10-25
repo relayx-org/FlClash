@@ -294,14 +294,10 @@ func TestConflictingNetworkIsNeverCleanedWithoutALease(t *testing.T) {
 	}
 }
 
-func TestWebAccessRequiresOwnerKeyAndSameOrigin(t *testing.T) {
+func TestWebAccessNeedsNoOwnerKeyAndKeepsLoginBrowserBound(t *testing.T) {
 	f := testSetup(t, false)
 	a := f.a
-	key, err := a.accessKey()
-	if err != nil {
-		t.Fatal(err)
-	}
-	server := httptest.NewServer(a.webHandler(key))
+	server := httptest.NewServer(a.webHandler())
 	defer server.Close()
 	request := func(path, origin, body string, cookie *http.Cookie) (*http.Response, map[string]any) {
 		req, _ := http.NewRequest("POST", server.URL+path, strings.NewReader(body))
@@ -320,40 +316,34 @@ func TestWebAccessRequiresOwnerKeyAndSameOrigin(t *testing.T) {
 		}
 		return resp, result
 	}
-	if response, _ := request("/api/status", server.URL, `{}`, nil); response.StatusCode != 401 {
-		t.Fatal("anonymous API accepted")
-	}
-	if response, _ := request("/api/session", "http://evil.test", `{"key":"`+key+`"}`, nil); response.StatusCode != 403 {
-		t.Fatal("cross-origin login accepted")
-	}
-	if response, _ := request("/api/session", server.URL, `{"key":"incorrect"}`, nil); response.StatusCode != 401 {
-		t.Fatal("incorrect key accepted")
-	}
-	response, result := request("/api/session", server.URL, `{"key":"`+key+`"}`, nil)
+	response, result := request("/api/status", server.URL, `{}`, nil)
 	if response.StatusCode != 200 || result["ok"] != true {
-		t.Fatal("owner login failed")
+		t.Fatal("local API still requires a router access key")
 	}
 	cookies := response.Cookies()
-	if len(cookies) != 1 || !cookies[0].HttpOnly || cookies[0].SameSite != http.SameSiteStrictMode {
-		t.Fatal("unsafe owner cookie")
+	if len(cookies) != 1 || !cookies[0].HttpOnly || cookies[0].SameSite != http.SameSiteStrictMode || !sessionID.MatchString(cookies[0].Value) {
+		t.Fatal("missing browser session for account login")
 	}
 	cookie := cookies[0]
-	if response, result := request("/api/status", server.URL, `{}`, cookie); response.StatusCode != 200 || result["ok"] != true {
-		t.Fatal("owner API unavailable")
+	if response, result := request("/api/status", server.URL, `{}`, cookie); response.StatusCode != 200 || result["ok"] != true || len(response.Cookies()) != 0 {
+		t.Fatal("browser session was not reused")
 	}
-	if response, _ := request("/api/status", "http://evil.test", `{}`, cookie); response.StatusCode != 401 {
-		t.Fatal("cross-origin mutation accepted")
+	if response, _ := request("/api/session", server.URL, `{}`, nil); response.StatusCode != 404 {
+		t.Fatal("removed access-key endpoint is still available")
 	}
-	bad := *cookie
-	bad.Value += "0"
-	if response, _ := request("/api/status", server.URL, `{}`, &bad); response.StatusCode != 401 {
-		t.Fatal("tampered owner cookie accepted")
+	for _, origin := range []string{"http://evil.test", ""} {
+		if response, _ := request("/api/status", origin, `{}`, cookie); response.StatusCode != 403 {
+			t.Fatal("cross-origin mutation accepted")
+		}
+	}
+	if _, err := os.Stat(filepath.Join(a.dataDir, "web-key")); !os.IsNotExist(err) {
+		t.Fatal("router access key was created")
 	}
 	req := httptest.NewRequest("GET", "http://router/", nil)
 	req.RemoteAddr = "203.0.113.1:1234"
 	req.Header.Set("X-Forwarded-For", "127.0.0.1")
 	recorder := httptest.NewRecorder()
-	a.webHandler(key).ServeHTTP(recorder, req)
+	a.webHandler().ServeHTTP(recorder, req)
 	if recorder.Code != 403 {
 		t.Fatal("public client was accepted")
 	}

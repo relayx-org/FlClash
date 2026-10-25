@@ -1283,12 +1283,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("路由地址"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("排除路由地址"),
-    "routerAccessHint": MessageLookupByLibrary.simpleMessage(
-      "通过 SSH 在路由器运行以下命令，获取访问密钥：",
-    ),
-    "routerAccessInvalid": MessageLookupByLibrary.simpleMessage("访问密钥不正确。"),
-    "routerAccessKey": MessageLookupByLibrary.simpleMessage("访问密钥"),
-    "routerAccessTitle": MessageLookupByLibrary.simpleMessage("访问路由器"),
     "routerAgentUnavailable": MessageLookupByLibrary.simpleMessage(
       "无法连接路由器服务，请检查服务状态后重试。",
     ),
