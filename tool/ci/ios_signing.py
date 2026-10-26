@@ -75,6 +75,20 @@ def export_options(profiles, identity):
     return options
 
 
+def verify_signing_key(directory, identity, keychain):
+    source, binary = directory / 'signing-check.c', directory / 'signing-check'
+    source.write_text('int main(void) { return 0; }\n')
+    try:
+        run('xcrun', 'clang', str(source), '-o', str(binary))
+        print('Checking distribution key access in the temporary keychain', flush=True)
+        run('codesign', '--force', '--sign', identity, '--keychain', keychain, str(binary))
+        print('Checking distribution key access through the user search list', flush=True)
+        run('codesign', '--force', '--sign', identity, str(binary))
+    finally:
+        source.unlink(missing_ok=True)
+        binary.unlink(missing_ok=True)
+
+
 def prepare(directory):
     os.umask(0o077)
     profiles = []
@@ -116,6 +130,7 @@ def prepare(directory):
             state.write_text(json.dumps(installed))
             shutil.copyfile(source, destination)
     run('security', 'list-keychains', '-d', 'user', '-s', *keychains(), keychain)
+    verify_signing_key(directory, identity, keychain)
     options = directory / 'ExportOptions.plist'
     options.write_bytes(plistlib.dumps(export_options(profiles, identity)))
     with open(os.environ['GITHUB_ENV'], 'a') as environment:

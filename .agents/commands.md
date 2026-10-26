@@ -450,7 +450,7 @@ The Core hook and package filenames follow that selection; Rust also needs
 `tool/ci/cache.sh` and `cache.ps1` keep build outputs, Core fingerprints,
 Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
 `RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
-by platform and architecture; installed SDKs, Go caches and Cargo packages stay
+by platform, architecture and checkout path; installed SDKs, Go caches and Cargo packages stay
 on the runner. Remote Actions caches are disabled. One runner per host serializes
 jobs on that machine. Temporary signing keys are removed and the Mac keychain
 search list is restored after every job.
