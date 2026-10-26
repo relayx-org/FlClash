@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.1 (2026-10-26)
+
+**Features**
+
+- **platforms** Add standalone OpenWrt support and signed iOS IPA releases with a shared interface (a7102c0)
+- **proxies** Proxy groups now start expanded (51bae43)
+- **desktop** Tray and app icons now match the rounded app icon on every desktop platform (f21e8aa)
+
 ## v0.1.0 (2026-10-23)
 
 **Features**

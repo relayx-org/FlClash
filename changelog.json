@@ -2,6 +2,34 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.1",
+      "tag": "v0.1.1",
+      "date": "2026-10-26",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "feat",
+          "entries": [
+            {
+              "id": "a7102c0",
+              "scope": "platforms",
+              "text": "Add standalone OpenWrt support and signed iOS IPA releases with a shared interface"
+            },
+            {
+              "id": "51bae43",
+              "scope": "proxies",
+              "text": "Proxy groups now start expanded"
+            },
+            {
+              "id": "f21e8aa",
+              "scope": "desktop",
+              "text": "Tray and app icons now match the rounded app icon on every desktop platform"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.0",
       "tag": "v0.1.0",
       "date": "2026-10-23",
