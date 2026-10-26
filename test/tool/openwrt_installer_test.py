@@ -85,7 +85,7 @@ esac
         self.command('uname', 'cat /fixture/arch\n')
         self.command('ip', "echo '1.1.1.1 via 192.168.1.1 dev eth0 src 192.168.1.2'\n")
         self.command('nft', 'exit 0\n')
-        self.command('crontab', 'exec /bin/busybox crontab -c /etc/crontabs "$@"\n')
+        self.command('crontab', '[ ! -f /fixture/schedule-fails ] || exit 1\nexec /bin/busybox crontab -c /etc/crontabs "$@"\n')
         self.command('df', '''if [ -f /fixture/no-space ]; then
  echo 'Filesystem 1024-blocks Used Available Capacity Mounted on'
  echo 'test 8 8 0 100% /tmp'
@@ -167,6 +167,7 @@ cp /fixture/release /etc/openwrt_release
 if grep -q linux /etc/openwrt_release; then rm /etc/openwrt_release; fi
 if grep -q 25.12 /etc/openwrt_release; then rm /fixture/bin/opkg; fi
 cp /fixture/service /etc/init.d/iping
+sed -i '2iOLD_TEST_INIT=1' /etc/init.d/iping
 cp /fixture/cron /etc/init.d/cron
 ln -s /installer /usr/libexec/iping/update
 echo old-agent > /usr/libexec/iping/agent
@@ -184,6 +185,7 @@ cat /usr/share/iping/version > /result/version 2>/dev/null || true
 cat /usr/libexec/iping/agent > /result/agent 2>/dev/null || true
 cat /etc/config/iping > /result/config 2>/dev/null || true
 readlink /etc/init.d/iping > /result/init-link || true
+cat /etc/init.d/iping > /result/init-content 2>/dev/null || true
 if [ -f /etc/init.d/iping ] && [ ! -L /etc/init.d/iping ]; then echo regular > /result/init-file; fi
 if [ -f /etc/systemd/system/iping-update.timer ] && [ ! -L /etc/systemd/system/iping-update.timer ]; then echo regular > /result/timer-unit; fi
 exit "$status"
@@ -283,6 +285,15 @@ exit "$status"
         self.assertTrue((self.result / 'running').exists())
         self.assertEqual((self.result / 'agent').read_text().strip(), 'old-agent')
         self.assertEqual((self.result / 'version').read_text().strip(), '1.2.2+41')
+
+    def test_late_update_failure_restores_the_previous_init_file(self):
+        (self.fixture / 'schedule-fails').touch()
+        result = self.run_installer('sh /installer update', installed='1.2.2+41', running=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertTrue((self.result / 'running').exists())
+        self.assertEqual((self.result / 'agent').read_text().strip(), 'old-agent')
+        self.assertIn('OLD_TEST_INIT=1', (self.result / 'init-content').read_text())
+        self.assertEqual((self.result / 'init-file').read_text().strip(), 'regular')
 
     def test_scheduled_update_preserves_a_stopped_service(self):
         result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')

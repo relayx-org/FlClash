@@ -24,7 +24,8 @@ cleanup() {
             echo 'iPing: restored the previous binaries' >&2
         else echo "iPing: recovery files remain at $backup" >&2; fi
         backup=''
-        if [ "$init_system" = systemd ]; then install_systemd_units; fi
+        if [ "$init_system" = systemd ]; then install_systemd_units
+        else install_procd_init; fi
     fi
     if [ "$restore_service" = 1 ]; then
         service_action start || echo 'iPing: could not restore the service' >&2
@@ -55,6 +56,11 @@ install_systemd_units() {
         if [ -f "/usr/libexec/iping/$unit" ]; then cp "/usr/libexec/iping/$unit" "/etc/systemd/system/$unit"; fi
     done
     systemctl daemon-reload
+}
+
+install_procd_init() {
+    rm -f /etc/init.d/iping
+    cp /usr/libexec/iping/iping.init /etc/init.d/iping
 }
 
 service_action() {
@@ -263,8 +269,7 @@ activate_binaries() {
     ln -sf /usr/libexec/iping/update /usr/bin/iping-update
     if [ "$init_system" = procd ]; then
         mkdir -p /etc/init.d /etc/config /lib/upgrade/keep.d
-        rm -f /etc/init.d/iping
-        cp /usr/libexec/iping/iping.init /etc/init.d/iping
+        install_procd_init
         ln -sf /usr/libexec/iping/iping.upgrade /lib/upgrade/keep.d/iping
         if [ ! -f /etc/config/iping ]; then
             cp /usr/libexec/iping/iping.conf /etc/config/iping
