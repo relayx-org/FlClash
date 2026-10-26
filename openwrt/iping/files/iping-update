@@ -263,7 +263,8 @@ activate_binaries() {
     ln -sf /usr/libexec/iping/update /usr/bin/iping-update
     if [ "$init_system" = procd ]; then
         mkdir -p /etc/init.d /etc/config /lib/upgrade/keep.d
-        ln -sf /usr/libexec/iping/iping.init /etc/init.d/iping
+        rm -f /etc/init.d/iping
+        cp /usr/libexec/iping/iping.init /etc/init.d/iping
         ln -sf /usr/libexec/iping/iping.upgrade /lib/upgrade/keep.d/iping
         if [ ! -f /etc/config/iping ]; then
             cp /usr/libexec/iping/iping.conf /etc/config/iping

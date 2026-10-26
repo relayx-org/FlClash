@@ -184,6 +184,7 @@ cat /usr/share/iping/version > /result/version 2>/dev/null || true
 cat /usr/libexec/iping/agent > /result/agent 2>/dev/null || true
 cat /etc/config/iping > /result/config 2>/dev/null || true
 readlink /etc/init.d/iping > /result/init-link || true
+if [ -f /etc/init.d/iping ] && [ ! -L /etc/init.d/iping ]; then echo regular > /result/init-file; fi
 if [ -f /etc/systemd/system/iping-update.timer ] && [ ! -L /etc/systemd/system/iping-update.timer ]; then echo regular > /result/timer-unit; fi
 exit "$status"
 '''
@@ -217,7 +218,8 @@ exit "$status"
                 self.assertNotIn('pm ', self.events())
                 self.assertIn('agent-new', (self.result / 'agent').read_text())
                 self.assertEqual((self.result / 'config').read_text().strip(), 'user-config')
-                self.assertEqual((self.result / 'init-link').read_text().strip(), '/usr/libexec/iping/iping.init')
+                self.assertEqual((self.result / 'init-link').read_text().strip(), '')
+                self.assertEqual((self.result / 'init-file').read_text().strip(), 'regular')
                 self.assertIn('service enable', self.events())
                 self.assertIn('service start', self.events())
                 self.assertEqual((self.result / 'version').read_text().strip(), '1.2.3+42')
