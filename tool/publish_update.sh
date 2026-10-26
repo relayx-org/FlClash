@@ -22,6 +22,7 @@ folder=Path(sys.argv[1])
     for path in sorted(folder.iterdir()) if path.is_file()))
 PYCODE
 rclone_command() {
+    set -- --s3-disable-http2 --s3-no-check-bucket "$@"
     if command -v rclone >/dev/null; then rclone "$@"
     else
         docker run --rm --user "$(id -u):$(id -g)" -v "$staging:$staging" \

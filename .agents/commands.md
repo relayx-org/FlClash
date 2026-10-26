@@ -452,6 +452,8 @@ The binary installer is staged again from the current installer source.
 The publisher caches packages by their verified MinIO receipt and checks their bytes
 before reuse. Manifest generation invokes the Dart VM directly so it does not run
 unrelated application native build hooks.
+MinIO publication uses HTTP/1.1 and skips bucket creation checks because the public
+S3 ingress permits writes only under the existing `iping/releases/` prefix.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in
