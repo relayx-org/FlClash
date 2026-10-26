@@ -53,7 +53,9 @@ jobs:
           IPING_INSTALLER_TEST_IMAGE: busybox:1.37.0
         run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
       - name: Check installer shell compatibility
-        run: docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
+          docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping.init:/init:ro" koalaman/shellcheck:v0.10.0 --shell=sh --exclude=SC2034 /init
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -174,6 +176,7 @@ jobs:
           FEEDNAME: iping
           PACKAGES: iping-mihomo iping
           NO_REFRESH_CHECK: true
+          NO_SHFMT_CHECK: true
           V: s
           GOMAXPROCS: '2'
           GOFLAGS: -p=2
