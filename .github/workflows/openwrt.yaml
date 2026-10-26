@@ -13,6 +13,12 @@ on:
       build_packages:
         type: boolean
         default: false
+      reuse_run_id:
+        type: string
+        default: ''
+      package_matrix:
+        type: string
+        default: ''
   pull_request:
     paths:
       - 'lib/**'
@@ -22,10 +28,13 @@ on:
       - '.github/workflows/openwrt.yaml'
       - '.github/workflows/build.yaml'
       - 'tool/ci/openwrt_release.py'
+      - 'tool/ci/openwrt_sdk*.sh'
+      - 'tool/ci/reuse_release.py'
       - 'tool/update_manifest.dart'
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: openwrt-${{ github.run_id }}-${{ github.run_attempt }}
@@ -47,15 +56,19 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          git show "$TOOLS_SHA:test/tool/openwrt_installer_test.py" > test/tool/openwrt_installer_test.py
+          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_sdk_test.py test/tool/reuse_release_test.py tool/ci/openwrt_sdk.sh tool/ci/openwrt_sdk_cache.sh tool/ci/reuse_release.py tool/ci/openwrt_release.py; do
+            git show "$TOOLS_SHA:$path" > "$path"
+          done
       - name: Check package release tooling
         env:
           IPING_INSTALLER_TEST_IMAGE: busybox:1.37.0
+          IPING_SDK_TEST_IMAGE: debian:bookworm-slim
         run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
       - name: Check installer shell compatibility
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
           docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping.init:/init:ro" koalaman/shellcheck:v0.10.0 --shell=sh --exclude=SC2034 /init
+          docker run --rm -v "$GITHUB_WORKSPACE/tool/ci:/scripts:ro" koalaman/shellcheck:v0.10.0 --shell=bash /scripts/openwrt_sdk.sh /scripts/openwrt_sdk_cache.sh
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -82,46 +95,65 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           submodules: recursive
 
+      - name: Reuse the validated Web build
+        if: inputs.reuse_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: openwrt-web
+          run-id: ${{ inputs.reuse_run_id }}
+          github-token: ${{ github.token }}
+          path: openwrt/iping/src/webui/dist/
+
       - uses: actions/setup-go@v5
+        if: inputs.reuse_run_id == ''
         with:
           go-version: '1.27.1'
           cache: false
 
       - uses: subosito/flutter-action@v2
+        if: inputs.reuse_run_id == ''
         with:
           flutter-version: '3.47.7'
           channel: stable
 
       - name: Set Web release version
+        if: inputs.reuse_run_id == ''
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: python3 tool/ci/openwrt_release.py prepare --release-tag "$RELEASE_TAG"
 
       - name: Resolve native dependencies
+        if: inputs.reuse_run_id == ''
         run: flutter pub get
 
       - name: Resolve Web dependencies
+        if: inputs.reuse_run_id == ''
         working-directory: openwrt/ui
         run: flutter pub get
 
       - name: Check shared native logic
+        if: inputs.reuse_run_id == ''
         run: |
           flutter analyze --no-fatal-infos
           flutter test test/iping test/common/task_test.dart test/common/javascript_test.dart test/models/rule_test.dart test/providers/setup_action_test.dart test/providers/setup_state_test.dart test/providers/database_test.dart test/providers/action_test.dart test/views/dns_view_test.dart test/views/network_config_test.dart test/views/added_rules_test.dart test/views/clash_providers_view_test.dart test/features/list_editor_page_test.dart test/features/custom_quick_edit_test.dart test/widgets/uncovered_views_test.dart test/manager/window_header_test.dart test/lint
 
       - name: Check Web logic
+        if: inputs.reuse_run_id == ''
         working-directory: openwrt/ui
         run: |
           flutter analyze --no-fatal-infos
           flutter test
 
       - name: Build shared Flutter interface
+        if: inputs.reuse_run_id == ''
         run: bash openwrt/build_ui.sh
 
       - name: Prepare the one-command installer
+        if: inputs.reuse_run_id == ''
         run: install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/install-openwrt.sh"
 
       - uses: actions/upload-artifact@v4
+        if: inputs.reuse_run_id == ''
         with:
           name: artifact-openwrt-installer
           path: ${{ runner.temp }}/install-openwrt.sh
@@ -133,30 +165,49 @@ jobs:
           path: openwrt/iping/src/webui/dist/
           if-no-files-found: error
 
+  plan:
+    runs-on: [self-hosted, Linux, X64]
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select remaining package targets
+        id: matrix
+        env:
+          PACKAGE_MATRIX: ${{ inputs.package_matrix }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from tool.ci.openwrt_release import package_matrix
+          expected = package_matrix()
+          matrix = json.loads(os.environ['PACKAGE_MATRIX']) if os.environ['PACKAGE_MATRIX'] else expected
+          if set(matrix) != {'include'} or any(row not in expected['include'] for row in matrix['include']):
+              raise ValueError('Invalid package build matrix')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('value=' + json.dumps(matrix, separators=(',', ':')) + '\n')
+          PY
+
   packages:
-    if: github.event_name == 'workflow_dispatch' || inputs.build_packages
-    needs: [ui, agent]
+    if: ${{ (github.event_name == 'workflow_dispatch' || inputs.build_packages) && needs.plan.outputs.matrix != '{"include":[]}' }}
+    needs: [ui, agent, plan]
     runs-on: [self-hosted, Linux, X64]
     strategy:
       fail-fast: false
-      max-parallel: 1
-      matrix:
-        branch: [openwrt-24.10, openwrt-25.12]
-        arch:
-          - x86_64
-          - aarch64_generic
-          - aarch64_cortex-a53
-          - aarch64_cortex-a72
-          - aarch64_cortex-a76
-          - arm_cortex-a7_neon-vfpv4
-          - arm_cortex-a9_vfpv3-d16
-          - arm_cortex-a9_neon
-          - mips_24kc
-          - mipsel_24kc
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.sha }}
+
+      - name: Use current SDK build tooling
+        env:
+          TOOLS_SHA: ${{ github.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
+          for path in tool/ci/openwrt_sdk.sh tool/ci/openwrt_sdk_cache.sh; do
+            git show "$TOOLS_SHA:$path" > "$path"
+          done
 
       - name: Set package release version
         env:
@@ -169,17 +220,10 @@ jobs:
           path: openwrt/iping/src/webui/dist/
 
       - name: Build packages with the official OpenWrt SDK
-        uses: openwrt/gh-action-sdk@f5813d30eeef3534b58ac7e79c5d8842b6035434
         env:
-          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
-          FEED_DIR: ${{ github.workspace }}/openwrt
-          FEEDNAME: iping
-          PACKAGES: iping-mihomo iping
-          NO_REFRESH_CHECK: true
-          NO_SHFMT_CHECK: true
-          V: s
-          GOMAXPROCS: '2'
-          GOFLAGS: -p=2
+          ARCH: ${{ matrix.arch }}
+          BRANCH: ${{ matrix.branch }}
+        run: bash tool/ci/openwrt_sdk.sh
 
       - name: Bundle matching Agent and Core packages
         env:

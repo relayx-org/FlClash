@@ -451,10 +451,17 @@ The Core hook and package filenames follow that selection; Rust also needs
 Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
 `RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
 by platform, architecture and checkout path; installed SDKs, Go caches and Cargo packages stay
-on the runner. Remote Actions caches are disabled. Linux Go, Rust and Gradle builds
-use two workers, and OpenWrt SDK jobs run one at a time to bound the load on the
-shared host. Temporary signing keys are removed after each job without discarding
+on the runner. Remote Actions caches are disabled. Native Linux Go, Rust and Gradle builds
+use two workers. OpenWrt SDK jobs run two at a time, each with a four-CPU container.
+They use official SDK images directly, with a local Docker volume holding source downloads,
+Go module/build caches and compressed snapshots of compiled SDK dependencies. SDK image,
+revision and Go package changes invalidate snapshots; the Agent is always rebuilt to include
+the current Web assets. Temporary signing keys are removed after each job without discarding
 other jobs' entries in the Mac keychain search list.
+
+To resume a release after changing only CI tooling, dispatch `build.yaml` with the same
+`tag` and `reuse_run_id` of the previous build. It checks the tag and application source,
+reuses completed native/Web/OpenWrt artifacts and builds only missing SDK targets.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in

@@ -8,9 +8,14 @@ on:
         description: Published release tag to build
         required: true
         type: string
+      reuse_run_id:
+        description: Previous build of the same application source to reuse
+        type: string
+        default: ''
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: iping-build-${{ inputs.tag }}
@@ -44,7 +49,25 @@ jobs:
           printf 'sha=%s\n' "$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" >> "$GITHUB_OUTPUT"
           printf 'stable=%s\n' "$(jq -r '.isPrerelease | not' <<< "$release")" >> "$GITHUB_OUTPUT"
 
+  reuse:
+    if: inputs.reuse_run_id != ''
+    needs: release
+    runs-on: [self-hosted, Linux, X64]
+    outputs:
+      matrix: ${{ steps.reuse.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate previous release artifacts
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_RUN: ${{ inputs.reuse_run_id }}
+          RELEASE_SHA: ${{ needs.release.outputs.sha }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: python3 tool/ci/reuse_release.py --run "$PREVIOUS_RUN" --sha "$RELEASE_SHA" --tag "$TAG"
+
   build:
+    if: inputs.reuse_run_id == ''
     needs: release
     runs-on: ${{ matrix.runner }}
     env:
@@ -391,25 +414,55 @@ jobs:
           overwrite: true
 
   openwrt:
-    needs: release
+    if: ${{ !cancelled() && needs.release.result == 'success' && (needs.reuse.result == 'success' || needs.reuse.result == 'skipped') }}
+    needs: [release, reuse]
     uses: ./.github/workflows/openwrt.yaml
     with:
       ref: ${{ needs.release.outputs.sha }}
       release_tag: ${{ needs.release.outputs.tag }}
       build_packages: true
+      reuse_run_id: ${{ inputs.reuse_run_id }}
+      package_matrix: ${{ needs.reuse.outputs.matrix }}
 
   upload:
+    if: ${{ !cancelled() && needs.openwrt.result == 'success' && (needs.build.result == 'success' || needs.reuse.result == 'success') }}
     permissions:
       contents: write
-    needs: [release, build, openwrt]
+      actions: read
+    needs: [release, build, reuse, openwrt]
     runs-on: [self-hosted, Linux, X64]
     steps:
+      - name: Prepare empty artifact directory
+        run: rm -rf dist && mkdir dist
       - name: Download packages
         uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: artifact-*
           merge-multiple: true
+
+      - name: Download previously built packages
+        if: inputs.reuse_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.reuse_run_id }}
+          github-token: ${{ github.token }}
+          path: dist
+          pattern: artifact-*
+          merge-multiple: true
+
+      - name: Validate package versions
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          version = os.environ['TAG'].removeprefix('v').split('-pre.')[0]
+          for path in Path('dist').iterdir():
+              if not path.is_file() or not (path.name == 'install-openwrt.sh' or path.name.startswith('iPing-' + version + '-')):
+                  raise ValueError('Unexpected release artifact: ' + path.name)
+          PY
 
       - name: Generate checksums
         working-directory: dist
@@ -449,6 +502,15 @@ jobs:
           git show "$TOOLS_SHA:tool/update_manifest.dart" > tool/update_manifest.dart
       - uses: actions/download-artifact@v4
         with:
+          path: dist
+          pattern: artifact-*
+          merge-multiple: true
+      - name: Download previously built packages
+        if: inputs.reuse_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.reuse_run_id }}
+          github-token: ${{ github.token }}
           path: dist
           pattern: artifact-*
           merge-multiple: true

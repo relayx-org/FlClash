@@ -1,8 +1,24 @@
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import re
 import zipfile
+
+BRANCHES = ['openwrt-24.10', 'openwrt-25.12']
+ARCHITECTURES = [
+    'x86_64', 'aarch64_generic', 'aarch64_cortex-a53', 'aarch64_cortex-a72',
+    'aarch64_cortex-a76', 'arm_cortex-a7_neon-vfpv4', 'arm_cortex-a9_vfpv3-d16',
+    'arm_cortex-a9_neon', 'mips_24kc', 'mipsel_24kc',
+]
+
+
+def package_matrix(artifacts=()):
+    return {'include': [
+        {'branch': branch, 'arch': arch}
+        for branch in BRANCHES for arch in ARCHITECTURES
+        if f'artifact-openwrt-{branch}-{arch}' not in artifacts
+    ]}
 
 
 def release_version(pubspec, tag=''):
@@ -53,7 +69,7 @@ def checksum(path):
 
 def bundle(feed, packages, output, pubspec, branch, arch, tag=''):
     version, build = release_version(pubspec, tag)
-    if branch not in ['openwrt-24.10', 'openwrt-25.12'] or not re.fullmatch(r'[a-zA-Z0-9_-]+', arch):
+    if branch not in BRANCHES or not re.fullmatch(r'[a-zA-Z0-9_-]+', arch):
         raise ValueError('Invalid OpenWrt branch or architecture')
     if package_version(feed, 'iping') != version + '-r' + build:
         raise ValueError('Agent package version was not prepared for this release')
@@ -86,7 +102,7 @@ def bundle(feed, packages, output, pubspec, branch, arch, tag=''):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'bundle'])
+    parser.add_argument('action', choices=['prepare', 'bundle', 'matrix'])
     parser.add_argument('--feed', type=Path, default=Path('openwrt'))
     parser.add_argument('--pubspec', type=Path, default=Path('pubspec.yaml'))
     parser.add_argument('--release-tag', default='')
@@ -95,7 +111,9 @@ def main():
     parser.add_argument('--branch')
     parser.add_argument('--arch')
     args = parser.parse_args()
-    if args.action == 'prepare':
+    if args.action == 'matrix':
+        print(json.dumps(package_matrix(), separators=(',', ':')))
+    elif args.action == 'prepare':
         prepare(args.feed, args.pubspec, args.release_tag)
     else:
         if args.packages is None or args.branch is None or args.arch is None:
