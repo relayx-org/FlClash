@@ -124,8 +124,8 @@ func (a *app) webAddress(ctx context.Context) (string, error) {
 }
 
 func (a *app) webListenAddress(ctx context.Context, setting, address string, minimum int) (string, error) {
-	if value, err := a.command(ctx, "/sbin/uci", "-q", "get", "iping.config."+setting); err == nil {
-		address = strings.TrimSpace(string(value))
+	if value, err := a.configValue(ctx, setting); err == nil {
+		address = value
 	}
 	if address == "" && setting == "web_tls_listen" {
 		return "", nil

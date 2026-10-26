@@ -38,16 +38,19 @@ case "$url" in */latest.json) cp /fixture/latest.json "$out" ;; *) cp /fixture/b
  shift
 done
 case "$expression" in
- '@.schemaVersion') cat /fixture/schema ;;
- '@.packageId') echo my.iping.client ;;
- '@.version') echo 1.2.3 ;;
- '@.buildNumber') echo 42 ;;
+ '@.schemaVersion'|'.schemaVersion') cat /fixture/schema ;;
+ '@.packageId'|'.packageId') echo my.iping.client ;;
+ '@.version'|'.version') echo 1.2.3 ;;
+ '@.buildNumber'|'.buildNumber') echo 42 ;;
  *.url) cat /fixture/url ;;
  *.size) cat /fixture/size ;;
  *.sha256) cat /fixture/digest ;;
  *) exit 1 ;;
 esac
 ''')
+        parser = (self.bin / 'jsonfilter').read_text().replace('while [', 'if [ \"$1\" = -er ]; then expression=$2; set --; fi\nwhile [', 1)
+        (self.bin / 'jq').write_text(parser)
+        (self.bin / 'jq').chmod(0o755)
         self.command('uci', '''[ "$1" != -q ] || shift
 case "$1" in
  get) cat "/result/uci/$2" 2>/dev/null ;;
@@ -69,6 +72,19 @@ echo "pm ${0##*/} $*" >> /result/events
 fi
 exec /bin/busybox mv "$@"
 """)
+        self.command('systemctl', """echo "systemctl $*" >> /result/events
+case "$*" in
+ 'is-active --quiet iping.service') test -f /result/running ;;
+ 'start iping.service') touch /result/running; echo 'service start' >> /result/events ;;
+ 'stop iping.service') rm -f /result/running; echo 'service stop' >> /result/events ;;
+ 'enable iping.service') echo 'service enable' >> /result/events ;;
+ 'disable --now iping-update.timer') if [ -L /etc/systemd/system/iping-update.timer ]; then rm /etc/systemd/system/iping-update.timer; fi ;;
+ 'enable --now iping-update.timer') test -f /etc/systemd/system/iping-update.timer ;;
+esac
+""")
+        self.command('uname', 'cat /fixture/arch\n')
+        self.command('ip', "echo '1.1.1.1 via 192.168.1.1 dev eth0 src 192.168.1.2'\n")
+        self.command('nft', 'exit 0\n')
         self.command('crontab', 'exec /bin/busybox crontab -c /etc/crontabs "$@"\n')
         self.command('df', '''if [ -f /fixture/no-space ]; then
  echo 'Filesystem 1024-blocks Used Available Capacity Mounted on'
@@ -101,11 +117,13 @@ esac
         path.chmod(0o755)
 
     def prepare(self, branch='24.10', arch='x86_64', bad_archive=False, bad_package=False):
+        (self.fixture / 'arch').write_text(arch)
         (self.fixture / 'release').write_text(f"DISTRIB_RELEASE='{branch}.8'\nDISTRIB_ARCH='{arch}'\n")
         family = ('aarch64' if arch.startswith('aarch64') else 'mipsel' if arch.startswith('mipsel')
-                  else 'mips' if arch.startswith('mips') else 'armv7' if arch.startswith('arm_') else arch)
-        self.names = ['agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'version', 'LICENSE']
+                  else 'mips' if arch.startswith('mips') else 'armv7' if arch.startswith('arm') else arch)
+        self.names = ['agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer', 'version', 'LICENSE']
         contents = {name: (name + '-new').encode() for name in self.names}
+        contents['agent'] = b'#!/bin/sh\ncase "$1:$2" in config:get) cat "/result/uci/iping.config.$3" 2>/dev/null ;; config:set) printf "%s" "$4" > "/result/uci/iping.config.$3" ;; *) echo agent-new ;; esac\n'
         contents['version'] = b'1.2.3+42\n'
         contents['update'] = SCRIPT.read_bytes()
         contents['iping.init'] = (self.fixture / 'service').read_bytes()
@@ -119,7 +137,7 @@ esac
         data = (self.fixture / 'bundle.zip').read_bytes()
         values = {'schema': '1', 'size': str(len(data)),
                   'digest': '0' * 64 if bad_archive else hashlib.sha256(data).hexdigest(),
-                  'url': f'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-{family}.zip'}
+                  'url': f'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-linux-agent-{family}.zip'}
         for key, value in values.items():
             (self.fixture / key).write_text(value)
         (self.fixture / 'latest.json').write_text(json.dumps({
@@ -127,7 +145,7 @@ esac
             'packageId': 'my.iping.client',
             'version': '1.2.3',
             'buildNumber': 42,
-            'downloads': {f'openwrt-{family}': {
+            'downloads': {f'linux-agent-{family}': {
                 'url': values['url'], 'size': len(data), 'sha256': values['digest'],
             }},
         }))
@@ -146,6 +164,7 @@ esac
 export PATH=/fixture/bin:/usr/sbin:/usr/bin:/sbin:/bin
 mkdir -p /etc/init.d /etc/crontabs /usr/share/iping /usr/libexec/iping /result/uci
 cp /fixture/release /etc/openwrt_release
+if grep -q linux /etc/openwrt_release; then rm /etc/openwrt_release; fi
 if grep -q 25.12 /etc/openwrt_release; then rm /fixture/bin/opkg; fi
 cp /fixture/service /etc/init.d/iping
 cp /fixture/cron /etc/init.d/cron
@@ -165,6 +184,7 @@ cat /usr/share/iping/version > /result/version 2>/dev/null || true
 cat /usr/libexec/iping/agent > /result/agent 2>/dev/null || true
 cat /etc/config/iping > /result/config 2>/dev/null || true
 readlink /etc/init.d/iping > /result/init-link || true
+if [ -f /etc/systemd/system/iping-update.timer ] && [ ! -L /etc/systemd/system/iping-update.timer ]; then echo regular > /result/timer-unit; fi
 exit "$status"
 '''
         container = subprocess.check_output(
@@ -195,7 +215,7 @@ exit "$status"
                 result = self.run_installer()
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertNotIn('pm ', self.events())
-                self.assertEqual((self.result / 'agent').read_text(), 'agent-new')
+                self.assertIn('agent-new', (self.result / 'agent').read_text())
                 self.assertEqual((self.result / 'config').read_text().strip(), 'user-config')
                 self.assertEqual((self.result / 'init-link').read_text().strip(), '/usr/libexec/iping/iping.init')
                 self.assertIn('service enable', self.events())
@@ -205,6 +225,25 @@ exit "$status"
                 cron = (self.result / 'crontab').read_text()
                 self.assertIn('user-task', cron)
                 self.assertEqual(cron.count('# iping-auto-update'), 1)
+
+    def test_linux_systemd_uses_the_same_bundle_and_timer(self):
+        self.prepare('linux', 'x86_64')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        events = self.events()
+        self.assertIn('service enable', events)
+        self.assertIn('service start', events)
+        self.assertIn('systemctl daemon-reload', events)
+        self.assertIn('systemctl enable --now iping-update.timer', events)
+        self.assertIn('http://192.168.1.2:19091/', result.stdout)
+        self.assertIn('HTTPS: https://192.168.1.2:19092/', result.stdout)
+        self.assertNotIn('# iping-auto-update', (self.result / 'crontab').read_text())
+        self.assertEqual((self.result / 'timer-unit').read_text().strip(), 'regular')
+        result = self.run_installer('sh /installer; sh /installer auto off; sh /installer auto on')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn('service start', self.events())
 
     def test_installer_prints_the_configured_https_address(self):
         result = self.run_installer(extra="echo '0.0.0.0:19092' > /result/uci/iping.config.web_tls_listen")

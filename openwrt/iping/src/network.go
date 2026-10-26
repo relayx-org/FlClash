@@ -61,7 +61,7 @@ func (a *app) networkIdentity(ctx context.Context, device string) (networkLease,
 			identity.IfIndex = link.Index
 		}
 	}
-	if data, err := os.ReadFile(firewallInclude); err == nil {
+	if data, err := os.ReadFile(a.firewallPath()); err == nil {
 		hash := sha256.Sum256(data)
 		identity.IncludeHash = hex.EncodeToString(hash[:])
 	} else if !os.IsNotExist(err) {
@@ -179,7 +179,7 @@ func (a *app) cleanNetwork(ctx context.Context) error {
 		}
 		_, _ = a.command(ctx, "ip", family, "route", "flush", "table", strconv.Itoa(routeTable))
 	}
-	if err := os.Remove(firewallInclude); err == nil {
+	if err := os.Remove(a.firewallPath()); err == nil {
 		if _, err := a.command(ctx, "fw4", "reload"); err != nil {
 			return failure("service_failed")
 		}

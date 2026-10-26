@@ -18,7 +18,7 @@ ARCHITECTURES = {
     'mips': ('mips', 'mips-softfloat', '8b6c0e437ca388d7849db5343ef24304a9b4cf63f12e926eb75d4c7251cd6ab1'),
     'mipsel': ('mipsle', 'mipsle-softfloat', '69b10ecd1db5244ab2bf1fac3c629a2e0f9b19f84728fe51b043a9767832d38c'),
 }
-PAYLOAD = {'agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'version', 'LICENSE'}
+PAYLOAD = {'agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer', 'version', 'LICENSE'}
 
 
 def release_version(pubspec, tag=''):
@@ -80,17 +80,19 @@ def fetch_core(arch, cache):
 def bundle(feed, binaries, output, pubspec, arch, tag=''):
     version, build = release_version(pubspec, tag)
     if arch not in ARCHITECTURES:
-        raise ValueError('Unsupported OpenWrt architecture')
+        raise ValueError('Unsupported Linux Agent architecture')
     for name in ('agent', 'mihomo'):
         validate_binary(binaries / name, arch)
     files = {name: binaries / name for name in ('agent', 'mihomo')}
     files.update({name: feed / 'iping/files' / source for name, source in (
         ('update', 'iping-update'), ('iping.init', 'iping.init'),
         ('iping.conf', 'iping.conf'), ('iping.upgrade', 'iping.upgrade'),
+        ('iping.service', 'iping.service'), ('iping-update.service', 'iping-update.service'),
+        ('iping-update.timer', 'iping-update.timer'),
     )})
     files['LICENSE'] = feed.parent / 'LICENSE'
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / f'iPing-{version}-openwrt-{arch}.zip'
+    archive = output / f'iPing-{version}-linux-agent-{arch}.zip'
     with tempfile.TemporaryDirectory(dir=output) as temporary:
         staged = Path(temporary)
         for name, source in files.items():
@@ -108,6 +110,8 @@ def bundle(feed, binaries, output, pubspec, arch, tag=''):
 
 def build(feed, output, cache, pubspec, arch, tag=''):
     release_version(pubspec, tag)
+    if not (feed / 'iping/src/host_config.go').is_file():
+        raise ValueError('The selected source predates Linux Agent host configuration support')
     goarch, _, _ = ARCHITECTURES[arch]
     env = {**os.environ, 'CGO_ENABLED': '0', 'GOOS': 'linux', 'GOARCH': goarch,
            'GOAMD64': 'v1', 'GOARM64': 'v8.0', 'GOARM': '7', 'GOMIPS': 'softfloat'}

@@ -137,7 +137,7 @@ func (a *app) request(ctx context.Context, method, path string, body []byte, key
 	if err != nil {
 		return nil, failure("invalid_response")
 	}
-	req.Header.Set("User-Agent", "iPing OpenWrt Clash.Meta")
+	req.Header.Set("User-Agent", "iPing Linux Clash.Meta")
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

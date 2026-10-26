@@ -1,0 +1,16 @@
+[Unit]
+Description=iPing Linux Agent
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/iping/agent agent
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+KillMode=mixed
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target

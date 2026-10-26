@@ -19,6 +19,16 @@ const updateTargets = {
   'linux-amd64-AppImage',
 };
 
+const releaseDownloads = {
+  'ios-arm64',
+  'linux-agent-x86_64',
+  'linux-agent-aarch64',
+  'linux-agent-armv7',
+  'linux-agent-mips',
+  'linux-agent-mipsel',
+  'linux-agent-installer',
+};
+
 String? updateArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
@@ -37,7 +47,7 @@ String? updateArtifactTarget(String name, String version) {
 String? downloadArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
-    r'(ios-arm64\.ipa|openwrt-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
+    r'(ios-arm64\.ipa|linux-agent-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
   ).firstMatch(name);
   return match == null ? null : p.basenameWithoutExtension(match[1]!);
 }
@@ -72,7 +82,7 @@ Future<Map<String, Object>> buildUpdateManifest({
     final target = updateArtifactTarget(name, version);
     final update = target != null && updateTargets.contains(target);
     final download = downloadArtifactTarget(name, version);
-    final installer = name == 'install-openwrt.sh';
+    final installer = name == 'install-linux.sh';
     if (!update && download == null && !installer) continue;
     if (!names.add(name)) throw StateError('Duplicate release artifact: $name');
     if (update && assets.containsKey(target)) {
@@ -92,13 +102,16 @@ Future<Map<String, Object>> buildUpdateManifest({
     if (update) {
       assets[target] = metadata;
     } else {
-      downloads[download ?? 'openwrt-installer'] = metadata;
+      downloads[download ?? 'linux-agent-installer'] = metadata;
       if (installer) {
         await destination.copy(p.join(output.path, name));
       }
     }
   }
-  final missing = updateTargets.difference(assets.keys.toSet());
+  final missing = {
+    ...updateTargets.difference(assets.keys.toSet()),
+    ...releaseDownloads.difference(downloads.keys.toSet()),
+  };
   if (assets.isEmpty || (requireComplete && missing.isNotEmpty)) {
     throw StateError('Missing update artifacts: ${missing.join(', ')}');
   }

@@ -1,8 +1,8 @@
 name: release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -12,9 +12,9 @@ jobs:
   build:
     runs-on: [self-hosted, Linux, X64]
     steps:
-      - name: Build the published release with shared caches
+      - name: Build tagged release and publish directly to MinIO
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.ref_name }}
         run: gh workflow run build.yaml --repo "$GH_REPO" --ref main -f tag="$TAG"

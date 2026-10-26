@@ -90,21 +90,22 @@ uploads, then replaces `latest.json` last. Bump `pubspec.yaml` before each relea
 Use `--allow-partial` only with a separate test bucket/path and base URL; clients
 whose platform is missing cannot install that release.
 
-Publishing a GitHub Release starts the package builds. CI attaches
-the packages and `SHA256SUMS` to that release without replacing its description.
-Stable releases also run `publish-minio` after the upload succeeds; GitHub
-prereleases leave the production update manifest unchanged. iOS produces a signed
-arm64 IPA. The shared OpenWrt workflow cross-compiles a static Agent for five CPU families
-from the release SHA and bundles a pinned, hash-verified official Mihomo binary. Their downloadable IPA
-and ZIP files are attached to GitHub and copied to stable version directories in
-MinIO; native app-update targets remain desktop/Android. The manifest also carries a `downloads` map
-with hashes and sizes for iOS/OpenWrt. `install-openwrt.sh` is published at the stable download root;
-OpenWrt installs its packaged `iping-update` command and a configurable daily cron task. All jobs share the existing
-`relayx-org` self-hosted runners.
-The MinIO job uploads through `https://minio.long2ice.io` with path-style addressing; its
-public ingress must allow S3 upload methods under `/iping/releases/`. Configure
-`MINIO_ACCESS_KEY_ID` and `MINIO_SECRET_ACCESS_KEY` as CI secrets. Credentials
-stay out of the application and manifest.
+Pushing a version tag triggers `release.yaml`, which dispatches `build.yaml` on
+`main`. It builds the exact tagged source and publishes directly to MinIO; no GitHub
+Release attachments or Actions artifacts are uploaded. Signed iOS IPA and Linux
+Agent ZIPs are included alongside the desktop and Android packages. The Linux Agent
+builds once per CPU family and shares its Web interface between OpenWrt and ordinary
+Linux. The installer selects procd/UCI/cron on OpenWrt and systemd/JSON/timers on Linux.
+`install-linux.sh` is published at the stable download root. Pre-release tags publish
+versioned downloads without changing the stable installer or update manifest.
+
+Cross-job Web assets and packages use verified receipts under
+`iping/releases/builds/<run-id>/`. Source SHA, tag, size and SHA-256 are checked before
+reuse. Release objects are immutable and are downloaded for verification before
+`latest.json` changes. All jobs share the existing `relayx-org` runners. MinIO ingress
+must permit S3 uploads under `/iping/releases/`; configure `MINIO_ACCESS_KEY_ID` and
+`MINIO_SECRET_ACCESS_KEY` as repository secrets. Credentials stay out of binaries and
+manifests.
 
 Android uses `ota_update` and requires the same APK signing key as the installed
 app. CI requires `KEYSTORE` (base64 JKS), `KEY_ALIAS`, `STORE_PASSWORD`, and
@@ -349,16 +350,15 @@ git commit -am "chore(release): v0.1.0"
 git tag v0.1.0
 git push origin main && git push origin v0.1.0
 dart run tool/changelog.dart render release --tag v0.1.0 --out /tmp/iping-release.md
-gh release create v0.1.0 --verify-tag --title v0.1.0 --notes-file /tmp/iping-release.md
+gh workflow run build.yaml --repo relayx-org/FlClash --ref main -f tag=v0.1.0 # manual retry only
 ```
 
-Push the tag by name: `--follow-tags` does not carry lightweight tags. Publishing
-the GitHub Release, through the UI or `gh release create`, starts the release
-workflow; pushing a tag alone does not build or publish packages.
+Push the tag by name: `--follow-tags` does not carry lightweight tags. The tag push
+starts the MinIO release workflow; a GitHub Release is not required.
 
 `tool/release.sh` drives both paths so the ordering below cannot be got wrong by hand. It resolves the version (bumping
 the patch when pubspec still names an already tagged one), prints the notes the tag would ship, and only pushes with
-`--push`. It prepares the tag; publish a GitHub Release for that tag afterwards:
+`--push`. It prepares and pushes the tag, which starts the MinIO build:
 
 ```bash
 tool/release.sh pre --dry-run     # plan and notes, changes nothing
@@ -381,10 +381,8 @@ The initial fork release uses `release --freeze-history` once to preserve all up
 skipped and moves on instead of reporting drift that does not exist. Checking mere tag existence is what made every such
 branch fail on an unrelated release.
 
-Prerelease tags (`v0.1.0-pre.N`) skip the release commit. Publish their GitHub
-Release with **Set as a pre-release** selected, or pass `--prerelease` to
-`gh release create`. CI attaches the packages but does not update MinIO's
-production manifest. Generate their notes with `build --unreleased` before
+Prerelease tags (`v0.1.0-pre.N`) skip the release commit. Their builds publish
+versioned MinIO packages without updating the production manifest. Generate their notes with `build --unreleased` before
 rendering; this reads the base version from `pubspec.yaml`, which must be bumped
 before the first prerelease of a cycle.
 
@@ -427,14 +425,11 @@ flutter analyze --no-fatal-infos
 flutter test test/iping/
 ```
 
-Use the covering test suites listed above for other changes. Release CI builds
-packages only; it does not run analysis, tests, coverage, or desktop debug builds.
-Publishing a GitHub Release triggers `release.yaml`, which dispatches `build.yaml`
-on `main` with that release's tag. The build resolves the published release and
-checks out its exact commit; signing and manifest tooling come from the dispatch's
-CI commit so packaging fixes can rebuild an existing release. Manual retries use `build.yaml` with the existing
-published tag; draft releases are rejected. Packages and checksums attach to the
-same release, and stable releases update MinIO only after every platform builds.
+Use the covering test suites listed above for other changes. Pushing a version tag
+triggers `release.yaml`, which dispatches `build.yaml` on `main`. Native source comes
+from the exact tag; signing, storage and manifest tooling come from the CI commit.
+Manual retries dispatch `build.yaml` with the same tag. Downloads and checksums go
+directly to MinIO; only successful stable builds replace its update manifest.
 
 ### Self-hosted Release Builds
 
@@ -452,17 +447,17 @@ Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
 `RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
 by platform, architecture and checkout path; installed SDKs, Go caches and Cargo packages stay
 on the runner. Remote Actions caches are disabled. Native Linux Go, Rust and Gradle builds
-use two workers. OpenWrt cross-compilation runs on two Mac runners, with persistent
+use two workers. Linux Agent cross-compilation runs on two Mac runners, with persistent
 local Go module/build caches and verified Mihomo downloads. Five CPU families cover
 all supported firmware versions without SDK, IPK or APK builds. The binary installer
-handles runtime dependencies, procd startup, verified updates and activation rollback.
+handles runtime dependencies, procd/systemd startup, verified updates and activation rollback.
 Temporary signing keys are removed after each job without discarding
 other jobs' entries in the Mac keychain search list.
 
 To resume a release after changing only CI tooling, dispatch `build.yaml` with the same
-`tag` and `reuse_run_id` of the previous build. It checks the tag and application source,
-reuses completed native and Web artifacts, and rebuilds the binary installer and five
-OpenWrt binaries. Old IPK/APK artifacts are excluded from the resumed release.
+`tag` and `reuse_run_id` of a completed MinIO build. Receipts must match the release
+SHA and tag. It reuses the native and Web files from MinIO and rebuilds the binary
+installer and five Linux Agent targets.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in

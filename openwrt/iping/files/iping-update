@@ -18,15 +18,16 @@ cleanup() {
     trap - 0
     set +e
     if [ "$result" != 0 ] && [ "$replaced" = 1 ]; then
-        /etc/init.d/iping stop
+        service_action stop
         rm -rf /usr/libexec/iping
         if mv "$backup" /usr/libexec/iping; then
             echo 'iPing: restored the previous binaries' >&2
         else echo "iPing: recovery files remain at $backup" >&2; fi
         backup=''
+        if [ "$init_system" = systemd ]; then install_systemd_units; fi
     fi
     if [ "$restore_service" = 1 ]; then
-        IPING_UPDATE_START=1 /etc/init.d/iping start || echo 'iPing: could not restore the service' >&2
+        service_action start || echo 'iPing: could not restore the service' >&2
     fi
     [ -z "$staged" ] || rm -rf "$staged"
     [ -z "$backup" ] || rm -rf "$backup"
@@ -34,67 +35,125 @@ cleanup() {
     exit "$result"
 }
 
+config_get() {
+    if [ "$init_system" = procd ]; then uci -q get "iping.config.$1"
+    elif [ -x /usr/libexec/iping/agent ]; then /usr/libexec/iping/agent config get "$1" 2>/dev/null
+    else return 1; fi
+}
+
+config_set() {
+    if [ "$init_system" = procd ]; then
+        uci set "iping.config.$1=$2"
+        uci commit iping
+    else /usr/libexec/iping/agent config set "$1" "$2"; fi
+}
+
+install_systemd_units() {
+    mkdir -p /etc/systemd/system
+    for unit in iping.service iping-update.service iping-update.timer; do
+        rm -f "/etc/systemd/system/$unit"
+        if [ -f "/usr/libexec/iping/$unit" ]; then cp "/usr/libexec/iping/$unit" "/etc/systemd/system/$unit"; fi
+    done
+    systemctl daemon-reload
+}
+
+service_action() {
+    if [ "$init_system" = procd ]; then IPING_UPDATE_START=1 /etc/init.d/iping "$1"
+    else systemctl "$1" iping.service; fi
+}
+
+service_running() {
+    if [ "$init_system" = procd ]; then [ -x /etc/init.d/iping ] && /etc/init.d/iping running
+    else systemctl is-active --quiet iping.service; fi
+}
+
 update_repositories() {
     [ "$repositories_updated" = 0 ] || return 0
-    "$manager" update
+    case "$manager" in
+        opkg|apk) "$manager" update ;;
+        apt-get) apt-get update ;;
+        dnf|yum) "$manager" makecache ;;
+        *) fail 'install curl, jq, unzip, util-linux, iproute2 and nftables before running this installer' ;;
+    esac
     repositories_updated=1
 }
 
+install_dependencies() {
+    [ "$scheduled" = 0 ] || fail 'update dependencies are missing; rerun the installer'
+    update_repositories
+    case "$manager" in
+        opkg) opkg install ca-bundle curl jsonfilter unzip flock ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket ;;
+        apk) apk add ca-bundle curl jsonfilter unzip flock ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket ;;
+        apt-get) DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl jq unzip util-linux iproute2 nftables ;;
+        dnf|yum) "$manager" install -y ca-certificates curl jq unzip util-linux iproute nftables ;;
+    esac
+}
+
 detect_platform() {
-    [ -f /etc/openwrt_release ] || fail 'this installer requires OpenWrt'
-    # shellcheck source=/dev/null
-    . /etc/openwrt_release
-    if command -v opkg >/dev/null; then manager=opkg
-    elif command -v apk >/dev/null; then manager=apk
-    else fail 'opkg or apk is required to install runtime dependencies'; fi
-    machine=${DISTRIB_ARCH:-}
-    if [ -z "$machine" ]; then
-        if [ "$manager" = opkg ]; then
-            machine=$(opkg print-architecture | sort -nk3 | tail -n1 | awk '{print $2}')
-        else machine=$(apk --print-arch); fi
-    fi
+    manager=''
+    if [ -f /etc/openwrt_release ]; then
+        init_system=procd
+        # shellcheck source=/dev/null
+        . /etc/openwrt_release
+        if command -v opkg >/dev/null; then manager=opkg
+        elif command -v apk >/dev/null; then manager=apk
+        else fail 'opkg or apk is required for OpenWrt runtime dependencies'; fi
+        machine=${DISTRIB_ARCH:-}
+        if [ -z "$machine" ]; then
+            if [ "$manager" = opkg ]; then
+                machine=$(opkg print-architecture | sort -nk3 | tail -n1 | awk '{print $2}')
+            else machine=$(apk --print-arch); fi
+        fi
+    elif command -v systemctl >/dev/null; then
+        init_system=systemd
+        for candidate in apt-get dnf yum; do
+            if command -v "$candidate" >/dev/null; then manager=$candidate; break; fi
+        done
+        machine=$(uname -m)
+        if [ "$machine" = mips ]; then
+            endian=$(od -An -tu1 -N1 -j5 /bin/sh | tr -d ' \n')
+            case "$endian" in 1) machine=mipsel ;; 2) ;; *) fail 'cannot determine MIPS byte order' ;; esac
+        fi
+    else fail 'this installer requires OpenWrt procd or Linux systemd'; fi
     case "$machine" in
         x86_64) arch=x86_64 ;;
         aarch64|arm64|aarch64_*) arch=aarch64 ;;
-        arm_cortex-a[5789]*|arm_cortex-a1[57]*|arm_cortex-a53*|armv7*) arch=armv7 ;;
-        mips_*) arch=mips ;;
-        mipsel_*) arch=mipsel ;;
+        arm_cortex-a[5789]*|arm_cortex-a1[57]*|arm_cortex-a53*|armv7*|armhf) arch=armv7 ;;
+        mips|mips_*) arch=mips ;;
+        mipsel|mipsel_*) arch=mipsel ;;
         *) fail "unsupported CPU architecture: $machine" ;;
     esac
 }
 
 ensure_tools() {
-    set --
-    for tool in curl jsonfilter unzip flock; do
-        command -v "$tool" >/dev/null || set -- "$@" "$tool"
+    parser=jq
+    [ "$init_system" != procd ] || parser=jsonfilter
+    for tool in curl "$parser" unzip flock; do
+        if ! command -v "$tool" >/dev/null; then install_dependencies; break; fi
     done
-    if [ "$#" -gt 0 ]; then
-        [ "$scheduled" = 0 ] || fail 'update dependencies are missing; rerun the installer'
-        update_repositories
-        if [ "$manager" = opkg ]; then
-            opkg install ca-bundle "$@"
-        else
-            apk add ca-bundle "$@"
-        fi
-    fi
     command -v sha256sum >/dev/null || fail 'sha256sum is required'
 }
 
 schedule_updates() {
+    if [ "$init_system" = systemd ]; then
+        if [ "$(config_get auto_update || echo 1)" = 1 ]; then
+            systemctl enable --now iping-update.timer
+        else systemctl disable --now iping-update.timer; fi
+        return 0
+    fi
     mkdir -p /etc/crontabs
     cron=$(mktemp /tmp/iping-cron.XXXXXX)
     if [ -f /etc/crontabs/root ]; then
         sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
     fi
-    schedule_enabled=$(uci -q get iping.config.auto_update || echo 1)
+    schedule_enabled=$(config_get auto_update || echo 1)
     if [ "$schedule_enabled" = 1 ]; then
-        minute=$(uci -q get iping.config.update_minute || true)
+        minute=$(config_get update_minute || true)
         case "$minute" in
             ''|*[!0-9]*) minute=$(awk 'BEGIN { srand(); print int(rand() * 60) }') ;;
         esac
         [ "$minute" -le 59 ] || { rm -f "$cron"; fail 'update_minute must be between 0 and 59'; }
-        uci set "iping.config.update_minute=$minute"
-        uci commit iping
+        config_set update_minute "$minute"
         printf '%s 4 * * * /usr/libexec/iping/update --scheduled 2>&1 | logger -t iping-update # iping-auto-update\n' "$minute" >> "$cron"
     fi
     crontab "$cron"
@@ -113,7 +172,10 @@ download() {
     [ -s "$2" ] || fail "empty download: $1"
 }
 
-field() { jsonfilter -i "$work/latest.json" -e "$1"; }
+field() {
+    if [ "$init_system" = procd ]; then jsonfilter -i "$work/latest.json" -e "$1"
+    else jq -er "${1#@}" "$work/latest.json"; fi
+}
 
 valid_version() { echo "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\+[1-9][0-9]{0,14}$'; }
 
@@ -137,7 +199,7 @@ unpack_binaries() {
         if [ -n "$extra" ] || [ "${#digest}" != 64 ]; then fail 'invalid binary checksums'; fi
         case "$digest" in *[!0-9a-f]*) fail 'invalid binary checksum' ;; esac
         case "$name" in
-            agent|mihomo|update|iping.init|iping.conf|iping.upgrade|version|LICENSE) ;;
+            agent|mihomo|update|iping.init|iping.conf|iping.upgrade|iping.service|iping-update.service|iping-update.timer|version|LICENSE) ;;
             *) fail "unexpected release file: $name" ;;
         esac
         case "$seen" in *" $name "*) fail 'duplicate release file' ;; esac
@@ -147,14 +209,18 @@ unpack_binaries() {
         [ -s "$work/payload/$name" ] || fail "empty release file: $name"
         printf '%s  %s\n' "$digest" "$work/payload/$name" | sha256sum -c -
     done < "$work/SHA256SUMS"
-    [ "$count" = 8 ] || fail 'incomplete binary release'
+    [ "$count" = 11 ] || fail 'incomplete binary release'
     [ "$(cat "$work/payload/version")" = "$target" ] || fail 'release version mismatch'
     chmod 755 "$work/payload/agent" "$work/payload/mihomo" "$work/payload/update" "$work/payload/iping.init"
-    chmod 644 "$work/payload/iping.conf" "$work/payload/iping.upgrade" "$work/payload/version" "$work/payload/LICENSE"
+    chmod 644 "$work/payload/iping.conf" "$work/payload/iping.upgrade" "$work/payload/"*.service "$work/payload/"*.timer "$work/payload/version" "$work/payload/LICENSE"
 }
 
 ensure_runtime() {
     [ "$scheduled" = 0 ] || return 0
+    if [ "$init_system" = systemd ]; then
+        if ! command -v ip >/dev/null || ! command -v nft >/dev/null; then install_dependencies; fi
+        return 0
+    fi
     set --
     for package in ca-bundle ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket; do
         if [ "$manager" = opkg ]; then
@@ -169,10 +235,10 @@ ensure_runtime() {
 }
 
 stage_binaries() {
-    mkdir -p /usr/libexec /usr/share/iping /usr/bin /etc/init.d /etc/config /lib/upgrade/keep.d
+    mkdir -p /usr/libexec /usr/share/iping /usr/bin
     available=$(df -Pk /usr/libexec | awk 'END { print $4 * 1024 }')
     required=$(du -sk "$work/payload" | awk '{ print $1 * 1024 + 8388608 }')
-    awk -v available="$available" -v required="$required" 'BEGIN { exit !(available >= required) }' || fail 'not enough router storage for the new binaries'
+    awk -v available="$available" -v required="$required" 'BEGIN { exit !(available >= required) }' || fail 'not enough storage for the new binaries'
     staged=$(mktemp -d /usr/libexec/iping-new.XXXXXX)
     cp -p "$work/payload/"* "$staged/"
 }
@@ -193,21 +259,29 @@ activate_binaries() {
     replaced=1
     mv "$staged" /usr/libexec/iping
     staged=''
-    ln -sf /usr/libexec/iping/iping.init /etc/init.d/iping
     ln -sf /usr/libexec/iping/version /usr/share/iping/version
-    ln -sf /usr/libexec/iping/iping.upgrade /lib/upgrade/keep.d/iping
     ln -sf /usr/libexec/iping/update /usr/bin/iping-update
-    if [ ! -f /etc/config/iping ]; then
-        cp /usr/libexec/iping/iping.conf /etc/config/iping
-        chmod 600 /etc/config/iping
+    if [ "$init_system" = procd ]; then
+        mkdir -p /etc/init.d /etc/config /lib/upgrade/keep.d
+        ln -sf /usr/libexec/iping/iping.init /etc/init.d/iping
+        ln -sf /usr/libexec/iping/iping.upgrade /lib/upgrade/keep.d/iping
+        if [ ! -f /etc/config/iping ]; then
+            cp /usr/libexec/iping/iping.conf /etc/config/iping
+            chmod 600 /etc/config/iping
+        fi
+    else
+        install_systemd_units
+        if [ -z "$(config_get web_tls_listen || true)" ]; then config_set web_tls_listen '0.0.0.0:19092'; fi
     fi
 }
 
 show_address() {
-    address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
-    listener=$(uci -q get iping.config.web_listen || echo '0.0.0.0:19091')
+    if [ "$init_system" = procd ]; then address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
+    else address=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") {print $(i+1); exit}}'); fi
+    address=${address:-127.0.0.1}
+    listener=$(config_get web_listen || echo '0.0.0.0:19091')
     echo "iPing is ready: http://$address:${listener##*:}/"
-    secure_listener=$(uci -q get iping.config.web_tls_listen || true)
+    secure_listener=$(config_get web_tls_listen || true)
     if [ -n "$secure_listener" ]; then
         echo "HTTPS: https://$address:${secure_listener##*:}/"
     fi
@@ -218,12 +292,12 @@ main() {
     [ "$(id -u)" = 0 ] || fail 'run this installer as root'
     case "${1:-}" in
         auto)
+            detect_platform
             case "${2:-}" in on) value=1 ;; off) value=0 ;; *) fail 'usage: iping-update auto on|off' ;; esac
-            uci set "iping.config.auto_update=$value"
-            uci commit iping
+            config_set auto_update "$value"
             schedule_updates
             exit 0 ;;
-        schedule) schedule_updates; exit 0 ;;
+        schedule) detect_platform; schedule_updates; exit 0 ;;
     esac
     for argument in "$@"; do
         case "$argument" in
@@ -235,8 +309,8 @@ main() {
             *) fail "unknown argument: $argument" ;;
         esac
     done
-    if [ "$scheduled" = 1 ] && [ "$(uci -q get iping.config.auto_update || echo 1)" != 1 ]; then exit 0; fi
     detect_platform
+    if [ "$scheduled" = 1 ] && [ "$(config_get auto_update || echo 1)" != 1 ]; then exit 0; fi
     ensure_tools
     mkdir -p /var/lock
     exec 9>/var/lock/iping-update.lock
@@ -245,7 +319,7 @@ main() {
     trap cleanup 0
     trap 'exit 130' INT
     trap 'exit 143' TERM
-    base_url=${IPING_UPDATE_BASE_URL:-$(uci -q get iping.config.update_url || echo 'https://video.iping.my/releases/')}
+    base_url=${IPING_UPDATE_BASE_URL:-$(config_get update_url || echo 'https://video.iping.my/releases/')}
     case "$base_url" in https://*/*/) ;; *) fail 'the update URL must use HTTPS and end in /' ;; esac
     download "${base_url}latest.json" "$work/latest.json"
     [ "$(field '@.schemaVersion')" = 1 ] || fail 'unsupported update manifest'
@@ -254,12 +328,12 @@ main() {
     build=$(field '@.buildNumber')
     target="$version+$build"
     valid_version "$target" || fail 'invalid release version'
-    filename="iPing-${version}-openwrt-${arch}.zip"
-    key="@.downloads[\"openwrt-${arch}\"]"
+    filename="iPing-${version}-linux-agent-${arch}.zip"
+    key="@.downloads[\"linux-agent-${arch}\"]"
     url=$(field "$key.url")
     size=$(field "$key.size")
     digest=$(field "$key.sha256")
-    [ "$url" = "${base_url}${target}/${filename}" ] || fail "no matching binary release for $arch"
+    [ "$url" = "${base_url}${target}/${filename}" ] || fail "no matching Linux Agent release for $arch"
     case "$size" in ''|*[!0-9]*) fail 'invalid release size' ;; esac
     if [ "${#size}" -gt 10 ] || [ "$size" -le 0 ]; then fail 'invalid release size'; fi
     [ "${#digest}" = 64 ] || fail 'invalid release checksum'
@@ -270,16 +344,16 @@ main() {
         if ! newer "$target" "$installed"; then
             echo "iPing $installed is current; no update needed."
             if [ "$mode" = install ]; then
-                if [ -n "$auto_update" ]; then uci set "iping.config.auto_update=$auto_update"; uci commit iping; fi
+                if [ -n "$auto_update" ]; then config_set auto_update "$auto_update"; fi
                 schedule_updates
-                /etc/init.d/iping enable
-                IPING_UPDATE_START=1 /etc/init.d/iping start
+                service_action enable
+                service_action start
                 show_address
             fi
             exit 0
         fi
     fi
-    echo "iPing: ${installed:-not installed} -> $target (OpenWrt / $arch)"
+    echo "iPing: ${installed:-not installed} -> $target (Linux Agent / $arch)"
     [ "$mode" != check ] || exit 0
     available=$(df -Pk /tmp | awk 'END { print $4 * 1024 }')
     awk -v available="$available" -v size="$size" 'BEGIN { exit !(available >= size * 4 + 16777216) }' || fail 'not enough temporary space for download and verification'
@@ -290,19 +364,18 @@ main() {
     ensure_runtime
     stage_binaries
     was_running=0
-    if [ -x /etc/init.d/iping ] && /etc/init.d/iping running; then was_running=1; fi
+    if service_running; then was_running=1; fi
     if [ "$was_running" = 1 ]; then
         restore_service=1
-        /etc/init.d/iping stop
+        service_action stop
     fi
     activate_binaries
-    if [ -n "$auto_update" ]; then uci set "iping.config.auto_update=$auto_update"; fi
-    if [ -n "${IPING_UPDATE_BASE_URL:-}" ]; then uci set "iping.config.update_url=$base_url"; fi
-    uci commit iping
+    if [ -n "$auto_update" ]; then config_set auto_update "$auto_update"; fi
+    if [ -n "${IPING_UPDATE_BASE_URL:-}" ]; then config_set update_url "$base_url"; fi
     schedule_updates
-    if [ "$mode" = install ]; then /etc/init.d/iping enable; fi
+    if [ "$mode" = install ]; then service_action enable; fi
     if [ "$mode" = install ] || [ "$was_running" = 1 ]; then
-        IPING_UPDATE_START=1 /etc/init.d/iping start
+        service_action start
     fi
     restore_service=0
     echo "iPing $target installed."

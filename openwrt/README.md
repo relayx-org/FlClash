@@ -1,6 +1,6 @@
-# iPing for OpenWrt
+# iPing Linux Agent
 
-OpenWrt runs two static binaries: the iPing Agent with its embedded Flutter Web
+OpenWrt and headless Linux servers run the same two static binaries: the iPing Agent with its embedded Flutter Web
 interface and a private Mihomo Core. The Agent owns the
 Core process, configuration, controller, and network cleanup. It does not depend
 on Nikki, LuCI, or rpcd, and does not import their configuration.
@@ -13,14 +13,15 @@ features follow backend capabilities.
 
 ## Requirements
 
-- OpenWrt 24.10 or newer with firewall4 and a Linux kernel supporting Mihomo's
-  TUN auto-route and nftables auto-redirect (5.13 or newer).
+- OpenWrt 24.10 or newer with procd/firewall4, or a systemd Linux server
+  (Debian/Ubuntu and Fedora/RHEL families install dependencies automatically).
+- Linux 5.13 or newer for Mihomo TUN auto-route and nftables auto-redirect.
 - Enough storage and RAM for the embedded Flutter application and Mihomo.
   Generated Web assets omit unused native Geo databases and debug symbols.
 - A current browser with WebAssembly support, and HTTPS access from the router
   to the configured iPing site.
 
-The installer uses the router's package manager only for runtime dependencies:
+On OpenWrt the installer uses the router's package manager only for runtime dependencies:
 `ip-full`, `nftables-json`, firewall4, CA certificates and TUN/netfilter modules.
 Kernel modules come from the router's own repositories and match its running kernel.
 The iPing binaries do not link to the firmware's C runtime.
@@ -46,24 +47,26 @@ Mihomo's official Linux binaries are pinned to a version and SHA-256 hashes in
 `tool/ci/openwrt_release.py`; release validation rejects dynamically linked or
 incorrectly targeted executables.
 
-The release workflow builds one `iPing-<version>-openwrt-<arch>.zip` per CPU family.
+The release workflow builds one `iPing-<version>-linux-agent-<arch>.zip` per CPU family.
 Each archive contains `agent`, `mihomo`, the installer/updater, procd/UCI files,
 a version stamp, license and `SHA256SUMS`. Firmware versions share these binaries.
 The release waits for all five architectures before publishing alongside the
-other platforms. Stable builds also reach the versioned MinIO download directory.
+other platforms. Builds and release files are stored in MinIO. GitHub Release attachments and
+Actions artifacts are not used. Stable publication verifies every file and replaces
+the update manifest last.
 
 ## Use
 
-Run this command over SSH as root after the first stable release containing OpenWrt
+Run this command over SSH as root after the first stable release containing Linux Agent
 binaries has been published:
 
 ```sh
-wget -qO /tmp/iping-install.sh https://video.iping.my/releases/install-openwrt.sh && sh /tmp/iping-install.sh
+wget -qO /tmp/iping-install.sh https://video.iping.my/releases/install-linux.sh && sh /tmp/iping-install.sh
 ```
 
 The installer maps OpenWrt's CPU architecture to the matching static binaries,
 installs runtime dependencies, and verifies the archive size, SHA-256 and every
-contained file before replacing the programs. It enables the
+contained file before replacing the programs. It selects procd on OpenWrt or systemd on Linux and enables the
 Agent at boot and prints its Web address. Open `http://<router-LAN-address>:19091/`
 and sign in with your iPing account. There is no separate router access key.
 
@@ -77,14 +80,14 @@ addresses have changed. Existing installations keep their listener settings; ena
 HTTPS with `uci set iping.config.web_tls_listen='0.0.0.0:19092'`,
 `uci commit iping`, then `/etc/init.d/iping restart`.
 
-Automatic updates are enabled by default. A local cron task checks the stable update
+Automatic updates are enabled by default. A procd cron task or systemd timer checks the stable update
 manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
 when the version/build is newer; it does not execute a downloaded installer or upgrade
 unrelated system packages. Download and verification finish before the Agent is stopped.
 Updates replace the binary directory and preserve `/etc/iping/` and UCI configuration. A
 running Agent is restarted after updating; an Agent that was stopped remains stopped.
 If activation fails, the updater restores the previous binary directory and running
-service. Scheduled results appear in `logread -e iping-update`. Re-run the installer
+service. Scheduled results appear in `logread -e iping-update` on OpenWrt or `journalctl -u iping-update` on Linux. Re-run the installer
 after a firmware sysupgrade to restore the programs and runtime dependencies.
 
 ```sh
@@ -113,7 +116,15 @@ starts the private Core; disconnect stops that process and releases its network
 resources. The enabled intent persists across reboot. The Agent and Web page
 remain available while disconnected.
 
-The optional UCI settings are:
+Linux stores host settings in `/etc/iping/agent.json`; root can read or change them
+with `agent config get KEY` and `agent config set KEY VALUE`, for example:
+
+```sh
+/usr/libexec/iping/agent config set web_listen 0.0.0.0:19091
+systemctl restart iping
+```
+
+OpenWrt adapts the same host settings to UCI:
 
 ```text
 config iping 'config'
@@ -124,7 +135,8 @@ config iping 'config'
     option auto_update '1'
 ```
 
-Changing the site or Web listener requires `/etc/init.d/iping restart`. Core
+Changing the site or Web listener requires `systemctl restart iping` on Linux,
+or `/etc/init.d/iping restart` on OpenWrt. Core
 listeners remain independent of Web HTTP/HTTPS. Delete `web_tls_listen` to disable
 HTTPS; certificates stay in the private data directory for later reuse. Core
 settings are edited in the Web interface, rather than UCI. The local root-only
@@ -136,8 +148,7 @@ with a JSON request on stdin.
 `/etc/iping/` contains the account session, original subscription `source.yaml`,
 local overrides `settings.json`, validated `profile.yaml`, and private controller
 keys. `/var/run/iping/` contains the running profile, job state, bounded
-Core log, process locks, Unix socket, and network lease. The package preserves
-its own data across sysupgrade; no older plugin configuration is migrated.
+Core log, process locks, Unix socket, and network lease. OpenWrt preserves the private data directory across sysupgrade; no older plugin configuration is migrated.
 
 General, advanced, custom resource, DNS, and TUN controls share the application's
 settings contract. Resettable DNS/TUN fields follow the subscription after their

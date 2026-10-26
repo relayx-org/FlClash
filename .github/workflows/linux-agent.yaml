@@ -1,7 +1,14 @@
-name: openwrt
+name: linux-agent
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        type: string
+        required: true
+      ref:
+        type: string
+        default: ''
   workflow_call:
     inputs:
       ref:
@@ -22,18 +29,17 @@ on:
       - 'openwrt/**'
       - 'test/**'
       - 'pubspec.*'
-      - '.github/workflows/openwrt.yaml'
+      - '.github/workflows/linux-agent.yaml'
       - '.github/workflows/build.yaml'
       - 'tool/ci/openwrt_release.py'
-      - 'tool/ci/reuse_release.py'
+      - 'tool/ci/storage.py'
       - 'tool/update_manifest.dart'
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
-  group: openwrt-${{ github.run_id }}-${{ github.run_attempt }}
+  group: linux-agent-${{ github.run_id }}-${{ github.run_attempt }}
   cancel-in-progress: false
 
 jobs:
@@ -52,7 +58,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/reuse_release_test.py tool/ci/reuse_release.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
+          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/storage_test.py tool/ci/storage.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
       - name: Check binary release tooling
@@ -78,6 +84,10 @@ jobs:
   ui:
     runs-on: [self-hosted, Linux, X64]
     env:
+      RELEASE_SHA: ${{ inputs.ref || github.sha }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
       GOROOT: ''
       GOMAXPROCS: '2'
@@ -88,15 +98,6 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           submodules: recursive
-
-      - name: Reuse the validated Web build
-        if: inputs.reuse_run_id != ''
-        uses: actions/download-artifact@v4
-        with:
-          name: openwrt-web
-          run-id: ${{ inputs.reuse_run_id }}
-          github-token: ${{ github.token }}
-          path: openwrt/iping/src/webui/dist/
 
       - uses: actions/setup-go@v5
         if: inputs.reuse_run_id == ''
@@ -115,7 +116,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -151,26 +152,29 @@ jobs:
         if: inputs.reuse_run_id == ''
         run: bash openwrt/build_ui.sh
 
-      - name: Prepare the one-command installer
-        run: install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/install-openwrt.sh"
+      - name: Reuse the validated Web build from MinIO
+        if: inputs.reuse_run_id != ''
+        env:
+          PREVIOUS_RUN: ${{ inputs.reuse_run_id }}
+        run: python3 tool/ci/storage.py get --run "$PREVIOUS_RUN" --group web --path openwrt/iping/src/webui/dist
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artifact-openwrt-installer
-          path: ${{ runner.temp }}/install-openwrt.sh
-          if-no-files-found: error
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: openwrt-web
-          path: openwrt/iping/src/webui/dist/
-          if-no-files-found: error
+      - name: Save shared Web and installer to MinIO
+        if: github.event_name == 'workflow_dispatch' || inputs.build_binaries
+        run: |
+          python3 tool/ci/storage.py put --group web --path openwrt/iping/src/webui/dist
+          mkdir -p "$RUNNER_TEMP/iping-installer"
+          install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/iping-installer/install-linux.sh"
+          python3 tool/ci/storage.py put --group installer --path "$RUNNER_TEMP/iping-installer"
 
   binaries:
     if: ${{ github.event_name == 'workflow_dispatch' || inputs.build_binaries }}
     needs: [ui, agent]
     runs-on: [self-hosted, macOS, ARM64]
     env:
+      RELEASE_SHA: ${{ inputs.ref || github.sha }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       GOMAXPROCS: '4'
       GOFLAGS: -p=4
     strategy:
@@ -188,7 +192,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -203,10 +207,8 @@ jobs:
           echo "GOCACHE=$RUNNER_TOOL_CACHE/iping/openwrt/go-build" >> "$GITHUB_ENV"
           echo "GOMODCACHE=$RUNNER_TOOL_CACHE/iping/openwrt/go-mod" >> "$GITHUB_ENV"
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: openwrt-web
-          path: openwrt/iping/src/webui/dist/
+      - name: Load the verified Web build from MinIO
+        run: python3 tool/ci/storage.py get --group web --path openwrt/iping/src/webui/dist
 
       - name: Cross-compile static Agent and reuse the pinned Core binary
         env:
@@ -216,8 +218,7 @@ jobs:
           python3 tool/ci/openwrt_release.py build --arch "$ARCH" --release-tag "$RELEASE_TAG" \
             --cache "$RUNNER_TOOL_CACHE/iping/openwrt/mihomo"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artifact-openwrt-${{ matrix.arch }}
-          path: dist/iPing-*-openwrt-*.zip
-          if-no-files-found: error
+      - name: Save Linux binaries to MinIO
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: python3 tool/ci/storage.py put --group "agent-$ARCH" --path dist

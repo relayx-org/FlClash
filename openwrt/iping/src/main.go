@@ -45,6 +45,7 @@ type arguments struct {
 }
 
 type app struct {
+	hostConfig        string
 	dataDir           string
 	runDir            string
 	profile           string
@@ -104,20 +105,32 @@ func newApp() (*app, error) {
 			return nil, failure("storage_error")
 		}
 	}
+	if _, err := os.Stat("/etc/openwrt_release"); os.IsNotExist(err) {
+		a.hostConfig = filepath.Join(a.dataDir, "agent.json")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	if configured, err := a.command(ctx, "/sbin/uci", "-q", "get", "iping.config.site"); err == nil {
-		u, err := url.Parse(strings.TrimSpace(string(configured)))
+	if configured, err := a.configValue(ctx, "site"); err == nil {
+		u, err := url.Parse(configured)
 		if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil ||
 			(u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.Fragment != "" {
 			return nil, failure("invalid_site")
 		}
 		a.site = strings.TrimSuffix(u.String(), "/")
+	} else if a.hostConfig != "" && !os.IsNotExist(err) {
+		return nil, failure("storage_error")
 	}
 	return a, nil
 }
 
 func main() {
+	if len(os.Args) >= 2 && os.Args[1] == "config" {
+		if err := configurationCLI(os.Args[2:]); err != nil {
+			os.Stderr.WriteString(err.Error() + "\n")
+			os.Exit(1)
+		}
+		return
+	}
 	if len(os.Args) == 2 && os.Args[1] == "list" {
 		json.NewEncoder(os.Stdout).Encode(methods)
 		return
@@ -312,4 +325,31 @@ func (a *app) status(ctx context.Context) (any, error) {
 		"nodes": profile.Nodes, "synced": profile.Synced, "busy": busy || a.core.working.Load() > 0, "job": job,
 		"running": a.running(ctx),
 	}, nil
+}
+
+func configurationCLI(args []string) error {
+	if len(args) < 2 || len(args) > 3 {
+		return failure("invalid_request")
+	}
+	switch args[1] {
+	case "site", "enabled", "web_listen", "web_tls_listen", "auto_update", "update_url", "update_minute":
+	default:
+		return failure("invalid_request")
+	}
+	a, err := newApp()
+	if err != nil {
+		return err
+	}
+	if args[0] == "get" && len(args) == 2 {
+		value, err := a.configValue(context.Background(), args[1])
+		if err != nil {
+			return err
+		}
+		_, err = os.Stdout.WriteString(value + "\n")
+		return err
+	}
+	if args[0] == "set" && len(args) == 3 {
+		return a.setConfigValue(context.Background(), args[1], args[2])
+	}
+	return failure("invalid_request")
 }

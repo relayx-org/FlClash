@@ -5,17 +5,16 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Published release tag to build
+        description: Release tag to build and publish to MinIO
         required: true
         type: string
       reuse_run_id:
-        description: Previous build of the same application source to reuse
+        description: Previous MinIO build run of the same release source to reuse
         type: string
         default: ''
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: iping-build-${{ inputs.tag }}
@@ -34,7 +33,7 @@ jobs:
       sha: ${{ steps.resolve.outputs.sha }}
       stable: ${{ steps.resolve.outputs.stable }}
     steps:
-      - name: Resolve published release
+      - name: Resolve release tag
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
@@ -43,11 +42,16 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?$ ]]
-          release="$(gh release view "$TAG" --json isDraft,isPrerelease)"
-          test "$(jq -r .isDraft <<< "$release")" = false
           printf 'tag=%s\n' "$TAG" >> "$GITHUB_OUTPUT"
-          printf 'sha=%s\n' "$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)" >> "$GITHUB_OUTPUT"
-          printf 'stable=%s\n' "$(jq -r '.isPrerelease | not' <<< "$release")" >> "$GITHUB_OUTPUT"
+          for attempt in 1 2 3; do
+            if sha="$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)"; then break; fi
+            [ "$attempt" -lt 3 ] || exit 1
+            sleep 5
+          done
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]]
+          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-pre.* ]]; then stable=false; else stable=true; fi
+          printf 'stable=%s\n' "$stable" >> "$GITHUB_OUTPUT"
 
   reuse:
     if: inputs.reuse_run_id != ''
@@ -55,14 +59,14 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
-      - name: Validate previous release artifacts
-        id: reuse
+      - name: Validate previous MinIO build receipts
         env:
-          GH_TOKEN: ${{ github.token }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
           PREVIOUS_RUN: ${{ inputs.reuse_run_id }}
           RELEASE_SHA: ${{ needs.release.outputs.sha }}
-          TAG: ${{ needs.release.outputs.tag }}
-        run: python3 tool/ci/reuse_release.py --run "$PREVIOUS_RUN" --sha "$RELEASE_SHA" --tag "$TAG"
+          RELEASE_TAG: ${{ needs.release.outputs.tag }}
+        run: python3 tool/ci/storage.py check --run "$PREVIOUS_RUN"
 
   build:
     if: inputs.reuse_run_id == ''
@@ -70,6 +74,10 @@ jobs:
     runs-on: ${{ matrix.runner }}
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
+      RELEASE_SHA: ${{ needs.release.outputs.sha }}
+      RELEASE_TAG: ${{ needs.release.outputs.tag }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       GRADLE_OPTS: -Dorg.gradle.caching=true
       FLUTTER_STORAGE_BASE_URL: ${{ (matrix.platform == 'android' || matrix.platform == 'linux') && 'https://storage.flutter-io.cn' || 'https://storage.googleapis.com' }}
     strategy:
@@ -113,7 +121,7 @@ jobs:
             sleep 5
           done
           mkdir -p tool/ci
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -403,83 +411,33 @@ jobs:
             python3 tool/ci/ios_signing.py cleanup "$IOS_SIGNING_DIR"
           fi
 
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
-          path: ./dist
-          if-no-files-found: error
-          overwrite: true
+      - name: Save native packages to MinIO
+        shell: bash
+        env:
+          GROUP: ${{ matrix.platform }}-${{ matrix.arch }}
+        run: python3 tool/ci/storage.py put --group "$GROUP" --path dist
 
-  openwrt:
+  linux-agent:
     if: ${{ !cancelled() && needs.release.result == 'success' && (needs.reuse.result == 'success' || needs.reuse.result == 'skipped') }}
     needs: [release, reuse]
-    uses: ./.github/workflows/openwrt.yaml
+    uses: ./.github/workflows/linux-agent.yaml
     with:
       ref: ${{ needs.release.outputs.sha }}
       release_tag: ${{ needs.release.outputs.tag }}
       build_binaries: true
       reuse_run_id: ${{ inputs.reuse_run_id }}
-
-  upload:
-    if: ${{ !cancelled() && needs.openwrt.result == 'success' && (needs.build.result == 'success' || needs.reuse.result == 'success') }}
-    permissions:
-      contents: write
-      actions: read
-    needs: [release, build, reuse, openwrt]
-    runs-on: [self-hosted, Linux, X64]
-    steps:
-      - name: Prepare empty artifact directory
-        run: rm -rf dist && mkdir dist
-      - name: Download packages
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          pattern: artifact-*
-          merge-multiple: true
-
-      - name: Download previously built packages
-        if: inputs.reuse_run_id != ''
-        uses: actions/download-artifact@v4
-        with:
-          run-id: ${{ inputs.reuse_run_id }}
-          github-token: ${{ github.token }}
-          path: dist
-          pattern: artifact-!(openwrt*)
-          merge-multiple: true
-
-      - name: Validate package versions
-        env:
-          TAG: ${{ needs.release.outputs.tag }}
-        run: |
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-          version = os.environ['TAG'].removeprefix('v').split('-pre.')[0]
-          for path in Path('dist').iterdir():
-              if not path.is_file() or not (path.name == 'install-openwrt.sh' or path.name.startswith('iPing-' + version + '-')):
-                  raise ValueError('Unexpected release artifact: ' + path.name)
-          PY
-
-      - name: Generate checksums
-        working-directory: dist
-        run: sha256sum ./iPing-* ./install-openwrt.sh > SHA256SUMS
-
-      - name: Attach packages to the published release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.release.outputs.tag }}
-        run: gh release upload "$TAG" dist/* --clobber
+    secrets: inherit
 
   publish-minio:
-    if: needs.release.outputs.stable == 'true'
-    needs: [release, upload]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.linux-agent.result == 'success' && (needs.build.result == 'success' || needs.reuse.result == 'success') }}
+    needs: [release, build, reuse, linux-agent]
     runs-on: [self-hosted, Linux, X64]
     concurrency:
       group: iping-stable-release
       cancel-in-progress: false
     env:
+      RELEASE_SHA: ${{ needs.release.outputs.sha }}
+      RELEASE_TAG: ${{ needs.release.outputs.tag }}
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
@@ -496,21 +454,13 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          git show "$TOOLS_SHA:tool/update_manifest.dart" > tool/update_manifest.dart
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          pattern: artifact-*
-          merge-multiple: true
-      - name: Download previously built packages
-        if: inputs.reuse_run_id != ''
-        uses: actions/download-artifact@v4
-        with:
-          run-id: ${{ inputs.reuse_run_id }}
-          github-token: ${{ github.token }}
-          path: dist
-          pattern: artifact-!(openwrt*)
-          merge-multiple: true
+          for path in tool/update_manifest.dart tool/ci/storage.py tool/publish_update.sh; do
+            git show "$TOOLS_SHA:$path" > "$path"
+          done
+      - name: Load verified release packages from MinIO
+        env:
+          REUSE_RUN: ${{ inputs.reuse_run_id }}
+        run: python3 tool/ci/storage.py collect --reuse-run "$REUSE_RUN" --path dist
       - name: Use local package cache
         run: |
           mkdir -p "$RUNNER_TOOL_CACHE/iping/pub"
@@ -525,15 +475,20 @@ jobs:
       - name: Skip native build hooks
         run: |
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
-      - name: Prepare complete update release
-        run: dart run tool/update_manifest.dart
-      - name: Publish packages before the manifest
-        shell: bash
+      - name: Publish verified packages and then the stable update manifest
+        env:
+          STABLE: ${{ needs.release.outputs.stable }}
+          RCLONE_CONFIG_MINIO_TYPE: s3
+          RCLONE_CONFIG_MINIO_PROVIDER: Minio
+          RCLONE_CONFIG_MINIO_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_MINIO_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_MINIO_ENDPOINT: https://minio.long2ice.io
+          RCLONE_CONFIG_MINIO_FORCE_PATH_STYLE: 'true'
         run: |
-          set -euo pipefail
-          : "${AWS_ACCESS_KEY_ID:?Set MINIO_ACCESS_KEY_ID}"
-          : "${AWS_SECRET_ACCESS_KEY:?Set MINIO_SECRET_ACCESS_KEY}"
-          aws configure set default.s3.addressing_style path
-          aws configure set default.s3.multipart_threshold 512MB
-          aws s3 cp build/update-release/ s3://iping/releases/ --recursive --exclude latest.json --endpoint-url "$MINIO_ENDPOINT"
-          aws s3 cp build/update-release/latest.json s3://iping/releases/latest.json --cache-control 'no-cache, no-store, must-revalidate' --content-type application/json --endpoint-url "$MINIO_ENDPOINT"
+          if [ "$STABLE" = true ]; then
+            bash tool/publish_update.sh
+          else
+            export IPING_PUBLISH_LATEST=0
+            export IPING_UPDATE_REMOTE="minio:iping/releases/prereleases/$RELEASE_TAG"
+            bash tool/publish_update.sh --base-url "https://video.iping.my/releases/prereleases/$RELEASE_TAG/"
+          fi

@@ -6,7 +6,7 @@ import '../../tool/update_manifest.dart';
 
 void main() {
   test(
-    'OpenWrt downloads and bootstrap share the published update manifest',
+    'Linux Agent downloads and bootstrap share the published update manifest',
     () async {
       final directory = await Directory.systemTemp.createTemp(
         'iping-router-update-',
@@ -16,9 +16,9 @@ void main() {
       final output = Directory('${directory.path}/output');
       for (final name in [
         'iPing-1.2.3-macos-arm64.zip',
-        'iPing-1.2.3-openwrt-mipsel.zip',
-        'iPing-1.2.3-openwrt-aarch64.zip',
-        'install-openwrt.sh',
+        'iPing-1.2.3-linux-agent-mipsel.zip',
+        'iPing-1.2.3-linux-agent-aarch64.zip',
+        'install-linux.sh',
       ]) {
         await File('${artifacts.path}/$name').writeAsBytes([1, 2, 3]);
       }
@@ -33,23 +33,27 @@ void main() {
       final downloads = manifest['downloads']! as Map;
       expect(
         downloads.keys,
-        containsAll(['openwrt-mipsel', 'openwrt-aarch64', 'openwrt-installer']),
+        containsAll([
+          'linux-agent-mipsel',
+          'linux-agent-aarch64',
+          'linux-agent-installer',
+        ]),
       );
-      final router = downloads['openwrt-mipsel'] as Map;
+      final router = downloads['linux-agent-mipsel'] as Map;
       expect(
         router['url'],
-        'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-mipsel.zip',
+        'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-linux-agent-mipsel.zip',
       );
       expect(router['sha256'], hasLength(64));
       expect(router['size'], 3);
       expect((manifest['assets']! as Map).keys, ['macos-arm64-zip']);
-      expect(await File('${output.path}/install-openwrt.sh').readAsBytes(), [
+      expect(await File('${output.path}/install-linux.sh').readAsBytes(), [
         1,
         2,
         3,
       ]);
       expect(
-        await File('${output.path}/1.2.3+42/install-openwrt.sh').readAsBytes(),
+        await File('${output.path}/1.2.3+42/install-linux.sh').readAsBytes(),
         [1, 2, 3],
       );
       expect(
@@ -57,7 +61,7 @@ void main() {
         isNull,
       );
       expect(
-        downloadArtifactTarget('iPing-1.2.3-openwrt-x86_64.ipa', '1.2.3'),
+        downloadArtifactTarget('iPing-1.2.3-linux-agent-x86_64.ipa', '1.2.3'),
         isNull,
       );
     },
@@ -80,10 +84,17 @@ void main() {
         'linux-amd64.deb',
         'linux-amd64.rpm',
         'linux-amd64.AppImage',
+        'ios-arm64.ipa',
+        'linux-agent-x86_64.zip',
+        'linux-agent-aarch64.zip',
+        'linux-agent-armv7.zip',
+        'linux-agent-mips.zip',
+        'linux-agent-mipsel.zip',
       ];
       for (final name in names) {
         await File('${input.path}/iPing-1.0.0-$name').writeAsBytes([1]);
       }
+      await File('${input.path}/install-linux.sh').writeAsBytes([1]);
       final manifest = await buildUpdateManifest(
         artifacts: input,
         output: Directory('${directory.path}/output'),
@@ -96,7 +107,7 @@ void main() {
   );
 
   test(
-    'iOS and OpenWrt downloads are staged alongside the app update packages',
+    'iOS and Linux Agent downloads are staged alongside the app update packages',
     () async {
       final directory = await Directory.systemTemp.createTemp(
         'iping-extra-release-',
@@ -106,8 +117,8 @@ void main() {
       const names = [
         'iPing-1.0.0-macos-arm64.zip',
         'iPing-1.0.0-ios-arm64.ipa',
-        'iPing-1.0.0-openwrt-x86_64.zip',
-        'iPing-1.0.0-openwrt-aarch64.zip',
+        'iPing-1.0.0-linux-agent-x86_64.zip',
+        'iPing-1.0.0-linux-agent-aarch64.zip',
       ];
       for (final name in names) {
         await File('${input.path}/$name').writeAsBytes([1, 2]);

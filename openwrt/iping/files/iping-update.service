@@ -1,0 +1,9 @@
+[Unit]
+Description=Update iPing Linux Agent
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/iping/update --scheduled
+TimeoutStartSec=900

@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"net"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -68,11 +66,7 @@ func (a *app) dashboard(ctx context.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	address, _ := a.command(ctx, "/sbin/uci", "-q", "get", "network.lan.ipaddr")
-	ip := strings.Split(strings.TrimSpace(string(address)), "/")[0]
-	if net.ParseIP(ip) == nil {
-		ip = ""
-	}
+	ip := a.localAddress(ctx)
 	started := int64(0)
 	if child := a.core.current.Load(); child != nil && a.running(ctx) {
 		started = child.started.UnixMilli()

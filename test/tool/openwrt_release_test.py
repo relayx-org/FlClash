@@ -36,7 +36,7 @@ class OpenWrtReleaseTest(unittest.TestCase):
         self.feed = self.root / 'openwrt'
         files = self.feed / 'iping/files'
         files.mkdir(parents=True)
-        for name in ('iping-update', 'iping.init', 'iping.conf', 'iping.upgrade'):
+        for name in ('iping-update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer'):
             (files / name).write_text(name)
         self.binaries = self.root / 'binaries'
         self.binaries.mkdir()
@@ -52,7 +52,7 @@ class OpenWrtReleaseTest(unittest.TestCase):
                 for name in ('agent', 'mihomo'):
                     (self.binaries / name).write_bytes(elf(arch))
                 archive = release.bundle(self.feed, self.binaries, self.root / 'dist', self.pubspec, arch)
-                self.assertEqual(archive.name, f'iPing-1.2.3-openwrt-{arch}.zip')
+                self.assertEqual(archive.name, f'iPing-1.2.3-linux-agent-{arch}.zip')
                 with zipfile.ZipFile(archive) as bundle:
                     self.assertEqual(set(bundle.namelist()), release.PAYLOAD | {'SHA256SUMS'})
                     self.assertEqual(bundle.read('version'), b'1.2.3+42\n')

@@ -9,15 +9,14 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"go.yaml.in/yaml/v3"
 )
 
 func (a *app) enabled(ctx context.Context) bool {
-	data, _ := a.command(ctx, "/sbin/uci", "-q", "get", "iping.config.enabled")
-	return strings.TrimSpace(string(data)) == "1"
+	value, _ := a.configValue(ctx, "enabled")
+	return value == "1"
 }
 
 func (a *app) setEnabled(ctx context.Context, enabled bool) error {
@@ -25,14 +24,7 @@ func (a *app) setEnabled(ctx context.Context, enabled bool) error {
 	if enabled {
 		value = "1"
 	}
-	if _, err := a.command(ctx, "/sbin/uci", "set", "iping.config.enabled="+value); err != nil {
-		return failure("service_failed")
-	}
-	if _, err := a.command(ctx, "/sbin/uci", "commit", "iping"); err != nil {
-		_, _ = a.command(ctx, "/sbin/uci", "revert", "iping")
-		return failure("service_failed")
-	}
-	return nil
+	return a.setConfigValue(ctx, "enabled", value)
 }
 
 func (a *app) running(ctx context.Context) bool { return a.core != nil && a.core.running() }
