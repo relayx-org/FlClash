@@ -57,14 +57,18 @@ case "$1" in
 esac
 ''')
         for manager in ['opkg', 'apk']:
-            self.command(manager, '''echo "pm ${0##*/} $*" >> /result/events
-case "$*" in
- */tmp/iping-update.*)
-  [ ! -f /fixture/install-fails ] || exit 1
-  echo 1.2.3+42 > /usr/share/iping/version
-  /etc/init.d/iping start ;;
+            self.command(manager, """case "$1" in
+ status) echo 'Status: install ok installed'; exit 0 ;;
+ info) exit 0 ;;
 esac
-''')
+echo "pm ${0##*/} $*" >> /result/events
+""")
+        self.command('mv', """if [ -f /fixture/install-fails ] && [ "$2" = /usr/libexec/iping ] && [ ! -f /result/failed ]; then
+ touch /result/failed
+ exit 1
+fi
+exec /bin/busybox mv "$@"
+""")
         self.command('crontab', 'exec /bin/busybox crontab -c /etc/crontabs "$@"\n')
         self.command('df', '''if [ -f /fixture/no-space ]; then
  echo 'Filesystem 1024-blocks Used Available Capacity Mounted on'
@@ -98,12 +102,16 @@ esac
 
     def prepare(self, branch='24.10', arch='x86_64', bad_archive=False, bad_package=False):
         (self.fixture / 'release').write_text(f"DISTRIB_RELEASE='{branch}.8'\nDISTRIB_ARCH='{arch}'\n")
-        self.names = ([f'iping-mihomo_1.19.32-r1_{arch}.ipk', f'iping_1.2.3-r42_{arch}.ipk']
-                      if branch == '24.10' else ['iping-mihomo-1.19.32-r1.apk', 'iping-1.2.3-r42.apk'])
+        family = ('aarch64' if arch.startswith('aarch64') else 'mipsel' if arch.startswith('mipsel')
+                  else 'mips' if arch.startswith('mips') else 'armv7' if arch.startswith('arm_') else arch)
+        self.names = ['agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'version', 'LICENSE']
+        contents = {name: (name + '-new').encode() for name in self.names}
+        contents['version'] = b'1.2.3+42\n'
+        contents['update'] = SCRIPT.read_bytes()
+        contents['iping.init'] = (self.fixture / 'service').read_bytes()
         checksums = ''
         with zipfile.ZipFile(self.fixture / 'bundle.zip', 'w') as bundle:
-            for name in self.names:
-                content = name.encode()
+            for name, content in contents.items():
                 bundle.writestr(name, content)
                 digest = '0' * 64 if bad_package else hashlib.sha256(content).hexdigest()
                 checksums += digest + '  ' + name + '\n'
@@ -111,7 +119,7 @@ esac
         data = (self.fixture / 'bundle.zip').read_bytes()
         values = {'schema': '1', 'size': str(len(data)),
                   'digest': '0' * 64 if bad_archive else hashlib.sha256(data).hexdigest(),
-                  'url': f'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-{branch}-{arch}.zip'}
+                  'url': f'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-{family}.zip'}
         for key, value in values.items():
             (self.fixture / key).write_text(value)
         (self.fixture / 'latest.json').write_text(json.dumps({
@@ -119,7 +127,7 @@ esac
             'packageId': 'my.iping.client',
             'version': '1.2.3',
             'buildNumber': 42,
-            'downloads': {f'openwrt-{branch}-{arch}': {
+            'downloads': {f'openwrt-{family}': {
                 'url': values['url'], 'size': len(data), 'sha256': values['digest'],
             }},
         }))
@@ -138,9 +146,13 @@ esac
 export PATH=/fixture/bin:/usr/sbin:/usr/bin:/sbin:/bin
 mkdir -p /etc/init.d /etc/crontabs /usr/share/iping /usr/libexec/iping /result/uci
 cp /fixture/release /etc/openwrt_release
+if grep -q 25.12 /etc/openwrt_release; then rm /fixture/bin/opkg; fi
 cp /fixture/service /etc/init.d/iping
 cp /fixture/cron /etc/init.d/cron
 ln -s /installer /usr/libexec/iping/update
+echo old-agent > /usr/libexec/iping/agent
+mkdir -p /etc/config
+echo user-config > /etc/config/iping
 echo '0 1 * * * echo user-task' > /etc/crontabs/root
 [ ! -s /fixture/installed ] || cp /fixture/installed /usr/share/iping/version
 [ ! -s /fixture/running ] || touch /result/running
@@ -150,6 +162,9 @@ echo 192.168.1.1 > /result/uci/network.lan.ipaddr
 status=$?
 cp /etc/crontabs/root /result/crontab
 cat /usr/share/iping/version > /result/version 2>/dev/null || true
+cat /usr/libexec/iping/agent > /result/agent 2>/dev/null || true
+cat /etc/config/iping > /result/config 2>/dev/null || true
+readlink /etc/init.d/iping > /result/init-link || true
 exit "$status"
 '''
         container = subprocess.check_output(
@@ -171,15 +186,18 @@ exit "$status"
     def events(self):
         return (self.result / 'events').read_text()
 
-    def test_install_detects_branch_and_exact_package_architecture(self):
+    def test_install_maps_firmware_architectures_to_portable_binaries(self):
         for branch, arch in [('24.10', 'x86_64'), ('25.12', 'aarch64_cortex-a53'),
-                             ('24.10', 'mips_24kc'), ('24.10', 'mipsel_24kc')]:
+                             ('24.10', 'mips_24kc'), ('26.1', 'mipsel_24kc'),
+                             ('25.12', 'arm_cortex-a9_vfpv3-d16')]:
             with self.subTest(branch=branch, arch=arch):
                 self.prepare(branch, arch)
                 result = self.run_installer()
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                for name in self.names:
-                    self.assertIn(name, self.events())
+                self.assertNotIn('pm ', self.events())
+                self.assertEqual((self.result / 'agent').read_text(), 'agent-new')
+                self.assertEqual((self.result / 'config').read_text().strip(), 'user-config')
+                self.assertEqual((self.result / 'init-link').read_text().strip(), '/usr/libexec/iping/iping.init')
                 self.assertIn('service enable', self.events())
                 self.assertIn('service start', self.events())
                 self.assertEqual((self.result / 'version').read_text().strip(), '1.2.3+42')
@@ -215,13 +233,15 @@ exit "$status"
                 self.assertNotIn('pm ', self.events())
                 self.assertNotIn('service stop', self.events())
 
-    def test_update_restores_a_running_service_on_package_failure(self):
+    def test_update_restores_old_binaries_and_running_service_on_activation_failure(self):
         (self.fixture / 'install-fails').touch()
         result = self.run_installer('sh /installer update', installed='1.2.2+41', running=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('service stop', self.events())
         self.assertIn('service start', self.events())
         self.assertTrue((self.result / 'running').exists())
+        self.assertEqual((self.result / 'agent').read_text().strip(), 'old-agent')
+        self.assertEqual((self.result / 'version').read_text().strip(), '1.2.2+41')
 
     def test_scheduled_update_preserves_a_stopped_service(self):
         result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')

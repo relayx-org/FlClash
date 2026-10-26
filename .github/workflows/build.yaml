@@ -53,8 +53,6 @@ jobs:
     if: inputs.reuse_run_id != ''
     needs: release
     runs-on: [self-hosted, Linux, X64]
-    outputs:
-      matrix: ${{ steps.reuse.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate previous release artifacts
@@ -420,9 +418,8 @@ jobs:
     with:
       ref: ${{ needs.release.outputs.sha }}
       release_tag: ${{ needs.release.outputs.tag }}
-      build_packages: true
+      build_binaries: true
       reuse_run_id: ${{ inputs.reuse_run_id }}
-      package_matrix: ${{ needs.reuse.outputs.matrix }}
 
   upload:
     if: ${{ !cancelled() && needs.openwrt.result == 'success' && (needs.build.result == 'success' || needs.reuse.result == 'success') }}
@@ -448,7 +445,7 @@ jobs:
           run-id: ${{ inputs.reuse_run_id }}
           github-token: ${{ github.token }}
           path: dist
-          pattern: artifact-*
+          pattern: artifact-!(openwrt*)
           merge-multiple: true
 
       - name: Validate package versions
@@ -512,7 +509,7 @@ jobs:
           run-id: ${{ inputs.reuse_run_id }}
           github-token: ${{ github.token }}
           path: dist
-          pattern: artifact-*
+          pattern: artifact-!(openwrt*)
           merge-multiple: true
       - name: Use local package cache
         run: |

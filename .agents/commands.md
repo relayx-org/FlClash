@@ -94,8 +94,8 @@ Publishing a GitHub Release starts the package builds. CI attaches
 the packages and `SHA256SUMS` to that release without replacing its description.
 Stable releases also run `publish-minio` after the upload succeeds; GitHub
 prereleases leave the production update manifest unchanged. iOS produces a signed
-arm64 IPA. The shared OpenWrt workflow builds matching Agent/Core bundles for each
-firmware branch and architecture from the same release SHA. Their downloadable IPA
+arm64 IPA. The shared OpenWrt workflow cross-compiles a static Agent for five CPU families
+from the release SHA and bundles a pinned, hash-verified official Mihomo binary. Their downloadable IPA
 and ZIP files are attached to GitHub and copied to stable version directories in
 MinIO; native app-update targets remain desktop/Android. The manifest also carries a `downloads` map
 with hashes and sizes for iOS/OpenWrt. `install-openwrt.sh` is published at the stable download root;
@@ -452,16 +452,17 @@ Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
 `RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
 by platform, architecture and checkout path; installed SDKs, Go caches and Cargo packages stay
 on the runner. Remote Actions caches are disabled. Native Linux Go, Rust and Gradle builds
-use two workers. OpenWrt SDK jobs run two at a time, each with a four-CPU container.
-They use official SDK images directly, with a local Docker volume holding source downloads,
-Go module/build caches and compressed snapshots of compiled SDK dependencies. SDK image,
-revision and Go package changes invalidate snapshots; the Agent is always rebuilt to include
-the current Web assets. Temporary signing keys are removed after each job without discarding
+use two workers. OpenWrt cross-compilation runs on two Mac runners, with persistent
+local Go module/build caches and verified Mihomo downloads. Five CPU families cover
+all supported firmware versions without SDK, IPK or APK builds. The binary installer
+handles runtime dependencies, procd startup, verified updates and activation rollback.
+Temporary signing keys are removed after each job without discarding
 other jobs' entries in the Mac keychain search list.
 
 To resume a release after changing only CI tooling, dispatch `build.yaml` with the same
 `tag` and `reuse_run_id` of the previous build. It checks the tag and application source,
-reuses completed native/Web/OpenWrt artifacts and builds only missing SDK targets.
+reuses completed native and Web artifacts, and rebuilds the binary installer and five
+OpenWrt binaries. Old IPK/APK artifacts are excluded from the resumed release.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in

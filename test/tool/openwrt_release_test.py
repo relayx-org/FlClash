@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 import zipfile
@@ -11,6 +12,19 @@ release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
 
 
+def elf(arch, dynamic=False):
+    bits, order, machine = {'x86_64': (2, 1, 62), 'aarch64': (2, 1, 183),
+                            'armv7': (1, 1, 40), 'mips': (1, 2, 8), 'mipsel': (1, 1, 8)}[arch]
+    endian = '<' if order == 1 else '>'
+    data = bytearray(128)
+    data[:6] = b'\x7fELF' + bytes((bits, order))
+    struct.pack_into(endian + 'H', data, 18, machine)
+    struct.pack_into(endian + ('Q' if bits == 2 else 'I'), data, 32 if bits == 2 else 28, 64)
+    struct.pack_into(endian + 'HH', data, 54 if bits == 2 else 42, 56 if bits == 2 else 32, 1)
+    struct.pack_into(endian + 'I', data, 64, 3 if dynamic else 1)
+    return data
+
+
 class OpenWrtReleaseTest(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
@@ -18,50 +32,43 @@ class OpenWrtReleaseTest(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.pubspec = self.root / 'pubspec.yaml'
         self.pubspec.write_text('name: test\nversion: 1.2.3+42\n')
-        self.feed = self.root / 'feed'
-        for name, version in [('iping', '0.1.0'), ('iping-mihomo', '1.19.32')]:
-            package = self.feed / name
-            package.mkdir(parents=True)
-            (package / 'Makefile').write_text(f'PKG_NAME:={name}\nPKG_VERSION:={version}\nPKG_RELEASE:=1\n')
-        (self.feed / 'ui').mkdir()
-        (self.feed / 'ui/pubspec.yaml').write_text('name: web\nversion: 0.1.0+3\n')
-        self.packages = self.root / 'packages'
-        self.packages.mkdir()
+        (self.root / 'LICENSE').write_text('test license')
+        self.feed = self.root / 'openwrt'
+        files = self.feed / 'iping/files'
+        files.mkdir(parents=True)
+        for name in ('iping-update', 'iping.init', 'iping.conf', 'iping.upgrade'):
+            (files / name).write_text(name)
+        self.binaries = self.root / 'binaries'
+        self.binaries.mkdir()
 
-    def test_release_tag_and_build_stamp(self):
-        release.prepare(self.feed, self.pubspec, 'v1.2.3-pre.2')
-        self.assertEqual(release.package_version(self.feed, 'iping'), '1.2.3-r42')
-        self.assertIn('version: 1.2.3+42', (self.feed / 'ui/pubspec.yaml').read_text())
-        self.assertEqual(release.package_version(self.feed, 'iping-mihomo'), '1.19.32-r1')
+    def test_release_version_must_match_the_tag(self):
+        self.assertEqual(release.release_version(self.pubspec, 'v1.2.3-pre.2'), ('1.2.3', '42'))
         with self.assertRaises(ValueError):
-            release.prepare(self.feed, self.pubspec, 'v1.2.4')
+            release.release_version(self.pubspec, 'v1.2.4')
 
-    def test_ipk_and_apk_bundles_keep_the_matching_pair_and_checksums(self):
-        for branch, arch, suffix in [('openwrt-24.10', 'x86_64', 'ipk'), ('openwrt-25.12', 'aarch64_cortex-a53', 'apk')]:
-            with self.subTest(branch=branch):
-                release.prepare(self.feed, self.pubspec)
-                names = []
-                for name in ['iping-mihomo', 'iping']:
-                    version = release.package_version(self.feed, name)
-                    filename = f'{name}_{version}_{arch}.ipk' if suffix == 'ipk' else f'{name}-{version}.apk'
-                    (self.packages / filename).write_bytes(name.encode())
-                    names.append(filename)
-                (self.packages / 'luci-app-iping_0.1.0_all.ipk').write_bytes(b'old')
-                archive = release.bundle(self.feed, self.packages, self.root / 'dist', self.pubspec, branch, arch)
-                self.assertEqual(archive.name, f'iPing-1.2.3-{branch}-{arch}.zip')
+    def test_binary_bundles_are_independent_of_firmware_and_contain_verified_runtime_files(self):
+        for arch in release.ARCHITECTURES:
+            with self.subTest(arch=arch):
+                for name in ('agent', 'mihomo'):
+                    (self.binaries / name).write_bytes(elf(arch))
+                archive = release.bundle(self.feed, self.binaries, self.root / 'dist', self.pubspec, arch)
+                self.assertEqual(archive.name, f'iPing-1.2.3-openwrt-{arch}.zip')
                 with zipfile.ZipFile(archive) as bundle:
-                    self.assertEqual(set(bundle.namelist()), {*names, 'SHA256SUMS', 'INSTALL.txt'})
+                    self.assertEqual(set(bundle.namelist()), release.PAYLOAD | {'SHA256SUMS'})
+                    self.assertEqual(bundle.read('version'), b'1.2.3+42\n')
                     checksums = bundle.read('SHA256SUMS').decode()
-                    for name in names:
+                    for name in release.PAYLOAD:
                         self.assertIn(hashlib.sha256(bundle.read(name)).hexdigest() + '  ' + name, checksums)
-                    self.assertIn(branch, bundle.read('INSTALL.txt').decode())
 
-    def test_a_missing_or_stale_package_cannot_create_a_release_bundle(self):
-        release.prepare(self.feed, self.pubspec)
-        (self.packages / 'iping_0.1.0-r3_x86_64.ipk').write_bytes(b'old')
-        (self.packages / 'iping-mihomo_1.19.32-r1_x86_64.ipk').write_bytes(b'core')
-        with self.assertRaises(ValueError):
-            release.bundle(self.feed, self.packages, self.root / 'dist', self.pubspec, 'openwrt-24.10', 'x86_64')
+    def test_dynamic_wrong_endian_and_missing_binaries_cannot_be_published(self):
+        for arch, binary in [('x86_64', elf('x86_64', dynamic=True)), ('mips', elf('mipsel'))]:
+            with self.subTest(arch=arch):
+                (self.binaries / 'agent').write_bytes(binary)
+                with self.assertRaises(ValueError):
+                    release.bundle(self.feed, self.binaries, self.root / 'dist', self.pubspec, arch)
+        (self.binaries / 'agent').write_bytes(elf('x86_64'))
+        with self.assertRaises(FileNotFoundError):
+            release.bundle(self.feed, self.binaries, self.root / 'dist', self.pubspec, 'x86_64')
         self.assertFalse((self.root / 'dist').exists())
 
 

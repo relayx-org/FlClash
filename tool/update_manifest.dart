@@ -37,7 +37,7 @@ String? updateArtifactTarget(String name, String version) {
 String? downloadArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
-    r'(ios-arm64\.ipa|openwrt-(?:24\.10|25\.12)-[A-Za-z0-9_-]+\.zip)$',
+    r'(ios-arm64\.ipa|openwrt-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
   ).firstMatch(name);
   return match == null ? null : p.basenameWithoutExtension(match[1]!);
 }

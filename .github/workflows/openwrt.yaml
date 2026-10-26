@@ -10,13 +10,10 @@ on:
       release_tag:
         type: string
         default: ''
-      build_packages:
+      build_binaries:
         type: boolean
         default: false
       reuse_run_id:
-        type: string
-        default: ''
-      package_matrix:
         type: string
         default: ''
   pull_request:
@@ -28,7 +25,6 @@ on:
       - '.github/workflows/openwrt.yaml'
       - '.github/workflows/build.yaml'
       - 'tool/ci/openwrt_release.py'
-      - 'tool/ci/openwrt_sdk*.sh'
       - 'tool/ci/reuse_release.py'
       - 'tool/update_manifest.dart'
 
@@ -56,19 +52,17 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_sdk_test.py test/tool/reuse_release_test.py tool/ci/openwrt_sdk.sh tool/ci/openwrt_sdk_cache.sh tool/ci/reuse_release.py tool/ci/openwrt_release.py; do
+          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/reuse_release_test.py tool/ci/reuse_release.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
-      - name: Check package release tooling
+      - name: Check binary release tooling
         env:
           IPING_INSTALLER_TEST_IMAGE: busybox:1.37.0
-          IPING_SDK_TEST_IMAGE: debian:bookworm-slim
         run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
       - name: Check installer shell compatibility
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
           docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping.init:/init:ro" koalaman/shellcheck:v0.10.0 --shell=sh --exclude=SC2034 /init
-          docker run --rm -v "$GITHUB_WORKSPACE/tool/ci:/scripts:ro" koalaman/shellcheck:v0.10.0 --shell=bash /scripts/openwrt_sdk.sh /scripts/openwrt_sdk_cache.sh
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -116,6 +110,15 @@ jobs:
           flutter-version: '3.47.7'
           channel: stable
 
+      - name: Use current binary release tooling
+        env:
+          TOOLS_SHA: ${{ github.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
+          for path in tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
+            git show "$TOOLS_SHA:$path" > "$path"
+          done
+
       - name: Set Web release version
         if: inputs.reuse_run_id == ''
         env:
@@ -149,11 +152,9 @@ jobs:
         run: bash openwrt/build_ui.sh
 
       - name: Prepare the one-command installer
-        if: inputs.reuse_run_id == ''
         run: install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/install-openwrt.sh"
 
       - uses: actions/upload-artifact@v4
-        if: inputs.reuse_run_id == ''
         with:
           name: artifact-openwrt-installer
           path: ${{ runner.temp }}/install-openwrt.sh
@@ -165,86 +166,58 @@ jobs:
           path: openwrt/iping/src/webui/dist/
           if-no-files-found: error
 
-  plan:
-    runs-on: [self-hosted, Linux, X64]
-    outputs:
-      matrix: ${{ steps.matrix.outputs.value }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select remaining package targets
-        id: matrix
-        env:
-          PACKAGE_MATRIX: ${{ inputs.package_matrix }}
-        run: |
-          python3 - <<'PY'
-          import json, os
-          from tool.ci.openwrt_release import package_matrix
-          expected = package_matrix()
-          matrix = json.loads(os.environ['PACKAGE_MATRIX']) if os.environ['PACKAGE_MATRIX'] else expected
-          if set(matrix) != {'include'} or any(row not in expected['include'] for row in matrix['include']):
-              raise ValueError('Invalid package build matrix')
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write('value=' + json.dumps(matrix, separators=(',', ':')) + '\n')
-          PY
-
-  packages:
-    if: ${{ (github.event_name == 'workflow_dispatch' || inputs.build_packages) && needs.plan.outputs.matrix != '{"include":[]}' }}
-    needs: [ui, agent, plan]
-    runs-on: [self-hosted, Linux, X64]
+  binaries:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.build_binaries }}
+    needs: [ui, agent]
+    runs-on: [self-hosted, macOS, ARM64]
+    env:
+      GOMAXPROCS: '4'
+      GOFLAGS: -p=4
     strategy:
       fail-fast: false
       max-parallel: 2
-      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+      matrix:
+        arch: [x86_64, aarch64, armv7, mips, mipsel]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.sha }}
 
-      - name: Use current SDK build tooling
+      - name: Use current binary release tooling
         env:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/openwrt_sdk.sh tool/ci/openwrt_sdk_cache.sh; do
+          for path in tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
-      - name: Set package release version
-        env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: python3 tool/ci/openwrt_release.py prepare --release-tag "$RELEASE_TAG"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache: false
+
+      - name: Use local Go and Core download caches
+        run: |
+          mkdir -p "$RUNNER_TOOL_CACHE/iping/openwrt/go-build" "$RUNNER_TOOL_CACHE/iping/openwrt/go-mod"
+          echo "GOCACHE=$RUNNER_TOOL_CACHE/iping/openwrt/go-build" >> "$GITHUB_ENV"
+          echo "GOMODCACHE=$RUNNER_TOOL_CACHE/iping/openwrt/go-mod" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v4
         with:
           name: openwrt-web
           path: openwrt/iping/src/webui/dist/
 
-      - name: Build packages with the official OpenWrt SDK
+      - name: Cross-compile static Agent and reuse the pinned Core binary
         env:
           ARCH: ${{ matrix.arch }}
-          BRANCH: ${{ matrix.branch }}
-        run: bash tool/ci/openwrt_sdk.sh
-
-      - name: Bundle matching Agent and Core packages
-        env:
-          ARCH: ${{ matrix.arch }}
-          BRANCH: ${{ matrix.branch }}
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          python3 tool/ci/openwrt_release.py bundle \
-            --packages "bin/packages/$ARCH/iping" \
-            --branch "$BRANCH" --arch "$ARCH" --release-tag "$RELEASE_TAG"
+          python3 tool/ci/openwrt_release.py build --arch "$ARCH" --release-tag "$RELEASE_TAG" \
+            --cache "$RUNNER_TOOL_CACHE/iping/openwrt/mihomo"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-openwrt-${{ matrix.branch }}-${{ matrix.arch }}
+          name: artifact-openwrt-${{ matrix.arch }}
           path: dist/iPing-*-openwrt-*.zip
           if-no-files-found: error
-
-      - name: Save SDK logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: openwrt-logs-${{ matrix.branch }}-${{ matrix.arch }}
-          path: logs/
-          if-no-files-found: ignore

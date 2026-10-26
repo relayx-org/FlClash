@@ -1,24 +1,24 @@
 import argparse
+import gzip
 import hashlib
-import json
+import os
 from pathlib import Path
 import re
+import shutil
+import struct
+import subprocess
+import tempfile
 import zipfile
 
-BRANCHES = ['openwrt-24.10', 'openwrt-25.12']
-ARCHITECTURES = [
-    'x86_64', 'aarch64_generic', 'aarch64_cortex-a53', 'aarch64_cortex-a72',
-    'aarch64_cortex-a76', 'arm_cortex-a7_neon-vfpv4', 'arm_cortex-a9_vfpv3-d16',
-    'arm_cortex-a9_neon', 'mips_24kc', 'mipsel_24kc',
-]
-
-
-def package_matrix(artifacts=()):
-    return {'include': [
-        {'branch': branch, 'arch': arch}
-        for branch in BRANCHES for arch in ARCHITECTURES
-        if f'artifact-openwrt-{branch}-{arch}' not in artifacts
-    ]}
+MIHOMO_VERSION = '1.19.32'
+ARCHITECTURES = {
+    'x86_64': ('amd64', 'amd64-compatible', 'ba3ce607747a07f948fc35780e108a4a7c7f552a38b9bd4d115f313ebcb89c20'),
+    'aarch64': ('arm64', 'arm64', '9dd862e28b46ff7d775f169cceebc28deccaa0a9e804237d421cd2571e0caba0'),
+    'armv7': ('arm', 'armv7', 'f622cbe903ba1a11d30e9071d1c5373929c675b854856ff3e7f977255a25bb66'),
+    'mips': ('mips', 'mips-softfloat', '8b6c0e437ca388d7849db5343ef24304a9b4cf63f12e926eb75d4c7251cd6ab1'),
+    'mipsel': ('mipsle', 'mipsle-softfloat', '69b10ecd1db5244ab2bf1fac3c629a2e0f9b19f84728fe51b043a9767832d38c'),
+}
+PAYLOAD = {'agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'version', 'LICENSE'}
 
 
 def release_version(pubspec, tag=''):
@@ -31,34 +31,6 @@ def release_version(pubspec, tag=''):
     return version, build
 
 
-def prepare(feed, pubspec, tag=''):
-    version, build = release_version(pubspec, tag)
-    path = feed / 'iping/Makefile'
-    source = path.read_text()
-    for key, value in [('PKG_VERSION', version), ('PKG_RELEASE', build)]:
-        source, count = re.subn(r'^' + key + r':=.*$', key + ':=' + value, source, flags=re.M)
-        if count != 1:
-            raise ValueError('Expected exactly one ' + key)
-    path.write_text(source)
-    web = feed / 'ui/pubspec.yaml'
-    if web.exists():
-        source, count = re.subn(r'^version:.*$', 'version: ' + version + '+' + build, web.read_text(), flags=re.M)
-        if count != 1:
-            raise ValueError('Expected exactly one Web package version')
-        web.write_text(source)
-
-
-def package_version(feed, name):
-    source = (feed / name / 'Makefile').read_text()
-    values = []
-    for key in ['PKG_VERSION', 'PKG_RELEASE']:
-        match = re.search(r'^' + key + r':=([\d.]+)\s*$', source, re.M)
-        if not match:
-            raise ValueError('Missing package version in ' + name)
-        values.append(match[1])
-    return '-r'.join(values)
-
-
 def checksum(path):
     digest = hashlib.sha256()
     with path.open('rb') as source:
@@ -67,58 +39,108 @@ def checksum(path):
     return digest.hexdigest()
 
 
-def bundle(feed, packages, output, pubspec, branch, arch, tag=''):
-    version, build = release_version(pubspec, tag)
-    if branch not in BRANCHES or not re.fullmatch(r'[a-zA-Z0-9_-]+', arch):
-        raise ValueError('Invalid OpenWrt branch or architecture')
-    if package_version(feed, 'iping') != version + '-r' + build:
-        raise ValueError('Agent package version was not prepared for this release')
-    extension = '.ipk' if branch == 'openwrt-24.10' else '.apk'
-    selected = []
-    for name in ['iping-mihomo', 'iping']:
-        package = package_version(feed, name)
-        filename = f'{name}_{package}_{arch}.ipk' if extension == '.ipk' else f'{name}-{package}.apk'
-        path = packages / filename
-        if not path.is_file() or path.is_symlink() or path.stat().st_size == 0:
-            raise ValueError('Missing or empty package: ' + filename)
-        selected.append(path)
-    output.mkdir(parents=True, exist_ok=True)
-    archive = output / f'iPing-{version}-{branch}-{arch}.zip'
-    checksums = ''.join(f'{checksum(path)}  {path.name}\n' for path in selected)
-    install = 'opkg install' if extension == '.ipk' else 'apk add --allow-untrusted'
-    instructions = f'iPing {version}+{build}\n{branch} / {arch}\n\n' + install + ' ' + ' '.join('./' + path.name for path in selected) + '\n'
-    temporary = archive.with_suffix('.zip.tmp')
-    try:
-        with zipfile.ZipFile(temporary, 'w', compression=zipfile.ZIP_STORED) as package:
-            for path in selected:
-                package.write(path, path.name)
-            package.writestr('SHA256SUMS', checksums)
-            package.writestr('INSTALL.txt', instructions)
-        temporary.replace(archive)
-    finally:
-        temporary.unlink(missing_ok=True)
+def validate_binary(path, arch):
+    expected = {'x86_64': (2, 1, 62), 'aarch64': (2, 1, 183),
+                'armv7': (1, 1, 40), 'mips': (1, 2, 8), 'mipsel': (1, 1, 8)}[arch]
+    with path.open('rb') as binary:
+        header = binary.read(64)
+        if header[:4] != b'\x7fELF' or tuple(header[4:6]) != expected[:2]:
+            raise ValueError('Wrong binary architecture: ' + str(path))
+        endian = '<' if header[5] == 1 else '>'
+        if struct.unpack_from(endian + 'H', header, 18)[0] != expected[2]:
+            raise ValueError('Wrong ELF machine: ' + str(path))
+        offset = struct.unpack_from(endian + ('Q' if header[4] == 2 else 'I'), header, 32 if header[4] == 2 else 28)[0]
+        entry_size, count = struct.unpack_from(endian + 'HH', header, 54 if header[4] == 2 else 42)
+        if entry_size < 4 or count == 0:
+            raise ValueError('Missing ELF program headers')
+        for index in range(count):
+            binary.seek(offset + index * entry_size)
+            kind = struct.unpack(endian + 'I', binary.read(4))[0]
+            if kind in (2, 3):
+                raise ValueError('The release requires static binaries: ' + str(path))
+
+
+def fetch_core(arch, cache):
+    _, variant, digest = ARCHITECTURES[arch]
+    filename = f'mihomo-linux-{variant}-v{MIHOMO_VERSION}.gz'
+    cache.mkdir(parents=True, exist_ok=True)
+    archive = cache / filename
+    if not archive.is_file() or checksum(archive) != digest:
+        with tempfile.TemporaryDirectory(dir=cache) as temporary:
+            download = Path(temporary) / filename
+            subprocess.run(['curl', '--fail', '--location', '--retry', '3', '--retry-all-errors',
+                            '--max-time', '300', '--output', str(download),
+                            f'https://github.com/MetaCubeX/mihomo/releases/download/v{MIHOMO_VERSION}/{filename}'], check=True)
+            if checksum(download) != digest:
+                raise ValueError('Mihomo release checksum mismatch')
+            download.replace(archive)
     return archive
+
+
+def bundle(feed, binaries, output, pubspec, arch, tag=''):
+    version, build = release_version(pubspec, tag)
+    if arch not in ARCHITECTURES:
+        raise ValueError('Unsupported OpenWrt architecture')
+    for name in ('agent', 'mihomo'):
+        validate_binary(binaries / name, arch)
+    files = {name: binaries / name for name in ('agent', 'mihomo')}
+    files.update({name: feed / 'iping/files' / source for name, source in (
+        ('update', 'iping-update'), ('iping.init', 'iping.init'),
+        ('iping.conf', 'iping.conf'), ('iping.upgrade', 'iping.upgrade'),
+    )})
+    files['LICENSE'] = feed.parent / 'LICENSE'
+    output.mkdir(parents=True, exist_ok=True)
+    archive = output / f'iPing-{version}-openwrt-{arch}.zip'
+    with tempfile.TemporaryDirectory(dir=output) as temporary:
+        staged = Path(temporary)
+        for name, source in files.items():
+            shutil.copyfile(source, staged / name)
+        (staged / 'version').write_text(version + '+' + build + '\n')
+        (staged / 'SHA256SUMS').write_text(''.join(
+            f'{checksum(staged / name)}  {name}\n' for name in sorted(PAYLOAD)))
+        pending = staged / 'bundle.zip'
+        with zipfile.ZipFile(pending, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=1) as package:
+            for name in sorted(PAYLOAD | {'SHA256SUMS'}):
+                package.write(staged / name, name)
+        pending.replace(archive)
+    return archive
+
+
+def build(feed, output, cache, pubspec, arch, tag=''):
+    release_version(pubspec, tag)
+    goarch, _, _ = ARCHITECTURES[arch]
+    env = {**os.environ, 'CGO_ENABLED': '0', 'GOOS': 'linux', 'GOARCH': goarch,
+           'GOAMD64': 'v1', 'GOARM64': 'v8.0', 'GOARM': '7', 'GOMIPS': 'softfloat'}
+    with tempfile.TemporaryDirectory(prefix='iping-binaries-') as temporary:
+        binaries = Path(temporary)
+        subprocess.run(['go', 'build', '-trimpath', '-buildvcs=false', '-ldflags=-s -w -buildid=',
+                        '-o', str(binaries / 'agent'), '.'], cwd=feed / 'iping/src', env=env, check=True)
+        with gzip.open(fetch_core(arch, cache), 'rb') as source, (binaries / 'mihomo').open('wb') as destination:
+            shutil.copyfileobj(source, destination)
+        return bundle(feed, binaries, output, pubspec, arch, tag)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'bundle', 'matrix'])
+    parser.add_argument('action', choices=['build', 'prepare'])
     parser.add_argument('--feed', type=Path, default=Path('openwrt'))
     parser.add_argument('--pubspec', type=Path, default=Path('pubspec.yaml'))
     parser.add_argument('--release-tag', default='')
-    parser.add_argument('--packages', type=Path)
     parser.add_argument('--output', type=Path, default=Path('dist'))
-    parser.add_argument('--branch')
-    parser.add_argument('--arch')
+    parser.add_argument('--cache', type=Path, default=Path.home() / '.cache/iping/mihomo')
+    parser.add_argument('--arch', choices=ARCHITECTURES)
     args = parser.parse_args()
-    if args.action == 'matrix':
-        print(json.dumps(package_matrix(), separators=(',', ':')))
-    elif args.action == 'prepare':
-        prepare(args.feed, args.pubspec, args.release_tag)
+    if args.action == 'prepare':
+        version, number = release_version(args.pubspec, args.release_tag)
+        web = args.feed / 'ui/pubspec.yaml'
+        source, count = re.subn(r'^version:.*$', 'version: ' + version + '+' + number, web.read_text(), flags=re.M)
+        if count != 1:
+            raise ValueError('Expected exactly one Web package version')
+        web.write_text(source)
     else:
-        if args.packages is None or args.branch is None or args.arch is None:
-            parser.error('bundle requires --packages, --branch and --arch')
-        print(bundle(args.feed, args.packages, args.output, args.pubspec, args.branch, args.arch, args.release_tag))
+        if args.arch is None:
+            parser.error('build requires --arch')
+        print(build(args.feed.resolve(), args.output.resolve(), args.cache.resolve(), args.pubspec, args.arch, args.release_tag))
 
 
 if __name__ == '__main__':

@@ -7,15 +7,29 @@ repositories_updated=0
 auto_update=''
 mode=install
 scheduled=0
+staged=''
+backup=''
+replaced=0
 
 fail() { echo "iPing: $*" >&2; exit 1; }
 
 cleanup() {
     result=$?
     trap - 0
+    set +e
+    if [ "$result" != 0 ] && [ "$replaced" = 1 ]; then
+        /etc/init.d/iping stop
+        rm -rf /usr/libexec/iping
+        if mv "$backup" /usr/libexec/iping; then
+            echo 'iPing: restored the previous binaries' >&2
+        else echo "iPing: recovery files remain at $backup" >&2; fi
+        backup=''
+    fi
     if [ "$restore_service" = 1 ]; then
         IPING_UPDATE_START=1 /etc/init.d/iping start || echo 'iPing: could not restore the service' >&2
     fi
+    [ -z "$staged" ] || rm -rf "$staged"
+    [ -z "$backup" ] || rm -rf "$backup"
     [ -z "$work" ] || rm -rf "$work"
     exit "$result"
 }
@@ -30,21 +44,23 @@ detect_platform() {
     [ -f /etc/openwrt_release ] || fail 'this installer requires OpenWrt'
     # shellcheck source=/dev/null
     . /etc/openwrt_release
-    case "${DISTRIB_RELEASE:-}" in
-        24.10|24.10.*) branch=24.10; manager=opkg; extension=ipk ;;
-        25.12|25.12.*) branch=25.12; manager=apk; extension=apk ;;
-        *) fail "unsupported OpenWrt release: ${DISTRIB_RELEASE:-unknown}" ;;
-    esac
-    command -v "$manager" >/dev/null || fail "missing package manager: $manager"
-    arch=${DISTRIB_ARCH:-}
-    if [ -z "$arch" ]; then
+    if command -v opkg >/dev/null; then manager=opkg
+    elif command -v apk >/dev/null; then manager=apk
+    else fail 'opkg or apk is required to install runtime dependencies'; fi
+    machine=${DISTRIB_ARCH:-}
+    if [ -z "$machine" ]; then
         if [ "$manager" = opkg ]; then
-            arch=$(opkg print-architecture | sort -nk3 | tail -n1 | awk '{print $2}')
-        else
-            arch=$(apk --print-arch)
-        fi
+            machine=$(opkg print-architecture | sort -nk3 | tail -n1 | awk '{print $2}')
+        else machine=$(apk --print-arch); fi
     fi
-    case "$arch" in ''|*[!a-zA-Z0-9_-]*) fail 'cannot determine the OpenWrt package architecture' ;; esac
+    case "$machine" in
+        x86_64) arch=x86_64 ;;
+        aarch64|arm64|aarch64_*) arch=aarch64 ;;
+        arm_cortex-a[5789]*|arm_cortex-a1[57]*|arm_cortex-a53*|armv7*) arch=armv7 ;;
+        mips_*) arch=mips ;;
+        mipsel_*) arch=mipsel ;;
+        *) fail "unsupported CPU architecture: $machine" ;;
+    esac
 }
 
 ensure_tools() {
@@ -112,34 +128,79 @@ newer() {
     }'
 }
 
-unpack_packages() {
+unpack_binaries() {
+    mkdir "$work/payload"
     unzip -p "$work/bundle.zip" SHA256SUMS > "$work/SHA256SUMS"
-    agent_package=''
-    core_package=''
+    count=0
+    seen=' '
     while read -r digest name extra; do
-        if [ -n "$extra" ] || [ "${#digest}" != 64 ]; then fail 'invalid package checksums'; fi
-        case "$digest" in *[!0-9a-f]*) fail 'invalid package checksum' ;; esac
-        if [ "$extension" = ipk ]; then
-            expected="iping_${version}-r${build}_${arch}.ipk"
-        else
-            expected="iping-${version}-r${build}.apk"
-        fi
-        case "$name" in ''|*[!a-zA-Z0-9_.-]*) fail 'invalid package filename' ;; esac
-        if [ "$name" = "$expected" ] && [ -z "$agent_package" ]; then
-            agent_package="$work/$name"
-        else
-            case "$extension:$name" in
-                ipk:iping-mihomo_*_"$arch".ipk|apk:iping-mihomo-*.apk)
-                    [ -z "$core_package" ] || fail 'duplicate Core package'
-                    core_package="$work/$name" ;;
-                *) fail "unexpected package: $name" ;;
-            esac
-        fi
-        unzip -p "$work/bundle.zip" "$name" > "$work/$name"
-        [ -s "$work/$name" ] || fail "empty package: $name"
-        printf '%s  %s\n' "$digest" "$work/$name" | sha256sum -c -
+        if [ -n "$extra" ] || [ "${#digest}" != 64 ]; then fail 'invalid binary checksums'; fi
+        case "$digest" in *[!0-9a-f]*) fail 'invalid binary checksum' ;; esac
+        case "$name" in
+            agent|mihomo|update|iping.init|iping.conf|iping.upgrade|version|LICENSE) ;;
+            *) fail "unexpected release file: $name" ;;
+        esac
+        case "$seen" in *" $name "*) fail 'duplicate release file' ;; esac
+        seen="$seen$name "
+        count=$((count + 1))
+        unzip -p "$work/bundle.zip" "$name" > "$work/payload/$name"
+        [ -s "$work/payload/$name" ] || fail "empty release file: $name"
+        printf '%s  %s\n' "$digest" "$work/payload/$name" | sha256sum -c -
     done < "$work/SHA256SUMS"
-    if [ -z "$agent_package" ] || [ -z "$core_package" ]; then fail 'the release must contain Agent and Core packages'; fi
+    [ "$count" = 8 ] || fail 'incomplete binary release'
+    [ "$(cat "$work/payload/version")" = "$target" ] || fail 'release version mismatch'
+    chmod 755 "$work/payload/agent" "$work/payload/mihomo" "$work/payload/update" "$work/payload/iping.init"
+    chmod 644 "$work/payload/iping.conf" "$work/payload/iping.upgrade" "$work/payload/version" "$work/payload/LICENSE"
+}
+
+ensure_runtime() {
+    [ "$scheduled" = 0 ] || return 0
+    set --
+    for package in ca-bundle ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket; do
+        if [ "$manager" = opkg ]; then
+            opkg status "$package" | grep -q '^Status: .* installed$' || set -- "$@" "$package"
+        else
+            apk info -e "$package" >/dev/null 2>&1 || set -- "$@" "$package"
+        fi
+    done
+    [ "$#" -gt 0 ] || return 0
+    update_repositories
+    if [ "$manager" = opkg ]; then opkg install "$@"; else apk add "$@"; fi
+}
+
+stage_binaries() {
+    mkdir -p /usr/libexec /usr/share/iping /usr/bin /etc/init.d /etc/config /lib/upgrade/keep.d
+    available=$(df -Pk /usr/libexec | awk 'END { print $4 * 1024 }')
+    required=$(du -sk "$work/payload" | awk '{ print $1 * 1024 + 8388608 }')
+    awk -v available="$available" -v required="$required" 'BEGIN { exit !(available >= required) }' || fail 'not enough router storage for the new binaries'
+    staged=$(mktemp -d /usr/libexec/iping-new.XXXXXX)
+    cp -p "$work/payload/"* "$staged/"
+}
+
+activate_binaries() {
+    backup=$(mktemp -d /usr/libexec/iping-previous.XXXXXX)
+    previous=/usr/libexec/iping
+    [ -d "$previous" ] || previous=$backup
+    for pair in 'iping.init:/etc/init.d/iping' 'version:/usr/share/iping/version' 'iping.upgrade:/lib/upgrade/keep.d/iping'; do
+        name=${pair%%:*}
+        path=${pair#*:}
+        if [ ! -e "$previous/$name" ] && [ -f "$path" ]; then cp -pL "$path" "$previous/$name"; fi
+    done
+    if [ "$previous" != "$backup" ]; then
+        rmdir "$backup"
+        mv /usr/libexec/iping "$backup"
+    fi
+    replaced=1
+    mv "$staged" /usr/libexec/iping
+    staged=''
+    ln -sf /usr/libexec/iping/iping.init /etc/init.d/iping
+    ln -sf /usr/libexec/iping/version /usr/share/iping/version
+    ln -sf /usr/libexec/iping/iping.upgrade /lib/upgrade/keep.d/iping
+    ln -sf /usr/libexec/iping/update /usr/bin/iping-update
+    if [ ! -f /etc/config/iping ]; then
+        cp /usr/libexec/iping/iping.conf /etc/config/iping
+        chmod 600 /etc/config/iping
+    fi
 }
 
 show_address() {
@@ -193,12 +254,12 @@ main() {
     build=$(field '@.buildNumber')
     target="$version+$build"
     valid_version "$target" || fail 'invalid release version'
-    filename="iPing-${version}-openwrt-${branch}-${arch}.zip"
-    key="@.downloads[\"openwrt-${branch}-${arch}\"]"
+    filename="iPing-${version}-openwrt-${arch}.zip"
+    key="@.downloads[\"openwrt-${arch}\"]"
     url=$(field "$key.url")
     size=$(field "$key.size")
     digest=$(field "$key.sha256")
-    [ "$url" = "${base_url}${target}/${filename}" ] || fail "no matching release for OpenWrt $branch / $arch"
+    [ "$url" = "${base_url}${target}/${filename}" ] || fail "no matching binary release for $arch"
     case "$size" in ''|*[!0-9]*) fail 'invalid release size' ;; esac
     if [ "${#size}" -gt 10 ] || [ "$size" -le 0 ]; then fail 'invalid release size'; fi
     [ "${#digest}" = 64 ] || fail 'invalid release checksum'
@@ -218,27 +279,23 @@ main() {
             exit 0
         fi
     fi
-    echo "iPing: ${installed:-not installed} -> $target (OpenWrt $branch / $arch)"
+    echo "iPing: ${installed:-not installed} -> $target (OpenWrt / $arch)"
     [ "$mode" != check ] || exit 0
     available=$(df -Pk /tmp | awk 'END { print $4 * 1024 }')
-    awk -v available="$available" -v size="$size" 'BEGIN { exit !(available >= size * 2 + 8388608) }' || fail 'not enough temporary space for download and verification'
+    awk -v available="$available" -v size="$size" 'BEGIN { exit !(available >= size * 4 + 16777216) }' || fail 'not enough temporary space for download and verification'
     download "$url" "$work/bundle.zip"
     [ "$(wc -c < "$work/bundle.zip" | tr -d ' ')" = "$size" ] || fail 'incomplete release download'
     printf '%s  %s\n' "$digest" "$work/bundle.zip" | sha256sum -c -
-    unpack_packages
-    update_repositories
+    unpack_binaries
+    ensure_runtime
+    stage_binaries
     was_running=0
     if [ -x /etc/init.d/iping ] && /etc/init.d/iping running; then was_running=1; fi
     if [ "$was_running" = 1 ]; then
         restore_service=1
         /etc/init.d/iping stop
     fi
-    if [ "$manager" = opkg ]; then
-        opkg install "$core_package" "$agent_package"
-    else
-        apk add --allow-untrusted --upgrade "$core_package" "$agent_package"
-    fi
-    [ "$(cat /usr/share/iping/version)" = "$target" ] || fail 'the package manager did not install the expected version'
+    activate_binaries
     if [ -n "$auto_update" ]; then uci set "iping.config.auto_update=$auto_update"; fi
     if [ -n "${IPING_UPDATE_BASE_URL:-}" ]; then uci set "iping.config.update_url=$base_url"; fi
     uci commit iping

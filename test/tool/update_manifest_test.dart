@@ -16,8 +16,8 @@ void main() {
       final output = Directory('${directory.path}/output');
       for (final name in [
         'iPing-1.2.3-macos-arm64.zip',
-        'iPing-1.2.3-openwrt-24.10-mipsel_24kc.zip',
-        'iPing-1.2.3-openwrt-25.12-aarch64_cortex-a53.zip',
+        'iPing-1.2.3-openwrt-mipsel.zip',
+        'iPing-1.2.3-openwrt-aarch64.zip',
         'install-openwrt.sh',
       ]) {
         await File('${artifacts.path}/$name').writeAsBytes([1, 2, 3]);
@@ -33,16 +33,12 @@ void main() {
       final downloads = manifest['downloads']! as Map;
       expect(
         downloads.keys,
-        containsAll([
-          'openwrt-24.10-mipsel_24kc',
-          'openwrt-25.12-aarch64_cortex-a53',
-          'openwrt-installer',
-        ]),
+        containsAll(['openwrt-mipsel', 'openwrt-aarch64', 'openwrt-installer']),
       );
-      final router = downloads['openwrt-24.10-mipsel_24kc'] as Map;
+      final router = downloads['openwrt-mipsel'] as Map;
       expect(
         router['url'],
-        'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-24.10-mipsel_24kc.zip',
+        'https://video.iping.my/releases/1.2.3+42/iPing-1.2.3-openwrt-mipsel.zip',
       );
       expect(router['sha256'], hasLength(64));
       expect(router['size'], 3);
@@ -61,7 +57,7 @@ void main() {
         isNull,
       );
       expect(
-        downloadArtifactTarget('iPing-1.2.3-openwrt-24.10-x86_64.ipa', '1.2.3'),
+        downloadArtifactTarget('iPing-1.2.3-openwrt-x86_64.ipa', '1.2.3'),
         isNull,
       );
     },
@@ -110,8 +106,8 @@ void main() {
       const names = [
         'iPing-1.0.0-macos-arm64.zip',
         'iPing-1.0.0-ios-arm64.ipa',
-        'iPing-1.0.0-openwrt-24.10-x86_64.zip',
-        'iPing-1.0.0-openwrt-25.12-aarch64_cortex-a53.zip',
+        'iPing-1.0.0-openwrt-x86_64.zip',
+        'iPing-1.0.0-openwrt-aarch64.zip',
       ];
       for (final name in names) {
         await File('${input.path}/$name').writeAsBytes([1, 2]);

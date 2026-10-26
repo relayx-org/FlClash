@@ -2,21 +2,20 @@ import argparse
 import fnmatch
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
-
-from openwrt_release import package_matrix
 
 
 NATIVE_ARTIFACTS = {
     'artifact-android-multi', 'artifact-ios-arm64', 'artifact-linux-amd64',
     'artifact-windows-amd64', 'artifact-macos-arm64', 'artifact-macos-amd64',
-    'artifact-openwrt-installer', 'openwrt-web',
+    'openwrt-web',
 }
 TOOLING_PATHS = [
     '.github/*', '.agents/*', 'test/tool/*', 'tool/ci/*',
-    'tool/package_ios.dart', 'tool/sign_macos.sh',
+    'tool/package_ios.dart', 'tool/sign_macos.sh', 'tool/update_manifest.dart',
+    'openwrt/iping/files/iping-update', 'openwrt/README.md',
+    'openwrt/iping/Makefile', 'openwrt/iping-mihomo/Makefile',
 ]
 
 
@@ -30,7 +29,7 @@ def validate_reuse(run, artifacts, changed_paths, tag):
     available = {a['name'] for a in artifacts if not a['expired']}
     if not NATIVE_ARTIFACTS <= available:
         raise ValueError('The previous run does not contain every native platform and Web artifact')
-    return package_matrix(available)
+    return sorted(available & NATIVE_ARTIFACTS)
 
 
 def run(*args):
@@ -51,10 +50,8 @@ def main():
     for sha in (args.sha, previous['head_sha']):
         run('git', 'fetch', '--no-tags', '--depth=1', 'origin', sha)
     changed = run('git', 'diff', '--name-only', args.sha, previous['head_sha']).splitlines()
-    matrix = validate_reuse(previous, artifacts, changed, args.tag)
-    with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
-        output.write('matrix=' + json.dumps(matrix, separators=(',', ':')) + '\n')
-    print(f'Reusing native and Web artifacts; {len(matrix["include"])} OpenWrt targets remain')
+    validate_reuse(previous, artifacts, changed, args.tag)
+    print('Reusing validated native and Web artifacts; rebuilding the binary installer')
 
 
 if __name__ == '__main__':

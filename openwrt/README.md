@@ -1,7 +1,7 @@
 # iPing for OpenWrt
 
-OpenWrt runs two packages: `iping` is the Agent with its embedded Flutter Web
-interface; `iping-mihomo` supplies a private Mihomo binary. The Agent owns the
+OpenWrt runs two static binaries: the iPing Agent with its embedded Flutter Web
+interface and a private Mihomo Core. The Agent owns the
 Core process, configuration, controller, and network cleanup. It does not depend
 on Nikki, LuCI, or rpcd, and does not import their configuration.
 
@@ -20,68 +20,50 @@ features follow backend capabilities.
 - A current browser with WebAssembly support, and HTTPS access from the router
   to the configured iPing site.
 
-The package manager installs `ip-full`, `nftables-json`, firewall4, CA certificates,
-and the required TUN/netfilter modules. Use packages built for the router's exact
-OpenWrt branch and architecture; kernel modules must match its running kernel.
+The installer uses the router's package manager only for runtime dependencies:
+`ip-full`, `nftables-json`, firewall4, CA certificates and TUN/netfilter modules.
+Kernel modules come from the router's own repositories and match its running kernel.
+The iPing binaries do not link to the firmware's C runtime.
 
 ## Build
 
-Build the shared Web interface first:
+Build the shared Web interface once, then cross-compile the Agent:
 
 ```sh
 bash openwrt/build_ui.sh
+python3 tool/ci/openwrt_release.py build --arch x86_64
 ```
 
-The script stages its output under `openwrt/iping/src/webui/dist/`. Go embeds those
-files into the Agent, so there is no separate web server or static-file package.
-Generated assets stay outside version control.
+Supported binary architectures are `x86_64`, `aarch64`, `armv7`, `mips` and `mipsel`.
+ARM64 variants share the ARMv8.0 binary; supported 32-bit ARM variants use ARMv7
+with VFP, and MIPS uses soft-float with separate byte orders. No OpenWrt SDK or
+IPK/APK packaging is involved. `CGO_ENABLED=0` removes the firmware ABI dependency.
+Go's module/build caches and verified Core downloads persist on the runners.
 
-Add the local feed to an official OpenWrt SDK's `feeds.conf`:
+The Web build stages assets under `openwrt/iping/src/webui/dist/`. Go embeds them
+into the Agent, so no separate web server or static-file deployment is needed.
+Mihomo's official Linux binaries are pinned to a version and SHA-256 hashes in
+`tool/ci/openwrt_release.py`; release validation rejects dynamically linked or
+incorrectly targeted executables.
 
-```text
-src-link iping /absolute/path/to/FlClash/openwrt
-```
-
-Then build both packages:
-
-```sh
-./scripts/feeds update -i iping
-./scripts/feeds install -p iping iping-mihomo iping
-make menuconfig
-make package/feeds/iping/iping-mihomo/compile V=s
-make package/feeds/iping/iping/compile V=s
-```
-
-Packages appear under `bin/packages/<architecture>/iping/`. Mihomo is pinned by
-version and source checksum in `iping-mihomo/Makefile` and installs as
-`/usr/libexec/iping/mihomo`.
-
-The `openwrt` GitHub Actions workflow builds the Web interface once and uses the
-SDK matrix for OpenWrt 24.10 and 25.12. It can run directly or be called by the
-published-release workflow. Release builds use the resolved release SHA for Agent
-tests, Web builds and every package job. The Agent and Web versions follow
-`pubspec.yaml`; the package revision uses its build number.
-
-Each download is `iPing-<version>-openwrt-<branch>-<arch>.zip`, containing matching
-`iping` and `iping-mihomo` packages, `SHA256SUMS` and `INSTALL.txt`. OpenWrt 24.10
-uses IPK packages and 25.12 uses APK packages. The bundler excludes unrelated or
-stale SDK outputs and fails when either expected package is missing. The main
-release waits for all architectures before uploading these bundles alongside the
-other platform packages. Stable bundles also reach the existing versioned MinIO
-download directory.
+The release workflow builds one `iPing-<version>-openwrt-<arch>.zip` per CPU family.
+Each archive contains `agent`, `mihomo`, the installer/updater, procd/UCI files,
+a version stamp, license and `SHA256SUMS`. Firmware versions share these binaries.
+The release waits for all five architectures before publishing alongside the
+other platforms. Stable builds also reach the versioned MinIO download directory.
 
 ## Use
 
 Run this command over SSH as root after the first stable release containing OpenWrt
-packages has been published:
+binaries has been published:
 
 ```sh
 wget -qO /tmp/iping-install.sh https://video.iping.my/releases/install-openwrt.sh && sh /tmp/iping-install.sh
 ```
 
-The installer reads the firmware branch and exact package architecture from OpenWrt,
-installs its download tools and package dependencies, and verifies the release ZIP's
-size and SHA-256 plus both packages' checksums before installing. It enables the
+The installer maps OpenWrt's CPU architecture to the matching static binaries,
+installs runtime dependencies, and verifies the archive size, SHA-256 and every
+contained file before replacing the programs. It enables the
 Agent at boot and prints its Web address. Open `http://<router-LAN-address>:19091/`
 and sign in with your iPing account. There is no separate router access key.
 
@@ -99,10 +81,11 @@ Automatic updates are enabled by default. A local cron task checks the stable up
 manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
 when the version/build is newer; it does not execute a downloaded installer or upgrade
 unrelated system packages. Download and verification finish before the Agent is stopped.
-Updates use the package manager and preserve `/etc/iping/` and UCI configuration. A
+Updates replace the binary directory and preserve `/etc/iping/` and UCI configuration. A
 running Agent is restarted after updating; an Agent that was stopped remains stopped.
-An installation failure attempts to restart the service and is recorded through
-`logread -e iping-update`; package replacement is not an atomic rollback.
+If activation fails, the updater restores the previous binary directory and running
+service. Scheduled results appear in `logread -e iping-update`. Re-run the installer
+after a firmware sysupgrade to restore the programs and runtime dependencies.
 
 ```sh
 iping-update check       # Check for a newer stable build
@@ -115,9 +98,7 @@ For installation without automatic updates, run `sh /tmp/iping-install.sh --no-a
 Re-running the installer preserves an existing update preference unless explicitly
 changed. Stop other transparent proxy services before connecting iPing.
 
-Manual package installation remains available: unzip the matching release bundle,
-verify `SHA256SUMS`, and run its `INSTALL.txt` command. Installation enables and starts
-`/etc/init.d/iping`. The HTTP server accepts private, loopback, and link-local clients;
+Installation enables and starts `/etc/init.d/iping`. The HTTP server accepts private, loopback, and link-local clients;
 state-changing API calls require the same Origin. Browser cookies only bind pending
 account sign-in to the browser that started it.
 
@@ -226,8 +207,8 @@ flutter test
 ```
 
 From `openwrt/iping/src`, `go test ./...` checks compilation of the embedded Agent;
-the Web build must exist before packaging. Validate SDK builds for every release
-target. Real router acceptance should cover LAN traffic and DNS, IPv4/IPv6,
+the Web build must exist before cross-compilation. Validate static binaries for all
+five CPU families. Real router acceptance should cover LAN traffic and DNS, IPv4/IPv6,
 firewall reload, reboot, Core/Agent failure recovery, subscription updates, and
 settings rollback. A desktop or container build alone does not establish those
 hardware behaviors.

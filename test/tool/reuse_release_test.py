@@ -17,12 +17,11 @@ class ReuseReleaseTests(unittest.TestCase):
                     'event': 'workflow_dispatch', 'head_branch': 'main'}
         self.artifacts = [{'name': name, 'expired': False} for name in reuse.NATIVE_ARTIFACTS]
 
-    def test_reuses_completed_targets_and_builds_only_missing_architectures(self):
+    def test_reuses_native_and_web_but_rebuilds_the_installer(self):
         self.artifacts.append({'name': 'artifact-openwrt-openwrt-24.10-x86_64', 'expired': False})
-        matrix = reuse.validate_reuse(self.run, self.artifacts, ['tool/ci/cache.sh'], 'v0.1.1')
-        self.assertEqual(len(matrix['include']), 19)
-        self.assertNotIn({'branch': 'openwrt-24.10', 'arch': 'x86_64'}, matrix['include'])
-        self.assertIn({'branch': 'openwrt-25.12', 'arch': 'x86_64'}, matrix['include'])
+        reused = reuse.validate_reuse(self.run, self.artifacts, ['tool/ci/cache.sh'], 'v0.1.1')
+        self.assertEqual(set(reused), reuse.NATIVE_ARTIFACTS)
+        self.assertNotIn('artifact-openwrt-installer', reused)
 
     def test_rejects_different_application_source_and_untrusted_workflows(self):
         for changed in ['lib/main.dart', 'core/main.go', 'openwrt/iping/src/main.go', 'pubspec.yaml']:
@@ -33,13 +32,13 @@ class ReuseReleaseTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 reuse.validate_reuse({**self.run, key: value}, self.artifacts, [], 'v0.1.1')
 
-    def test_requires_every_native_artifact_and_ignores_expired_sdk_packages(self):
+    def test_requires_every_native_artifact_and_ignores_obsolete_sdk_packages(self):
         self.artifacts[0]['expired'] = True
         with self.assertRaises(ValueError):
             reuse.validate_reuse(self.run, self.artifacts, [], 'v0.1.1')
         self.artifacts[0]['expired'] = False
         self.artifacts.append({'name': 'artifact-openwrt-openwrt-24.10-x86_64', 'expired': True})
-        self.assertEqual(len(reuse.validate_reuse(self.run, self.artifacts, [], 'v0.1.1')['include']), 20)
+        self.assertEqual(len(reuse.validate_reuse(self.run, self.artifacts, [], 'v0.1.1')), len(reuse.NATIVE_ARTIFACTS))
 
 
 if __name__ == '__main__':
