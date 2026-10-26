@@ -31,7 +31,7 @@ rclone_command() {
             -e RCLONE_CONFIG_MINIO_ENDPOINT -e RCLONE_CONFIG_MINIO_FORCE_PATH_STYLE rclone/rclone:1.69.1@sha256:600f51856285df1ae5d91c8bb2682cbbe31bf109ebeeef9ecead6ca8c0ff6138 "$@"
     fi
 }
-rclone_command copy "$staging/$version" "$remote/$version" --immutable
+rclone_command copy "$staging/$version" "$remote/$version" --immutable --checksum
 rclone_command check "$staging/$version" "$remote/$version" --one-way --download
 if [ "${IPING_PUBLISH_LATEST:-1}" = 1 ]; then
     if [ -f "$staging/install-linux.sh" ]; then
