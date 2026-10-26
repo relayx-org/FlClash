@@ -109,15 +109,14 @@ jobs:
             sleep 5
           done
           mkdir -p tool/ci
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py tool/ci/native_targets.json; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py tool/ci/native_targets.json tool/ci/windows_python.ps1; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
       - name: Set up Windows upload tooling
         if: runner.os == 'Windows'
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
+        shell: powershell
+        run: ./tool/ci/windows_python.ps1
 
       - name: Check MinIO upload tooling
         shell: bash

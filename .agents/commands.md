@@ -439,6 +439,8 @@ use two workers. Linux Agent cross-compilation runs on two Mac runners, with per
 local Go module/build caches and verified Mihomo downloads. Five CPU families cover
 all supported firmware versions without SDK, IPK or APK builds. The binary installer
 handles runtime dependencies, procd/systemd startup, verified updates and activation rollback.
+Windows uses a checksum-pinned portable Python under the runner tool cache for
+MinIO transfers, without an MSI installation or registry changes.
 Temporary signing keys are removed after each job without discarding
 other jobs' entries in the Mac keychain search list.
 
