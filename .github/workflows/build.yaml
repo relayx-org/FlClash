@@ -56,13 +56,16 @@ jobs:
               output.write('sha=' + sha + '\nversion=' + match[1] + '\nstable=' + os.environ['PUBLISH_STABLE'] + '\n')
           PYCODE
 
-  reuse:
-    if: inputs.reuse_run_id != ''
+  plan:
     needs: release
     runs-on: [self-hosted, Linux, X64]
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      web: ${{ steps.plan.outputs.web }}
     steps:
       - uses: actions/checkout@v4
-      - name: Validate previous MinIO build receipts
+      - name: Reuse completed MinIO build groups and select remaining targets
+        id: plan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
@@ -70,11 +73,11 @@ jobs:
           RELEASE_SHA: ${{ needs.release.outputs.sha }}
           RELEASE_VERSION: ${{ needs.release.outputs.version }}
           IS_STABLE: ${{ needs.release.outputs.stable }}
-        run: python3 tool/ci/storage.py check --run "$PREVIOUS_RUN"
+        run: python3 tool/ci/storage.py plan --reuse-run "$PREVIOUS_RUN"
 
   build:
-    if: inputs.reuse_run_id == ''
-    needs: release
+    if: ${{ needs.plan.outputs.matrix != '{"include":[]}' }}
+    needs: [release, plan]
     runs-on: ${{ matrix.runner }}
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
@@ -86,26 +89,7 @@ jobs:
       FLUTTER_STORAGE_BASE_URL: ${{ (matrix.platform == 'android' || matrix.platform == 'linux') && 'https://storage.flutter-io.cn' || 'https://storage.googleapis.com' }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: android
-            runner: [self-hosted, Linux, X64]
-            arch: multi
-          - platform: ios
-            runner: [self-hosted, macOS, ARM64]
-            arch: arm64
-          - platform: linux
-            runner: [self-hosted, Linux, X64]
-            arch: amd64
-          - platform: windows
-            runner: [self-hosted, Windows, X64]
-            arch: amd64
-          - platform: macos
-            runner: [self-hosted, macOS, ARM64]
-            arch: arm64
-          - platform: macos
-            runner: [self-hosted, macOS, ARM64]
-            arch: amd64
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -125,9 +109,19 @@ jobs:
             sleep 5
           done
           mkdir -p tool/ci
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py tool/ci/native_targets.json; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
+
+      - name: Set up Windows upload tooling
+        if: runner.os == 'Windows'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Check MinIO upload tooling
+        shell: bash
+        run: aws --version
 
       - name: Validate the pinned release version
         shell: bash
@@ -410,23 +404,23 @@ jobs:
         shell: bash
         env:
           GROUP: ${{ matrix.platform }}-${{ matrix.arch }}
-        run: python3 tool/ci/storage.py put --group "$GROUP" --path dist
+        run: ${{ runner.os == 'Windows' && 'python' || 'python3' }} tool/ci/storage.py put --group "$GROUP" --path dist
 
   linux-agent:
-    if: ${{ !cancelled() && needs.release.result == 'success' && (needs.reuse.result == 'success' || needs.reuse.result == 'skipped') }}
-    needs: [release, reuse]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.plan.result == 'success' }}
+    needs: [release, plan]
     uses: ./.github/workflows/linux-agent.yaml
     with:
       ref: ${{ needs.release.outputs.sha }}
       version: ${{ needs.release.outputs.version }}
       stable: ${{ inputs.publish_stable }}
       build_binaries: true
-      reuse_run_id: ${{ inputs.reuse_run_id }}
+      reuse_web: ${{ needs.plan.outputs.web == 'true' }}
     secrets: inherit
 
   publish-minio:
-    if: ${{ !cancelled() && needs.release.result == 'success' && needs.linux-agent.result == 'success' && (needs.build.result == 'success' || needs.reuse.result == 'success') }}
-    needs: [release, build, reuse, linux-agent]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.linux-agent.result == 'success' && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    needs: [release, plan, build, linux-agent]
     runs-on: [self-hosted, Linux, X64]
     concurrency:
       group: iping-stable-release
@@ -451,13 +445,11 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/update_manifest.dart tool/ci/storage.py tool/publish_update.sh; do
+          for path in tool/update_manifest.dart tool/ci/storage.py tool/ci/native_targets.json tool/publish_update.sh; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
       - name: Load verified release packages from MinIO
-        env:
-          REUSE_RUN: ${{ inputs.reuse_run_id }}
-        run: python3 tool/ci/storage.py collect --reuse-run "$REUSE_RUN" --path dist
+        run: python3 tool/ci/storage.py collect --path dist
       - name: Use local package cache
         run: |
           mkdir -p "$RUNNER_TOOL_CACHE/iping/pub"

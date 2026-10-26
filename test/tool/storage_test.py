@@ -19,9 +19,9 @@ class StorageTest(unittest.TestCase):
         self.store = storage.BuildStorage('12345', 'a' * 40, '1.2.3+42')
         self.objects = self.root / 'objects'
         self.objects.mkdir()
-        def aws(action, source, destination, *options):
+        def aws(action, source, destination, *options, **kwargs):
             def path(value):
-                return self.objects / value.removeprefix(self.store.root) if value.startswith('s3://') else Path(value)
+                return self.objects / value.removeprefix('s3://iping/releases/builds/') if value.startswith('s3://') else Path(value)
             origin, target = path(source), path(destination)
             if '--recursive' in options:
                 shutil.copytree(origin, target, dirs_exist_ok=True)
@@ -34,10 +34,13 @@ class StorageTest(unittest.TestCase):
         source = self.root / 'source'
         source.mkdir()
         (source / 'iPing.zip').write_bytes(b'valid binary')
+        (source / '.keep').write_bytes(b'')
         self.store.put('linux-amd64', source)
+        (self.root / 'destination').mkdir()
+        (self.root / 'destination/.keep').write_bytes(b'')
         self.store.get('linux-amd64', self.root / 'destination')
         self.assertEqual((self.root / 'destination/iPing.zip').read_bytes(), b'valid binary')
-        (self.objects / 'linux-amd64/files/iPing.zip').write_bytes(b'corrupt')
+        (self.objects / '12345/linux-amd64/files/iPing.zip').write_bytes(b'corrupt')
         with self.assertRaises(ValueError):
             self.store.get('linux-amd64', self.root / 'corrupt')
         self.assertFalse((self.root / 'corrupt/iPing.zip').exists())
@@ -53,6 +56,22 @@ class StorageTest(unittest.TestCase):
                 storage.validate_receipt({**receipt, 'files': {name: info}}, self.store.sha, self.store.version)
         with self.assertRaises(ValueError):
             self.store.prefix('../other-run')
+
+    def test_partial_resume_reuses_completed_groups_and_builds_only_missing_targets(self):
+        source = self.root / 'source'
+        source.mkdir()
+        (source / 'file').write_bytes(b'data')
+        for group in storage.NATIVE_GROUPS:
+            if group != 'windows-amd64':
+                self.store.put(group, source)
+        self.store.put('web', source)
+        resumed = storage.BuildStorage('67890', self.store.sha, self.store.version)
+        resumed.aws = self.store.aws
+        matrix, web = resumed.plan(self.store)
+        self.assertEqual([row['platform'] for row in matrix['include']], ['windows'])
+        self.assertTrue(web)
+        resumed.get('linux-amd64', self.root / 'resumed')
+        self.assertEqual((self.root / 'resumed/file').read_bytes(), b'data')
 
     def test_failed_upload_never_publishes_a_receipt(self):
         source = self.root / 'source'

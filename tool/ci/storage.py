@@ -8,7 +8,8 @@ import shutil
 import subprocess
 import tempfile
 
-NATIVE_GROUPS = ['android-multi', 'ios-arm64', 'linux-amd64', 'windows-amd64', 'macos-arm64', 'macos-amd64']
+NATIVE_TARGETS = json.loads(Path(__file__).with_name('native_targets.json').read_text())['include']
+NATIVE_GROUPS = [row['platform'] + '-' + row['arch'] for row in NATIVE_TARGETS]
 AGENT_GROUPS = ['agent-' + arch for arch in ('x86_64', 'aarch64', 'armv7', 'mips', 'mipsel')]
 
 
@@ -25,7 +26,7 @@ def validate_receipt(receipt, sha, version, stable=True):
         if (path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name
                 or str(path) != name or not path.parts):
             raise ValueError('Unsafe file in MinIO build receipt')
-        if not re.fullmatch(r'[0-9a-f]{64}', metadata.get('sha256', '')) or metadata.get('size', 0) <= 0:
+        if not re.fullmatch(r'[0-9a-f]{64}', metadata.get('sha256', '')) or not isinstance(metadata.get('size'), int) or metadata['size'] < 0:
             raise ValueError('Invalid file metadata in MinIO build receipt')
 
 
@@ -39,7 +40,7 @@ class BuildStorage:
         self.sha, self.version = sha, version
         self.stable = os.environ.get('IS_STABLE', 'true') == 'true'
 
-    def aws(self, *args):
+    def aws(self, *args, quiet=False):
         for name in ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'):
             if not os.environ.get(name):
                 raise ValueError('Missing MinIO credential: ' + name)
@@ -50,20 +51,44 @@ class BuildStorage:
                    'AWS_REQUEST_CHECKSUM_CALCULATION': 'WHEN_REQUIRED',
                    'AWS_RESPONSE_CHECKSUM_VALIDATION': 'WHEN_REQUIRED', 'AWS_PAGER': ''}
             subprocess.run(['aws', '--endpoint-url', os.environ.get('MINIO_ENDPOINT', 'https://minio.long2ice.io'),
-                            's3', *args, '--only-show-errors'], env=env, check=True)
+                            's3', *args, '--only-show-errors'], env=env, text=True, capture_output=quiet, check=True)
 
     def prefix(self, group):
         if not re.fullmatch(r'[a-z0-9_-]+', group):
             raise ValueError('Invalid MinIO build group')
         return self.root + group + '/'
 
-    def receipt(self, group):
+    def receipt(self, group, optional=False):
         with tempfile.TemporaryDirectory(prefix='iping-receipt-') as temporary:
             path = Path(temporary) / 'receipt.json'
-            self.aws('cp', self.prefix(group) + 'receipt.json', str(path))
+            try:
+                self.aws('cp', self.prefix(group) + 'receipt.json', str(path), quiet=optional)
+            except FileNotFoundError:
+                if optional:
+                    return None
+                raise
+            except subprocess.CalledProcessError as error:
+                if optional and ('404' in (error.stderr or '') or 'NoSuchKey' in (error.stderr or '')):
+                    return None
+                raise
             receipt = json.loads(path.read_text())
         validate_receipt(receipt, self.sha, self.version, self.stable)
         return receipt
+
+    def reuse(self, previous, group):
+        receipt = previous.receipt(group, optional=True)
+        if receipt is None:
+            return False
+        self.aws('cp', previous.prefix(group) + 'files/', self.prefix(group) + 'files/', '--recursive', '--copy-props', 'none')
+        self.aws('cp', previous.prefix(group) + 'receipt.json', self.prefix(group) + 'receipt.json')
+        print('Reused MinIO group: ' + group)
+        return True
+
+    def plan(self, previous=None):
+        rows = [row for row in NATIVE_TARGETS
+                if previous is None or not self.reuse(previous, row['platform'] + '-' + row['arch'])]
+        web = previous is not None and self.reuse(previous, 'web')
+        return {'include': rows}, web
 
     def put(self, group, source):
         files = {path.relative_to(source).as_posix(): {'sha256': checksum(path), 'size': path.stat().st_size}
@@ -90,14 +115,16 @@ class BuildStorage:
                 target = destination / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 if target.exists():
-                    raise ValueError('Duplicate build file: ' + name)
+                    if target.is_file() and checksum(target) == metadata['sha256']:
+                        continue
+                    raise ValueError('Different build files share a path: ' + name)
                 shutil.move(str(path), target)
         print(f'Loaded and verified {group}: {len(receipt["files"])} files from MinIO')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['put', 'get', 'check', 'collect'])
+    parser.add_argument('action', choices=['put', 'get', 'check', 'collect', 'plan'])
     parser.add_argument('--run', default=os.environ.get('GITHUB_RUN_ID', ''))
     parser.add_argument('--reuse-run', default='')
     parser.add_argument('--sha', default=os.environ.get('RELEASE_SHA', ''))
@@ -106,16 +133,21 @@ def main():
     parser.add_argument('--path', type=Path)
     args = parser.parse_args()
     storage = BuildStorage(args.run, args.sha, args.version)
-    if args.action == 'check':
+    if args.action == 'plan':
+        previous = BuildStorage(args.reuse_run, args.sha, args.version) if args.reuse_run else None
+        matrix, web = storage.plan(previous)
+        with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
+            output.write('matrix=' + json.dumps(matrix, separators=(',', ':')) + '\nweb=' + str(web).lower() + '\n')
+        print(f'{len(matrix["include"])} native build targets remain')
+    elif args.action == 'check':
         for group in NATIVE_GROUPS + ['web']:
             storage.receipt(group)
         print('Validated native and Web receipts in MinIO')
     elif args.action == 'collect':
         if args.path is None:
             parser.error('collect requires --path')
-        native = BuildStorage(args.reuse_run or args.run, args.sha, args.version)
         for group in NATIVE_GROUPS:
-            native.get(group, args.path)
+            storage.get(group, args.path)
         for group in AGENT_GROUPS + ['installer']:
             storage.get(group, args.path)
     else:

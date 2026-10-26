@@ -26,9 +26,9 @@ on:
       stable:
         type: boolean
         default: true
-      reuse_run_id:
-        type: string
-        default: ''
+      reuse_web:
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'lib/**'
@@ -64,7 +64,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/storage_test.py tool/ci/storage.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/native_targets.json test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/storage_test.py tool/ci/storage.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
       - name: Check binary release tooling
@@ -107,13 +107,13 @@ jobs:
           submodules: recursive
 
       - uses: actions/setup-go@v5
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         with:
           go-version: '1.27.1'
           cache: false
 
       - uses: subosito/flutter-action@v2
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         with:
           flutter-version: '3.47.7'
           channel: stable
@@ -123,47 +123,45 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
       - name: Set Web release version
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: python3 tool/ci/openwrt_release.py prepare --release-version "$RELEASE_VERSION"
 
       - name: Resolve native dependencies
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         run: flutter pub get
 
       - name: Resolve Web dependencies
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         working-directory: openwrt/ui
         run: flutter pub get
 
       - name: Check shared native logic
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         run: |
           flutter analyze --no-fatal-infos
           flutter test test/iping test/common/task_test.dart test/common/javascript_test.dart test/models/rule_test.dart test/providers/setup_action_test.dart test/providers/setup_state_test.dart test/providers/database_test.dart test/providers/action_test.dart test/views/dns_view_test.dart test/views/network_config_test.dart test/views/added_rules_test.dart test/views/clash_providers_view_test.dart test/features/list_editor_page_test.dart test/features/custom_quick_edit_test.dart test/widgets/uncovered_views_test.dart test/manager/window_header_test.dart test/lint
 
       - name: Check Web logic
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         working-directory: openwrt/ui
         run: |
           flutter analyze --no-fatal-infos
           flutter test
 
       - name: Build shared Flutter interface
-        if: inputs.reuse_run_id == ''
+        if: ${{ !inputs.reuse_web }}
         run: bash openwrt/build_ui.sh
 
       - name: Reuse the validated Web build from MinIO
-        if: inputs.reuse_run_id != ''
-        env:
-          PREVIOUS_RUN: ${{ inputs.reuse_run_id }}
-        run: python3 tool/ci/storage.py get --run "$PREVIOUS_RUN" --group web --path openwrt/iping/src/webui/dist
+        if: inputs.reuse_web
+        run: python3 tool/ci/storage.py get --group web --path openwrt/iping/src/webui/dist
 
       - name: Save shared Web and installer to MinIO
         if: github.event_name == 'workflow_dispatch' || inputs.build_binaries
@@ -200,7 +198,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 

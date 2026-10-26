@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -10,9 +11,17 @@ void main() {
             as YamlMap;
     final jobs = build['jobs'] as YamlMap;
     final native = jobs['build'] as YamlMap;
-    final matrix = native['strategy']['matrix']['include'] as YamlList;
+    final matrix =
+        jsonDecode(
+              File('tool/ci/native_targets.json').readAsStringSync(),
+            )['include']
+            as List;
+    expect(
+      native['strategy']['matrix'],
+      r'${{ fromJSON(needs.plan.outputs.matrix) }}',
+    );
     final ios =
-        matrix.singleWhere((entry) => entry['platform'] == 'ios') as YamlMap;
+        matrix.singleWhere((entry) => entry['platform'] == 'ios') as Map;
     expect(ios['arch'], 'arm64');
     expect(ios['runner'], contains('macOS'));
     final signing = (native['steps'] as YamlList).singleWhere(

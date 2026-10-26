@@ -444,8 +444,8 @@ other jobs' entries in the Mac keychain search list.
 
 To resume a release after changing only CI tooling, dispatch `build.yaml` with the same
 `ref` and `reuse_run_id` of a completed MinIO build. Receipts must match the source
-SHA, full version and stable/preview mode. It reuses the native and Web files from MinIO and rebuilds the binary
-installer and five Linux Agent targets.
+SHA, full version and stable/preview mode. It copies each completed native group and Web build within MinIO, and only missing
+native targets run again. The binary installer and five Linux Agent targets are rebuilt.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in

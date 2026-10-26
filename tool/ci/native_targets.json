@@ -1,0 +1,58 @@
+{
+  "include": [
+    {
+      "platform": "android",
+      "runner": [
+        "self-hosted",
+        "Linux",
+        "X64"
+      ],
+      "arch": "multi"
+    },
+    {
+      "platform": "ios",
+      "runner": [
+        "self-hosted",
+        "macOS",
+        "ARM64"
+      ],
+      "arch": "arm64"
+    },
+    {
+      "platform": "linux",
+      "runner": [
+        "self-hosted",
+        "Linux",
+        "X64"
+      ],
+      "arch": "amd64"
+    },
+    {
+      "platform": "windows",
+      "runner": [
+        "self-hosted",
+        "Windows",
+        "X64"
+      ],
+      "arch": "amd64"
+    },
+    {
+      "platform": "macos",
+      "runner": [
+        "self-hosted",
+        "macOS",
+        "ARM64"
+      ],
+      "arch": "arm64"
+    },
+    {
+      "platform": "macos",
+      "runner": [
+        "self-hosted",
+        "macOS",
+        "ARM64"
+      ],
+      "arch": "amd64"
+    }
+  ]
+}
