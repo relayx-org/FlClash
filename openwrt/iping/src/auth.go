@@ -144,7 +144,23 @@ func (a *app) request(ctx context.Context, method, path string, body []byte, key
 	if key != "" {
 		req.Header.Set("Authorization", "Bearer "+key)
 	}
-	resp, err := a.client.Do(req)
+	client := a.client
+	// The Agent bypasses its own TUN; fake DNS addresses require the Core's proxy resolver.
+	if a.core != nil && a.running(ctx) {
+		proxy, err := a.probeProxy(ctx, false)
+		if err == nil {
+			transport := http.DefaultTransport.(*http.Transport).Clone()
+			if base, ok := a.client.Transport.(*http.Transport); ok {
+				transport = base.Clone()
+			}
+			transport.Proxy = http.ProxyURL(proxy)
+			defer transport.CloseIdleConnections()
+			routed := *a.client
+			routed.Transport = transport
+			client = &routed
+		}
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, failure("network_error")
 	}

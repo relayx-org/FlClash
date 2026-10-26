@@ -1,11 +1,11 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/enum/ip_quality.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
 extension IpTypeLabel on IpType {
   String label(BuildContext context) {
-    final localizations = context.appLocalizations;
+    final localizations = AppLocalizations.of(context);
     return switch (this) {
       IpType.residential => localizations.ipTypeResidential,
       IpType.mobile => localizations.ipTypeMobile,
@@ -17,7 +17,7 @@ extension IpTypeLabel on IpType {
 
 extension IpQualityLevelView on IpQualityLevel {
   String label(BuildContext context) {
-    final localizations = context.appLocalizations;
+    final localizations = AppLocalizations.of(context);
     return switch (this) {
       IpQualityLevel.good => localizations.ipQualityGood,
       IpQualityLevel.normal => localizations.ipQualityNormal,
@@ -36,7 +36,7 @@ extension IpQualityLevelView on IpQualityLevel {
 
 extension IpQualitySourceStatusLabel on IpQualitySourceStatus {
   String label(BuildContext context) {
-    final localizations = context.appLocalizations;
+    final localizations = AppLocalizations.of(context);
     return switch (this) {
       IpQualitySourceStatus.noType => localizations.ipSourceNoType,
       IpQualitySourceStatus.timeout => localizations.timeout,

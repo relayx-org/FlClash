@@ -20,6 +20,7 @@ import 'package:fl_clash/models/state.dart';
 import 'package:fl_clash/models/profile.dart';
 import 'package:fl_clash/enum/enum.dart' show ProfileType, ExtendType;
 import 'package:fl_clash/models/clash_config.dart';
+import 'package:fl_clash/state.dart';
 
 class _Browser extends IpingBrowserLogin {
   _Browser(this.api)
@@ -202,9 +203,10 @@ void main() {
 
   test('account and subscription commands publish the shared state', () async {
     await container.read(ipingSessionProvider.notifier).controller.initialize();
+    final controller = container.read(ipingClientControllerProvider);
     expect((await backend.readState()).signedIn, isFalse);
 
-    await backend.signIn(register: true);
+    await controller.signIn(register: true);
     final state = await backend.readState();
     expect(browser.registered, isTrue);
     expect(state.initialized, isTrue);
@@ -224,10 +226,10 @@ void main() {
     );
 
     final downloads = api.downloads;
-    await backend.synchronize();
+    await controller.synchronize();
     expect(api.downloads, downloads + 1);
 
-    await backend.signOut();
+    await controller.signOut();
     expect((await backend.readState()).signedIn, isFalse);
     expect((await backend.readState()).nodes, 0);
     expect(storage.value, isNull);
@@ -236,10 +238,11 @@ void main() {
 
   test('canceling sign-in keeps the account and subscription empty', () async {
     await container.read(ipingSessionProvider.notifier).controller.initialize();
+    final controller = container.read(ipingClientControllerProvider);
     browser.pending = Completer<IpingAccount?>();
-    final operation = backend.signIn();
+    final operation = controller.signIn();
     expect((await backend.readState()).busy, isTrue);
-    backend.cancelSignIn();
+    controller.cancelSignIn();
     await operation;
     final state = await backend.readState();
     expect(state.signedIn, isFalse);
@@ -259,14 +262,59 @@ void main() {
           ],
         );
         addTearDown(scoped.dispose);
-        final backend = scoped.read(ipingBackendProvider);
-        expect(await backend.setConnected(true), isTrue);
+        final controller = scoped.read(ipingClientControllerProvider);
+        expect(await controller.setConnected(true), isTrue);
         setup.accepted = false;
-        expect(await backend.setConnected(false), isFalse);
+        expect(await controller.setConnected(false), isFalse);
         expect(setup.calls, [(true, !initialized), (false, false)]);
       },
     );
   }
+
+  test(
+    'the native controller observes existing session and run-state events',
+    () async {
+      final subscription = container.listen(
+        ipingClientControllerProvider,
+        (_, _) {},
+      );
+      addTearDown(subscription.close);
+      await container
+          .read(ipingSessionProvider.notifier)
+          .controller
+          .initialize();
+      final controller = container.read(ipingClientControllerProvider);
+      expect(controller.signedIn, isFalse);
+      await backend.signIn();
+      await container.pump();
+      expect(controller.signedIn, isTrue);
+      container.read(runTimeProvider.notifier).value = 1000;
+      await container.pump();
+      expect(controller.connected, isTrue);
+      await backend.signOut();
+      await container.pump();
+      expect(controller.signedIn, isFalse);
+    },
+  );
+
+  test(
+    'dashboard reads existing snapshots without querying the Core',
+    () async {
+      final previous = globalState.lastConfigCounts;
+      addTearDown(() => globalState.lastConfigCounts = previous);
+      globalState.lastConfigCounts = (groups: 2, proxies: 3, rules: 4);
+      container.read(localIpProvider.notifier).value = '192.168.1.5';
+      container.read(runTimeProvider.notifier).value = 60000;
+      final snapshot = await backend.readDashboard();
+      expect(snapshot.localIp, '192.168.1.5');
+      expect(
+        snapshot.started!.difference(DateTime.now()).inSeconds,
+        closeTo(-60, 1),
+      );
+      expect((snapshot.groups, snapshot.proxies, snapshot.rules), (2, 3, 4));
+      expect(snapshot.settings.values, (await backend.readSettings()).values);
+    },
+  );
 
   test('mode changes delegate to the existing setup owner', () async {
     final setup = _Setup();

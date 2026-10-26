@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/enum/ip_quality.dart';
+import 'package:fl_clash/models/ip_quality.dart';
 
 typedef IpQualityFailure = ({
   IpQualitySource source,
@@ -41,13 +40,43 @@ Future<IpQuality> lookupIpQuality(
   Duration timeout = const Duration(seconds: 8),
   Duration hedge = const Duration(seconds: 1),
 }) {
-  return _Lookup(dio, ip, cancelToken, timeout, hedge).run();
+  return lookupIpQualityUsing(
+    (url, token) async {
+      final response = await dio.get<String>(
+        url,
+        cancelToken: token,
+        options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (_) => true,
+        ),
+      );
+      return (statusCode: response.statusCode ?? 0, body: response.data ?? '');
+    },
+    ip,
+    cancelToken: cancelToken,
+    timeout: timeout,
+    hedge: hedge,
+  );
 }
 
-class _Lookup {
-  _Lookup(this.dio, this.ip, this.cancelToken, this.timeout, this.hedge);
+typedef IpQualityFetch =
+    Future<({int statusCode, String body})> Function(
+      String url,
+      CancelToken token,
+    );
 
-  final Dio dio;
+Future<IpQuality> lookupIpQualityUsing(
+  IpQualityFetch fetch,
+  String ip, {
+  CancelToken? cancelToken,
+  Duration timeout = const Duration(seconds: 8),
+  Duration hedge = const Duration(seconds: 1),
+}) => _Lookup(fetch, ip, cancelToken ?? CancelToken(), timeout, hedge).run();
+
+class _Lookup {
+  _Lookup(this.fetch, this.ip, this.cancelToken, this.timeout, this.hedge);
+
+  final IpQualityFetch fetch;
   final String ip;
   final CancelToken cancelToken;
   final Duration timeout;
@@ -79,7 +108,7 @@ class _Lookup {
     for (final source in sources) {
       unawaited(
         _query(
-          dio,
+          fetch,
           source,
           ip,
           cancelToken,
@@ -137,29 +166,23 @@ class _Lookup {
 }
 
 Future<_Answer> _query(
-  Dio dio,
+  IpQualityFetch fetch,
   IpQualitySource source,
   String ip,
   CancelToken cancelToken,
   Duration timeout,
 ) async {
-  final response = await dio
-      .get<String>(
-        _urlOf(source, ip),
-        cancelToken: cancelToken,
-        options: Options(
-          responseType: ResponseType.plain,
-          validateStatus: (_) => true,
-        ),
-      )
-      .timeout(timeout);
-  if (response.statusCode == HttpStatus.tooManyRequests) {
+  final response = await fetch(
+    _urlOf(source, ip),
+    cancelToken,
+  ).timeout(timeout);
+  if (response.statusCode == 429) {
     throw const _SourceFailure(IpQualitySourceStatus.rateLimited);
   }
-  if (response.statusCode != HttpStatus.ok) {
+  if (response.statusCode != 200) {
     throw const _SourceFailure(IpQualitySourceStatus.failed);
   }
-  final json = jsonDecode(response.data ?? '') as Map<String, dynamic>;
+  final json = jsonDecode(response.body) as Map<String, dynamic>;
   final answer = _parse(source, ip, json);
   if (answer == null) {
     throw const _SourceFailure(IpQualitySourceStatus.noType);

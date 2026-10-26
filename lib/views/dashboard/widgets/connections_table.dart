@@ -19,31 +19,12 @@ import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
 import 'record_table.dart';
+import 'record_frame.dart';
+export 'record_frame.dart' show connectionsTableTop, connectionsTableMinHeight;
 
 /// Enough to fill the tallest card several times over; the full feed is a
 /// tap away.
 const _midTableWidth = 620.0;
-const _cellInset = 8.0;
-const _tableGap = 12.0;
-const _headerHeight = 32.0;
-const _minRows = 3;
-
-double _tabHeightOf(DashboardDensity density) => density.isCompact ? 32 : 36;
-
-double _rowHeightOf(DashboardDensity density) => density.isCompact ? 32 : 34;
-
-/// Keeps the pill tabs concentric with the card's corners.
-double _tabInsetOf(DashboardDensity density) =>
-    dashboardCardRadius(density) - _tabHeightOf(density) / 2;
-
-double connectionsTableTop(DashboardDensity density, double scale) =>
-    _tabInsetOf(density) + _tabHeightOf(density) * scale + _tableGap;
-
-/// The grid gives the tables a row once they can show their head and a few
-/// connections; shorter, it shows the summary cards.
-double connectionsTableMinHeight(DashboardDensity density, double scale) =>
-    connectionsTableTop(density, scale) +
-    (_headerHeight + _rowHeightOf(density) * _minRows) * scale;
 
 enum DashboardFeed {
   connections,
@@ -293,11 +274,8 @@ class _ConnectionsTableCardState extends ConsumerState<ConnectionsTableCard>
   Widget build(BuildContext context) {
     final density = DashboardDensityScope.of(context);
     final scale = DashboardDensityScope.scaleOf(context);
-    final rowHeight = _rowHeightOf(density) * scale;
-    final appLocalizations = context.appLocalizations;
-    final headerHeight = _tabHeightOf(density) * scale;
-    final tabInset = _tabInsetOf(density);
-    final cellStart = dashboardCardPadding(density).left - _cellInset;
+    final rowHeight = dashboardTableRowHeight(density) * scale;
+    final headerHeight = dashboardTableTabHeight(density) * scale;
     Widget segment(DashboardFeed feed, Widget count) =>
         DashboardConnectedButton(
           selected: _feed == feed,
@@ -308,163 +286,89 @@ class _ConnectionsTableCardState extends ConsumerState<ConnectionsTableCard>
           background: DashboardColors.of(context).tone,
           semanticLabel: feed.page.label,
           onTap: () => _select(feed),
-          builder: (foreground) => _FeedSegment(
+          builder: (foreground) => DashboardFeedSegment(
             label: feed.page.label,
             count: count,
             height: headerHeight,
             foreground: foreground,
           ),
         );
-    return DashboardCard(
-      semanticLabel: appLocalizations.liveConnections,
-      padding: EdgeInsets.fromLTRB(cellStart, tabInset, cellStart, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            height: headerHeight,
-            padding: EdgeInsets.symmetric(horizontal: tabInset - cellStart),
-            child: LayoutBuilder(
-              builder: (context, constraints) => DashboardCappedRow(
-                share: 0.45,
-                start: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DashboardConnectedGroup(
-                    children: [
-                      segment(
-                        DashboardFeed.connections,
-                        ValueListenableBuilder(
-                          valueListenable: connectionCount,
-                          builder: (context, count, _) => _TabCount(count),
-                        ),
-                      ),
-                      segment(
-                        DashboardFeed.requests,
-                        ThrottledCount(
-                          provider: requestCountProvider,
-                          builder: (_, count) => _TabCount(count),
-                        ),
-                      ),
-                      segment(
-                        DashboardFeed.dns,
-                        ThrottledCount(
-                          provider: dnsQueryCountProvider,
-                          builder: (_, count) => _TabCount(count),
-                        ),
-                      ),
-                    ],
+    return DashboardRecordCard(
+      header: LayoutBuilder(
+        builder: (context, constraints) => DashboardCappedRow(
+          share: 0.45,
+          start: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: DashboardConnectedGroup(
+              children: [
+                segment(
+                  DashboardFeed.connections,
+                  ValueListenableBuilder(
+                    valueListenable: connectionCount,
+                    builder: (context, count, _) => DashboardFeedCount(count),
                   ),
                 ),
-                end: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
-                  children: [
-                    if (_feed == DashboardFeed.connections &&
-                        connections.isNotEmpty &&
-                        constraints.maxWidth >= _midTableWidth) ...[
-                      DashboardChip(
-                        label: 'TCP $tcpCount',
-                        tone: DashboardChipTone.idle,
-                      ),
-                      DashboardChip(
-                        label: 'UDP $udpCount',
-                        tone: DashboardChipTone.idle,
-                      ),
-                    ],
-                  ],
+                segment(
+                  DashboardFeed.requests,
+                  ThrottledCount(
+                    provider: requestCountProvider,
+                    builder: (_, count) => DashboardFeedCount(count),
+                  ),
                 ),
-              ),
+                segment(
+                  DashboardFeed.dns,
+                  ThrottledCount(
+                    provider: dnsQueryCountProvider,
+                    builder: (_, count) => DashboardFeedCount(count),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: _tableGap),
-          Expanded(
-            child: switch (_feed) {
-              DashboardFeed.connections => DashboardRecordTable<TrackerInfo>(
-                key: const ValueKey(DashboardFeed.connections),
-                tableId: 'dashboard.connections',
-                items: connections,
-                rowHeight: rowHeight,
-                columnsOf: (width) =>
-                    dashboardConnectionColumns(context, width),
-              ),
-              DashboardFeed.requests => DashboardRecordTable<TrackerInfo>(
-                key: const ValueKey(DashboardFeed.requests),
-                tableId: 'dashboard.requests',
-                items: _requests,
-                rowHeight: rowHeight,
-                columnsOf: (_) => _requestColumns(context),
-              ),
-              DashboardFeed.dns => DashboardRecordTable<DnsQuery>(
-                key: const ValueKey(DashboardFeed.dns),
-                tableId: 'dashboard.dns',
-                items: _queries,
-                rowHeight: rowHeight,
-                columnsOf: (_) => _dnsColumns(context),
-              ),
-            },
+          end: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [
+              if (_feed == DashboardFeed.connections &&
+                  connections.isNotEmpty &&
+                  constraints.maxWidth >= _midTableWidth) ...[
+                DashboardChip(
+                  label: 'TCP $tcpCount',
+                  tone: DashboardChipTone.idle,
+                ),
+                DashboardChip(
+                  label: 'UDP $udpCount',
+                  tone: DashboardChipTone.idle,
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TabCount extends StatelessWidget {
-  const _TabCount(this.count);
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      dashboardCount(count),
-      maxLines: 1,
-      style: AppTextStyle.subheadline
-          .of(context, emphasized: true)
-          .toTabular
-          .copyWith(color: DefaultTextStyle.of(context).style.color),
-    );
-  }
-}
-
-class _FeedSegment extends StatelessWidget {
-  const _FeedSegment({
-    required this.label,
-    required this.count,
-    required this.height,
-    required this.foreground,
-  });
-
-  final String label;
-  final Widget count;
-  final double height;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 6,
-          children: [
-            DefaultTextStyle.merge(
-              style: TextStyle(color: foreground),
-              child: count,
-            ),
-            Text(
-              label,
-              maxLines: 1,
-              style: AppTextStyle.footnote
-                  .of(context, emphasized: true)
-                  .copyWith(color: foreground),
-            ),
-          ],
         ),
       ),
+      child: switch (_feed) {
+        DashboardFeed.connections => DashboardRecordTable<TrackerInfo>(
+          key: const ValueKey(DashboardFeed.connections),
+          tableId: 'dashboard.connections',
+          items: connections,
+          rowHeight: rowHeight,
+          columnsOf: (width) => dashboardConnectionColumns(context, width),
+        ),
+        DashboardFeed.requests => DashboardRecordTable<TrackerInfo>(
+          key: const ValueKey(DashboardFeed.requests),
+          tableId: 'dashboard.requests',
+          items: _requests,
+          rowHeight: rowHeight,
+          columnsOf: (_) => _requestColumns(context),
+        ),
+        DashboardFeed.dns => DashboardRecordTable<DnsQuery>(
+          key: const ValueKey(DashboardFeed.dns),
+          tableId: 'dashboard.dns',
+          items: _queries,
+          rowHeight: rowHeight,
+          columnsOf: (_) => _dnsColumns(context),
+        ),
+      },
     );
   }
 }

@@ -217,10 +217,8 @@ type ProbeResult struct {
 	CoreEpoch    uint64 `json:"core-epoch"`
 	PicksVersion uint64 `json:"picks-version"`
 
-	// Unexported, so it never reaches Dart: only the in-core checks read
-	// response headers, and ProbeResult is the shape the Dart side decodes.
-	header    http.Header
-	lowerBody string
+	// Response headers reach the shared probe rules, never Dart.
+	header http.Header
 }
 
 type Traffic struct {

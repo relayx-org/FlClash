@@ -3,7 +3,6 @@ import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/iping/diagnostics.dart';
 import 'package:fl_clash/iping/providers.dart';
-import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/outbound_ip.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/providers/routed_probe.dart';

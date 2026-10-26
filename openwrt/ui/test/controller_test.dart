@@ -82,7 +82,7 @@ void main() {
     await controller.signIn();
     expect(controller.signedIn, isTrue);
     expect(controller.connected, isFalse);
-    expect(controller.account['balance'], 128.5);
+    expect(controller.account?.balance, 128.5);
     expect(client.calls, isNot(contains('connect')));
   });
 

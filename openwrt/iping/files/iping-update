@@ -74,7 +74,7 @@ schedule_updates() {
     if [ "$schedule_enabled" = 1 ]; then
         minute=$(uci -q get iping.config.update_minute || true)
         case "$minute" in
-            ''|*[!0-9]*) minute=$(od -An -N2 -tu2 /dev/urandom | tr -d ' '); minute=$((minute % 60)) ;;
+            ''|*[!0-9]*) minute=$(awk 'BEGIN { srand(); print int(rand() * 60) }') ;;
         esac
         [ "$minute" -le 59 ] || { rm -f "$cron"; fail 'update_minute must be between 0 and 59'; }
         uci set "iping.config.update_minute=$minute"
@@ -146,6 +146,10 @@ show_address() {
     address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
     listener=$(uci -q get iping.config.web_listen || echo '0.0.0.0:19091')
     echo "iPing is ready: http://$address:${listener##*:}/"
+    secure_listener=$(uci -q get iping.config.web_tls_listen || true)
+    if [ -n "$secure_listener" ]; then
+        echo "HTTPS: https://$address:${secure_listener##*:}/"
+    fi
     echo 'Open the address and sign in with your iPing account.'
 }
 

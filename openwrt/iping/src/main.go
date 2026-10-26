@@ -39,6 +39,9 @@ type arguments struct {
 	Proxies          []map[string]any `json:"proxies"`
 	Scripts          []string         `json:"scripts"`
 	Filters          []string         `json:"filters"`
+	Names            []string         `json:"names"`
+	URLs             []string         `json:"urls"`
+	ProxyName        string           `json:"proxy_name"`
 }
 
 type app struct {
@@ -54,10 +57,17 @@ type app struct {
 	ctx               context.Context
 	jobs              sync.WaitGroup
 	core              *coreRuntime
+	dashboardCache    dashboardProfileCache
+	probeRouteCache   probeRouteCache
 }
 
 var methods = map[string]map[string]any{
+	"ip_quality":       {"url": ""},
+	"probe_route":      {},
+	"outbound_ip":      {"proxy_name": "", "urls": []string{}},
+	"service_check":    {"proxy_name": "", "names": []string{}},
 	"site_config":      {},
+	"dashboard":        {},
 	"settings_get":     {},
 	"settings_set":     {"changes": map[string]any{}, "profile_id": ""},
 	"validate_filters": {"filters": []string{}},
@@ -152,6 +162,16 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.userInfo(ctx)
 	}
 	switch method {
+	case "ip_quality":
+		return a.ipQuality(ctx, args.URL)
+	case "probe_route":
+		return a.probeRoute(ctx)
+	case "outbound_ip":
+		return a.outboundIP(ctx, args)
+	case "service_check":
+		return a.serviceCheck(ctx, args)
+	case "dashboard":
+		return a.dashboard(ctx)
 	case "settings_get":
 		return a.settings(ctx)
 	case "validate_scripts":

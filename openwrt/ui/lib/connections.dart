@@ -66,7 +66,7 @@ class _RouterConnectionsState extends State<RouterConnections>
   }
 
   Future<void> _load({bool more = false}) async {
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     if (_loading || !router.connected) return;
     _loading = true;
     _reloadPending = false;
@@ -94,7 +94,7 @@ class _RouterConnectionsState extends State<RouterConnections>
   }
 
   Future<void> _close(String id) async {
-    await RouterScope.of(context).closeConnection(id);
+    await RouterScope.read(context).closeConnection(id);
     if (mounted) {
       _reloadPending = true;
       await _load();

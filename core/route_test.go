@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+	probe "github.com/relayx-org/FlClash/openwrt/iping/probe"
 	"maps"
 	"net/http"
 	"path/filepath"
@@ -237,8 +239,10 @@ func TestProbeAnswersCarryTheRouteStamp(t *testing.T) {
 		t.Errorf("failed outbound ip = %+v, want an error stamped 7/42", failed)
 	}
 
-	withServiceCheckers(t, stubChecker("alpha", ServiceCheckItem{Status: serviceAvailable}))
-	items := handleServiceCheck(&ServiceCheckParams{Timeout: 1000})
+	previous := coreProbes.Send
+	coreProbes.Send = func(context.Context, probe.Request) *probe.Result { return &probe.Result{StatusCode: 204} }
+	t.Cleanup(func() { coreProbes.Send = previous })
+	items := handleServiceCheck(&ServiceCheckParams{Names: []string{"google"}, Timeout: 1000})
 	if items[0].CoreEpoch != 7 || items[0].PicksVersion != 42 {
 		t.Errorf("service check stamp = %d/%d, want 7/42", items[0].CoreEpoch, items[0].PicksVersion)
 	}

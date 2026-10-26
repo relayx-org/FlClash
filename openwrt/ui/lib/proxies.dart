@@ -42,7 +42,7 @@ class _RouterProxiesState extends State<RouterProxies>
   ProxyViewPreferences _preferences = const ProxyViewPreferences();
   String _query = '';
   int _generation = 0;
-  int _seenRevision = -1;
+  (int, int, int)? _seenRevision;
   bool _loading = false;
   bool _resetPending = false;
   String? _testingGroup;
@@ -52,16 +52,22 @@ class _RouterProxiesState extends State<RouterProxies>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final router = RouterScope.of(context);
+    final router = RouterScope.of(context, aspect: RouterAspect.proxies);
+    RouterScope.of(context, aspect: RouterAspect.status);
     if (!_preferencesLoaded) {
       _preferencesLoaded = true;
       _preferences = RouterAppState.of(context).preferences.proxies;
     }
+    final revision = (
+      router.revision,
+      router.probes.outbound.route.coreEpoch,
+      router.probes.outbound.route.picksVersion,
+    );
     if (router.connected &&
         (!_wasConnected ||
-            (_seenRevision != router.revision &&
+            (_seenRevision != revision &&
                 PageActivityScope.isActiveOf(context)))) {
-      _seenRevision = router.revision;
+      _seenRevision = revision;
       unawaited(_load());
     }
     _wasConnected = router.connected;
@@ -90,7 +96,7 @@ class _RouterProxiesState extends State<RouterProxies>
       _resetPending = true;
     }
     if (_loading || !mounted) return;
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     if (!router.connected || router.busy) return;
     _loading = true;
     final generation = _generation;
@@ -188,7 +194,7 @@ class _RouterProxiesState extends State<RouterProxies>
   }
 
   Future<void> _select(_RemoteGroup group, String name) async {
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     final selection = group.metadata.selectionFor(name);
     if (selection == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -206,7 +212,8 @@ class _RouterProxiesState extends State<RouterProxies>
 
   Future<void> _test(_RemoteGroup group) async {
     if (_testingGroup != null) return;
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
+    final testUrl = RouterAppState.of(context).preferences.testUrl;
     setState(() => _testingGroup = group.name);
     try {
       for (
@@ -216,6 +223,7 @@ class _RouterProxiesState extends State<RouterProxies>
       ) {
         if (!group.items.containsKey(offset)) {
           await _page(group, offset, retry: true);
+          if (!mounted) return;
         }
         final names = [
           for (
@@ -225,18 +233,8 @@ class _RouterProxiesState extends State<RouterProxies>
           )
             if (group.items[index]?.name case final String name) name,
         ];
-        for (var index = 0; index < names.length && mounted; index += 4) {
-          await Future.wait(
-            names
-                .skip(index)
-                .take(4)
-                .map(
-                  (name) => router.testDelay(
-                    name,
-                    url: RouterAppState.of(context).preferences.testUrl,
-                  ),
-                ),
-          );
+        if (!await router.testDelays(names, url: testUrl)) {
+          break;
         }
       }
     } finally {
@@ -254,10 +252,11 @@ class _RouterProxiesState extends State<RouterProxies>
         onRetry: () => _page(group, index, retry: true),
       );
     }
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     final l = AppLocalizations.of(context);
     final name = item.name;
-    final delay = router.delays[name] ?? item.delay;
+    final testUrl = RouterAppState.of(context).preferences.testUrl;
+    final delay = router.delayFor(name, testUrl) ?? item.delay;
     final type = item.type;
     final actual = item.selected;
     return ProxyNodeCard(
@@ -274,7 +273,11 @@ class _RouterProxiesState extends State<RouterProxies>
       pinned: group.metadata.pinned == name,
       latency: ProxyLatency(
         delay: delay,
-        phase: router.testing.contains(name) ? ProxyLatencyPhase.running : null,
+        phase: router.isTestingDelay(name, testUrl)
+            ? (router.isRunningDelay(name, testUrl)
+                  ? ProxyLatencyPhase.running
+                  : ProxyLatencyPhase.queued)
+            : null,
         alignment: _preferences.card == ProxyCardType.loose
             ? Alignment.centerLeft
             : Alignment.centerRight,
@@ -319,7 +322,7 @@ class _RouterProxiesState extends State<RouterProxies>
 
   @override
   Widget build(BuildContext context) {
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     final groups = router.connected
         ? _groups.values.toList()
         : <_RemoteGroup>[];

@@ -177,6 +177,11 @@ exit "$status"
                 self.assertIn('user-task', cron)
                 self.assertEqual(cron.count('# iping-auto-update'), 1)
 
+    def test_installer_prints_the_configured_https_address(self):
+        result = self.run_installer(extra="echo '0.0.0.0:19092' > /result/uci/iping.config.web_tls_listen")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('HTTPS: https://192.168.1.1:19092/', result.stdout)
+
     def test_checksums_and_space_are_checked_before_stopping_the_service(self):
         for failure in ['archive', 'package', 'space', 'url', 'schema']:
             with self.subTest(failure=failure):
@@ -241,6 +246,15 @@ flock -n 8
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('another iPing installation or update', result.stderr)
         self.assertEqual(self.events(), '')
+
+    def test_schedule_does_not_require_the_optional_od_applet(self):
+        self.command('od', "echo 'od is not installed' >&2; exit 127\n")
+        result = self.run_installer('sh /installer auto on')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn('od is not installed', result.stderr)
+        line = next(line for line in (self.result / 'crontab').read_text().splitlines()
+                    if line.endswith('# iping-auto-update'))
+        self.assertIn(int(line.split()[0]), range(60))
 
 
 if __name__ == '__main__':

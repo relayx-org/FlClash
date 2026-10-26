@@ -1,3 +1,14 @@
+import 'package:fl_clash/views/dashboard/widgets/record_frame.dart';
+import 'package:fl_clash/common/datetime.dart';
+import 'package:fl_clash/features/ip_quality/labels.dart';
+import 'package:fl_clash/views/dashboard/widgets/outbound_content.dart';
+import 'package:fl_clash/views/dashboard/widgets/intranet_frame.dart';
+import 'package:fl_clash/views/dashboard/widgets/profile_frame.dart';
+import 'package:fl_clash/views/dashboard/widgets/service_frame.dart';
+import 'package:fl_clash/views/dashboard/widgets/proxy_groups_frame.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/views/dashboard/widgets/record_table.dart';
 import 'package:fl_clash/views/dashboard/widgets/memory_summary.dart';
@@ -9,7 +20,7 @@ import 'dart:math' as math;
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
-import 'package:fl_clash/views/dashboard/desktop_layout.dart';
+import 'package:fl_clash/views/dashboard/panel_layout.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
 import 'package:fl_clash/views/dashboard/widgets/card.dart';
@@ -19,6 +30,7 @@ import 'package:material_ui/material_ui.dart';
 import 'app.dart';
 import 'controller.dart';
 import 'pages.dart';
+import 'probes.dart';
 import 'settings.dart';
 
 class RouterDashboard extends StatefulWidget {
@@ -34,10 +46,28 @@ class _RouterDashboardState extends State<RouterDashboard>
   bool _loading = false;
   List<TrackerInfo> _connections = [];
   List<IpingProxyGroup> _groups = [];
+  IpingDashboardSnapshot? _snapshot;
+  RouterController? _router;
+  Set<ServiceTarget> _watchedServices = {};
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final router = RouterScope.of(context, aspect: RouterAspect.status);
+    if (_router == null) {
+      _router = router;
+      router.probes.outbound.watch('');
+    }
+    final targets = routerServiceTargets(
+      RouterAppState.of(context).preferences,
+    ).take(4).toSet();
+    for (final target in targets.difference(_watchedServices)) {
+      router.probes.services.watch(target);
+    }
+    for (final target in _watchedServices.difference(targets)) {
+      router.probes.services.unwatch(target);
+    }
+    _watchedServices = targets;
     if (_timer != null) return;
     unawaited(_load());
     _timer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -48,24 +78,41 @@ class _RouterDashboardState extends State<RouterDashboard>
   }
 
   Future<void> _load() async {
-    final router = RouterScope.of(context);
-    if (_loading || !router.connected || router.busy) return;
+    final router = _router!;
+    if (_loading || !router.signedIn || !router.visible || router.busy) return;
     _loading = true;
+    final tables = !context.isMobileView;
     try {
-      final (connections, proxies) = await (
-        router.backend.readConnections(),
-        router.backend.readProxies(),
+      final (snapshot, connections, proxies) = await (
+        router.readDashboard(),
+        tables && router.connected
+            ? router.backend.readConnections()
+            : Future.value(const IpingConnectionPage()),
+        tables && router.connected
+            ? router.backend.readProxies()
+            : Future.value(const IpingProxyPage()),
       ).wait;
       if (!mounted) return;
       updateWhenRouteSettled(() {
         if (!mounted) return;
-        setState(() {
-          _connections = connections.items;
-          _groups = proxies.groups;
-        });
+        final previous = _snapshot;
+        if (tables ||
+            previous == null ||
+            previous.localIp != snapshot.localIp ||
+            previous.started != snapshot.started ||
+            previous.groups != snapshot.groups ||
+            previous.proxies != snapshot.proxies ||
+            previous.rules != snapshot.rules ||
+            !mapEquals(previous.settings.values, snapshot.settings.values)) {
+          setState(() {
+            _snapshot = snapshot;
+            _connections = connections.items;
+            _groups = proxies.groups;
+          });
+        }
       });
     } catch (_) {
-      if (mounted) {
+      if (mounted && (_connections.isNotEmpty || _groups.isNotEmpty)) {
         setState(() {
           _connections = [];
           _groups = [];
@@ -79,7 +126,7 @@ class _RouterDashboardState extends State<RouterDashboard>
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final router = RouterScope.of(context);
+    final router = RouterScope.of(context, aspect: RouterAspect.status);
     return CommonScaffold(
       backgroundColor: DashboardColors.of(context).page,
       title: l.dashboard,
@@ -110,34 +157,115 @@ class _RouterDashboardState extends State<RouterDashboard>
             final gap = density.isDesktop
                 ? (MediaQuery.sizeOf(context).width <= 840 ? 12.0 : 16.0)
                 : 8.0;
-            final status = _ConnectionCard(router: router);
+            final status = _ConnectionCard(router: router, snapshot: _snapshot);
             final upload = _SpeedCard(router: router, upload: true);
             final download = _SpeedCard(router: router, upload: false);
             final mode = _ModeCard(router: router);
-            final subscription = _SubscriptionCard(
-              router: router,
-              compact: false,
-            );
-            final memory = _MetricCard(
-              glyph: AppGlyphs.memory,
-              title: l.memoryInfo,
-              value: '',
-              content: DashboardMemorySummary(
-                coreBytes: router.telemetry.memory,
-                density: density,
+            final subscription = DashboardProfileCard(
+              name: 'iPing',
+              source: l.remote,
+              updatedAt: router.status.updated,
+              summary: DashboardConfigStats(
+                groups: _snapshot?.groups,
+                proxies: _snapshot?.proxies,
+                rules: _snapshot?.rules,
+              ),
+              sync: DashboardIconButton(
+                glyph: AppGlyphs.sync,
+                tooltip: l.update,
+                onPressed: router.busy ? null : router.synchronize,
+              ),
+              onDetails: () => showSheet<void>(
+                context: context,
+                builder: (_) => const RouterSubscription(),
               ),
             );
+            final intranet = DashboardIntranetCard(
+              localIp: _snapshot?.localIp,
+              allowLan: _snapshot?.settings['allow-lan'] == true,
+              port: _snapshot?.settings['mixed-port'] as int? ?? 7890,
+              onCopy: (address) async {
+                await Clipboard.setData(ClipboardData(text: address));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(l.copySuccess)));
+                }
+              },
+              onChanged: router.busy || _snapshot == null
+                  ? null
+                  : (value) => _saveSettings({'allow-lan': value}),
+            );
+            const services = _ServicesCard();
+            final proxies = DashboardProxyGroupsFrame(
+              count: router.connected ? _groups.length : 0,
+              empty: Center(
+                child: Text(l.noData, style: DashboardText.label(context)),
+              ),
+              onOpen: () => showSheet<void>(
+                context: context,
+                builder: (_) => const RouterProxies(),
+              ),
+              itemBuilder: (context, index) {
+                final item = _groups[index];
+                final iconSize = density.isCompact ? 34.0 : 40.0;
+                return DashboardProxyGroupTile(
+                  name: item.name,
+                  icon: DashboardGroupIcon(
+                    name: item.name,
+                    src: item.icon,
+                    size: iconSize,
+                    radius: DashboardCorner.block - 10,
+                  ),
+                  selected: EmojiText(
+                    item.selected.isEmpty ? '—' : item.selected,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: DashboardText.rowTitle(context),
+                  ),
+                  onTap: () => showSheet<void>(
+                    context: context,
+                    builder: (_) => const RouterProxies(),
+                  ),
+                );
+              },
+            );
+            final memory = Builder(
+              builder: (context) {
+                final router = RouterScope.of(
+                  context,
+                  aspect: RouterAspect.telemetry,
+                );
+                return _MetricCard(
+                  glyph: AppGlyphs.memory,
+                  title: l.memoryInfo,
+                  value: '',
+                  content: DashboardMemorySummary(
+                    coreBytes: router.telemetry.memory,
+                    density: density,
+                  ),
+                );
+              },
+            );
             final summaries = [
-              _MetricCard(
-                glyph: AppGlyphs.connections,
-                title: l.connections,
-                value: router.connected
-                    ? router.telemetry.connections.toString()
-                    : '—',
-                onTap: () => showSheet<void>(
-                  context: context,
-                  builder: (_) => const RouterConnections(),
-                ),
+              Builder(
+                builder: (context) {
+                  final router = RouterScope.of(
+                    context,
+                    aspect: RouterAspect.telemetry,
+                  );
+                  return _MetricCard(
+                    glyph: AppGlyphs.connections,
+                    title: l.connections,
+                    value: router.connected
+                        ? router.telemetry.connections.toString()
+                        : '—',
+                    onTap: () => showSheet<void>(
+                      context: context,
+                      builder: (_) => const RouterConnections(),
+                    ),
+                  );
+                },
               ),
               _MetricCard(
                 glyph: AppGlyphs.proxies,
@@ -153,7 +281,7 @@ class _RouterDashboardState extends State<RouterDashboard>
               density: density,
               scale: scale,
               child: density.isDesktop
-                  ? DashboardDesktopLayout(
+                  ? DashboardPanelLayout(
                       columns: dashboardColumnsOf(constraints.maxWidth / scale),
                       gap: gap,
                       outbound: status,
@@ -185,14 +313,15 @@ class _RouterDashboardState extends State<RouterDashboard>
                           ),
                         ),
                       ],
-                      middle: [
-                        (1, _AccountCard(router: router)),
-                        (1, subscription),
-                        (1, _ServiceCard(router: router)),
-                        (1, memory),
-                      ],
+                      intranet: intranet,
+                      profile: subscription,
+                      services: services,
+                      memory: memory,
                       summaries: summaries,
-                      tablesMinHeight: (density.isCompact ? 248 : 276) * scale,
+                      tablesMinHeight: connectionsTableMinHeight(
+                        density,
+                        scale,
+                      ),
                       tables: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: gap,
@@ -203,35 +332,34 @@ class _RouterDashboardState extends State<RouterDashboard>
                               connectionItems: router.connected
                                   ? _connections
                                   : [],
+                              count: router.connected
+                                  ? router.telemetry.connections
+                                  : 0,
                             ),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: _FeedCard.proxies(
-                              groups: router.connected ? _groups : [],
-                            ),
-                          ),
+                          Expanded(flex: 2, child: proxies),
                         ],
                       ),
                     )
-                  : SingleChildScrollView(
+                  : ListView.separated(
                       padding: EdgeInsets.fromLTRB(
                         dashboardMobileSideOf(constraints.maxWidth),
                         MediaQuery.paddingOf(context).top,
                         dashboardMobileSideOf(constraints.maxWidth),
                         BottomInsetScope.of(context) + 24,
                       ),
-                      child: Column(
-                        spacing: gap,
-                        children: [
-                          SizedBox(height: 220 * scale, child: status),
-                          DashboardNetworkSpeedCard(traffic: router.traffic),
-                          SizedBox(height: 64 * scale, child: mode),
-                          SizedBox(height: 152 * scale, child: subscription),
-                          SizedBox(height: 152 * scale, child: summaries.first),
-                          SizedBox(height: 152 * scale, child: memory),
-                        ],
-                      ),
+                      itemCount: 8,
+                      separatorBuilder: (_, _) => SizedBox(height: gap),
+                      itemBuilder: (context, index) => [
+                        SizedBox(height: 220 * scale, child: status),
+                        const _NetworkSpeedCard(),
+                        SizedBox(height: 64 * scale, child: mode),
+                        subscription,
+                        intranet,
+                        services,
+                        SizedBox(height: 152 * scale, child: summaries.first),
+                        SizedBox(height: 152 * scale, child: memory),
+                      ][index],
                     ),
             );
           },
@@ -240,9 +368,23 @@ class _RouterDashboardState extends State<RouterDashboard>
     );
   }
 
+  Future<void> _saveSettings(Map<String, Object?> changes) async {
+    final router = RouterScope.read(context);
+    try {
+      await router.saveSettings(changes);
+      if (mounted) await _load();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(routerError(context, error.toString()))),
+        );
+      }
+    }
+  }
+
   Future<void> _restart(BuildContext context) async {
     final l = AppLocalizations.of(context);
-    final router = RouterScope.of(context);
+    final router = RouterScope.read(context);
     final result = await showFloatingDialog<bool>(
       context: context,
       child: CommonDialog(
@@ -266,71 +408,59 @@ class _RouterDashboardState extends State<RouterDashboard>
   @override
   void dispose() {
     _timer?.cancel();
+    _router?.probes.outbound.unwatch('');
+    for (final target in _watchedServices) {
+      _router?.probes.services.unwatch(target);
+    }
     super.dispose();
   }
 }
 
 class _ConnectionCard extends StatelessWidget {
-  const _ConnectionCard({required this.router});
+  const _ConnectionCard({required this.router, required this.snapshot});
   final RouterController router;
-
+  final IpingDashboardSnapshot? snapshot;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final metrics = OutboundCardMetrics.of(DashboardDensityScope.of(context));
-    return OutboundCardFrame(
+    final started = snapshot?.started;
+    RouterScope.of(context, aspect: RouterAspect.probes);
+    final entry = router.probes.outbound.state.entryOf('');
+    final ip = entry.value;
+    final quality = ip == null ? null : router.probes.qualityOf(ip.ip);
+    final qualityLoading = ip != null && router.probes.isQualityLoading(ip.ip);
+    final routeFailed = router.probes.error != null;
+    return DashboardOutboundCard(
       running: router.connected,
-      label: l.status,
-      header: DashboardCardHeader(
-        glyph: AppGlyphs.status,
-        title: l.status,
-        leading: [
-          DashboardChip(
-            label: router.connected ? l.running : l.notRunning,
-            tone: router.connected
-                ? DashboardChipTone.ok
-                : DashboardChipTone.idle,
-            dot: router.connected,
-          ),
-        ],
-      ),
-      body: Row(
-        spacing: 12,
-        children: [
-          SizedBox.square(
-            dimension: metrics.badgeSize,
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                color: DashboardColors.of(context).tone,
-                shape: AppShape.md,
-              ),
-              child: const GlyphIcon(AppGlyphs.settings),
+      ip: ip?.ip,
+      countryCode: ip?.countryCode,
+      hideIp: RouterAppState.of(context).preferences.hideIp,
+      loading:
+          !routeFailed &&
+          (ip == null ? entry.phase != ProbePhase.failed : qualityLoading),
+      checking: !routeFailed && (entry.isLoading || qualityLoading),
+      failed: routeFailed || entry.phase == ProbePhase.failed,
+      typeLabel: quality?.type.label(context),
+      qualityLabel: quality == null
+          ? null
+          : '${l.ipQualityShort} ${quality.level.label(context)}',
+      qualityTone: switch (quality?.level) {
+        IpQualityLevel.good => DashboardChipTone.ok,
+        IpQualityLevel.risky => DashboardChipTone.warn,
+        _ => DashboardChipTone.idle,
+      },
+      organization:
+          quality?.organization ??
+          (quality?.asn == null ? null : 'AS${quality!.asn}'),
+      onRefresh: router.probes.refreshOutbound,
+      onDetails: ip == null
+          ? null
+          : () => showSheet<void>(
+              context: context,
+              builder: (_) => RouterIpQuality(ip: ip.ip),
             ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'OpenWrt',
-                  style: DashboardText.figure(context, metrics.ip),
-                ),
-                const SizedBox(height: 4),
-                Text('iPing', style: DashboardText.label(context)),
-              ],
-            ),
-          ),
-        ],
-      ),
-      footer: Row(
-        spacing: metrics.cellGap,
-        children: [
-          Expanded(
-            child: _Cell(label: l.ipingAccount, value: router.email),
-          ),
-          _Cell(label: l.proxies, value: '${router.nodes}'),
-        ],
-      ),
+      runTime: _RunTime(started: started),
       toggle: Stack(
         alignment: Alignment.center,
         children: [
@@ -351,32 +481,16 @@ class _ConnectionCard extends StatelessWidget {
         ],
       ),
       action: DashboardIconButton(
-        glyph: AppGlyphs.account,
-        tooltip: l.ipingAccount,
-        onPressed: () => router.client.open('${router.site}/home'),
+        glyph: AppGlyphs.settings,
+        tooltip: l.network,
+        onPressed: () => showSheet<void>(
+          context: context,
+          builder: (_) =>
+              const RouterCoreSettings(kind: RouterSettingsKind.network),
+        ),
       ),
     );
   }
-}
-
-class _Cell extends StatelessWidget {
-  const _Cell({required this.label, required this.value});
-  final String label;
-  final String value;
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: DashboardText.label(context)),
-      const SizedBox(height: 3),
-      Text(
-        value,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTextStyle.subheadline.of(context, emphasized: true),
-      ),
-    ],
-  );
 }
 
 class _SpeedCard extends StatelessWidget {
@@ -384,11 +498,14 @@ class _SpeedCard extends StatelessWidget {
   final RouterController router;
   final bool upload;
   @override
-  Widget build(BuildContext context) => DashboardTrafficSpeedCard(
-    direction: upload ? TrafficDirection.upload : TrafficDirection.download,
-    traffic: router.traffic,
-    connected: router.connected,
-  );
+  Widget build(BuildContext context) {
+    RouterScope.of(context, aspect: RouterAspect.telemetry);
+    return DashboardTrafficSpeedCard(
+      direction: upload ? TrafficDirection.upload : TrafficDirection.download,
+      traffic: router.traffic,
+      connected: router.connected,
+    );
+  }
 }
 
 class _ModeCard extends StatelessWidget {
@@ -400,52 +517,6 @@ class _ModeCard extends StatelessWidget {
     mode: router.telemetry.mode,
     onChanged: router.busy ? null : router.setMode,
   );
-}
-
-class _SubscriptionCard extends StatelessWidget {
-  const _SubscriptionCard({required this.router, required this.compact});
-  final RouterController router;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return DashboardCard(
-      onTap: () => showSheet<void>(
-        context: context,
-        builder: (_) => const RouterSubscription(),
-      ),
-      child: compact
-          ? DashboardCardHeader(
-              glyph: AppGlyphs.profiles,
-              title: l.subscriptionInfo,
-              trailing: [
-                Text(
-                  l.ipingNodeCount(router.nodes),
-                  style: DashboardText.label(context),
-                ),
-              ],
-              chevron: true,
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DashboardCardHeader(
-                  glyph: AppGlyphs.profiles,
-                  title: l.subscriptionInfo,
-                  chevron: true,
-                ),
-                const SizedBox(height: 16),
-                Text('iPing', style: AppTextStyle.headline.of(context)),
-                const Spacer(),
-                Text(
-                  l.ipingNodeCount(router.nodes),
-                  style: DashboardText.label(context),
-                ),
-              ],
-            ),
-    );
-  }
 }
 
 class _MetricCard extends StatelessWidget {
@@ -511,186 +582,144 @@ class _ControlCard extends StatelessWidget {
   );
 }
 
-class _AccountCard extends StatelessWidget {
-  const _AccountCard({required this.router});
-  final RouterController router;
+class _FeedCard extends StatelessWidget {
+  const _FeedCard.connections({
+    required this.connectionItems,
+    required this.count,
+  });
+  final List<TrackerInfo> connectionItems;
+  final int count;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return DashboardCard(
-      onTap: () => router.client.open('${router.site}/home'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DashboardCardHeader(
-            glyph: AppGlyphs.account,
-            title: l.ipingAccount,
-            chevron: true,
-          ),
-          const Spacer(),
-          Text(
-            'iPing',
-            style: AppTextStyle.title2.of(context, emphasized: true),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            router.email,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: DashboardText.label(context),
-          ),
-        ],
-      ),
+    final density = DashboardDensityScope.of(context);
+    final scale = DashboardDensityScope.scaleOf(context);
+    final height = dashboardTableTabHeight(density) * scale;
+    void open() => showSheet<void>(
+      context: context,
+      builder: (_) => const RouterConnections(),
     );
-  }
-}
-
-class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({required this.router});
-  final RouterController router;
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return DashboardCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DashboardCardHeader(glyph: AppGlyphs.status, title: l.serviceStatus),
-          const Spacer(),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
+    return DashboardRecordCard(
+      header: DashboardCappedRow(
+        start: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: DashboardConnectedGroup(
             children: [
-              Text(
-                'iPing',
-                style: AppTextStyle.subheadline.of(context, emphasized: true),
-              ),
-              DashboardChip(
-                label: router.connected ? l.running : l.notRunning,
-                tone: router.connected
-                    ? DashboardChipTone.ok
-                    : DashboardChipTone.idle,
-                dot: router.connected,
+              DashboardConnectedButton(
+                selected: true,
+                first: true,
+                last: true,
+                outer: height / 2,
+                inner: 8,
+                background: DashboardColors.of(context).tone,
+                semanticLabel: l.liveConnections,
+                onTap: open,
+                builder: (foreground) => DashboardFeedSegment(
+                  label: l.liveConnections,
+                  count: DashboardFeedCount(count),
+                  height: height,
+                  foreground: foreground,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            l.ipingNodeCount(router.nodes),
-            style: DashboardText.label(context),
-          ),
-        ],
+        ),
+        end: DashboardIconButton(
+          glyph: AppGlyphs.chevronForward,
+          tooltip: l.liveConnections,
+          onPressed: open,
+        ),
+      ),
+      child: DashboardRecordTable<TrackerInfo>(
+        tableId: 'dashboard.connections',
+        items: connectionItems,
+        rowHeight: dashboardTableRowHeight(density) * scale,
+        columnsOf: (width) => dashboardConnectionColumns(context, width),
       ),
     );
   }
 }
 
-class _FeedCard extends StatelessWidget {
-  const _FeedCard.connections({required this.connectionItems})
-    : connections = true,
-      groups = const [];
-  const _FeedCard.proxies({required this.groups})
-    : connections = false,
-      connectionItems = const [];
-  final bool connections;
-  final List<TrackerInfo> connectionItems;
-  final List<IpingProxyGroup> groups;
+class _ServicesCard extends StatelessWidget {
+  const _ServicesCard();
+
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final padding = dashboardCardPadding(DashboardDensityScope.of(context));
-    return DashboardCard(
-      padding: EdgeInsets.zero,
-      onTap: () => showSheet<void>(
+    final router = RouterScope.of(context, aspect: RouterAspect.probes);
+    final serviceState = router.probes.services.state;
+    final shown = routerServiceTargets(
+      RouterAppState.of(context).preferences,
+    ).take(4).toList();
+    return DashboardServiceCard(
+      services: [
+        for (final target in shown)
+          DashboardServiceView(
+            target,
+            serviceState.valueOf(target),
+            loading:
+                router.probes.error == null && serviceState.isLoading(target),
+            failed:
+                router.probes.error != null ||
+                serviceState.entryOf(target).phase == ProbePhase.failed,
+          ),
+      ],
+      loading: router.probes.error == null && shown.any(serviceState.isLoading),
+      onRefresh: () => router.probes.services.refresh(shown),
+      onDetails: () => showSheet<void>(
         context: context,
-        builder: (_) =>
-            connections ? const RouterConnections() : const RouterProxies(),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: padding,
-            child: DashboardCardHeader(
-              glyph: connections ? AppGlyphs.connections : AppGlyphs.proxies,
-              title: connections ? l.connections : l.proxies,
-              chevron: true,
-            ),
-          ),
-          Expanded(
-            child: connections
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DashboardRecordTable<TrackerInfo>(
-                      tableId: 'dashboard.connections',
-                      items: connectionItems,
-                      rowHeight:
-                          (DashboardDensityScope.of(context).isCompact
-                              ? 32
-                              : 34) *
-                          DashboardDensityScope.scaleOf(context),
-                      columnsOf: (width) =>
-                          dashboardConnectionColumns(context, width),
-                    ),
-                  )
-                : groups.isEmpty
-                ? Center(
-                    child: Text(l.noData, style: DashboardText.label(context)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    itemCount: groups.length,
-                    itemBuilder: (context, index) {
-                      final item = groups[index];
-                      final name = item.name;
-                      final detail = item.selected.isEmpty
-                          ? '—'
-                          : item.selected;
-                      final trailing = item.type;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          spacing: 12,
-                          children: [
-                            GlyphIcon(
-                              connections
-                                  ? AppGlyphs.connections
-                                  : AppGlyphs.proxies,
-                              size: 18,
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  EmojiText(
-                                    name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyle.subheadline.of(context),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  EmojiText(
-                                    detail,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: DashboardText.label(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(trailing, style: DashboardText.label(context)),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+        builder: (_) => const RouterServiceStatus(),
       ),
     );
+  }
+}
+
+class _NetworkSpeedCard extends StatelessWidget {
+  const _NetworkSpeedCard();
+
+  @override
+  Widget build(BuildContext context) => DashboardNetworkSpeedCard(
+    traffic: RouterScope.of(context, aspect: RouterAspect.telemetry).traffic,
+  );
+}
+
+class _RunTime extends StatefulWidget {
+  const _RunTime({required this.started});
+  final DateTime? started;
+
+  @override
+  State<_RunTime> createState() => _RunTimeState();
+}
+
+class _RunTimeState extends State<_RunTime> {
+  late final Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (RouterScope.read(context).visible &&
+          PageActivityScope.isActiveOf(context)) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final started = widget.started;
+    return Text(
+      started == null
+          ? '—'
+          : getTimeText(DateTime.now().difference(started).inMilliseconds),
+      maxLines: 1,
+      style: AppTextStyle.subheadline.of(context, emphasized: true).toTabular,
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 }

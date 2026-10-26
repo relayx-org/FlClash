@@ -231,6 +231,12 @@ val bindCore =
             fileTree(goModule) {
                 exclude("**/*_test.go", "**/testdata/**", "cmd/**", "Clash.Meta/.github/**")
             },
+            fileTree(rootProject.layout.projectDirectory.dir("../openwrt/iping/src/probe")) {
+                include("**/*.go")
+                exclude("**/*_test.go")
+            },
+            rootProject.layout.projectDirectory.file("../openwrt/iping/src/go.mod"),
+            rootProject.layout.projectDirectory.file("../openwrt/iping/src/go.sum"),
         )
         moduleDirectory.set(goModule)
         goExecutable.set(goExecutablePath)

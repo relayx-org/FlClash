@@ -6,11 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
   <title>iPing</title>
-  <style>html,body{margin:0;height:100%;background:#f9f9f9}#loading{height:100%;display:grid;place-items:center;font:16px system-ui;color:#146b65}</style>
+  <style>
+    html,body{margin:0;height:100%;background:#f9f9f9}
+    #loading{position:fixed;inset:0;z-index:1;display:grid;place-items:center;background:inherit;color:#146b65}
+    #loading svg{opacity:0;animation:reveal 0s .3s forwards,spin .9s linear infinite}
+    @keyframes reveal{to{opacity:1}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){#loading svg{animation:reveal 0s .3s forwards}}
+  </style>
 </head>
 <body>
-  <div id="loading" role="status">iPing</div>
+  <div id="loading" role="progressbar" aria-label="iPing" aria-busy="true">
+    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="42 57"/>
+    </svg>
+  </div>
   <script src="bridge.js?v=__IPING_UI_REVISION__"></script>
+  <script src="diagnostics.js?v=__IPING_UI_REVISION__"></script>
+  <script src="wasm_support.js?v=__IPING_UI_REVISION__"></script>
   <script src="flutter_bootstrap.js?v=__IPING_UI_REVISION__" async></script>
 </body>
 </html>

@@ -12,7 +12,7 @@ class IpingAccountButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(ipingBackendStateProvider);
-    final backend = ref.read(ipingBackendProvider);
+    final backend = ref.read(ipingClientControllerProvider);
     return IpingAccountMenu(
       email: session.signedIn ? session.email : null,
       site: ref.watch(ipingSiteConfigProvider),
@@ -37,7 +37,7 @@ class IpingAccountSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(ipingBackendStateProvider);
-    final backend = ref.read(ipingBackendProvider);
+    final backend = ref.read(ipingClientControllerProvider);
     if (!session.signedIn) return const SizedBox.shrink();
     return IpingAccountSummary(
       email: session.email,

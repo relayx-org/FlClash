@@ -44,7 +44,7 @@ class RouterCustomResources extends StatelessWidget {
   const RouterCustomResources({super.key});
   @override
   Widget build(BuildContext context) {
-    final backend = RouterScope.of(context).backend;
+    final backend = RouterScope.read(context).backend;
     final kinds = backend.resourceKinds;
     return CustomResourcesSettingsPage(
       application: IpingProfileResourcesPage(backend: backend),
@@ -127,7 +127,7 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
 
   Future<void> _load() async {
     try {
-      final result = await RouterScope.of(context).backend.readSettings();
+      final result = await RouterScope.read(context).backend.readSettings();
       if (mounted) {
         setState(() {
           _values = result;
@@ -146,7 +146,7 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
       _error = null;
     });
     try {
-      await RouterScope.of(context).saveSettings(changes);
+      await RouterScope.read(context).saveSettings(changes);
       if (mounted) await _load();
     } catch (error) {
       if (mounted) setState(() => _error = _errorMessage(error));
@@ -439,12 +439,12 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
     if (widget.kind == RouterSettingsKind.network ||
         widget.kind == RouterSettingsKind.dns) {
       return IpingCoreSettingsPage(
-        backend: RouterScope.of(context).backend,
+        backend: RouterScope.read(context).backend,
         kind: widget.kind == RouterSettingsKind.dns
             ? IpingCoreSettingsKind.dns
             : IpingCoreSettingsKind.network,
         footer: l.routerSettingsHint,
-        save: RouterScope.of(context).saveSettings,
+        save: RouterScope.read(context).saveSettings,
       );
     }
     if (_values == null) {
@@ -483,12 +483,12 @@ class _RouterRules extends StatelessWidget {
   const _RouterRules();
   @override
   Widget build(BuildContext context) =>
-      IpingAddedRulesPage(store: RouterScope.of(context).backend.addedRules);
+      IpingAddedRulesPage(store: RouterScope.read(context).backend.addedRules);
 }
 
 class _RouterScripts extends StatelessWidget {
   const _RouterScripts();
   @override
   Widget build(BuildContext context) =>
-      IpingScriptsPage(store: RouterScope.of(context).backend.scripts);
+      IpingScriptsPage(store: RouterScope.read(context).backend.scripts);
 }

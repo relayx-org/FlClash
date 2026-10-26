@@ -11,16 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'edit.dart';
-import 'desktop_layout.dart';
+import 'panel_layout.dart';
 import 'layout.dart';
 import 'style.dart';
 import 'widget_registry.dart';
 import 'widgets/core_status_button.dart';
 import 'widgets/widgets.dart';
-
-// Narrower columns leave the service grid's cells too tight for a status, so
-// the grid takes the memory card's column instead.
-const _memoryColumnMin = 290.0;
 
 class DashboardView extends ConsumerStatefulWidget {
   const DashboardView({super.key, this.platform});
@@ -125,52 +121,36 @@ class _DesktopDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final density = DashboardDensityScope.of(context);
     final scale = DashboardDensityScope.scaleOf(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final column = math.min(
-          (constraints.maxWidth - 40 - gap * (columns - 1)) / columns,
-          440 * scale,
-        );
-        return DashboardDesktopLayout(
-          columns: columns,
-          gap: gap,
-          outbound: const CurrentOutboundCard(),
-          upload: const SpeedCard(direction: TrafficDirection.upload),
-          download: const SpeedCard(direction: TrafficDirection.download),
-          mode: const OutboundModeBar(),
-          controls: DashboardWidget.networkTakeover.platforms.contains(platform)
-              ? const [
-                  (1, NetworkTakeoverTile(TakeoverSwitch.systemProxy)),
-                  (1, NetworkTakeoverTile(TakeoverSwitch.tun)),
-                ]
-              : const [(2, VpnTile())],
-          middle: [
-            (1, const IntranetIpCard()),
-            (1, const ProfilesCard()),
-            if (columns == 2 || column >= _memoryColumnMin * scale) ...[
-              (1, const ServiceStatusCard()),
-              (1, const MemoryInfo()),
-            ] else
-              (2, const ServiceStatusCard()),
-          ],
-          summaries: const [ConnectionStatsCard(), ProxyGroupsSummaryCard()],
-          tablesMinHeight: connectionsTableMinHeight(density, scale),
-          tables: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: gap,
-            children: const [
-              Expanded(
-                flex: 3,
-                child: RepaintBoundary(child: ConnectionsTableCard()),
-              ),
-              Expanded(
-                flex: 2,
-                child: RepaintBoundary(child: ProxyGroupsCard()),
-              ),
-            ],
+    return DashboardPanelLayout(
+      columns: columns,
+      gap: gap,
+      outbound: const CurrentOutboundCard(),
+      upload: const SpeedCard(direction: TrafficDirection.upload),
+      download: const SpeedCard(direction: TrafficDirection.download),
+      mode: const OutboundModeBar(),
+      controls: DashboardWidget.networkTakeover.platforms.contains(platform)
+          ? const [
+              (1, NetworkTakeoverTile(TakeoverSwitch.systemProxy)),
+              (1, NetworkTakeoverTile(TakeoverSwitch.tun)),
+            ]
+          : const [(2, VpnTile())],
+      intranet: const IntranetIpCard(),
+      profile: const ProfilesCard(),
+      services: const ServiceStatusCard(),
+      memory: const MemoryInfo(),
+      summaries: const [ConnectionStatsCard(), ProxyGroupsSummaryCard()],
+      tablesMinHeight: connectionsTableMinHeight(density, scale),
+      tables: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: gap,
+        children: const [
+          Expanded(
+            flex: 3,
+            child: RepaintBoundary(child: ConnectionsTableCard()),
           ),
-        );
-      },
+          Expanded(flex: 2, child: RepaintBoundary(child: ProxyGroupsCard())),
+        ],
+      ),
     );
   }
 }

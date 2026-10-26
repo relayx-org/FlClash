@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -16,6 +17,11 @@ import (
 
 	"go.yaml.in/yaml/v3"
 )
+
+type controllerStatusError int
+
+func (e controllerStatusError) Error() string { return "controller_unavailable" }
+func (e controllerStatusError) Unwrap() error { return failure("controller_unavailable") }
 
 func (a *app) controller(ctx context.Context, method, path string, body []byte) ([]byte, error) {
 	if _, err := a.account(); err != nil {
@@ -64,7 +70,7 @@ func (a *app) controllerRequest(ctx context.Context, method, path string, body [
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, failure("controller_unavailable")
+		return nil, controllerStatusError(resp.StatusCode)
 	}
 	const limit = 16 * 1024 * 1024
 	data, err = io.ReadAll(io.LimitReader(resp.Body, limit+1))
@@ -339,6 +345,15 @@ func (a *app) delayProxy(ctx context.Context, name string, testURL ...string) (a
 	query := url.Values{"url": {target}, "timeout": {"5000"}}
 	data, err := a.controller(ctx, http.MethodGet, "/proxies/"+url.PathEscape(name)+"/delay?"+query.Encode(), nil)
 	if err != nil {
+		var status controllerStatusError
+		if errors.As(err, &status) {
+			switch int(status) {
+			case http.StatusGatewayTimeout:
+				return map[string]int{"delay": -1}, nil
+			case http.StatusServiceUnavailable:
+				return map[string]int{"delay": -2}, nil
+			}
+		}
 		return nil, err
 	}
 	var result struct {

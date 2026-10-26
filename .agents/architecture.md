@@ -243,8 +243,17 @@ adapter in `openwrt/ui/lib/backend.dart` translates same-origin Agent API calls 
 Shared presentation code uses backend capabilities for host-specific features.
 Proxy pages carry typed group summaries and nodes; connection queries have a bounded
 page size or explicitly request a full snapshot. Native proxy queries use the existing
-group and delay snapshots and run their filtering in an isolate. Native selection and
-delay scheduling remain with `ProxiesAction`. `lib/features/logs/controller.dart`
+group and delay snapshots and run their filtering in an isolate. Native selection
+remains with `ProxiesAction`. `lib/iping/controller.dart` shares login,
+logout, sync, connection intents, operation errors and stale-result guards between
+native UI entry points and the router. Native session/run-state events feed it
+through `receiveState`; native providers remain authoritative and do not gain a
+second polling loop. Router state uses the same controller with bounded polling.
+Account and dashboard reads return shared typed snapshots through the backend.
+`lib/iping/delay_scheduler.dart` supplies both platforms' bounded queue and
+cancellation. Native wrappers retain selected-node resolution and throttled provider
+updates. Missing Core answers abandon a batch without replacing cached delays;
+completed negative delay results remain real measurements. `lib/features/logs/controller.dart`
 owns shared search, keyword, and pause behavior over `lib/models/log.dart`; router
 snapshots retain their source text separately for export. Node search matches every
 term across name/type, and timeout filtering keeps the nodes when all matches have
@@ -256,6 +265,35 @@ mode, including the built-in GLOBAL group.
 does not start a second polling loop. Router telemetry is decoded in `RouterBackend`,
 whose bounded sampler resets on disconnects and counter resets. Both dashboards use
 the traffic cards in `traffic_frame.dart` and the pure `Mode` enum in `enum/mode.dart`.
+`DashboardPanelLayout` owns the desktop section order and sizing. Outbound, LAN,
+profile, service, proxy-group and record cards use provider-free presentation widgets
+in `lib/views/dashboard/widgets/`; native wrappers retain their probes and providers.
+The router binds Agent snapshots and callbacks to those same widgets. Shared widgets
+take display values rather than importing native context, database or Core libraries.
+The Agent's `dashboard` snapshot reports its LAN address, child start time, selected
+network settings and cached applied-profile counts.
+
+`openwrt/iping/src/probe/` is the portable Go probe package used by both native
+Core handlers and the independent Agent. It owns service rules, region parsing,
+service claims and concurrency, the outbound-source race and bounded body scanning.
+`core/probe_adapter.go` supplies the existing in-Core dialer and route stamps; its
+local module replacement is included in desktop, Android and iOS build inputs.
+The Agent supplies an HTTP/SOCKS client for its owned Core's applied listener and
+credentials. A running Core with no usable proxy listener fails the probe instead
+of checking the direct route. A stopped Core can explicitly check DIRECT.
+Agent route snapshots advance on Core replacement, mode or group selections.
+
+`lib/common/routed_probe.dart` and `probe_route.dart` own route freshness, watched
+targets, retry and late-result rejection. Native providers wrap that controller and
+retain `RouteTracker` as their event owner. `IpingProbes` binds the router backend
+and its periodic route reads to the same controller. Both adapters implement probe
+methods on `IpingBackend`; native UI does not start an Agent or a second poller.
+IP sources and parsers live in `service_probe_data.dart`; `IpInfo` is a portable
+model. The IP-quality source waves and classification rules share
+`lookupIpQualityUsing`: native supplies Dio and router requests use the Agent.
+Probe failures remain detection results rather than Core lifecycle state.
+Service rows/management and IP-quality details are provider-free shared views;
+router preferences persist hiding the IP and service ordering/visibility.
 Mode controls call `IpingBackend.setMode`; native requests retain `SetupAction`'s
 config and GLOBAL-group behavior. The Agent saves modes while stopped and restores
 the prior settings if a live controller update fails. `ipingProxySelection` shares
@@ -327,6 +365,47 @@ on failure. Network leases and inherited process locks prevent competing owners;
 cleanup verifies interface and nftables identities. Local Web access needs no extra key;
 the API retains LAN and same-origin checks, and HttpOnly browser cookies bind account
 login attempts to their initiating browser. There is no LuCI/rpcd bridge.
+The Agent can also own a TLS listener (`web_tls_listen`); new installations use
+19092, while old UCI files without it keep HTTP alone. Both listeners share one Web
+handler and the same shutdown owner. Its local certificate and private key are stored
+atomically in private `web-tls.pem`, retained across restarts, and renewed at startup
+near expiry or after LAN address changes. HTTPS adds COOP `same-origin` and COEP
+`require-corp`. The login bridge uses BroadcastChannel across isolated browsing groups
+and does not mistake the severed popup reference for a user cancellation.
+`openwrt/build_ui.sh` precompresses static resources and writes their ETags before
+embedding them. The Agent serves gzip bytes directly, decodes only for identity/range
+requests, and caches UI/renderer version paths immutably while revalidating the entry
+page. `RouterScope` projects session, status, telemetry, probes and proxy changes by
+aspect; display revisions never own lifecycle intent. Mobile dashboard cards build
+lazily with repaint boundaries and poll only their visible data, leaving full
+connection/proxy tables to the desktop layout.
+Web builds include Dart Wasm/Skwasm and JavaScript/CanvasKit. Chromium uses Wasm after
+GC, SIMD, JS string builtins and exception-handling probes pass. WebKit keeps the SDK's
+CanvasKit path; Apple mobile devices explicitly use onscreen surfaces to avoid full-frame
+bitmap transfers. Until the pinned engine includes Flutter #188337, its shadow-root
+stylesheet removes absolute positioning only from a lone base canvas. Compositions with
+platform views or multiple canvases retain overlay positioning. This avoids WebKit's
+semantics-scroll jank without disabling accessibility or observing every frame.
+The custom entrypoint passes the same configuration to the loader and engine initializer.
+Web body text uses bundled Roboto rather than unavailable system
+fonts; Twemoji is reserved for emoji spans and never used as a prose fallback.
+Adding `?diagnostics=1` enables a 60-second, bounded Web performance capture, including
+Flutter build/raster timings, browser frame intervals, canvas contexts and GPU state.
+It reports only to the same-origin `/api/web_diagnostics`; normal visits install no
+hooks. Graphics-call counters and presentation settings identify expensive GPU
+synchronization and effects. `&renderer=wasm` allows a feature-gated Skwasm comparison
+in diagnostic mode, including on WebKit, and records bitmap transfer costs. Normal
+WebKit visits continue to use CanvasKit. Captures retain the native pixel density and
+visual effects, and record secure-context, cross-origin-isolation and SharedArrayBuffer
+availability. Skwasm worker rendering needs a secure context plus COOP/COEP; plain HTTP
+on a LAN IP uses the single-threaded path. The Agent holds the last 24 samples in memory,
+drops them on restart, and applies
+the same private-client and same-origin POST checks to reads and writes. POST `{}` to
+that endpoint reads the samples; it never receives account data or page contents.
+Chinese fallback font subsets are bundled for the pinned engine and loaded on demand;
+the Web build validates their manifest and registers shared font names without package
+prefixes. Site API requests use the owned Core's proxy
+when available, so the Agent's TUN bypass cannot send fake DNS addresses directly.
 `openwrt/README.md` documents packaging and reserved network resources.
 
 `CoreController.start()`, `restart()`, `stop()`, and `close()` are the only shared lifecycle facade. `close()` is terminal;

@@ -267,6 +267,88 @@ func TestUnauthenticatedControllerCannotMasqueradeAsOwnedCore(t *testing.T) {
 	}
 }
 
+func TestDelayProxyKeepsNodeFailuresSeparateFromControllerFailures(t *testing.T) {
+	for _, tc := range []struct {
+		status int
+		delay  int
+	}{
+		{http.StatusOK, 42},
+		{http.StatusGatewayTimeout, -1},
+		{http.StatusServiceUnavailable, -2},
+		{http.StatusUnauthorized, 0},
+		{http.StatusNotFound, 0},
+	} {
+		t.Run(strconv.Itoa(tc.status), func(t *testing.T) {
+			a := testSetup(t, false).a
+			if err := a.core.setRunning(a.ctx, true); err != nil {
+				t.Fatal(err)
+			}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/proxies/Node A/delay" || r.URL.Query().Get("timeout") != "5000" || r.Header.Get("Authorization") != "Bearer private" {
+					t.Errorf("unexpected controller request: %s", r.URL)
+				}
+				w.WriteHeader(tc.status)
+				io.WriteString(w, `{"delay":42}`)
+			}))
+			defer server.Close()
+			config, _ := yaml.Marshal(map[string]any{"external-controller": strings.TrimPrefix(server.URL, "http://"), "secret": "private"})
+			if err := writePrivate(a.runProfile, config); err != nil {
+				t.Fatal(err)
+			}
+			result, err := a.delayProxy(a.ctx, "Node A")
+			if tc.delay == 0 {
+				if !errors.Is(err, failure("controller_unavailable")) {
+					t.Fatalf("controller failure = %v", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			raw, _ := json.Marshal(result)
+			var value struct {
+				Delay int `json:"delay"`
+			}
+			if json.Unmarshal(raw, &value) != nil || value.Delay != tc.delay {
+				t.Fatalf("delay response = %s, want %d", raw, tc.delay)
+			}
+			if !a.running(a.ctx) {
+				t.Fatal("delay test changed the Core lifecycle")
+			}
+		})
+	}
+}
+
+func TestDashboardUsesAppliedProfileAndKeepsSettingsPrivate(t *testing.T) {
+	a := testSetup(t, false).a
+	command := a.command
+	a.command = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		if name == "/sbin/uci" && len(args) == 3 && args[2] == "network.lan.ipaddr" {
+			return []byte("192.168.1.1/24\n"), nil
+		}
+		return command(ctx, name, args...)
+	}
+	if err := writePrivate(a.profile, []byte("proxy-groups: [{name: proxy}]\nproxies: [{name: one}, {name: two}]\nrules: [MATCH,DIRECT]\n")); err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []dashboardCounts{{1, 2, 2}, {0, 1, 1}} {
+		result, err := a.dashboard(a.ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		data := result.(map[string]any)
+		if data["local_ip"] != "192.168.1.1" || data["counts"] != expected {
+			t.Fatalf("dashboard data = %v", data)
+		}
+		if len(data["settings"].(map[string]any)) != 3 {
+			t.Fatal("dashboard exposed unrelated settings")
+		}
+		if err := writePrivate(a.profile, []byte("proxies: [{name: changed}]\nrules: ['MATCH,DIRECT']\n")); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestConflictingNetworkIsNeverCleanedWithoutALease(t *testing.T) {
 	f := testSetup(t, false)
 	a := f.a

@@ -70,9 +70,9 @@ void main() {
     });
   });
 
-  group('ServiceCheck.of', () {
+  group('serviceCheckOf', () {
     test('carries the region, node and check time across', () {
-      final check = ServiceCheck.of(
+      final check = serviceCheckOf(
         const ServiceCheckItem(
           name: 'netflix',
           status: 'originals-only',
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('drops the placeholders the Core sends for absent values', () {
-      final check = ServiceCheck.of(
+      final check = serviceCheckOf(
         const ServiceCheckItem(name: 'google', status: 'failed'),
       );
 

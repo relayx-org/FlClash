@@ -25,7 +25,7 @@ class RouterTools extends StatelessWidget {
   const RouterTools({super.key});
   @override
   Widget build(BuildContext context) {
-    final router = RouterScope.of(context);
+    final router = RouterScope.of(context, aspect: RouterAspect.status);
     final app = RouterAppState.of(context);
     return SettingsPage(
       account: context.isMobileView
@@ -166,7 +166,7 @@ class RouterSubscription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final router = RouterScope.of(context);
+    final router = RouterScope.of(context, aspect: RouterAspect.status);
     final updated = router.status.updated;
     return IpingSubscriptionPage(
       nodes: router.nodes,
@@ -223,7 +223,7 @@ class _RouterLogsState extends State<RouterLogs> with RouteMotionHoldMixin {
     if (_loading) return;
     _loading = true;
     try {
-      final data = await RouterScope.of(context).backend.readLogs();
+      final data = await RouterScope.read(context).backend.readLogs();
       if (!mounted) return;
       updateWhenRouteSettled(() {
         if (mounted) {
@@ -275,7 +275,7 @@ class _RouterLogsState extends State<RouterLogs> with RouteMotionHoldMixin {
           _list.resumeAutoScrollToEnd(_snapshot.logs);
           unawaited(_load());
         },
-        onExport: () => RouterScope.of(
+        onExport: () => RouterScope.read(
           context,
         ).client.exportText('iping.log', _snapshot.source ?? ''),
       );

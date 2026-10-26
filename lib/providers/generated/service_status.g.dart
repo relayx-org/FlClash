@@ -50,7 +50,7 @@ final class ServiceStatusProvider
   }
 }
 
-String _$serviceStatusHash() => r'b7c838d77b69791dea64cb12fe9e6daf13762ea0';
+String _$serviceStatusHash() => r'ff3078fff5e9e12cf212cd19964fbd41675c305a';
 
 abstract class _$ServiceStatus
     extends $Notifier<RoutedProbeState<ServiceTarget, ServiceCheck>> {
@@ -172,4 +172,4 @@ final class EnabledServiceTargetsProvider
 }
 
 String _$enabledServiceTargetsHash() =>
-    r'7c5f5b6879ea73bd726ec9271b792a7c7b4b6528';
+    r'96e05421db7d7a53c227ab3ae9a3c6a70e393f8a';

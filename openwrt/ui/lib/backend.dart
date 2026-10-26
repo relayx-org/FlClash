@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:fl_clash/common/ip_quality.dart';
+
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/site_config.dart';
 
@@ -17,6 +21,85 @@ class RouterBackend implements IpingBackend {
   final DateTime Function() _clock;
   final _traffic = IpingTrafficSampler();
   Future<_SettingsSnapshot>? _settingsRequest;
+
+  @override
+  Future<IpQuality> readIpQuality(String ip) =>
+      lookupIpQualityUsing((url, _) async {
+        final data = _object(await client.call('ip_quality', {'url': url}));
+        if (data['error'] == 'timeout') throw TimeoutException('ip_quality');
+        if (data['error'] case final String error when error.isNotEmpty) {
+          throw RouterException(error);
+        }
+        return (
+          statusCode: (data['status'] as num?)?.toInt() ?? 0,
+          body: data['body'] as String? ?? '',
+        );
+      }, ip);
+
+  @override
+  Future<RouteState> readProbeRoute() async {
+    final data = _object(await client.call('probe_route'));
+    return RouteState(
+      coreEpoch: (data['core-epoch'] as num?)?.toInt() ?? 0,
+      picksVersion: (data['picks-version'] as num?)?.toInt() ?? 0,
+      picks: _object(
+        data['picks'],
+      ).map((key, value) => MapEntry(key, value as String)),
+      proxied: data['proxied'] == true,
+      synced: true,
+      live: true,
+    );
+  }
+
+  @override
+  Future<ProbeAnswer<IpInfo>> lookupOutboundIp(String proxyName) async {
+    final data = _object(
+      await client.call('outbound_ip', {
+        'proxy_name': proxyName,
+        'urls': ipInfoSources.keys.toList(),
+      }),
+    );
+    return ProbeAnswer(
+      value: parseOutboundIpBody(
+        url: data['url'] as String?,
+        body: data['body'] as String?,
+        error: data['error'] as String?,
+      ),
+      coreEpoch: (data['core-epoch'] as num?)?.toInt(),
+      picksVersion: (data['picks-version'] as num?)?.toInt(),
+      chains: (data['chains'] as List?)?.cast<String>() ?? const [],
+    );
+  }
+
+  @override
+  Future<Map<ServiceTarget, ProbeAnswer<ServiceCheck>>> checkServices(
+    String proxyName,
+    List<ServiceTarget> targets,
+  ) async {
+    final items = await Future.wait([
+      for (final target in targets)
+        client.call('service_check', {
+          'proxy_name': proxyName,
+          'names': [target.id],
+        }),
+    ]);
+    final checks = <ServiceTarget, ProbeAnswer<ServiceCheck>>{};
+    for (final rows in items) {
+      for (final item in rows as List) {
+        final data = _object(item);
+        final target = ServiceTarget.byId(data['name'] as String? ?? '');
+        if (target == null) continue;
+        final check = ServiceCheck.fromJson(data);
+        checks[target] = ProbeAnswer(
+          value: check,
+          coreEpoch: check.coreEpoch,
+          picksVersion: check.picksVersion,
+          chains: check.chains,
+        );
+      }
+    }
+    return checks;
+  }
 
   Future<_SettingsSnapshot> _settingsSnapshot() {
     if (_settingsRequest case final pending?) return pending;
@@ -147,6 +230,16 @@ class RouterBackend implements IpingBackend {
     );
     return IpingSiteConfig.fromJson(data, site: state.site);
   }
+
+  @override
+  Future<IpingUserInfo?> readAccount() async {
+    final value = await client.call('account');
+    return value == null ? null : IpingUserInfo.fromJson(_object(value));
+  }
+
+  @override
+  Future<IpingDashboardSnapshot> readDashboard() async =>
+      IpingDashboardSnapshot.fromJson(_object(await client.call('dashboard')));
 
   @override
   Future<void> signIn({bool register = false}) async {

@@ -110,6 +110,13 @@ func serveAgent() error {
 		return err
 	}
 	defer webListener.Close()
+	tlsListener, tlsConfig, err := a.webTLS(ctx)
+	if err != nil {
+		return err
+	}
+	if tlsListener != nil {
+		defer tlsListener.Close()
+	}
 	socket := filepath.Join(a.runDir, "agent.sock")
 	if err := os.Remove(socket); err != nil && !os.IsNotExist(err) {
 		return err
@@ -123,10 +130,15 @@ func serveAgent() error {
 		return err
 	}
 	server := &http.Server{Handler: a.handler(), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second}
-	webServer := &http.Server{Handler: a.webHandler(), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 30 * time.Second}
-	stopped := make(chan error, 2)
+	web := a.webHandler()
+	webServer := &http.Server{Handler: web, ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 30 * time.Second}
+	tlsServer := &http.Server{Handler: web, TLSConfig: tlsConfig, ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 30 * time.Second}
+	stopped := make(chan error, 3)
 	go func() { stopped <- server.Serve(listener) }()
 	go func() { stopped <- webServer.Serve(webListener) }()
+	if tlsListener != nil {
+		go func() { stopped <- tlsServer.ServeTLS(tlsListener, "", "") }()
+	}
 	if a.enabled(ctx) {
 		if lock, err := a.lock(); err == nil {
 			_, _ = a.startJob("connect", lock)
@@ -146,6 +158,7 @@ func serveAgent() error {
 	defer done()
 	_ = server.Shutdown(shutdown)
 	_ = webServer.Shutdown(shutdown)
+	_ = tlsServer.Shutdown(shutdown)
 	a.jobs.Wait()
 	return err
 }

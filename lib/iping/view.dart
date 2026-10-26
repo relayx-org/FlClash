@@ -17,6 +17,7 @@ class IpingGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(ipingClientControllerProvider);
     final session = ref.watch(ipingBackendStateProvider);
     if (!ref.watch(initProvider) || !session.initialized) {
       return const Scaffold(body: Center(child: CommonCircleLoading.page()));
@@ -31,7 +32,7 @@ class IpingLoginView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(ipingSessionProvider);
-    final backend = ref.read(ipingBackendProvider);
+    final backend = ref.read(ipingClientControllerProvider);
     return IpingLoginPage(
       site: ref.watch(ipingSiteConfigProvider),
       busy: session.busy,

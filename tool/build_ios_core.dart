@@ -25,14 +25,24 @@ Future<void> _build(String root, Directory cache) async {
   final config = loadYaml(await configFile.readAsString()) as Map;
   final core = p.join(root, config['core_dir'] as String? ?? 'core');
   final framework = p.join(root, 'libclash', 'ios', 'Clash.xcframework');
-  final paths = <String>[configFile.path, Platform.script.toFilePath()];
-  await for (final entity in Directory(core).list(recursive: true)) {
-    if (entity is! File) continue;
-    final name = p.basename(entity.path);
-    if ((name.endsWith('.go') && !name.endsWith('_test.go')) ||
-        name == 'go.mod' ||
-        name == 'go.sum') {
-      paths.add(entity.path);
+  final paths = <String>[
+    configFile.path,
+    Platform.script.toFilePath(),
+    p.join(root, 'openwrt', 'iping', 'src', 'go.mod'),
+    p.join(root, 'openwrt', 'iping', 'src', 'go.sum'),
+  ];
+  for (final source in [
+    core,
+    p.join(root, 'openwrt', 'iping', 'src', 'probe'),
+  ]) {
+    await for (final entity in Directory(source).list(recursive: true)) {
+      if (entity is! File) continue;
+      final name = p.basename(entity.path);
+      if ((name.endsWith('.go') && !name.endsWith('_test.go')) ||
+          name == 'go.mod' ||
+          name == 'go.sum') {
+        paths.add(entity.path);
+      }
     }
   }
   paths.sort();

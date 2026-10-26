@@ -6,12 +6,23 @@ import 'backend_telemetry.dart';
 import 'backend_resources.dart';
 import 'site_config.dart';
 import 'profile_resources.dart';
+import 'backend_dashboard.dart';
+import 'user_info.dart';
+import '../common/routed_probe.dart';
+import '../common/service_probe_data.dart';
+import '../models/ip_quality.dart';
 
 export 'backend_data.dart';
 export 'backend_settings.dart';
 export 'backend_telemetry.dart';
 export 'backend_resources.dart';
 export 'profile_resources.dart';
+export 'backend_dashboard.dart';
+export 'user_info.dart';
+export '../common/routed_probe.dart';
+export '../common/service_probe_data.dart';
+export '../models/ip_quality.dart';
+export '../enum/ip_quality.dart';
 
 enum IpingBackendCapability { systemProxy, vpn, tun, tray, routerNetwork }
 
@@ -50,6 +61,15 @@ abstract interface class IpingBackend {
 
   Future<IpingBackendState> readState();
   Future<IpingSiteConfig> readSiteConfig();
+  Future<IpingUserInfo?> readAccount();
+  Future<IpingDashboardSnapshot> readDashboard();
+  Future<RouteState> readProbeRoute();
+  Future<IpQuality> readIpQuality(String ip);
+  Future<ProbeAnswer<IpInfo>> lookupOutboundIp(String proxyName);
+  Future<Map<ServiceTarget, ProbeAnswer<ServiceCheck>>> checkServices(
+    String proxyName,
+    List<ServiceTarget> targets,
+  );
   Future<void> signIn({bool register = false});
   void cancelSignIn();
   Future<void> synchronize();

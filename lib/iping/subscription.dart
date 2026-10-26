@@ -25,7 +25,7 @@ class IpingSubscriptionDetails extends ConsumerWidget {
           ? null
           : l.profileUpdatedAt(session.updated!.getLastUpdateTimeDesc(context)),
       failure: failure == null ? null : IpingFailureText(failure: failure),
-      onSync: () => ref.read(ipingBackendProvider).synchronize(),
+      onSync: () => ref.read(ipingClientControllerProvider).synchronize(),
       onConsole: () => dialogs.openUrl('$ipingSite/home'),
     );
   }

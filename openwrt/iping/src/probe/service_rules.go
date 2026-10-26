@@ -1,4 +1,4 @@
-package core
+package probe
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/metacubex/http"
+	"net/http"
 )
 
 // disneyAuthHeader is the public browser client token Disney+ hands to any web
@@ -115,7 +115,7 @@ func checkChatGpt(env serviceEnv) ServiceCheckItem {
 	return item
 }
 
-func chatGptIosStatus(result *ProbeResult) string {
+func chatGptIosStatus(result *Result) string {
 	switch {
 	case bodyContains(result, "you may be connected to a disallowed isp"):
 		return serviceDisallowedIsp
@@ -183,7 +183,7 @@ func checkSpotify(env serviceEnv) ServiceCheckItem {
 
 // spotifyRegion prefers the country Spotify redirected the request into, and
 // falls back to the one named in the payload.
-func spotifyRegion(result *ProbeResult) string {
+func spotifyRegion(result *Result) string {
 	if final, err := url.Parse(result.Url); err == nil {
 		segments := strings.Split(strings.Trim(final.Path, "/"), "/")
 		if first := segments[0]; first != "" && first != "api" {
@@ -205,7 +205,7 @@ func checkTikTok(env serviceEnv) ServiceCheckItem {
 	return item
 }
 
-func tikTokStatus(result *ProbeResult) string {
+func tikTokStatus(result *Result) string {
 	switch {
 	case result.StatusCode == http.StatusForbidden ||
 		result.StatusCode == http.StatusUnavailableForLegalReasons:
@@ -334,15 +334,15 @@ func netflixServed(code int) bool {
 // netflixRegion reads the country out of the redirect Netflix would send a
 // visitor to, so the redirect must not be followed.
 func netflixRegion(env serviceEnv) string {
-	result := env.send(probeRequest{
-		method:     http.MethodGet,
-		url:        "https://www.netflix.com/title/80018499",
-		noRedirect: true,
+	result := env.send(Request{
+		Method:     http.MethodGet,
+		URL:        "https://www.netflix.com/title/80018499",
+		NoRedirect: true,
 	})
-	if result == nil || result.Error != "" || result.header == nil {
+	if result == nil || result.Error != "" || result.Header == nil {
 		return ""
 	}
-	segments := strings.Split(result.header.Get("Location"), "/")
+	segments := strings.Split(result.Header.Get("Location"), "/")
 	if len(segments) < 4 {
 		return ""
 	}
@@ -380,15 +380,15 @@ func netflixFromCdn(env serviceEnv) ServiceCheckItem {
 // assertion for a refresh token, then ask the session which region it landed
 // in. Any step can answer on its own that the address is not welcome.
 func checkDisneyPlus(env serviceEnv) ServiceCheckItem {
-	device := env.send(probeRequest{
-		method: http.MethodPost,
-		url:    "https://disney.api.edge.bamgrid.com/devices",
-		headers: map[string]string{
+	device := env.send(Request{
+		Method: http.MethodPost,
+		URL:    "https://disney.api.edge.bamgrid.com/devices",
+		Headers: map[string]string{
 			"authorization": disneyAuthHeader,
 			"content-type":  "application/json; charset=UTF-8",
 		},
-		body:    []byte(`{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","attributes":{}}`),
-		maxBody: serviceSmallMaxBody,
+		Body:    []byte(`{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","attributes":{}}`),
+		MaxBody: serviceSmallMaxBody,
 	})
 	item := itemFrom(device)
 	if !answered(item, device) {
@@ -410,15 +410,15 @@ func checkDisneyPlus(env serviceEnv) ServiceCheckItem {
 			"&subject_token={assertion}" +
 			"&subject_token_type=urn:bamtech:params:oauth:token-type:device",
 	)
-	token := env.send(probeRequest{
-		method: http.MethodPost,
-		url:    "https://disney.api.edge.bamgrid.com/token",
-		headers: map[string]string{
+	token := env.send(Request{
+		Method: http.MethodPost,
+		URL:    "https://disney.api.edge.bamgrid.com/token",
+		Headers: map[string]string{
 			"authorization": disneyAuthHeader,
 			"content-type":  "application/x-www-form-urlencoded",
 		},
-		body:    []byte(form),
-		maxBody: serviceSmallMaxBody,
+		Body:    []byte(form),
+		MaxBody: serviceSmallMaxBody,
 	})
 	if tokenItem := itemFrom(token); !answered(tokenItem, token) {
 		return tokenItem
@@ -435,15 +435,15 @@ func checkDisneyPlus(env serviceEnv) ServiceCheckItem {
 
 	query := `{"query":"mutation refreshToken($input: RefreshTokenInput!) { refreshToken(refreshToken: $input) { activeSession { sessionId } } }","variables":{"input":{"refreshToken":"` +
 		refresh + `"}}}`
-	session := env.send(probeRequest{
-		method: http.MethodPost,
-		url:    "https://disney.api.edge.bamgrid.com/graph/v1/device/graphql",
-		headers: map[string]string{
+	session := env.send(Request{
+		Method: http.MethodPost,
+		URL:    "https://disney.api.edge.bamgrid.com/graph/v1/device/graphql",
+		Headers: map[string]string{
 			"authorization": disneyAuthHeader,
 			"content-type":  "application/json",
 		},
-		body:    []byte(query),
-		maxBody: serviceSmallMaxBody,
+		Body:    []byte(query),
+		MaxBody: serviceSmallMaxBody,
 	})
 	sessionItem := itemFrom(session)
 	if !answered(sessionItem, session) || session.Body == "" || session.StatusCode >= 400 {

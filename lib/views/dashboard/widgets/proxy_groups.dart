@@ -12,7 +12,7 @@ import 'package:material_new_shapes/material_new_shapes.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'card.dart';
-import 'connections_table.dart';
+import 'proxy_groups_frame.dart';
 import 'current_outbound.dart';
 
 const _stackedIcons = 4;
@@ -49,50 +49,22 @@ class _GroupIcon extends StatelessWidget {
     required this.radius,
     this.ring,
   });
-
   final Group group;
   final double size;
   final double radius;
   final Color? ring;
-
-  static const _inset = 0.15;
-
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final ring = this.ring;
-    final inset = size * _inset;
-    return Container(
-      width: size,
-      height: size,
-      padding: EdgeInsets.all(inset),
-      clipBehavior: Clip.antiAlias,
-      decoration: ShapeDecoration(
-        color: DashboardColors.of(context).tone2,
-        shape: AppShape.all(radius).copyWith(
-          side: ring == null
-              ? BorderSide.none
-              : BorderSide(
-                  color: ring,
-                  width: 3,
-                  strokeAlign: BorderSide.strokeAlignOutside,
-                ),
-        ),
-      ),
-      child: Center(
-        child: IconTheme.merge(
-          data: IconThemeData(
-            size: size - inset * 2,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          child: CommonTargetIcon(
-            src: group.icon,
-            fallback: GroupMonogram(group.name),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => DashboardGroupIcon(
+    name: group.name,
+    src: group.icon,
+    image: CommonTargetIcon(
+      src: group.icon,
+      fallback: GroupMonogram(group.name),
+    ),
+    size: size,
+    radius: radius,
+    ring: ring,
+  );
 }
 
 class _GroupDelay extends ConsumerWidget {
@@ -247,48 +219,26 @@ class ProxyGroupsCard extends ConsumerWidget {
     if (!density.isDesktop) {
       return const ProxyGroupsSummaryCard();
     }
-    final compact = density.isCompact;
-    final scale = DashboardDensityScope.scaleOf(context);
     final groups = ref.watch(visibleGroupsStateProvider).value;
-    final padding = dashboardCardPadding(density);
-    final tileHeight = (compact ? 52 : 60) * scale;
-    final tileGap = compact ? 6.0 : 8.0;
-    return DashboardCard(
-      semanticLabel: context.appLocalizations.proxyGroup,
-      padding: padding.copyWith(bottom: 0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final tiles = _GroupTiles(
-            groups: groups,
-            columns: _GroupTiles.columnsFor(
-              constraints.maxWidth,
-              scale: scale,
-              gap: tileGap,
-            ),
-            height: tileHeight,
-            gap: tileGap,
-            iconSize: _figureMetricsOf(density).icon,
-            bottom: padding.bottom,
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _GroupsHeader(groups: groups, count: true),
-              if (groups.isEmpty)
-                const Expanded(child: _GroupsEmpty(fit: true))
-              else ...[
-                SizedBox(
-                  height:
-                      connectionsTableTop(density, scale) -
-                      padding.top -
-                      DashboardCardHeader.height * scale,
-                ),
-                Expanded(child: tiles),
-              ],
-            ],
-          );
-        },
-      ),
+    final iconSize = _figureMetricsOf(density).icon;
+    return DashboardProxyGroupsFrame(
+      count: groups.length,
+      header: _GroupsHeader(groups: groups, count: true),
+      empty: const _GroupsEmpty(fit: true),
+      itemBuilder: (context, index) {
+        final group = groups[index];
+        return DashboardProxyGroupTile(
+          name: group.name,
+          icon: _GroupIcon(
+            group: group,
+            size: iconSize,
+            radius: DashboardCorner.block - _blockInset,
+          ),
+          selected: _SelectedName(group: group),
+          delay: _GroupDelay(group: group),
+          onTap: () => showProxiesSheet(context, groupName: group.name),
+        );
+      },
     );
   }
 }
@@ -301,41 +251,15 @@ _FigureMetrics _figureMetricsOf(DashboardDensity density) => density.isCompact
 
 class _GroupsHeader extends StatelessWidget {
   const _GroupsHeader({required this.groups, this.count = false});
-
   final List<Group> groups;
   final bool count;
-
   @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final mobile = !DashboardDensityScope.of(context).isDesktop;
-    return DashboardCardHeader(
-      glyph: AppGlyphs.layers,
-      title: appLocalizations.proxyGroup,
-      chevron: mobile && groups.isNotEmpty,
-      leading: [
-        if (count && groups.isNotEmpty)
-          Tooltip(
-            message: appLocalizations.groupCount(groups.length),
-            child: DashboardChip(label: '${groups.length}'),
-          ),
-        _TimeoutChip(groups: groups),
-      ],
-      trailing: [
-        if (!mobile)
-          Transform.translate(
-            offset: const Offset(8, 0),
-            child: DashboardIconButton(
-              glyph: AppGlyphs.chevronForward,
-              tooltip: appLocalizations.proxyGroup,
-              onPressed: groups.isEmpty
-                  ? null
-                  : () => showProxiesSheet(context),
-            ),
-          ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => DashboardProxyGroupsHeader(
+    count: groups.length,
+    showCount: count,
+    leading: [_TimeoutChip(groups: groups)],
+    onOpen: () => showProxiesSheet(context),
+  );
 }
 
 class _GroupsFigure extends StatelessWidget {
@@ -433,119 +357,6 @@ class _IconStack extends StatelessWidget {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GroupTiles extends StatelessWidget {
-  const _GroupTiles({
-    required this.groups,
-    required this.columns,
-    required this.height,
-    required this.gap,
-    required this.iconSize,
-    required this.bottom,
-  });
-
-  final List<Group> groups;
-  final int columns;
-  final double height;
-  final double gap;
-  final double iconSize;
-  final double bottom;
-
-  static const _minTileWidth = 172.0;
-
-  static int columnsFor(
-    double width, {
-    required double scale,
-    required double gap,
-  }) => width >= _minTileWidth * scale * 2 + gap ? 2 : 1;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final rows = (groups.length / columns).ceil();
-        final overflows =
-            rows * height + (rows - 1) * gap + bottom > constraints.maxHeight;
-        final grid = GridView.builder(
-          padding: EdgeInsets.only(bottom: bottom),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisSpacing: gap,
-            crossAxisSpacing: gap,
-            mainAxisExtent: height,
-          ),
-          itemCount: groups.length,
-          itemBuilder: (context, index) => _GroupTile(
-            group: groups[index],
-            iconSize: iconSize,
-            onTap: () =>
-                showProxiesSheet(context, groupName: groups[index].name),
-          ),
-        );
-        return overflows ? DashboardFadeOut(child: grid) : grid;
-      },
-    );
-  }
-}
-
-class _GroupTile extends StatelessWidget {
-  const _GroupTile({
-    required this.group,
-    required this.iconSize,
-    required this.onTap,
-  });
-
-  final Group group;
-  final double iconSize;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return DashboardBlock(
-      radius: DashboardCorner.block,
-      padding: const EdgeInsetsDirectional.fromSTEB(_blockInset, 0, 14, 0),
-      onTap: onTap,
-      semanticLabel: group.name,
-      child: Row(
-        spacing: 12,
-        children: [
-          _GroupIcon(
-            group: group,
-            size: iconSize,
-            radius: DashboardCorner.block - _blockInset,
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      child: EmojiText(
-                        group.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyle.caption1
-                            .of(context)
-                            .copyWith(
-                              color: context.colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ),
-                    _GroupDelay(group: group),
-                  ],
-                ),
-                _SelectedName(group: group),
-              ],
-            ),
-          ),
         ],
       ),
     );

@@ -1,34 +1,42 @@
 part of '../action.dart';
 
-class _DelayTestTarget {
-  const _DelayTestTarget({
-    required this.proxyName,
-    required this.testUrl,
-    required this.key,
-  });
-
-  final String proxyName;
-  final String testUrl;
-  final String key;
-}
-
 typedef _DelayTestBatch = ({List<Proxy> proxies, String? testUrl});
-
-class _DelayTestJob {
-  _DelayTestJob(Iterable<String> keys) : held = keys.toSet();
-
-  final Set<String> held;
-  final Set<String> startedOnDispatch = {};
-  bool cancelled = false;
-}
 
 @Riverpod(keepAlive: true)
 class ProxiesAction extends _$ProxiesAction {
   CoreController get _core => ref.read(coreHandlerProvider);
 
-  final TaskPool _delayTestPool = TaskPool(maxConcurrentDelayTests);
-
-  final List<_DelayTestJob> _delayTestJobs = [];
+  late final IpingDelayScheduler _delayTasks = IpingDelayScheduler(
+    concurrency: maxConcurrentDelayTests,
+    test: (target) => ref
+        .read(ipingBackendProvider)
+        .testDelay(target.proxyName, url: target.testUrl),
+    onAcquire: (acquired, running) => ref
+        .read(pendingDelayTestsProvider.notifier)
+        .apply(acquired: acquired, started: running),
+    onStart: (key) {
+      _bufferedStarts.add(key);
+      _scheduleDelayFlush();
+    },
+    onFinish: (key) {
+      _bufferedFinishes.add(key);
+      _scheduleDelayFlush();
+    },
+    onValue: setDelay,
+    onSettled: (finished, released) {
+      _flushDelayResults();
+      ref
+          .read(pendingDelayTestsProvider.notifier)
+          .apply(finished: finished, released: released);
+    },
+    onError: (target, error, stack) {
+      commonPrint.log(
+        'Delay test failed for ${target.proxyName}: $error',
+        logLevel: coreFailureLogLevel(error),
+      );
+      return error is CoreMethodException && error.isCoreUnavailable;
+    },
+  );
 
   final List<Delay> _bufferedDelays = [];
 
@@ -42,7 +50,10 @@ class ProxiesAction extends _$ProxiesAction {
 
   @override
   void build() {
-    ref.onDispose(() => _delayFlushTimer?.cancel());
+    ref.onDispose(() {
+      _delayTasks.cancel();
+      _delayFlushTimer?.cancel();
+    });
     ref.listen(coreStatusProvider, (_, next) {
       if (next != CoreStatus.connected) {
         cancelDelayTests();
@@ -51,10 +62,7 @@ class ProxiesAction extends _$ProxiesAction {
   }
 
   void cancelDelayTests() {
-    for (final job in _delayTestJobs) {
-      job.cancelled = true;
-      job.held.clear();
-    }
+    _delayTasks.cancel();
     _delayFlushTimer?.cancel();
     _delayFlushTimer = null;
     _bufferedDelays.clear();
@@ -299,14 +307,14 @@ class ProxiesAction extends _$ProxiesAction {
 
   Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
     await _runDelayTests([(proxies: proxies, testUrl: testUrl)]);
-    ref.read(sortNumProvider.notifier).add();
+    if (ref.mounted) ref.read(sortNumProvider.notifier).add();
   }
 
   Future<void> delayTestGroups(List<Group> groups) async {
     await _runDelayTests([
       for (final group in groups) (proxies: group.all, testUrl: group.testUrl),
     ]);
-    ref.read(sortNumProvider.notifier).add();
+    if (ref.mounted) ref.read(sortNumProvider.notifier).add();
   }
 
   Future<void> delayTestPageGroup(
@@ -330,11 +338,11 @@ class ProxiesAction extends _$ProxiesAction {
         group.testUrl,
       );
     } finally {
-      testing.stop(groupName);
+      if (ref.mounted) testing.stop(groupName);
     }
   }
 
-  List<_DelayTestTarget> _resolveDelayTestTargets(
+  List<IpingDelayTarget> _resolveDelayTestTargets(
     List<_DelayTestBatch> batches,
   ) {
     final groups = ref.read(groupsProvider);
@@ -342,7 +350,7 @@ class ProxiesAction extends _$ProxiesAction {
       currentProfileProvider.select((state) => state?.selectedMap ?? {}),
     );
     final seen = <String>{};
-    final targets = <_DelayTestTarget>[];
+    final targets = <IpingDelayTarget>[];
     for (final batch in batches) {
       final fallbackTestUrl = ref.read(realTestUrlProvider(batch.testUrl));
       for (final proxy in batch.proxies) {
@@ -360,7 +368,7 @@ class ProxiesAction extends _$ProxiesAction {
           continue;
         }
         targets.add(
-          _DelayTestTarget(
+          IpingDelayTarget(
             proxyName: state.proxyName,
             testUrl: currentTestUrl,
             key: key,
@@ -372,66 +380,6 @@ class ProxiesAction extends _$ProxiesAction {
   }
 
   Future<void> _runDelayTests(List<_DelayTestBatch> batches) async {
-    final targets = _resolveDelayTestTargets(batches);
-    if (targets.isEmpty) {
-      return;
-    }
-    final pending = ref.read(pendingDelayTestsProvider.notifier);
-    final job = _DelayTestJob(targets.map((target) => target.key));
-    _delayTestJobs.add(job);
-    // TaskPool.run starts a task synchronously while it has an idle slot.
-    job.startedOnDispatch.addAll(
-      targets.take(_delayTestPool.idleSlots).map((target) => target.key),
-    );
-    pending.apply(acquired: job.held, started: job.startedOnDispatch);
-    try {
-      await Future.wait(
-        targets.map(
-          (target) => _delayTestPool.run(() => _runDelayTest(job, target)),
-        ),
-      );
-    } finally {
-      _delayTestJobs.remove(job);
-      _flushDelayResults();
-      final abandoned = job.held.toList();
-      job.held.clear();
-      pending.apply(
-        finished: abandoned.where(job.startedOnDispatch.contains),
-        released: abandoned.where(
-          (key) => !job.startedOnDispatch.contains(key),
-        ),
-      );
-    }
-  }
-
-  Future<void> _runDelayTest(_DelayTestJob job, _DelayTestTarget target) async {
-    if (job.cancelled) {
-      return;
-    }
-    if (!job.startedOnDispatch.contains(target.key)) {
-      _bufferedStarts.add(target.key);
-      _scheduleDelayFlush();
-    }
-    try {
-      final delay = await ref
-          .read(ipingBackendProvider)
-          .testDelay(target.proxyName, url: target.testUrl);
-      if (delay != null && !job.cancelled) {
-        setDelay(delay);
-      }
-    } catch (error) {
-      if (error is CoreMethodException && error.isCoreUnavailable) {
-        job.cancelled = true;
-      }
-      commonPrint.log(
-        'Delay test failed for ${target.proxyName}: $error',
-        logLevel: coreFailureLogLevel(error),
-      );
-    } finally {
-      if (job.held.remove(target.key)) {
-        _bufferedFinishes.add(target.key);
-        _scheduleDelayFlush();
-      }
-    }
+    await _delayTasks.run(_resolveDelayTestTargets(batches));
   }
 }

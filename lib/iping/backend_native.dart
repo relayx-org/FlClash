@@ -11,10 +11,31 @@ import 'backend.dart';
 import 'providers.dart';
 import 'site_config.dart';
 import 'settings_native.dart';
+import 'controller.dart';
+import '../state.dart';
+import '../common/service_probe.dart' as probes;
+import '../providers/ip_quality.dart';
 
 final ipingBackendProvider = Provider<IpingBackend>(
   (ref) => _NativeIpingBackend(ref),
 );
+
+final ipingClientControllerProvider = Provider<IpingController>((ref) {
+  final controller = IpingController(
+    ref.watch(ipingBackendProvider),
+    refreshDetails: false,
+    throwOnError: true,
+    cancelSignInOnDispose: false,
+    delayConcurrency: maxConcurrentDelayTests,
+  );
+  ref.listen(
+    ipingBackendStateProvider,
+    (_, next) => controller.receiveState(next),
+    fireImmediately: true,
+  );
+  ref.onDispose(controller.dispose);
+  return controller;
+});
 
 final ipingBackendCapabilitiesProvider = Provider<Set<IpingBackendCapability>>(
   (ref) => system.isMobile
@@ -205,6 +226,73 @@ class _NativeIpingBackend implements IpingBackend {
   Future<IpingSiteConfig> readSiteConfig() async {
     await ref.read(ipingSiteConfigProvider.notifier).refresh();
     return ref.read(ipingSiteConfigProvider);
+  }
+
+  @override
+  Future<IpingUserInfo?> readAccount() =>
+      ref.read(ipingUserInfoProvider.future);
+
+  @override
+  Future<RouteState> readProbeRoute() async => ref.read(routeTrackerProvider);
+
+  @override
+  Future<IpQuality> readIpQuality(String ip) =>
+      ref.read(ipQualityProvider(ip).future);
+
+  @override
+  Future<ProbeAnswer<IpInfo>> lookupOutboundIp(String proxyName) async {
+    final result = await probes.lookupOutboundIp(
+      ref.read(coreHandlerProvider),
+      proxyName,
+    );
+    return ProbeAnswer(
+      value: probes.parseOutboundIp(result),
+      coreEpoch: result?.coreEpoch,
+      picksVersion: result?.picksVersion,
+      chains: result?.chains ?? const [],
+    );
+  }
+
+  @override
+  Future<Map<ServiceTarget, ProbeAnswer<ServiceCheck>>> checkServices(
+    String proxyName,
+    List<ServiceTarget> targets,
+  ) async {
+    final checks = await probes.checkServices(
+      ref.read(coreHandlerProvider),
+      proxyName: proxyName,
+      targets: targets,
+    );
+    return {
+      for (final MapEntry(key: target, value: check) in checks.entries)
+        target: ProbeAnswer(
+          value: check,
+          coreEpoch: check.coreEpoch,
+          picksVersion: check.picksVersion,
+          chains: check.chains,
+        ),
+    };
+  }
+
+  @override
+  Future<IpingDashboardSnapshot> readDashboard() async {
+    final counts = globalState.lastConfigCounts;
+    final elapsed = ref.read(runTimeProvider);
+    return IpingDashboardSnapshot(
+      localIp: ref.read(localIpProvider) ?? '',
+      started: !ref.read(isStartProvider) || elapsed == null
+          ? null
+          : DateTime.now().subtract(Duration(milliseconds: elapsed)),
+      groups: counts?.groups ?? 0,
+      proxies:
+          (counts?.proxies ?? 0) +
+          ref
+              .read(providersProvider)
+              .where((provider) => provider.type == 'Proxy')
+              .fold<int>(0, (count, provider) => count + provider.count),
+      rules: counts?.rules ?? 0,
+      settings: readSettings(),
+    );
   }
 
   @override

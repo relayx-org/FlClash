@@ -24,13 +24,16 @@
 		clearInterval(current.closedTimer);
 		if (login === current) login = null;
 	}
+	function closePopup(current) {
+		try { current.popup.close(); } catch (_) {}
+	}
 	async function receive(data) {
 		const current = login;
 		if (!current || !data || data.type !== 'iping-login' || data.state !== current.state || !/^[A-Za-z0-9_-]{43}$/.test(data.code || '')) return;
 		clearLogin(current);
 		try {
 			await request('complete_login', { code: data.code, state: data.state });
-			current.popup.close();
+			closePopup(current);
 			await request('sync');
 			current.resolve(null);
 		} catch (error) { current.reject(error); }
@@ -48,7 +51,7 @@
 		if (!login) return;
 		const current = login;
 		clearLogin(current);
-		current.popup.close();
+		closePopup(current);
 		request('cancel_login').catch(() => {});
 		current.resolve(null);
 	};
@@ -59,7 +62,9 @@
 		const current = { popup, resolve, reject };
 		login = current;
 		current.timeout = setTimeout(window.ipingCancelSignIn, 5 * 60 * 1000);
-		current.closedTimer = setInterval(() => { if (popup.closed) window.ipingCancelSignIn(); }, 500);
+		if (!window.crossOriginIsolated) {
+			current.closedTimer = setInterval(() => { if (popup.closed) window.ipingCancelSignIn(); }, 500);
+		}
 		request('begin_login', { redirect_uri: new URL('/iping-login.html', location.origin).href }).then(data => {
 			if (login !== current) return;
 			current.state = data.state;
@@ -71,7 +76,7 @@
 				url = registration.href;
 			}
 			popup.location.replace(url);
-		}).catch(error => { clearLogin(current); popup.close(); reject(error); });
+		}).catch(error => { clearLogin(current); closePopup(current); reject(error); });
 	});
 	window.ipingOpen = url => window.open(url, '_blank', 'noopener,noreferrer');
 	window.ipingDownload = (name, content) => {

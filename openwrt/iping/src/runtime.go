@@ -17,10 +17,11 @@ import (
 const mihomoBinary = "/usr/libexec/iping/mihomo"
 
 type coreChild struct {
-	cmd   *exec.Cmd
-	done  chan struct{}
-	lease *os.File
-	ready atomic.Bool
+	cmd     *exec.Cmd
+	started time.Time
+	done    chan struct{}
+	lease   *os.File
+	ready   atomic.Bool
 }
 
 type coreRuntime struct {
@@ -120,7 +121,7 @@ func (r *coreRuntime) start(ctx context.Context) error {
 	if err := writePrivate(a.runProfile, data); err != nil {
 		return err
 	}
-	child := &coreChild{cmd: exec.Command(a.coreBinary, "-d", a.dataDir, "-f", a.runProfile), done: make(chan struct{}), lease: lease}
+	child := &coreChild{cmd: exec.Command(a.coreBinary, "-d", a.dataDir, "-f", a.runProfile), started: time.Now(), done: make(chan struct{}), lease: lease}
 	child.cmd.Stdout = &coreLog{path: filepath.Join(a.runDir, "core.log")}
 	child.cmd.Stderr = child.cmd.Stdout
 	child.cmd.ExtraFiles = []*os.File{lease}

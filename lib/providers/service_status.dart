@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'config.dart';
-import 'core.dart';
-import 'route_state.dart';
+import '../iping/backend_native.dart';
+import '../iping/probes.dart';
 import 'routed_probe.dart';
 
 part 'generated/service_status.g.dart';
@@ -17,30 +17,17 @@ class ServiceStatus extends _$ServiceStatus
   RoutedProbeState<ServiceTarget, ServiceCheck> build() => buildProbe();
 
   @override
-  bool isFailure(ServiceCheck value) =>
-      value.status == ServiceProbeStatus.timeout ||
-      value.status == ServiceProbeStatus.failed;
+  bool isFailure(ServiceCheck value) => isServiceProbeFailure(value);
 
   @override
   Future<Map<ServiceTarget, ProbeAnswer<ServiceCheck>>> probe(
     ServiceTarget target,
     RouteState route,
   ) async {
-    final checks = await checkServices(
-      ref.read(coreHandlerProvider),
-      proxyName: route.proxied ? '' : directOutbound,
-      targets: [target],
+    return ref.read(ipingBackendProvider).checkServices(
+      route.proxied ? '' : directOutbound,
+      [target],
     );
-    final check = checks[target];
-    return {
-      if (check != null)
-        target: ProbeAnswer(
-          value: check,
-          coreEpoch: check.coreEpoch,
-          picksVersion: check.picksVersion,
-          chains: check.chains,
-        ),
-    };
   }
 }
 
@@ -58,9 +45,5 @@ List<ServiceTarget> enabledServiceTargets(Ref ref) {
   final disabled = ref.watch(
     appSettingProvider.select((state) => SelectValue(state.disabledServices)),
   );
-  final enabled = [
-    for (final target in targets)
-      if (!disabled.value.contains(target.id)) target,
-  ];
-  return enabled.isEmpty ? targets : enabled;
+  return enabledServices(targets, disabled.value);
 }

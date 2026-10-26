@@ -1,6 +1,7 @@
-package core
+package probe
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -386,7 +387,7 @@ func TestStatusFromCode(t *testing.T) {
 }
 
 func TestItemFromMapsTransportErrors(t *testing.T) {
-	timedOut := itemFrom(&ProbeResult{Error: probeErrorTimeout, Delay: 900})
+	timedOut := itemFrom(&Result{Error: probeErrorTimeout, Delay: 900})
 	if timedOut.Status != serviceTimeout {
 		t.Errorf("status = %q, want %q", timedOut.Status, serviceTimeout)
 	}
@@ -396,7 +397,7 @@ func TestItemFromMapsTransportErrors(t *testing.T) {
 	if missing := itemFrom(nil); missing.Status != serviceFailed {
 		t.Errorf("status = %q, want %q when the probe got no slot", missing.Status, serviceFailed)
 	}
-	answered := itemFrom(&ProbeResult{StatusCode: http.StatusOK, Delay: 120})
+	answered := itemFrom(&Result{StatusCode: http.StatusOK, Delay: 120})
 	if answered.Status != "" {
 		t.Errorf("status = %q, want it left for the rule to judge", answered.Status)
 	}
@@ -413,4 +414,8 @@ func TestTraceValue(t *testing.T) {
 	if got := traceValue(body, "colo"); got != "" {
 		t.Errorf("colo = %q, want empty", got)
 	}
+}
+
+func handleServiceCheck(params *ServiceCheckParams) []ServiceCheckItem {
+	return (&Runner{}).CheckServices(context.Background(), params)
 }

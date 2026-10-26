@@ -25,6 +25,9 @@ class RouterPreferences {
   String testUrl = 'https://www.gstatic.com/generate_204';
   bool closeConnections = true;
   bool openLogs = false;
+  bool hideIp = false;
+  List<String> serviceOrder = [];
+  List<String> disabledServices = [];
 
   factory RouterPreferences.fromJson(Map<String, Object?> json) {
     final value = RouterPreferences();
@@ -101,6 +104,11 @@ class RouterPreferences {
     }
     value.closeConnections = json['closeConnections'] != false;
     value.openLogs = json['openLogs'] == true;
+    value.hideIp = json['hideIp'] == true;
+    value.serviceOrder =
+        (json['serviceOrder'] as List?)?.whereType<String>().toList() ?? [];
+    value.disabledServices =
+        (json['disabledServices'] as List?)?.whereType<String>().toList() ?? [];
     return value;
   }
 
@@ -120,6 +128,9 @@ class RouterPreferences {
     'testUrl': testUrl,
     'closeConnections': closeConnections,
     'openLogs': openLogs,
+    'hideIp': hideIp,
+    'serviceOrder': serviceOrder,
+    'disabledServices': disabledServices,
     'proxies': {
       'type': proxies.type.name,
       'layout': proxies.layout.name,

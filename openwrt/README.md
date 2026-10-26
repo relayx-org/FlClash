@@ -85,6 +85,16 @@ size and SHA-256 plus both packages' checksums before installing. It enables the
 Agent at boot and prints its Web address. Open `http://<router-LAN-address>:19091/`
 and sign in with your iPing account. There is no separate router access key.
 
+New installations also serve the same application at
+`https://<router-LAN-address>:19092/`. The Agent generates a local certificate,
+keeps its private key under `/etc/iping/`, and reuses it across restarts and updates.
+The first visit requires accepting that router's self-signed certificate. HTTPS
+responses enable cross-origin isolation; graphics and pixel density are unchanged.
+On startup, the Agent renews the certificate when it is near expiry or its LAN IP
+addresses have changed. Existing installations keep their listener settings; enable
+HTTPS with `uci set iping.config.web_tls_listen='0.0.0.0:19092'`,
+`uci commit iping`, then `/etc/init.d/iping restart`.
+
 Automatic updates are enabled by default. A local cron task checks the stable update
 manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
 when the version/build is newer; it does not execute a downloaded installer or upgrade
@@ -114,6 +124,8 @@ account sign-in to the browser that started it.
 Browser login uses a one-time code, state, and PKCE verifier; pending login is
 bound to the initiating browser session. Allow its login popup. The account
 session and subscription credentials stay in the Agent's private data directory.
+Under HTTPS isolation, the callback returns through the existing same-origin
+BroadcastChannel; a severed popup reference does not cancel a pending sign-in.
 
 Sync downloads and validates the subscription before installing it. Connect
 starts the private Core; disconnect stops that process and releases its network
@@ -127,10 +139,13 @@ config iping 'config'
     option site 'https://iping.my'
     option enabled '0'
     option web_listen '0.0.0.0:19091'
+    option web_tls_listen '0.0.0.0:19092'
     option auto_update '1'
 ```
 
 Changing the site or Web listener requires `/etc/init.d/iping restart`. Core
+listeners remain independent of Web HTTP/HTTPS. Delete `web_tls_listen` to disable
+HTTPS; certificates stay in the private data directory for later reuse. Core
 settings are edited in the Web interface, rather than UCI. The local root-only
 Unix socket also exposes the API through `/usr/libexec/iping/agent call METHOD`
 with a JSON request on stdin.

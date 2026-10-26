@@ -1,4 +1,4 @@
-package core
+package probe
 
 import (
 	"net/http"
@@ -49,7 +49,7 @@ func TestChatGptIosStatus(t *testing.T) {
 		"":                                                serviceFailed,
 	}
 	for body, want := range cases {
-		if got := chatGptIosStatus(&ProbeResult{Body: body}); got != want {
+		if got := chatGptIosStatus(&Result{Body: body}); got != want {
 			t.Errorf("chatGptIosStatus(%q) = %q, want %q", body, got, want)
 		}
 	}
@@ -69,7 +69,7 @@ func TestTikTokStatus(t *testing.T) {
 		{http.StatusInternalServerError, "", serviceFailed},
 	}
 	for _, testCase := range cases {
-		got := tikTokStatus(&ProbeResult{StatusCode: testCase.code, Body: testCase.body})
+		got := tikTokStatus(&Result{StatusCode: testCase.code, Body: testCase.body})
 		if got != testCase.want {
 			t.Errorf("tikTokStatus(%d, %q) = %q, want %q", testCase.code, testCase.body, got, testCase.want)
 		}
@@ -106,11 +106,11 @@ func TestBilibiliStatusReadsTheLeadingCode(t *testing.T) {
 }
 
 func TestSpotifyRegionPrefersTheRedirectedPath(t *testing.T) {
-	redirected := &ProbeResult{Url: "https://www.spotify.com/de-de/", Body: `{"countryCode":"US"}`}
+	redirected := &Result{Url: "https://www.spotify.com/de-de/", Body: `{"countryCode":"US"}`}
 	if got := spotifyRegion(redirected); got != "de" {
 		t.Errorf("region = %q, want the path's country", got)
 	}
-	unredirected := &ProbeResult{
+	unredirected := &Result{
 		Url:  "https://www.spotify.com/api/content/v1/country-selector",
 		Body: `{"countryCode":"SE"}`,
 	}

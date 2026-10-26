@@ -1,3 +1,4 @@
+export 'ip_quality.dart';
 export 'rule_target.dart';
 export 'rule_payload_error.dart';
 export 'proxy_field.dart';
@@ -431,25 +432,6 @@ enum DashboardWidget {
 }
 
 enum DnsQueryInitiator { app, rule, direct, proxy, other }
-
-enum IpType { residential, mobile, business, hosting }
-
-enum IpQualityLevel { good, normal, risky }
-
-enum IpQualitySource {
-  identMe('ident.me'),
-  ipApiCom('ip-api.com'),
-  ipQuery('ipquery.io'),
-  ipLocate('iplocate.io'),
-  proxyCheck('proxycheck.io'),
-  ipApiIs('ipapi.is');
-
-  const IpQualitySource(this.label);
-
-  final String label;
-}
-
-enum IpQualitySourceStatus { noType, timeout, rateLimited, failed, ipMismatch }
 
 enum GeodataLoader { standard, memconservative }
 

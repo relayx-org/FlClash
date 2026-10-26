@@ -156,7 +156,7 @@ class GoBuilder {
       workingDirectory: _corePath,
       environment: environment,
     );
-    final corePath = p.normalize(p.absolute(_corePath));
+    final repositoryPath = p.normalize(p.absolute(rootDir));
     final inputs = <String>{};
     for (final line in (result.stdout as String).split('\n')) {
       final value = line.trim();
@@ -164,7 +164,8 @@ class GoBuilder {
       final filePath = p.normalize(
         p.absolute(p.isAbsolute(value) ? value : p.join(_corePath, value)),
       );
-      if (!p.isWithin(corePath, filePath) && !p.equals(corePath, filePath)) {
+      if (!p.isWithin(repositoryPath, filePath) &&
+          !p.equals(repositoryPath, filePath)) {
         continue;
       }
       if (!File(filePath).existsSync()) continue;

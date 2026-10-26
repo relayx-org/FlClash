@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/metacubex/http"
+	probe "github.com/relayx-org/FlClash/openwrt/iping/probe"
 	"io"
 	"net"
 	"sync"
@@ -275,25 +276,5 @@ func runProbe(parent context.Context, req probeRequest) *ProbeResult {
 }
 
 func readProbeBody(body io.Reader, maxBody int64, until func(string) bool) string {
-	limited := io.LimitReader(body, maxBody)
-	if until == nil {
-		payload, _ := io.ReadAll(limited)
-		return string(payload)
-	}
-	var buffer bytes.Buffer
-	chunk := make([]byte, probeScanChunk)
-	for {
-		n, err := limited.Read(chunk)
-		if n > 0 {
-			start := max(0, buffer.Len()-probeScanOverlap)
-			buffer.Write(chunk[:n])
-			if until(string(buffer.Bytes()[start:])) {
-				break
-			}
-		}
-		if err != nil {
-			break
-		}
-	}
-	return buffer.String()
+	return probe.ReadBody(body, maxBody, until)
 }

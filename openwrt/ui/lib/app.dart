@@ -13,22 +13,77 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/ui_localizations.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/ui/record.dart';
-import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'client.dart';
 import 'controller.dart';
 import 'pages.dart';
 
-class RouterScope extends InheritedNotifier<RouterController> {
-  const RouterScope({
-    super.key,
-    required RouterController controller,
-    required super.child,
-  }) : super(notifier: controller);
+enum RouterAspect { session, status, telemetry, probes, proxies }
 
-  static RouterController of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<RouterScope>()!.notifier!;
+class RouterScope extends StatelessWidget {
+  const RouterScope({super.key, required this.controller, required this.child});
+
+  final RouterController controller;
+  final Widget child;
+
+  static RouterController of(BuildContext context, {RouterAspect? aspect}) =>
+      InheritedModel.inheritFrom<_RouterState>(
+        context,
+        aspect: aspect,
+      )!.controller;
+
+  static RouterController read(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<_RouterState>()!.controller;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: controller,
+    builder: (_, child) => _RouterState(controller: controller, child: child!),
+    child: child,
+  );
+}
+
+class _RouterState extends InheritedModel<RouterAspect> {
+  _RouterState({required this.controller, required super.child})
+    : values = {
+        RouterAspect.session: (controller.initialized, controller.signedIn),
+        RouterAspect.status: (
+          controller.connected,
+          controller.busy,
+          controller.nodes,
+          controller.email,
+          controller.site,
+          controller.status.updated,
+          controller.error,
+          controller.telemetry.mode,
+          controller.revision,
+          controller.siteConfig,
+        ),
+        RouterAspect.telemetry: (
+          controller.traffic.revision,
+          controller.telemetry.memory,
+          controller.telemetry.connections,
+        ),
+        RouterAspect.probes: controller.probes.revision,
+        RouterAspect.proxies: (
+          controller.delayRevision,
+          controller.probes.outbound.route.coreEpoch,
+          controller.probes.outbound.route.picksVersion,
+        ),
+      };
+
+  final RouterController controller;
+  final Map<RouterAspect, Object> values;
+
+  @override
+  bool updateShouldNotify(_RouterState oldWidget) => true;
+
+  @override
+  bool updateShouldNotifyDependent(
+    _RouterState oldWidget,
+    Set<RouterAspect> dependencies,
+  ) => dependencies.any((aspect) => values[aspect] != oldWidget.values[aspect]);
 }
 
 class RouterApp extends StatefulWidget {
@@ -40,7 +95,7 @@ class RouterApp extends StatefulWidget {
   State<RouterApp> createState() => RouterAppState();
 }
 
-class RouterAppState extends State<RouterApp> {
+class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
   late final RouterController _controller = RouterController(widget.client);
   late final preferences = RouterPreferences.fromJson(
     widget.client.readPreferences(),
@@ -65,8 +120,20 @@ class RouterAppState extends State<RouterApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _updateVisible(WidgetsBinding.instance.lifecycleState);
     unawaited(_controller.initialize());
   }
+
+  void _updateVisible(AppLifecycleState? state) => _controller.setVisible(
+    state == null ||
+        state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive,
+  );
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) =>
+      _updateVisible(state);
 
   void updateAppearance({
     ThemeMode? theme,
@@ -98,11 +165,9 @@ class RouterAppState extends State<RouterApp> {
       style: preferences.colorStyle,
       brightness: brightness,
     ).toPureBlack(pureBlack ?? preferences.pureBlack),
-    fontFamily: preferences.fontFamily,
-    fontFamilyFallback: appFontFamilyFallback(
-      platform: defaultTargetPlatform,
-      locales: [?locale, ...WidgetsBinding.instance.platformDispatcher.locales],
-    ),
+    // Web renderers cannot use system fonts; emoji fallback also widens spaces.
+    fontFamily: preferences.fontFamily ?? 'Roboto',
+    fontFamilyFallback: const ['Roboto'],
   ).withAppShapes.withAppSurfaces.withAppTypography;
 
   @override
@@ -180,6 +245,7 @@ class RouterAppState extends State<RouterApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -204,7 +270,7 @@ class _Gate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = RouterScope.of(context);
+    final controller = RouterScope.of(context, aspect: RouterAspect.session);
     if (!controller.initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -259,7 +325,7 @@ class _RouterHomeState extends State<RouterHome> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = RouterScope.of(context);
+    final controller = RouterScope.of(context, aspect: RouterAspect.status);
     final l = AppLocalizations.of(context);
     final mobile = context.isMobileView;
     final preferences = RouterAppState.of(context).preferences;
@@ -353,7 +419,7 @@ class _AccountButton extends StatelessWidget {
   const _AccountButton();
   @override
   Widget build(BuildContext context) {
-    final controller = RouterScope.of(context);
+    final controller = RouterScope.of(context, aspect: RouterAspect.status);
     return IpingAccountMenu(
       email: controller.email,
       site: controller.siteConfig,
@@ -382,6 +448,7 @@ String routerError(BuildContext context, String error) {
     'invalid_subscription' => l.ipingSubscriptionError,
     'storage_error' => l.ipingStorageError,
     'controller_unavailable' => l.memoryCoreNotRunning,
+    'busy' => l.routerBusy,
     _ => error,
   };
 }

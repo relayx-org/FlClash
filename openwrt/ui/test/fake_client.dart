@@ -30,6 +30,7 @@ class FakeRouterClient implements RouterClient {
   bool signedIn;
   String resourceProfileId = 'source/7';
   bool running = true;
+  final started = DateTime.now().subtract(const Duration(minutes: 5));
   String mode = 'rule';
   bool failMode = false;
   final filterErrors = <String, String>{};
@@ -108,6 +109,42 @@ class FakeRouterClient implements RouterClient {
       mode = args['mode']! as String;
     }
     return switch (method) {
+      'probe_route' => {
+        'core-epoch': running ? 1 : 0,
+        'picks-version': 1,
+        'picks': {'PROXY': selected},
+        'proxied': running,
+      },
+      'outbound_ip' => {
+        'url': 'https://www.cloudflare.com/cdn-cgi/trace',
+        'body': 'ip=203.0.113.7\nloc=US\n',
+        'core-epoch': running ? 1 : 0,
+        'picks-version': 1,
+      },
+      'service_check' => [
+        {
+          'name': (args['names'] as List).first,
+          'status': 'available',
+          'delay': 42,
+          'region': 'US',
+          'checked-at': 1700000000000,
+          'core-epoch': running ? 1 : 0,
+          'picks-version': 1,
+        },
+      ],
+      'ip_quality' => {
+        'status': 200,
+        'body': '{"ip":"203.0.113.7","type":"hosting","aso":"Test network"}',
+      },
+      'dashboard' => {
+        'local_ip': '192.168.1.1',
+        'started': running ? started.millisecondsSinceEpoch : 0,
+        'counts': {'groups': 1, 'proxies': 2, 'rules': 3},
+        'settings': {
+          for (final key in ['allow-lan', 'mixed-port', 'tun.enable'])
+            key: settings[key],
+        },
+      },
       'validate_scripts' => [for (final _ in args['scripts']! as List) ''],
       'validate_proxies' => [for (final _ in args['proxies']! as List) ''],
       'validate_filters' => [
