@@ -21,6 +21,7 @@ const updateTargets = {
 
 const releaseDownloads = {
   'ios-arm64',
+  'windows-amd64-zip',
   'macos-amd64-dmg',
   'macos-arm64-dmg',
   'linux-agent-x86_64',
@@ -49,11 +50,13 @@ String? updateArtifactTarget(String name, String version) {
 String? downloadArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
-    r'(ios-arm64\.ipa|macos-(?:amd64|arm64)\.dmg|linux-agent-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
+    r'(ios-arm64\.ipa|windows-amd64\.zip|macos-(?:amd64|arm64)\.dmg|linux-agent-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
   ).firstMatch(name);
   if (match == null) return null;
   final target = p.basenameWithoutExtension(match[1]!);
-  return match[1]!.endsWith('.dmg') ? '$target-dmg' : target;
+  if (match[1]!.endsWith('.dmg')) return '$target-dmg';
+  if (match[1]!.startsWith('windows-')) return '$target-zip';
+  return target;
 }
 
 Future<Map<String, Object>> buildUpdateManifest({

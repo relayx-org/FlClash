@@ -84,6 +84,7 @@ void main() {
         'android-arm64-v8a.apk',
         'android-x86_64.apk',
         'windows-amd64-setup.exe',
+        'windows-amd64.zip',
         'macos-amd64.zip',
         'macos-arm64.zip',
         'linux-amd64.zip',
