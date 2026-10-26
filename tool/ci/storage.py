@@ -46,7 +46,7 @@ class BuildStorage:
                 raise ValueError('Missing MinIO credential: ' + name)
         with tempfile.TemporaryDirectory(prefix='iping-s3-') as temporary:
             config = Path(temporary) / 'config'
-            config.write_text('[default]\nregion = us-east-1\ns3 =\n  addressing_style = path\n  multipart_threshold = 512MB\n')
+            config.write_text('[default]\nregion = us-east-1\ns3 =\n  addressing_style = path\n  multipart_threshold = 512MB\n  preferred_transfer_client = classic\n')
             env = {**os.environ, 'AWS_CONFIG_FILE': str(config), 'AWS_EC2_METADATA_DISABLED': 'true',
                    'AWS_REQUEST_CHECKSUM_CALCULATION': 'WHEN_REQUIRED',
                    'AWS_RESPONSE_CHECKSUM_VALIDATION': 'WHEN_REQUIRED', 'AWS_PAGER': ''}
