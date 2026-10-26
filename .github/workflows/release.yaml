@@ -17,4 +17,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
-        run: gh workflow run build.yaml --repo "$GH_REPO" --ref main -f tag="$TAG"
+        run: |
+          if [[ "$TAG" == *-pre.* ]]; then stable=false; else stable=true; fi
+          gh workflow run build.yaml --repo "$GH_REPO" --ref main -f ref="$TAG" -f publish_stable="$stable"

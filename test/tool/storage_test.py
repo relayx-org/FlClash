@@ -16,7 +16,7 @@ class StorageTest(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        self.store = storage.BuildStorage('12345', 'a' * 40, 'v1.2.3')
+        self.store = storage.BuildStorage('12345', 'a' * 40, '1.2.3+42')
         self.objects = self.root / 'objects'
         self.objects.mkdir()
         def aws(action, source, destination, *options):
@@ -44,13 +44,13 @@ class StorageTest(unittest.TestCase):
 
     def test_different_source_and_unsafe_receipts_are_rejected(self):
         info = {'sha256': hashlib.sha256(b'data').hexdigest(), 'size': 4}
-        receipt = {'sha': 'a' * 40, 'tag': 'v1.2.3', 'files': {'binary': info}}
-        for field, value in [('sha', 'b' * 40), ('tag', 'v1.2.4')]:
+        receipt = {'sha': 'a' * 40, 'version': '1.2.3+42', 'stable': True, 'files': {'binary': info}}
+        for field, value in [('sha', 'b' * 40), ('version', '1.2.4+42'), ('stable', False)]:
             with self.subTest(field=field), self.assertRaises(ValueError):
-                storage.validate_receipt({**receipt, field: value}, self.store.sha, self.store.tag)
+                storage.validate_receipt({**receipt, field: value}, self.store.sha, self.store.version)
         for name in ['../secret', '/etc/passwd', 'C:/file', r'a\b', 'x/../file']:
             with self.subTest(name=name), self.assertRaises(ValueError):
-                storage.validate_receipt({**receipt, 'files': {name: info}}, self.store.sha, self.store.tag)
+                storage.validate_receipt({**receipt, 'files': {name: info}}, self.store.sha, self.store.version)
         with self.assertRaises(ValueError):
             self.store.prefix('../other-run')
 

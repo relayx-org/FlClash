@@ -41,10 +41,10 @@ class OpenWrtReleaseTest(unittest.TestCase):
         self.binaries = self.root / 'binaries'
         self.binaries.mkdir()
 
-    def test_release_version_must_match_the_tag(self):
-        self.assertEqual(release.release_version(self.pubspec, 'v1.2.3-pre.2'), ('1.2.3', '42'))
+    def test_release_version_must_match_the_expected_build(self):
+        self.assertEqual(release.release_version(self.pubspec, '1.2.3+42'), ('1.2.3', '42'))
         with self.assertRaises(ValueError):
-            release.release_version(self.pubspec, 'v1.2.4')
+            release.release_version(self.pubspec, '1.2.4+42')
 
     def test_binary_bundles_are_independent_of_firmware_and_contain_verified_runtime_files(self):
         for arch in release.ARCHITECTURES:

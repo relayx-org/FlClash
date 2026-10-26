@@ -3,23 +3,29 @@ name: linux-agent
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
+      version:
         type: string
         required: true
       ref:
         type: string
         default: ''
+      stable:
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       ref:
         type: string
         default: ''
-      release_tag:
+      version:
         type: string
         default: ''
       build_binaries:
         type: boolean
         default: false
+      stable:
+        type: boolean
+        default: true
       reuse_run_id:
         type: string
         default: ''
@@ -85,7 +91,8 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     env:
       RELEASE_SHA: ${{ inputs.ref || github.sha }}
-      RELEASE_TAG: ${{ inputs.release_tag }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      IS_STABLE: ${{ inputs.stable }}
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
@@ -123,8 +130,8 @@ jobs:
       - name: Set Web release version
         if: inputs.reuse_run_id == ''
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: python3 tool/ci/openwrt_release.py prepare --release-tag "$RELEASE_TAG"
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: python3 tool/ci/openwrt_release.py prepare --release-version "$RELEASE_VERSION"
 
       - name: Resolve native dependencies
         if: inputs.reuse_run_id == ''
@@ -172,7 +179,8 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64]
     env:
       RELEASE_SHA: ${{ inputs.ref || github.sha }}
-      RELEASE_TAG: ${{ inputs.release_tag }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      IS_STABLE: ${{ inputs.stable }}
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       GOMAXPROCS: '4'
@@ -213,9 +221,9 @@ jobs:
       - name: Cross-compile static Agent and reuse the pinned Core binary
         env:
           ARCH: ${{ matrix.arch }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          python3 tool/ci/openwrt_release.py build --arch "$ARCH" --release-tag "$RELEASE_TAG" \
+          python3 tool/ci/openwrt_release.py build --arch "$ARCH" --release-version "$RELEASE_VERSION" \
             --cache "$RUNNER_TOOL_CACHE/iping/openwrt/mihomo"
 
       - name: Save Linux binaries to MinIO

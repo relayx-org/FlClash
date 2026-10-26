@@ -21,13 +21,13 @@ ARCHITECTURES = {
 PAYLOAD = {'agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer', 'version', 'LICENSE'}
 
 
-def release_version(pubspec, tag=''):
+def release_version(pubspec, expected=''):
     match = re.search(r'^version:\s*(\d+\.\d+\.\d+)\+(\d+)\s*$', pubspec.read_text(), re.M)
     if not match or int(match[2]) <= 0:
         raise ValueError('Expected pubspec version MAJOR.MINOR.PATCH+BUILD')
     version, build = match.groups()
-    if tag and not re.fullmatch(r'v' + re.escape(version) + r'(?:-pre\.\d+)?', tag):
-        raise ValueError('Release tag does not match pubspec version')
+    if expected and expected != version + '+' + build:
+        raise ValueError('Release version does not match pubspec version')
     return version, build
 
 
@@ -77,8 +77,8 @@ def fetch_core(arch, cache):
     return archive
 
 
-def bundle(feed, binaries, output, pubspec, arch, tag=''):
-    version, build = release_version(pubspec, tag)
+def bundle(feed, binaries, output, pubspec, arch, expected=''):
+    version, build = release_version(pubspec, expected)
     if arch not in ARCHITECTURES:
         raise ValueError('Unsupported Linux Agent architecture')
     for name in ('agent', 'mihomo'):
@@ -108,8 +108,8 @@ def bundle(feed, binaries, output, pubspec, arch, tag=''):
     return archive
 
 
-def build(feed, output, cache, pubspec, arch, tag=''):
-    release_version(pubspec, tag)
+def build(feed, output, cache, pubspec, arch, expected=''):
+    release_version(pubspec, expected)
     if not (feed / 'iping/src/host_config.go').is_file():
         raise ValueError('The selected source predates Linux Agent host configuration support')
     goarch, _, _ = ARCHITECTURES[arch]
@@ -121,7 +121,7 @@ def build(feed, output, cache, pubspec, arch, tag=''):
                         '-o', str(binaries / 'agent'), '.'], cwd=feed / 'iping/src', env=env, check=True)
         with gzip.open(fetch_core(arch, cache), 'rb') as source, (binaries / 'mihomo').open('wb') as destination:
             shutil.copyfileobj(source, destination)
-        return bundle(feed, binaries, output, pubspec, arch, tag)
+        return bundle(feed, binaries, output, pubspec, arch, expected)
 
 
 def main():
@@ -129,13 +129,13 @@ def main():
     parser.add_argument('action', choices=['build', 'prepare'])
     parser.add_argument('--feed', type=Path, default=Path('openwrt'))
     parser.add_argument('--pubspec', type=Path, default=Path('pubspec.yaml'))
-    parser.add_argument('--release-tag', default='')
+    parser.add_argument('--release-version', default='')
     parser.add_argument('--output', type=Path, default=Path('dist'))
     parser.add_argument('--cache', type=Path, default=Path.home() / '.cache/iping/mihomo')
     parser.add_argument('--arch', choices=ARCHITECTURES)
     args = parser.parse_args()
     if args.action == 'prepare':
-        version, number = release_version(args.pubspec, args.release_tag)
+        version, number = release_version(args.pubspec, args.release_version)
         web = args.feed / 'ui/pubspec.yaml'
         source, count = re.subn(r'^version:.*$', 'version: ' + version + '+' + number, web.read_text(), flags=re.M)
         if count != 1:
@@ -144,7 +144,7 @@ def main():
     else:
         if args.arch is None:
             parser.error('build requires --arch')
-        print(build(args.feed.resolve(), args.output.resolve(), args.cache.resolve(), args.pubspec, args.arch, args.release_tag))
+        print(build(args.feed.resolve(), args.output.resolve(), args.cache.resolve(), args.pubspec, args.arch, args.release_version))
 
 
 if __name__ == '__main__':

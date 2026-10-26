@@ -21,6 +21,8 @@ const updateTargets = {
 
 const releaseDownloads = {
   'ios-arm64',
+  'macos-amd64-dmg',
+  'macos-arm64-dmg',
   'linux-agent-x86_64',
   'linux-agent-aarch64',
   'linux-agent-armv7',
@@ -47,9 +49,11 @@ String? updateArtifactTarget(String name, String version) {
 String? downloadArtifactTarget(String name, String version) {
   final match = RegExp(
     '^iPing-${RegExp.escape(version)}-'
-    r'(ios-arm64\.ipa|linux-agent-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
+    r'(ios-arm64\.ipa|macos-(?:amd64|arm64)\.dmg|linux-agent-(?:x86_64|aarch64|armv7|mips|mipsel)\.zip)$',
   ).firstMatch(name);
-  return match == null ? null : p.basenameWithoutExtension(match[1]!);
+  if (match == null) return null;
+  final target = p.basenameWithoutExtension(match[1]!);
+  return match[1]!.endsWith('.dmg') ? '$target-dmg' : target;
 }
 
 Future<Map<String, Object>> buildUpdateManifest({
@@ -59,10 +63,13 @@ Future<Map<String, Object>> buildUpdateManifest({
   required int buildNumber,
   required Uri baseUrl,
   String notes = '',
+  String sourceCommit = '',
   bool requireComplete = true,
 }) async {
   if (!RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version) ||
       buildNumber <= 0 ||
+      (sourceCommit.isNotEmpty &&
+          !RegExp(r'^[0-9a-f]{40}$').hasMatch(sourceCommit)) ||
       baseUrl.scheme != 'https' ||
       !baseUrl.path.endsWith('/')) {
     throw const FormatException(
@@ -120,6 +127,7 @@ Future<Map<String, Object>> buildUpdateManifest({
     'packageId': 'my.iping.client',
     'version': version,
     'buildNumber': buildNumber,
+    if (sourceCommit.isNotEmpty) 'sourceCommit': sourceCommit,
     'notes': notes,
     'assets': assets,
     'downloads': downloads,
@@ -133,6 +141,10 @@ Future<Map<String, Object>> buildUpdateManifest({
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('artifacts', defaultsTo: 'dist')
+    ..addOption(
+      'source-commit',
+      defaultsTo: Platform.environment['RELEASE_SHA'] ?? '',
+    )
     ..addOption('output', defaultsTo: 'build/update-release')
     ..addOption('base-url', defaultsTo: 'https://video.iping.my/releases/')
     ..addFlag('allow-partial', negatable: false);
@@ -160,6 +172,7 @@ Future<void> main(List<String> args) async {
     buildNumber: int.parse(parts[1]),
     baseUrl: Uri.parse(options['base-url'] as String),
     notes: notes.join('\n'),
+    sourceCommit: options['source-commit'] as String,
     requireComplete: !options['allow-partial'],
   );
   stdout.writeln(

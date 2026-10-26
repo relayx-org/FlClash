@@ -1,13 +1,17 @@
 name: build
-run-name: Release ${{ inputs.tag }}
+run-name: MinIO release ${{ inputs.ref || 'main' }}
 
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: Release tag to build and publish to MinIO
-        required: true
+      ref:
+        description: Commit SHA or branch to build
         type: string
+        default: main
+      publish_stable:
+        description: Update the stable installer and manifest after verification
+        type: boolean
+        default: true
       reuse_run_id:
         description: Previous MinIO build run of the same release source to reuse
         type: string
@@ -17,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: iping-build-${{ inputs.tag }}
+  group: iping-build-${{ inputs.ref }}
   cancel-in-progress: false
 
 env:
@@ -29,29 +33,28 @@ jobs:
   release:
     runs-on: [self-hosted, Linux, X64]
     outputs:
-      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
       sha: ${{ steps.resolve.outputs.sha }}
       stable: ${{ steps.resolve.outputs.stable }}
     steps:
-      - name: Resolve release tag
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'main' }}
+      - name: Resolve the exact source and package version
         id: resolve
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ inputs.tag }}
+          PUBLISH_STABLE: ${{ inputs.publish_stable }}
         run: |
-          set -euo pipefail
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?$ ]]
-          printf 'tag=%s\n' "$TAG" >> "$GITHUB_OUTPUT"
-          for attempt in 1 2 3; do
-            if sha="$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha)"; then break; fi
-            [ "$attempt" -lt 3 ] || exit 1
-            sleep 5
-          done
-          [[ "$sha" =~ ^[0-9a-f]{40}$ ]]
-          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
-          if [[ "$TAG" == *-pre.* ]]; then stable=false; else stable=true; fi
-          printf 'stable=%s\n' "$stable" >> "$GITHUB_OUTPUT"
+          python3 - <<'PYCODE'
+          import os, re, subprocess
+          from pathlib import Path
+          match = re.search(r'^version: (\d+\.\d+\.\d+\+[1-9]\d*)$', Path('pubspec.yaml').read_text(), re.M)
+          if not match:
+              raise ValueError('Invalid application version')
+          sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('sha=' + sha + '\nversion=' + match[1] + '\nstable=' + os.environ['PUBLISH_STABLE'] + '\n')
+          PYCODE
 
   reuse:
     if: inputs.reuse_run_id != ''
@@ -65,7 +68,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
           PREVIOUS_RUN: ${{ inputs.reuse_run_id }}
           RELEASE_SHA: ${{ needs.release.outputs.sha }}
-          RELEASE_TAG: ${{ needs.release.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.release.outputs.version }}
+          IS_STABLE: ${{ needs.release.outputs.stable }}
         run: python3 tool/ci/storage.py check --run "$PREVIOUS_RUN"
 
   build:
@@ -75,7 +79,7 @@ jobs:
     env:
       IS_STABLE: ${{ needs.release.outputs.stable }}
       RELEASE_SHA: ${{ needs.release.outputs.sha }}
-      RELEASE_TAG: ${{ needs.release.outputs.tag }}
+      RELEASE_VERSION: ${{ needs.release.outputs.version }}
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       GRADLE_OPTS: -Dorg.gradle.caching=true
@@ -125,19 +129,10 @@ jobs:
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
-      - name: Validate release tag
+      - name: Validate the pinned release version
         shell: bash
-        env:
-          TAG: ${{ needs.release.outputs.tag }}
         run: |
-          version="$(sed -n 's/^version: *\([^+ ]*\).*/\1/p' pubspec.yaml)"
-          test -n "$version"
-          expected="v$version"
-          if [[ "$TAG" == "$expected" ]] || [[ "$IS_STABLE" != true && "$TAG" == "$expected"-* ]]; then
-            exit 0
-          fi
-          echo "Release tag $TAG does not match pubspec version $version" >&2
-          exit 1
+          test "$(sed -n 's/^version: *//p' pubspec.yaml)" = "$RELEASE_VERSION"
 
       - name: Reuse local Unix build caches
         if: runner.os != 'Windows'
@@ -423,7 +418,8 @@ jobs:
     uses: ./.github/workflows/linux-agent.yaml
     with:
       ref: ${{ needs.release.outputs.sha }}
-      release_tag: ${{ needs.release.outputs.tag }}
+      version: ${{ needs.release.outputs.version }}
+      stable: ${{ inputs.publish_stable }}
       build_binaries: true
       reuse_run_id: ${{ inputs.reuse_run_id }}
     secrets: inherit
@@ -437,7 +433,8 @@ jobs:
       cancel-in-progress: false
     env:
       RELEASE_SHA: ${{ needs.release.outputs.sha }}
-      RELEASE_TAG: ${{ needs.release.outputs.tag }}
+      RELEASE_VERSION: ${{ needs.release.outputs.version }}
+      IS_STABLE: ${{ needs.release.outputs.stable }}
       AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
@@ -489,6 +486,6 @@ jobs:
             bash tool/publish_update.sh
           else
             export IPING_PUBLISH_LATEST=0
-            export IPING_UPDATE_REMOTE="minio:iping/releases/prereleases/$RELEASE_TAG"
-            bash tool/publish_update.sh --base-url "https://video.iping.my/releases/prereleases/$RELEASE_TAG/"
+            export IPING_UPDATE_REMOTE="minio:iping/releases/previews/$GITHUB_RUN_ID"
+            bash tool/publish_update.sh --base-url "https://video.iping.my/releases/previews/$GITHUB_RUN_ID/"
           fi

@@ -17,8 +17,8 @@ def checksum(path):
         return hashlib.file_digest(source, 'sha256').hexdigest()
 
 
-def validate_receipt(receipt, sha, tag):
-    if receipt.get('sha') != sha or receipt.get('tag') != tag or not receipt.get('files'):
+def validate_receipt(receipt, sha, version, stable=True):
+    if receipt.get('sha') != sha or receipt.get('version') != version or receipt.get('stable') != stable or not receipt.get('files'):
         raise ValueError('MinIO build receipt does not match the release source')
     for name, metadata in receipt['files'].items():
         path = PurePosixPath(name)
@@ -30,13 +30,14 @@ def validate_receipt(receipt, sha, tag):
 
 
 class BuildStorage:
-    def __init__(self, run, sha, tag):
+    def __init__(self, run, sha, version):
         if not re.fullmatch(r'[0-9]+', run) or not re.fullmatch(r'[0-9a-f]{40}', sha):
             raise ValueError('Invalid build run or release SHA')
-        if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-pre\.\d+)?', tag):
-            raise ValueError('Invalid release tag')
+        if not re.fullmatch(r'\d+\.\d+\.\d+\+[1-9]\d{0,14}', version):
+            raise ValueError('Invalid release version')
         self.root = f's3://iping/releases/builds/{run}/'
-        self.sha, self.tag = sha, tag
+        self.sha, self.version = sha, version
+        self.stable = os.environ.get('IS_STABLE', 'true') == 'true'
 
     def aws(self, *args):
         for name in ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'):
@@ -61,14 +62,14 @@ class BuildStorage:
             path = Path(temporary) / 'receipt.json'
             self.aws('cp', self.prefix(group) + 'receipt.json', str(path))
             receipt = json.loads(path.read_text())
-        validate_receipt(receipt, self.sha, self.tag)
+        validate_receipt(receipt, self.sha, self.version, self.stable)
         return receipt
 
     def put(self, group, source):
         files = {path.relative_to(source).as_posix(): {'sha256': checksum(path), 'size': path.stat().st_size}
                  for path in sorted(source.rglob('*')) if path.is_file() and not path.is_symlink()}
-        receipt = {'sha': self.sha, 'tag': self.tag, 'files': files}
-        validate_receipt(receipt, self.sha, self.tag)
+        receipt = {'sha': self.sha, 'version': self.version, 'stable': self.stable, 'files': files}
+        validate_receipt(receipt, self.sha, self.version, self.stable)
         self.aws('cp', str(source), self.prefix(group) + 'files/', '--recursive', '--no-follow-symlinks')
         with tempfile.TemporaryDirectory(prefix='iping-receipt-') as temporary:
             path = Path(temporary) / 'receipt.json'
@@ -100,11 +101,11 @@ def main():
     parser.add_argument('--run', default=os.environ.get('GITHUB_RUN_ID', ''))
     parser.add_argument('--reuse-run', default='')
     parser.add_argument('--sha', default=os.environ.get('RELEASE_SHA', ''))
-    parser.add_argument('--tag', default=os.environ.get('RELEASE_TAG', ''))
+    parser.add_argument('--version', default=os.environ.get('RELEASE_VERSION', ''))
     parser.add_argument('--group')
     parser.add_argument('--path', type=Path)
     args = parser.parse_args()
-    storage = BuildStorage(args.run, args.sha, args.tag)
+    storage = BuildStorage(args.run, args.sha, args.version)
     if args.action == 'check':
         for group in NATIVE_GROUPS + ['web']:
             storage.receipt(group)
@@ -112,7 +113,7 @@ def main():
     elif args.action == 'collect':
         if args.path is None:
             parser.error('collect requires --path')
-        native = BuildStorage(args.reuse_run or args.run, args.sha, args.tag)
+        native = BuildStorage(args.reuse_run or args.run, args.sha, args.version)
         for group in NATIVE_GROUPS:
             native.get(group, args.path)
         for group in AGENT_GROUPS + ['installer']:

@@ -90,18 +90,19 @@ uploads, then replaces `latest.json` last. Bump `pubspec.yaml` before each relea
 Use `--allow-partial` only with a separate test bucket/path and base URL; clients
 whose platform is missing cannot install that release.
 
-Pushing a version tag triggers `release.yaml`, which dispatches `build.yaml` on
-`main`. It builds the exact tagged source and publishes directly to MinIO; no GitHub
+Dispatch `build.yaml` with a commit SHA or branch in `ref` (default `main`). It
+resolves that ref once, reads the version from `pubspec.yaml`, and publishes the
+exact commit directly to MinIO; no GitHub
 Release attachments or Actions artifacts are uploaded. Signed iOS IPA and Linux
 Agent ZIPs are included alongside the desktop and Android packages. The Linux Agent
 builds once per CPU family and shares its Web interface between OpenWrt and ordinary
 Linux. The installer selects procd/UCI/cron on OpenWrt and systemd/JSON/timers on Linux.
-`install-linux.sh` is published at the stable download root. Pre-release tags publish
-versioned downloads without changing the stable installer or update manifest.
+`install-linux.sh` is published at the stable download root. `publish_stable=false` publishes preview downloads under a run-specific prefix
+without changing the stable installer or update manifest.
 
 Cross-job Web assets and packages use verified receipts under
-`iping/releases/builds/<run-id>/`. Source SHA, tag, size and SHA-256 are checked before
-reuse. Release objects are immutable and are downloaded for verification before
+`iping/releases/builds/<run-id>/`. Source SHA, full version, build mode, size and SHA-256 are checked before
+reuse. The public manifest records `sourceCommit`; Git tags are optional. Release objects are immutable and are downloaded for verification before
 `latest.json` changes. All jobs share the existing `relayx-org` runners. MinIO ingress
 must permit S3 uploads under `/iping/releases/`; configure `MINIO_ACCESS_KEY_ID` and
 `MINIO_SECRET_ACCESS_KEY` as repository secrets. Credentials stay out of binaries and
@@ -344,30 +345,18 @@ dart run tool/changelog.dart render telegram --out telegram.md
 Releasing a stable version, in order:
 
 ```bash
-tool/bump_version.sh all
-dart run tool/changelog.dart release --version 0.1.0
-git commit -am "chore(release): v0.1.0"
-git tag v0.1.0
-git push origin main && git push origin v0.1.0
-dart run tool/changelog.dart render release --tag v0.1.0 --out /tmp/iping-release.md
-gh workflow run build.yaml --repo relayx-org/FlClash --ref main -f tag=v0.1.0 # manual retry only
+tool/bump_version.sh minor # use all when also bumping the app patch version
+git commit -am "chore(release): bump build number"
+git push origin main
+gh workflow run build.yaml --repo relayx-org/FlClash --ref main -f ref="$(git rev-parse HEAD)"
 ```
 
-Push the tag by name: `--follow-tags` does not carry lightweight tags. The tag push
-starts the MinIO release workflow; a GitHub Release is not required.
+No new Git tag or GitHub Release is required. `release.yaml` remains an optional
+tag-push shortcut and passes that ref to the same workflow. Existing tags are not
+moved when rebuilding a pending MinIO release.
 
-`tool/release.sh` drives both paths so the ordering below cannot be got wrong by hand. It resolves the version (bumping
-the patch when pubspec still names an already tagged one), prints the notes the tag would ship, and only pushes with
-`--push`. It prepares and pushes the tag, which starts the MinIO build:
-
-```bash
-tool/release.sh pre --dry-run     # plan and notes, changes nothing
-tool/release.sh pre --push        # bump, tag vX.Y.Z-pre.N, push
-tool/release.sh stable --push     # changelog, chore(release) commit, tag, push
-```
-
-The release commit comes before the tag on purpose: the generated wording is reviewable in the diff before it ships, and
-the tag is what `render release` reads. CI never writes back to the repository; verify the changelog locally before publishing. Wording in
+The changelog renderer can still use Git tags for historical release notes.
+CI never writes back to the repository; verify the changelog locally before publishing. Wording in
 `changelog.json` may be edited by hand as long as no derivable entry disappears and every entry still points at a commit
 inside that version's range.
 
@@ -425,10 +414,9 @@ flutter analyze --no-fatal-infos
 flutter test test/iping/
 ```
 
-Use the covering test suites listed above for other changes. Pushing a version tag
-triggers `release.yaml`, which dispatches `build.yaml` on `main`. Native source comes
-from the exact tag; signing, storage and manifest tooling come from the CI commit.
-Manual retries dispatch `build.yaml` with the same tag. Downloads and checksums go
+Use the covering test suites listed above for other changes. `build.yaml` resolves
+the requested ref to an immutable commit; signing, storage and manifest tooling come
+from the CI commit. Manual retries use that same source ref. Downloads and checksums go
 directly to MinIO; only successful stable builds replace its update manifest.
 
 ### Self-hosted Release Builds
@@ -455,8 +443,8 @@ Temporary signing keys are removed after each job without discarding
 other jobs' entries in the Mac keychain search list.
 
 To resume a release after changing only CI tooling, dispatch `build.yaml` with the same
-`tag` and `reuse_run_id` of a completed MinIO build. Receipts must match the release
-SHA and tag. It reuses the native and Web files from MinIO and rebuilds the binary
+`ref` and `reuse_run_id` of a completed MinIO build. Receipts must match the source
+SHA, full version and stable/preview mode. It reuses the native and Web files from MinIO and rebuilds the binary
 installer and five Linux Agent targets.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,

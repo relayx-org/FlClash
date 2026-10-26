@@ -16,6 +16,7 @@ void main() {
       final output = Directory('${directory.path}/output');
       for (final name in [
         'iPing-1.2.3-macos-arm64.zip',
+        'iPing-1.2.3-macos-arm64.dmg',
         'iPing-1.2.3-linux-agent-mipsel.zip',
         'iPing-1.2.3-linux-agent-aarch64.zip',
         'install-linux.sh',
@@ -29,6 +30,11 @@ void main() {
         buildNumber: 42,
         baseUrl: Uri.parse('https://video.iping.my/releases/'),
         requireComplete: false,
+        sourceCommit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      );
+      expect(
+        manifest['sourceCommit'],
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       );
       final downloads = manifest['downloads']! as Map;
       expect(
@@ -85,6 +91,8 @@ void main() {
         'linux-amd64.rpm',
         'linux-amd64.AppImage',
         'ios-arm64.ipa',
+        'macos-amd64.dmg',
+        'macos-arm64.dmg',
         'linux-agent-x86_64.zip',
         'linux-agent-aarch64.zip',
         'linux-agent-armv7.zip',
