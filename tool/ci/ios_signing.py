@@ -89,6 +89,16 @@ def verify_signing_key(directory, identity, keychain):
         binary.unlink(missing_ok=True)
 
 
+def activate(directory):
+    keychain = str(directory / 'signing.keychain-db')
+    if not Path(keychain).is_file():
+        raise ValueError('The temporary iOS signing keychain is missing')
+    identity = plistlib.loads((directory / 'ExportOptions.plist').read_bytes())['signingCertificate']
+    run('security', 'list-keychains', '-d', 'user', '-s', keychain,
+        *(path for path in keychains() if path != keychain))
+    verify_signing_key(directory, identity, keychain)
+
+
 def prepare(directory):
     os.umask(0o077)
     profiles = []
@@ -129,10 +139,9 @@ def prepare(directory):
             installed.append(str(destination))
             state.write_text(json.dumps(installed))
             shutil.copyfile(source, destination)
-    run('security', 'list-keychains', '-d', 'user', '-s', *keychains(), keychain)
-    verify_signing_key(directory, identity, keychain)
     options = directory / 'ExportOptions.plist'
     options.write_bytes(plistlib.dumps(export_options(profiles, identity)))
+    activate(directory)
     with open(os.environ['GITHUB_ENV'], 'a') as environment:
         environment.write(f'EXPORT_OPTIONS_PLIST={options}\n')
     print('Prepared iOS distribution signing for Runner and PacketTunnel')
@@ -159,4 +168,4 @@ if __name__ == '__main__':
     if (directory.parent != Path(os.environ['RUNNER_TEMP']).resolve()
             or not directory.name.startswith('iping-ios-signing-')):
         raise ValueError('Use an isolated iPing signing directory inside RUNNER_TEMP')
-    {'prepare': prepare, 'cleanup': cleanup}[sys.argv[1]](directory)
+    {'prepare': prepare, 'activate': activate, 'cleanup': cleanup}[sys.argv[1]](directory)

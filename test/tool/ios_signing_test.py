@@ -2,7 +2,10 @@ import copy
 from datetime import datetime, timezone
 import importlib.util
 from pathlib import Path
+import plistlib
+import tempfile
 import unittest
+from unittest.mock import patch
 
 
 spec = importlib.util.spec_from_file_location(
@@ -67,6 +70,23 @@ class SigningTests(unittest.TestCase):
                 mutate(profiles)
                 with self.assertRaises(ValueError):
                     signing.validate_profiles(profiles, self.now)
+
+    def test_activation_prioritizes_its_keychain_and_preserves_other_jobs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            keychain = str(directory / 'signing.keychain-db')
+            Path(keychain).touch()
+            (directory / 'ExportOptions.plist').write_bytes(plistlib.dumps({
+                'signingCertificate': 'distribution identity',
+            }))
+            others = ['/tmp/other job.keychain-db', '/Users/runner/login.keychain-db']
+            with (patch.object(signing, 'keychains', return_value=[*others, keychain]),
+                  patch.object(signing, 'run') as run,
+                  patch.object(signing, 'verify_signing_key') as verify):
+                signing.activate(directory)
+                run.assert_called_once_with('security', 'list-keychains', '-d', 'user', '-s',
+                                            keychain, *others)
+                verify.assert_called_once_with(directory, 'distribution identity', keychain)
 
 
 if __name__ == '__main__':

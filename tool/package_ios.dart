@@ -33,13 +33,23 @@ List<String> createIosExportArguments({
 Future<void> exportSignedIosArchive({
   required String rootDir,
   required String exportOptionsPlist,
-}) => _run(
-  '/usr/bin/xcrun',
-  createIosExportArguments(
-    rootDir: rootDir,
-    exportOptionsPlist: exportOptionsPlist,
-  ),
-);
+}) async {
+  final signingDirectory = Platform.environment['IOS_SIGNING_DIR'];
+  if (signingDirectory != null && signingDirectory.isNotEmpty) {
+    await _run('python3', [
+      p.join(rootDir, 'tool', 'ci', 'ios_signing.py'),
+      'activate',
+      signingDirectory,
+    ]);
+  }
+  await _run(
+    '/usr/bin/xcrun',
+    createIosExportArguments(
+      rootDir: rootDir,
+      exportOptionsPlist: exportOptionsPlist,
+    ),
+  );
+}
 
 Future<void> packageSignedIosIpa({
   required Directory exports,
