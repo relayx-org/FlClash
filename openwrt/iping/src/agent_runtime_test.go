@@ -410,8 +410,10 @@ func TestWebAccessNeedsNoOwnerKeyAndKeepsLoginBrowserBound(t *testing.T) {
 	if response, result := request("/api/status", server.URL, `{}`, cookie); response.StatusCode != 200 || result["ok"] != true || len(response.Cookies()) != 0 {
 		t.Fatal("browser session was not reused")
 	}
-	if response, _ := request("/api/session", server.URL, `{}`, nil); response.StatusCode != 404 {
-		t.Fatal("removed access-key endpoint is still available")
+	for _, path := range []string{"/api/session", "/api/web_diagnostics"} {
+		if response, _ := request(path, server.URL, `{}`, nil); response.StatusCode != 404 {
+			t.Fatalf("removed endpoint %s is still available", path)
+		}
 	}
 	for _, origin := range []string{"http://evil.test", ""} {
 		if response, _ := request("/api/status", origin, `{}`, cookie); response.StatusCode != 403 {

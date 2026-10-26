@@ -17,10 +17,7 @@ import (
 )
 
 func browserSession(w http.ResponseWriter, r *http.Request) (string, error) {
-	name := "iping_session"
-	if r.TLS != nil {
-		name = "iping_secure_session"
-	}
+	const name = "iping_session"
 	if cookie, err := r.Cookie(name); err == nil && sessionID.MatchString(cookie.Value) && strings.Trim(cookie.Value, "0") != "" {
 		return cookie.Value, nil
 	}
@@ -29,17 +26,13 @@ func browserSession(w http.ResponseWriter, r *http.Request) (string, error) {
 		return "", err
 	}
 	id := hex.EncodeToString(random[:])
-	http.SetCookie(w, &http.Cookie{Name: name, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.TLS != nil, MaxAge: 12 * 60 * 60})
+	http.SetCookie(w, &http.Cookie{Name: name, Value: id, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 12 * 60 * 60})
 	return id, nil
 }
 
 func sameOrigin(r *http.Request) bool {
 	origin, err := url.Parse(r.Header.Get("Origin"))
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	return err == nil && origin.Scheme == scheme && origin.Host == r.Host && origin.Path == "" && origin.User == nil
+	return err == nil && origin.Scheme == "http" && origin.Host == r.Host && origin.Path == "" && origin.User == nil
 }
 
 func privateClient(r *http.Request) bool {
@@ -61,12 +54,7 @@ func webReply(w http.ResponseWriter, status int, data any, err error) {
 func (a *app) webHandler() http.Handler {
 	mime.AddExtensionType(".wasm", "application/wasm")
 	files := webAssets(webui.Files())
-	diagnostics := &webDiagnostics{}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.TLS != nil {
-			w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-			w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-		}
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -81,10 +69,6 @@ func (a *app) webHandler() http.Handler {
 			}
 			if r.Method != http.MethodPost {
 				webReply(w, 405, nil, failure("invalid_request"))
-				return
-			}
-			if r.URL.Path == "/api/web_diagnostics" {
-				diagnostics.serveHTTP(w, r)
 				return
 			}
 			method := strings.TrimPrefix(r.URL.Path, "/api/")
@@ -120,19 +104,13 @@ func (a *app) webHandler() http.Handler {
 }
 
 func (a *app) webAddress(ctx context.Context) (string, error) {
-	return a.webListenAddress(ctx, "web_listen", "0.0.0.0:19091", 1024)
-}
-
-func (a *app) webListenAddress(ctx context.Context, setting, address string, minimum int) (string, error) {
-	if value, err := a.configValue(ctx, setting); err == nil {
+	address := "0.0.0.0:19091"
+	if value, err := a.configValue(ctx, "web_listen"); err == nil {
 		address = value
-	}
-	if address == "" && setting == "web_tls_listen" {
-		return "", nil
 	}
 	host, port, err := net.SplitHostPort(address)
 	number, parseErr := strconv.Atoi(port)
-	if err != nil || parseErr != nil || number < minimum || number > 65535 || net.ParseIP(host) == nil {
+	if err != nil || parseErr != nil || number < 1024 || number > 65535 || net.ParseIP(host) == nil {
 		return "", failure("invalid_request")
 	}
 	return address, nil

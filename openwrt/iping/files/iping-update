@@ -277,7 +277,6 @@ activate_binaries() {
         fi
     else
         install_systemd_units
-        if [ -z "$(config_get web_tls_listen || true)" ]; then config_set web_tls_listen '0.0.0.0:19092'; fi
     fi
 }
 
@@ -287,10 +286,6 @@ show_address() {
     address=${address:-127.0.0.1}
     listener=$(config_get web_listen || echo '0.0.0.0:19091')
     echo "iPing is ready: http://$address:${listener##*:}/"
-    secure_listener=$(config_get web_tls_listen || true)
-    if [ -n "$secure_listener" ]; then
-        echo "HTTPS: https://$address:${secure_listener##*:}/"
-    fi
     echo 'Open the address and sign in with your iPing account.'
 }
 

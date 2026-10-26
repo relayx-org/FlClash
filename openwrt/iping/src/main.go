@@ -332,7 +332,7 @@ func configurationCLI(args []string) error {
 		return failure("invalid_request")
 	}
 	switch args[1] {
-	case "site", "enabled", "web_listen", "web_tls_listen", "auto_update", "update_url", "update_minute":
+	case "site", "enabled", "web_listen", "auto_update", "update_url", "update_minute":
 	default:
 		return failure("invalid_request")
 	}

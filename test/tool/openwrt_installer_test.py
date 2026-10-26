@@ -240,7 +240,6 @@ exit "$status"
         self.assertIn('systemctl daemon-reload', events)
         self.assertIn('systemctl enable --now iping-update.timer', events)
         self.assertIn('http://192.168.1.2:19091/', result.stdout)
-        self.assertIn('HTTPS: https://192.168.1.2:19092/', result.stdout)
         self.assertNotIn('# iping-auto-update', (self.result / 'crontab').read_text())
         self.assertEqual((self.result / 'timer-unit').read_text().strip(), 'regular')
         result = self.run_installer('sh /installer; sh /installer auto off; sh /installer auto on')
@@ -248,11 +247,6 @@ exit "$status"
         result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn('service start', self.events())
-
-    def test_installer_prints_the_configured_https_address(self):
-        result = self.run_installer(extra="echo '0.0.0.0:19092' > /result/uci/iping.config.web_tls_listen")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn('HTTPS: https://192.168.1.1:19092/', result.stdout)
 
     def test_checksums_and_space_are_checked_before_stopping_the_service(self):
         for failure in ['archive', 'package', 'space', 'url', 'schema']:

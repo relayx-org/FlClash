@@ -62,9 +62,7 @@
 		const current = { popup, resolve, reject };
 		login = current;
 		current.timeout = setTimeout(window.ipingCancelSignIn, 5 * 60 * 1000);
-		if (!window.crossOriginIsolated) {
-			current.closedTimer = setInterval(() => { if (popup.closed) window.ipingCancelSignIn(); }, 500);
-		}
+		current.closedTimer = setInterval(() => { if (popup.closed) window.ipingCancelSignIn(); }, 500);
 		request('begin_login', { redirect_uri: new URL('/iping-login.html', location.origin).href }).then(data => {
 			if (login !== current) return;
 			current.state = data.state;
