@@ -88,7 +88,9 @@ class BuildStorage:
         rows = [row for row in NATIVE_TARGETS
                 if previous is None or not self.reuse(previous, row['platform'] + '-' + row['arch'])]
         web = previous is not None and self.reuse(previous, 'web')
-        return {'include': rows}, web
+        agents = [{'arch': group.removeprefix('agent-')} for group in AGENT_GROUPS
+                  if previous is None or not self.reuse(previous, group)]
+        return {'include': rows}, web, {'include': agents}
 
     def put(self, group, source):
         files = {path.relative_to(source).as_posix(): {'sha256': checksum(path), 'size': path.stat().st_size}
@@ -102,23 +104,40 @@ class BuildStorage:
             self.aws('cp', str(path), self.prefix(group) + 'receipt.json')
         print(f'Saved {group}: {len(files)} files to MinIO')
 
-    def get(self, group, destination):
+    def get(self, group, destination, cache=None):
         receipt = self.receipt(group)
         destination.mkdir(parents=True, exist_ok=True)
+        def verified(folder):
+            return all(not (folder / name).is_symlink() and (folder / name).is_file()
+                       and (folder / name).stat().st_size == metadata['size']
+                       and checksum(folder / name) == metadata['sha256']
+                       for name, metadata in receipt['files'].items())
+        cached = cache / hashlib.sha256(json.dumps(receipt, sort_keys=True).encode()).hexdigest() if cache else None
         with tempfile.TemporaryDirectory(prefix='iping-download-', dir=destination.parent) as temporary:
             stage = Path(temporary)
-            self.aws('cp', self.prefix(group) + 'files/', str(stage), '--recursive')
+            if cached is not None and verified(cached):
+                stage = cached
+                print('Reused verified local package cache: ' + group)
+            else:
+                self.aws('cp', self.prefix(group) + 'files/', str(stage), '--recursive')
+                if not verified(stage):
+                    raise ValueError('MinIO build group failed verification: ' + group)
+                if cached is not None:
+                    if cached.exists():
+                        shutil.rmtree(cached)
+                    shutil.copytree(stage, cached)
             for name, metadata in receipt['files'].items():
                 path = stage / name
-                if path.is_symlink() or not path.is_file() or path.stat().st_size != metadata['size'] or checksum(path) != metadata['sha256']:
-                    raise ValueError('MinIO build file failed verification: ' + name)
                 target = destination / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 if target.exists():
                     if target.is_file() and checksum(target) == metadata['sha256']:
                         continue
                     raise ValueError('Different build files share a path: ' + name)
-                shutil.move(str(path), target)
+                if stage == cached:
+                    shutil.copyfile(path, target)
+                else:
+                    shutil.move(str(path), target)
         print(f'Loaded and verified {group}: {len(receipt["files"])} files from MinIO')
 
 
@@ -131,13 +150,15 @@ def main():
     parser.add_argument('--version', default=os.environ.get('RELEASE_VERSION', ''))
     parser.add_argument('--group')
     parser.add_argument('--path', type=Path)
+    parser.add_argument('--cache', type=Path)
     args = parser.parse_args()
     storage = BuildStorage(args.run, args.sha, args.version)
     if args.action == 'plan':
         previous = BuildStorage(args.reuse_run, args.sha, args.version) if args.reuse_run else None
-        matrix, web = storage.plan(previous)
+        matrix, web, agents = storage.plan(previous)
         with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
-            output.write('matrix=' + json.dumps(matrix, separators=(',', ':')) + '\nweb=' + str(web).lower() + '\n')
+            output.write('matrix=' + json.dumps(matrix, separators=(',', ':')) + '\nweb=' + str(web).lower()
+                         + '\nagents=' + json.dumps(agents, separators=(',', ':')) + '\n')
         print(f'{len(matrix["include"])} native build targets remain')
     elif args.action == 'check':
         for group in NATIVE_GROUPS + ['web']:
@@ -147,9 +168,9 @@ def main():
         if args.path is None:
             parser.error('collect requires --path')
         for group in NATIVE_GROUPS:
-            storage.get(group, args.path)
+            storage.get(group, args.path, args.cache)
         for group in AGENT_GROUPS + ['installer']:
-            storage.get(group, args.path)
+            storage.get(group, args.path, args.cache)
     else:
         if args.group is None or args.path is None:
             parser.error('put/get require --group and --path')

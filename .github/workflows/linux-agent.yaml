@@ -29,6 +29,9 @@ on:
       reuse_web:
         type: boolean
         default: false
+      agent_matrix:
+        type: string
+        default: '{"include":[{"arch":"x86_64"},{"arch":"aarch64"},{"arch":"armv7"},{"arch":"mips"},{"arch":"mipsel"}]}'
   pull_request:
     paths:
       - 'lib/**'
@@ -172,7 +175,7 @@ jobs:
           python3 tool/ci/storage.py put --group installer --path "$RUNNER_TEMP/iping-installer"
 
   binaries:
-    if: ${{ github.event_name == 'workflow_dispatch' || inputs.build_binaries }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || inputs.build_binaries) && inputs.agent_matrix != '{"include":[]}' }}
     needs: [ui, agent]
     runs-on: [self-hosted, macOS, ARM64]
     env:
@@ -186,8 +189,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 2
-      matrix:
-        arch: [x86_64, aarch64, armv7, mips, mipsel]
+      matrix: ${{ fromJSON(inputs.agent_matrix || '{"include":[{"arch":"x86_64"},{"arch":"aarch64"},{"arch":"armv7"},{"arch":"mips"},{"arch":"mipsel"}]}') }}
     steps:
       - uses: actions/checkout@v4
         with:

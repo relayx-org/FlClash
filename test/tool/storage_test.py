@@ -65,11 +65,13 @@ class StorageTest(unittest.TestCase):
             if group != 'windows-amd64':
                 self.store.put(group, source)
         self.store.put('web', source)
+        self.store.put('agent-x86_64', source)
         resumed = storage.BuildStorage('67890', self.store.sha, self.store.version)
         resumed.aws = self.store.aws
-        matrix, web = resumed.plan(self.store)
+        matrix, web, agents = resumed.plan(self.store)
         self.assertEqual([row['platform'] for row in matrix['include']], ['windows'])
         self.assertTrue(web)
+        self.assertEqual([row['arch'] for row in agents['include']], ['aarch64', 'armv7', 'mips', 'mipsel'])
         resumed.get('linux-amd64', self.root / 'resumed')
         self.assertEqual((self.root / 'resumed/file').read_bytes(), b'data')
 
@@ -86,6 +88,34 @@ class StorageTest(unittest.TestCase):
             self.store.put('web', source)
         self.assertEqual(len(calls), 1)
         self.assertNotIn('receipt.json', str(calls[0]))
+
+    def test_local_cache_verifies_bytes_and_follows_the_current_receipt(self):
+        source = self.root / 'source'
+        source.mkdir()
+        (source / 'file').write_bytes(b'first build')
+        self.store.put('linux-amd64', source)
+        cache = self.root / 'cache'
+        calls = []
+        aws = self.store.aws
+        def counted_aws(*args, **kwargs):
+            calls.append(args)
+            return aws(*args, **kwargs)
+        self.store.aws = counted_aws
+        self.store.get('linux-amd64', self.root / 'first', cache)
+        calls.clear()
+        self.store.get('linux-amd64', self.root / 'second', cache)
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(calls[0][1].endswith('receipt.json'))
+        self.assertEqual((self.root / 'second/file').read_bytes(), b'first build')
+        next(cache.glob('*/file')).write_bytes(b'bad cache')
+        calls.clear()
+        self.store.get('linux-amd64', self.root / 'repaired', cache)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual((self.root / 'repaired/file').read_bytes(), b'first build')
+        (source / 'file').write_bytes(b'new build')
+        self.store.put('linux-amd64', source)
+        self.store.get('linux-amd64', self.root / 'changed', cache)
+        self.assertEqual((self.root / 'changed/file').read_bytes(), b'new build')
 
 
 if __name__ == '__main__':

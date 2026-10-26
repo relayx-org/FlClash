@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 remote="${IPING_UPDATE_REMOTE:-minio:iping/releases}"
 staging="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/iping-release.XXXXXX")"
 trap 'rm -rf "$staging"' EXIT
-dart run tool/update_manifest.dart --output "$staging" "$@"
+dart --disable-dart-dev --packages=.dart_tool/package_config.json tool/update_manifest.dart --output "$staging" "$@"
 version="$(python3 - "$staging/latest.json" <<'PY'
 import json,sys
 m=json.load(open(sys.argv[1]))

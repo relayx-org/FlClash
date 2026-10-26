@@ -62,6 +62,7 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       web: ${{ steps.plan.outputs.web }}
+      agents: ${{ steps.plan.outputs.agents }}
     steps:
       - uses: actions/checkout@v4
       - name: Reuse completed MinIO build groups and select remaining targets
@@ -415,6 +416,7 @@ jobs:
       stable: ${{ inputs.publish_stable }}
       build_binaries: true
       reuse_web: ${{ needs.plan.outputs.web == 'true' }}
+      agent_matrix: ${{ needs.plan.outputs.agents }}
     secrets: inherit
 
   publish-minio:
@@ -448,7 +450,7 @@ jobs:
             git show "$TOOLS_SHA:$path" > "$path"
           done
       - name: Load verified release packages from MinIO
-        run: python3 tool/ci/storage.py collect --path dist
+        run: python3 tool/ci/storage.py collect --path dist --cache "$RUNNER_TOOL_CACHE/iping/release-packages"
       - name: Use local package cache
         run: |
           mkdir -p "$RUNNER_TOOL_CACHE/iping/pub"
