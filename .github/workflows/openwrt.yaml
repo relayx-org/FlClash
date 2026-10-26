@@ -36,6 +36,8 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     env:
       GOROOT: ''
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,7 +57,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
-          cache-dependency-path: openwrt/iping/src/go.sum
+          cache: false
       - name: Check Agent lifecycle and shared profile contract
         working-directory: openwrt/iping/src
         run: |
@@ -69,6 +71,9 @@ jobs:
     env:
       FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
       GOROOT: ''
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CARGO_BUILD_JOBS: '2'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,7 +83,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
-          cache-dependency-path: core/go.sum
+          cache: false
 
       - uses: subosito/flutter-action@v2
         with:
@@ -132,7 +137,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 1
       matrix:
         branch: [openwrt-24.10, openwrt-25.12]
         arch:
@@ -170,6 +175,8 @@ jobs:
           PACKAGES: iping-mihomo iping
           NO_REFRESH_CHECK: true
           V: s
+          GOMAXPROCS: '2'
+          GOFLAGS: -p=2
 
       - name: Bundle matching Agent and Core packages
         env:

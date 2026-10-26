@@ -451,9 +451,10 @@ The Core hook and package filenames follow that selection; Rust also needs
 Flutter hook/build caches, Rust targets, Pub, Gradle and npm under
 `RUNNER_TOOL_CACHE/iping`, outside the cleaned checkout. Build caches are separated
 by platform, architecture and checkout path; installed SDKs, Go caches and Cargo packages stay
-on the runner. Remote Actions caches are disabled. One runner per host serializes
-jobs on that machine. Temporary signing keys are removed and the Mac keychain
-search list is restored after every job.
+on the runner. Remote Actions caches are disabled. Linux Go, Rust and Gradle builds
+use two workers, and OpenWrt SDK jobs run one at a time to bound the load on the
+shared host. Temporary signing keys are removed after each job without discarding
+other jobs' entries in the Mac keychain search list.
 
 The repository lives at `relayx-org/FlClash` and shares the existing Debian,
 Windows and Mac Studio organization runners. Their deployment sources live in

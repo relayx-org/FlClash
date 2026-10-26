@@ -24,6 +24,8 @@ if [ "${RUNNER_OS:-}" = Linux ]; then
   mkdir -p "$base/go" "$base/go-build"
   {
     printf 'GOPATH=%s/go\nGOCACHE=%s/go-build\n' "$base" "$base"
+    printf 'GOMAXPROCS=2\nGOFLAGS=-p=2\nCARGO_BUILD_JOBS=2\n'
+    printf 'GRADLE_OPTS=%s -Dorg.gradle.workers.max=2\n' "${GRADLE_OPTS:-}"
   } >> "$GITHUB_ENV"
 fi
 echo 'Reusing local build and package caches outside the checkout.'
