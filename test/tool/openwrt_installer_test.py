@@ -152,10 +152,21 @@ cp /etc/crontabs/root /result/crontab
 cat /usr/share/iping/version > /result/version 2>/dev/null || true
 exit "$status"
 '''
-        return subprocess.run(['docker', 'run', '--rm', '--network', 'none',
-                               '-v', f'{SCRIPT}:/installer:ro', '-v', f'{fixture}:/fixture:ro',
-                               '-v', f'{self.result}:/result', IMAGE, 'sh', '-c', bootstrap],
-                              capture_output=True, text=True, timeout=45)
+        container = subprocess.check_output(
+            ['docker', 'create', '--network', 'none', IMAGE, 'sh', '-c', bootstrap],
+            text=True).strip()
+        try:
+            for source, destination in [(SCRIPT, '/installer'), (fixture, '/fixture'),
+                                        (self.result, '/result')]:
+                subprocess.run(['docker', 'cp', str(source), f'{container}:{destination}'],
+                               capture_output=True, check=True)
+            result = subprocess.run(['docker', 'start', '--attach', container],
+                                    capture_output=True, text=True, timeout=45)
+            subprocess.run(['docker', 'cp', f'{container}:/result/.', str(self.result)],
+                           capture_output=True, check=True)
+            return result
+        finally:
+            subprocess.run(['docker', 'rm', '--force', container], capture_output=True)
 
     def events(self):
         return (self.result / 'events').read_text()
