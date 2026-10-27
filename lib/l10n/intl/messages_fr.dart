@@ -135,7 +135,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m43(host) => "DNS système · ${host}";
 
   static String m44(version) =>
-      "Installez la version ${version} pour continuer à utiliser iPing.";
+      "La version ${version} est disponible. Vous pouvez mettre à jour maintenant ou plus tard.";
 
   static String m45(id) => "Identifiant utilisateur ${id}";
 
@@ -1357,22 +1357,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
       "Installez la mise à jour dans l’App Store, puis rouvrez iPing.",
     ),
+    "ipingUpdateAvailableDesc": m44,
+    "ipingUpdateCheckFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible de rechercher des mises à jour. Vérifiez votre connexion et réessayez.",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "La mise à jour a échoué. Vérifiez la connexion et les autorisations d’installation, puis réessayez.",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "Confirmez les demandes d’installation du système. L’application redémarrera après la mise à jour.",
     ),
+    "ipingUpdateLater": MessageLookupByLibrary.simpleMessage("Plus tard"),
     "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
       "Télécharger manuellement",
     ),
     "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
       "Mettre à jour dans l’App Store",
     ),
-    "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage(
-      "Mise à jour requise",
-    ),
-    "ipingUpdateRequiredDesc": m44,
     "ipingUserId": m45,
     "ipingVersion": m46,
     "ipingWelcome": m47,

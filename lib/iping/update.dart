@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -12,7 +11,6 @@ import 'package:ota_update/ota_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'update_installer.dart';
@@ -210,7 +208,6 @@ class IpingUpdater extends ChangeNotifier {
     required PackageInfo Function() current,
     required this.target,
     required this.client,
-    required this.onRequired,
     required this.beforeInstall,
     required this.exitApplication,
     this.enabled = kReleaseMode && !safeModeBuild,
@@ -224,7 +221,6 @@ class IpingUpdater extends ChangeNotifier {
   PackageInfo get current => _current();
   final Future<String> target;
   final IpingUpdateClient client;
-  final Future<void> Function() onRequired;
   final Future<void> Function() beforeInstall;
   final Future<void> Function() exitApplication;
   final bool enabled;
@@ -238,68 +234,33 @@ class IpingUpdater extends ChangeNotifier {
   Future<void>? _pending;
   StreamSubscription<OtaEvent>? _otaSubscription;
   Completer<void>? _otaCompletion;
-  SharedPreferences? _preferences;
-  String? _cacheKey;
+  bool checkFailed = false;
 
-  bool get required => update != null;
-
-  Future<void> initialize() async {
-    if (!enabled) return;
-    try {
-      final selected = await target;
-      _preferences = await SharedPreferences.getInstance();
-      if (_disposed) return;
-      _cacheKey = 'iping.requiredUpdate:${client.baseUrl}:$selected';
-      final cached = _preferences!.getString(_cacheKey!);
-      if (cached != null) {
-        final saved = IpingUpdate.fromJson(
-          jsonDecode(cached) as Map<String, dynamic>,
-        );
-        if (saved.isNewerThan(current)) {
-          update = saved;
-          notifyListeners();
-          await onRequired();
-        } else {
-          await _preferences!.remove(_cacheKey!);
-        }
-      }
-    } catch (error) {
-      commonPrint.log(
-        'Unable to restore pending update: ${compactError(error)}',
-      );
-    }
-    if (!_disposed) await check();
-  }
+  bool get checking => _pending != null;
 
   Future<void> check() {
     if (!enabled || _disposed || busy) return Future.value();
-    return _pending ??= _check().whenComplete(() => _pending = null);
+    if (_pending case final pending?) return pending;
+    final operation = Future<void>.microtask(_check).whenComplete(() {
+      _pending = null;
+      if (!_disposed) notifyListeners();
+    });
+    _pending = operation;
+    checkFailed = false;
+    notifyListeners();
+    return operation;
   }
 
   Future<void> _check() async {
     try {
       final next = await client.check(await target, current);
-      if (_disposed || next == null) return;
-      if (update != null &&
-          compareVersions(
-                '${next.version}+${next.buildNumber}',
-                '${update!.version}+${update!.buildNumber}',
-              ) <
-              0) {
-        return;
-      }
+      if (_disposed) return;
       update = next;
       failed = false;
-      notifyListeners();
-      if (_cacheKey != null) {
-        await _preferences!.setString(_cacheKey!, jsonEncode(next.toJson()));
-      }
-      await onRequired();
     } catch (error) {
       if (_disposed) return;
       commonPrint.log('Unable to check for updates: ${compactError(error)}');
-      failed = required;
-      notifyListeners();
+      checkFailed = true;
     }
   }
 
@@ -313,7 +274,7 @@ class IpingUpdater extends ChangeNotifier {
 
   Future<void> install({PasswordPrompt? askPassword}) async {
     final release = update;
-    if (release == null || busy || _disposed) return;
+    if (!enabled || release == null || busy || checking || _disposed) return;
     busy = true;
     failed = false;
     progress = release.isAppStore ? null : 0;

@@ -8227,24 +8227,29 @@ class AppLocalizations {
     );
   }
 
-  /// `Update required`
-  String get ipingUpdateRequired {
+  /// `Version {version} is available. You can update now or later.`
+  String ipingUpdateAvailableDesc(Object version) {
     return Intl.message(
-      'Update required',
-      name: 'ipingUpdateRequired',
+      'Version $version is available. You can update now or later.',
+      name: 'ipingUpdateAvailableDesc',
+      desc: '',
+      args: [version],
+    );
+  }
+
+  /// `Unable to check for updates. Check your connection and try again.`
+  String get ipingUpdateCheckFailed {
+    return Intl.message(
+      'Unable to check for updates. Check your connection and try again.',
+      name: 'ipingUpdateCheckFailed',
       desc: '',
       args: [],
     );
   }
 
-  /// `Install version {version} to continue using iPing.`
-  String ipingUpdateRequiredDesc(Object version) {
-    return Intl.message(
-      'Install version $version to continue using iPing.',
-      name: 'ipingUpdateRequiredDesc',
-      desc: '',
-      args: [version],
-    );
+  /// `Later`
+  String get ipingUpdateLater {
+    return Intl.message('Later', name: 'ipingUpdateLater', desc: '', args: []);
   }
 
   /// `The update failed. Check your connection and installation permissions, then retry.`

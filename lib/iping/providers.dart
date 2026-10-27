@@ -18,7 +18,6 @@ import 'auth_session.dart';
 import 'browser.dart';
 import 'session.dart';
 import 'site_config.dart';
-import 'update_provider.dart';
 import 'user_info.dart';
 
 final ipingApiProvider = Provider<IpingApi>((ref) => IpingApi());
@@ -239,9 +238,7 @@ class _ManagedProfileStorage implements IpingProfileStorage {
     final file = File(path);
     if (!await file.exists()) return null;
     final nodes = await compute(ipingNodeCount, await file.readAsString());
-    await app?.setConnectionAllowed(
-      nodes > 0 && !ref.read(ipingUpdaterProvider).required,
-    );
+    await app?.setConnectionAllowed(nodes > 0);
     return (nodes: nodes, updated: profile.lastUpdateDate);
   }
 
@@ -262,9 +259,7 @@ class _ManagedProfileStorage implements IpingProfileStorage {
     ref.read(profilesProvider.notifier).put(saved);
     ref.read(currentProfileIdProvider.notifier).value = saved.id;
     await ref.read(setupActionProvider.notifier).applyProfile(silence: true);
-    await app?.setConnectionAllowed(
-      subscription.nodes > 0 && !ref.read(ipingUpdaterProvider).required,
-    );
+    await app?.setConnectionAllowed(subscription.nodes > 0);
     return (nodes: subscription.nodes, updated: saved.lastUpdateDate);
   }
 

@@ -160,9 +160,6 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<bool> setRunning(bool running, {bool initialize = false}) {
-    if (running && ref.read(ipingUpdaterProvider).required) {
-      return Future.value(false);
-    }
     if (running && !ref.read(ipingSessionProvider).canConnect) {
       return Future.value(false);
     }

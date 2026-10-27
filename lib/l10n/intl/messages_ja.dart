@@ -114,8 +114,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m43(host) => "システム DNS · ${host}";
 
-  static String m44(version) =>
-      "iPing を引き続き利用するには、バージョン ${version} をインストールしてください。";
+  static String m44(version) => "バージョン ${version} が利用可能です。今すぐ、または後で更新できます。";
 
   static String m45(id) => "ユーザー ID ${id}";
 
@@ -1069,20 +1068,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
       "App Store でアップデートをインストールし、iPing を再度開いてください。",
     ),
+    "ipingUpdateAvailableDesc": m44,
+    "ipingUpdateCheckFailed": MessageLookupByLibrary.simpleMessage(
+      "更新を確認できません。ネットワーク接続を確認して再試行してください。",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "更新に失敗しました。ネットワーク接続とインストール権限を確認して再試行してください。",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "システムのインストール確認を完了してください。更新後にアプリが再起動します。",
     ),
+    "ipingUpdateLater": MessageLookupByLibrary.simpleMessage("後で"),
     "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
       "手動でダウンロード",
     ),
     "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
       "App Store で更新",
     ),
-    "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage("更新が必要です"),
-    "ipingUpdateRequiredDesc": m44,
     "ipingUserId": m45,
     "ipingVersion": m46,
     "ipingWelcome": m47,

@@ -11,11 +11,13 @@ class IpingAboutSummary extends StatelessWidget {
     super.key,
     required this.site,
     this.version,
+    this.updateCheck,
     required this.onTerms,
     required this.onPrivacy,
   });
   final IpingSiteConfig site;
   final String? version;
+  final Widget? updateCheck;
   final VoidCallback onTerms;
   final VoidCallback onPrivacy;
   @override
@@ -29,6 +31,7 @@ class IpingAboutSummary extends StatelessWidget {
           title: Text(site.name),
           subtitle: version == null ? null : Text(l.ipingVersion(version!)),
         ),
+        ?updateCheck,
         ListItem(
           leading: const GlyphIcon(AppGlyphs.textShort),
           title: Text(l.ipingTerms),

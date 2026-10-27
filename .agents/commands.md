@@ -71,14 +71,16 @@ holds a `rust_api` library built from the same sources.
 On iOS, release builds look up the app by bundle ID in Apple's App Store and open
 its store page to update. `IPING_APP_STORE_COUNTRY` selects the two-letter store
 country (default `us`). Only a newer published version compatible with the device's
-iOS version triggers the update gate; missing listings leave the app usable.
+iOS version is offered as an optional update; missing listings leave the app usable.
 Publishing the exported IPA remains separate from releasing it in App Store Connect.
 
 Android and desktop release builds check `https://video.iping.my/releases/latest.json` at startup,
-on resume (at most once every five minutes), and hourly. A newer version blocks
-normal navigation and connections until installed; a known required update is
-cached across restarts and remains required while offline. Debug and safe mode
-builds do not check for updates. Override the base URL at build time with
+on resume (at most once every five minutes), and hourly. New versions show a dismissible
+notice, at most once per version in an app session. Settings > About > Check for updates
+also checks manually and offers installation. Finding an update never stops connections
+or blocks navigation; only choosing to install prepares the application for replacement.
+Check failures are separate from installation failures, and old mandatory-update caches
+are no longer read. Debug and safe mode builds do not check for updates. Override the base URL at build time with
 `--dart-define=IPING_UPDATE_BASE_URL=https://example.com/releases/`.
 
 Build all existing architectures with `setup.dart` and collect their `dist/`

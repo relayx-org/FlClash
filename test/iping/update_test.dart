@@ -7,13 +7,11 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/iping/update.dart';
-import 'package:fl_clash/iping/update_gate.dart';
+import 'package:fl_clash/iping/update_notice.dart';
+import 'package:fl_clash/iping/update_widgets.dart';
 import 'package:fl_clash/iping/update_provider.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/ui.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -110,7 +108,6 @@ void main() {
 
   IpingUpdater makeUpdater(
     _Client client, {
-    Future<void> Function()? onRequired,
     Future<void> Function(IpingUpdate, void Function(double))? install,
     Future<bool> Function(Uri)? openStore,
     Future<void> Function()? beforeInstall,
@@ -122,7 +119,6 @@ void main() {
       target: Future.value(target),
       client: client,
       enabled: true,
-      onRequired: onRequired ?? () async {},
       beforeInstall: beforeInstall ?? () async {},
       exitApplication: exitApplication ?? () async {},
       install: install ?? (_, _) async {},
@@ -138,7 +134,7 @@ void main() {
     expect(ipingUpdateArch(Abi.linuxX64), 'amd64');
   });
 
-  test('App Store cache entries retain their installation route', () {
+  test('App Store metadata retains its installation route', () {
     final restored = IpingUpdate.fromJson(_storeRelease.toJson());
     expect(restored.isAppStore, isTrue);
     expect(restored.url, _storeRelease.url);
@@ -171,7 +167,7 @@ void main() {
         exitApplication: () async =>
             fail('Opening the App Store must not exit iPing'),
       );
-      await updater.initialize();
+      await updater.check();
       await updater.install();
       expect(updater.failed, isTrue);
       expect(updater.busy, isFalse);
@@ -179,44 +175,40 @@ void main() {
       await updater.install();
       expect(updater.failed, isFalse);
       expect(updater.busy, isFalse);
-      expect(updater.required, isTrue);
+      expect(updater.update, isNotNull);
       expect(attempts, 2);
     },
   );
 
-  test(
-    'an App Store update remains available offline and clears after installing its version',
-    () async {
-      final first = makeUpdater(
-        _Client()..response = () async => _storeRelease,
-        target: 'ios-app-store',
-      );
-      await first.initialize();
-      final offline = _Client()
-        ..response = () async => throw const SocketException('offline');
-      final restored = makeUpdater(offline, target: 'ios-app-store');
-      await restored.initialize();
-      expect(restored.update?.isAppStore, isTrue);
-      final installed = IpingUpdater(
-        current: () => PackageInfo(
-          appName: 'iPing',
-          packageName: 'my.iping.client',
-          version: '1.1.0',
-          buildNumber: '20',
-        ),
-        target: Future.value('ios-app-store'),
-        client: _Client()..response = () async => null,
-        enabled: true,
-        onRequired: () async =>
-            fail('The installed App Store version is current'),
-        beforeInstall: () async {},
-        exitApplication: () async {},
-      );
-      addTearDown(installed.dispose);
-      await installed.initialize();
-      expect(installed.required, isFalse);
-    },
-  );
+  test('an offline check offers no cached App Store requirement', () async {
+    final first = makeUpdater(
+      _Client()..response = () async => _storeRelease,
+      target: 'ios-app-store',
+    );
+    await first.check();
+    final offline = _Client()
+      ..response = () async => throw const SocketException('offline');
+    final restored = makeUpdater(offline, target: 'ios-app-store');
+    await restored.check();
+    expect(restored.update, isNull);
+    expect(restored.checkFailed, isTrue);
+    final installed = IpingUpdater(
+      current: () => PackageInfo(
+        appName: 'iPing',
+        packageName: 'my.iping.client',
+        version: '1.1.0',
+        buildNumber: '20',
+      ),
+      target: Future.value('ios-app-store'),
+      client: _Client()..response = () async => null,
+      enabled: true,
+      beforeInstall: () async {},
+      exitApplication: () async {},
+    );
+    addTearDown(installed.dispose);
+    await installed.check();
+    expect(installed.update, isNull);
+  });
 
   test('disposing during an App Store launch ignores its completion', () async {
     final pending = Completer<bool>();
@@ -226,11 +218,10 @@ void main() {
       client: _Client()..response = () async => _storeRelease,
       enabled: true,
       openStore: (_) => pending.future,
-      onRequired: () async {},
       beforeInstall: () async {},
       exitApplication: () async {},
     );
-    await updater.initialize();
+    await updater.check();
     final launching = updater.install();
     updater.dispose();
     pending.complete(true);
@@ -246,15 +237,15 @@ void main() {
         target: 'ios-app-store',
         openStore: (_) => pending.future,
       );
-      await updater.initialize();
+      await updater.check();
       await tester.pumpWidget(
         TestApp(
-          child: ListenableBuilder(
-            listenable: updater,
-            builder: (_, _) => IpingRequiredUpdate(updater: updater),
-          ),
+          overrides: [ipingUpdaterProvider.overrideWithValue(updater)],
+          child: const Scaffold(body: IpingCheckUpdateItem()),
         ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Check for updates'));
       await tester.pumpAndSettle();
       expect(find.text('Update in App Store'), findsOneWidget);
       expect(
@@ -263,7 +254,13 @@ void main() {
       );
       await tester.tap(find.text('Update in App Store'));
       await tester.pump();
-      expect(find.byType(CommonCircleLoading), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(IpingUpdateDialog),
+          matching: find.byType(CommonCircleLoading),
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.text('0%'), findsNothing);
       pending.complete(false);
@@ -375,35 +372,53 @@ void main() {
   );
 
   test(
-    'coalesces checks and keeps mandatory state through network failures',
+    'coalesces checks without preparing an installation or stopping the app',
     () async {
       final client = _Client();
       final pending = Completer<IpingUpdate?>();
       client.response = () => pending.future;
-      var stopped = 0;
-      final updater = makeUpdater(client, onRequired: () async => stopped++);
+      var preparations = 0;
+      final updater = makeUpdater(
+        client,
+        beforeInstall: () async => preparations++,
+      );
+      expect(client.calls, 0);
       final first = updater.check();
       final second = updater.check();
+      expect(updater.checking, isTrue);
       pending.complete(_release);
       await Future.wait([first, second]);
       expect(client.calls, 1);
-      expect(stopped, 1);
+      expect(preparations, 0);
+      expect(updater.update, _release);
+      expect(updater.checking, isFalse);
       client.response = () async => throw const SocketException('offline');
       await updater.check();
-      expect(updater.required, isTrue);
-      expect(updater.failed, isTrue);
+      expect(updater.update, _release);
+      expect(updater.checkFailed, isTrue);
+      expect(updater.failed, isFalse);
+      expect(preparations, 0);
+      client.response = () async => null;
+      await updater.check();
+      expect(updater.update, isNull);
+      expect(updater.checkFailed, isFalse);
     },
   );
 
-  test('restores a known required update while offline', () async {
-    final first = makeUpdater(_Client());
-    await first.initialize();
-    final offline = _Client()
+  test('old mandatory update metadata is ignored', () async {
+    await mockPreferences({
+      'iping.requiredUpdate:$ipingUpdateBase:macos-arm64-zip': jsonEncode(
+        _release.toJson(),
+      ),
+    });
+    final client = _Client()
       ..response = () async => throw const SocketException('offline');
-    final second = makeUpdater(offline);
-    await second.initialize();
-    expect(second.required, isTrue);
-    expect(second.update!.buildNumber, 11);
+    final updater = makeUpdater(client);
+    expect(updater.update, isNull);
+    expect(client.calls, 0);
+    await updater.check();
+    expect(updater.update, isNull);
+    expect(updater.checkFailed, isTrue);
   });
 
   test(
@@ -428,61 +443,165 @@ void main() {
       await first;
       expect(updater.busy, isFalse);
       expect(updater.failed, isTrue);
-      expect(updater.required, isTrue);
+      expect(updater.update, isNotNull);
       await updater.install();
       expect(attempts, 2);
       expect(updater.failed, isFalse);
     },
   );
 
+  Future<void> pumpUpdates(WidgetTester tester, IpingUpdater updater) async {
+    await tester.pumpWidget(
+      TestApp(
+        overrides: [ipingUpdaterProvider.overrideWithValue(updater)],
+        child: IpingUpdateNotice(
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => Column(
+                children: [
+                  const Text('ACCOUNT'),
+                  const IpingCheckUpdateItem(),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const Scaffold(body: Text('NEXT')),
+                      ),
+                    ),
+                    child: const Text('CONTINUE'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets(
-    'blocks navigation and remains blocked after failed installation',
+    'background notices can be postponed and do not replace navigation',
     (tester) async {
-      final updater = makeUpdater(
-        _Client(),
-        install: (_, _) async => throw StateError('denied'),
-      );
-      await updater.check();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [ipingUpdaterProvider.overrideWithValue(updater)],
-          child: MaterialApp(
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              AppUiLocalizations.delegate,
-              ...GlobalMaterialLocalizations.delegates,
-            ],
-            builder: (context, child) =>
-                wrapAppScopes(context, IpingUpdateGate(child: child!)),
-            home: const Scaffold(body: Text('ACCOUNT')),
-          ),
+      final client = _Client();
+      final updater = makeUpdater(client);
+      await pumpUpdates(tester, updater);
+      expect(find.text('ACCOUNT'), findsOneWidget);
+      expect(find.text('New version found'), findsOneWidget);
+      expect(find.text('Later'), findsOneWidget);
+      await tester.tap(find.text('Later'));
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(client.calls, 2);
+      expect(find.byType(IpingUpdateDialog), findsNothing);
+      await tester.tap(find.text('Check for updates'));
+      await tester.pumpAndSettle();
+      expect(find.byType(IpingUpdateDialog), findsOneWidget);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      expect(find.byType(IpingUpdateDialog), findsNothing);
+      client.response = () async => IpingUpdate.fromJson({
+        ..._release.toJson(),
+        'version': '1.2.0',
+        'buildNumber': 12,
+      });
+      await tester.pump(const Duration(hours: 1));
+      await tester.pumpAndSettle();
+      expect(find.byType(IpingUpdateDialog), findsOneWidget);
+      expect(find.textContaining('Version 1.2.0 is available'), findsOneWidget);
+      await tester.tap(find.text('Later'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('CONTINUE'));
+      await tester.pumpAndSettle();
+      expect(find.text('NEXT'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('failed installations can be dismissed and retried manually', (
+    tester,
+  ) async {
+    final updater = makeUpdater(
+      _Client(),
+      install: (_, _) async => throw StateError('denied'),
+    );
+    await pumpUpdates(tester, updater);
+    await tester.tap(find.text('Update'));
+    await tester.pumpAndSettle();
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Download manually'), findsOneWidget);
+    await tester.tap(find.text('Later'));
+    await tester.pumpAndSettle();
+    expect(find.text('ACCOUNT'), findsOneWidget);
+    await tester.tap(find.text('Check for updates'));
+    await tester.pumpAndSettle();
+    expect(find.byType(IpingUpdateDialog), findsOneWidget);
+    expect(find.text('Update'), findsOneWidget);
+    await tester.tap(find.text('Later'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('an update download can continue after closing its dialog', (
+    tester,
+  ) async {
+    final pending = Completer<void>();
+    final updater = makeUpdater(_Client(), install: (_, _) => pending.future);
+    await pumpUpdates(tester, updater);
+    await tester.tap(find.text('Update'));
+    await tester.pump();
+    expect(updater.busy, isTrue);
+    await tester.tap(find.text('Close'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump();
+    expect(find.byType(IpingUpdateDialog), findsNothing);
+    await tester.tap(find.text('CONTINUE'));
+    await tester.pumpAndSettle();
+    expect(find.text('NEXT'), findsOneWidget);
+    pending.complete();
+    await tester.pumpAndSettle();
+    expect(updater.busy, isFalse);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'manual checks distinguish the latest version from network errors',
+    (tester) async {
+      final client = _Client()..response = () async => null;
+      final updater = makeUpdater(client);
+      await pumpUpdates(tester, updater);
+      expect(find.byType(CommonDialog), findsNothing);
+      await tester.tap(find.text('Check for updates'));
+      await tester.pumpAndSettle();
+      expect(find.text('The app is already up to date'), findsOneWidget);
+      await tester.tap(find.text('Confirm'));
+      await tester.pumpAndSettle();
+      client.response = () async => throw const SocketException('offline');
+      await tester.tap(find.text('Check for updates'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Unable to check for updates. Check your connection and try again.',
         ),
+        findsOneWidget,
       );
+      expect(find.text('The app is already up to date'), findsNothing);
+      await tester.tap(find.text('Confirm'));
       await tester.pumpAndSettle();
-      expect(find.text('ACCOUNT'), findsNothing);
-      expect(find.text('Update required'), findsOneWidget);
-      expect(find.text('Cancel'), findsNothing);
-      await tester.tap(find.text('Update'));
+      final pending = Completer<IpingUpdate?>();
+      client.response = () => pending.future;
+      await tester.tap(find.text('Check for updates'));
+      await tester.pump();
+      expect(find.byType(CommonCircleLoading), findsOneWidget);
+      expect(tester.widget<ListItem>(find.byType(ListItem)).onTap, isNull);
+      pending.complete(_release);
       await tester.pumpAndSettle();
-      expect(find.text('Retry'), findsOneWidget);
-      expect(find.text('Download manually'), findsOneWidget);
-      expect(find.text('ACCOUNT'), findsNothing);
-      unawaited(
-        dialogs.showCommonDialog<String>(
-          context: tester.element(find.byType(IpingRequiredUpdate)),
-          child: const InputDialog(
-            title: 'Administrator password',
-            value: '',
-            obscureText: true,
-          ),
-        ),
-      );
+      expect(find.byType(IpingUpdateDialog), findsOneWidget);
+      await tester.tap(find.text('Later'));
       await tester.pumpAndSettle();
-      expect(find.text('Administrator password'), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-      expect(find.text('Retry'), findsOneWidget);
-      expect(find.text('ACCOUNT'), findsNothing);
+      expect(find.text('ACCOUNT'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

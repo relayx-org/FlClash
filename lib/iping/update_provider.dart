@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fl_clash/common/constant.dart';
-import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,10 +16,6 @@ final ipingUpdaterProvider = Provider<IpingUpdater>((ref) {
     target: ipingUpdateTarget(),
     client: Platform.isIOS ? IpingAppStoreUpdateClient() : IpingUpdateClient(),
     enabled: kReleaseMode && !safeModeBuild,
-    onRequired: () async {
-      await app?.setConnectionAllowed(false);
-      await ref.read(setupActionProvider.notifier).setRunning(false);
-    },
     beforeInstall: () =>
         ref.read(systemActionProvider.notifier).prepareForUpdate(),
     exitApplication: () => ref.read(systemActionProvider.notifier).handleExit(),

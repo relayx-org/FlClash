@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'api.dart';
 import 'about_widgets.dart';
 import 'providers.dart';
+import 'update_widgets.dart';
 
 class IpingAboutSection extends ConsumerStatefulWidget {
   const IpingAboutSection({super.key});
@@ -24,6 +25,7 @@ class _IpingAboutSectionState extends ConsumerState<IpingAboutSection> {
       future: _packageInfo,
       builder: (context, snapshot) => IpingAboutSummary(
         site: site,
+        updateCheck: const IpingCheckUpdateItem(),
         version: snapshot.data == null
             ? null
             : '${snapshot.data!.version} (${snapshot.data!.buildNumber})',

@@ -9,6 +9,8 @@ import 'package:fl_clash/core/method.dart';
 import 'package:fl_clash/core/spill.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/iping/update.dart';
+import 'package:fl_clash/iping/update_provider.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/providers/app.dart';
@@ -172,6 +174,52 @@ void main() {
   }
 
   group('setRunning gating', () {
+    test(
+      'an available update does not prevent starting the connection',
+      () async {
+        final updater =
+            IpingUpdater(
+                current: () => globalState.packageInfo,
+                target: Future.value('macos-arm64-zip'),
+                client: IpingUpdateClient(),
+                beforeInstall: () async {},
+                exitApplication: () async {},
+              )
+              ..update = IpingUpdate(
+                version: '9.0.0',
+                buildNumber: 99,
+                url: Uri.parse('https://example.com/update.zip'),
+                sha256:
+                    '0000000000000000000000000000000000000000000000000000000000000000',
+                size: 3,
+                format: 'zip',
+              );
+        final scopedAction = TestSetupAction();
+        final scoped = ProviderContainer(
+          overrides: [
+            connectedAccountOverride,
+            profilesProvider.overrideWith(TestProfiles.new),
+            setupActionProvider.overrideWith(() => scopedAction),
+            commonActionProvider.overrideWith(TestCommonAction.new),
+            ipingUpdaterProvider.overrideWithValue(updater),
+          ],
+        );
+        globalState.container = scoped;
+        addTearDown(() async {
+          await scoped.read(setupActionProvider.notifier).setRunning(false);
+          scoped.dispose();
+          updater.dispose();
+        });
+        expect(
+          await scoped
+              .read(setupActionProvider.notifier)
+              .setRunning(true, initialize: true),
+          isTrue,
+        );
+        expect(scopedAction.coreRunningCalls, [true]);
+      },
+    );
+
     test(
       'a signed-out account cannot start even during initialization',
       () async {
