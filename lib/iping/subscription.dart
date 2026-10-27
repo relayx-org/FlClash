@@ -52,9 +52,7 @@ class IpingSubscriptionDetails extends ConsumerWidget {
       onSync: backend.synchronize,
       onImport: () => importIpingSubscription(context, ref),
       onSignIn: session.signedIn ? null : backend.signIn,
-      onConsole: session.signedIn
-          ? () => dialogs.openUrl('$ipingSite/home')
-          : null,
+      onConsole: () => dialogs.openUrl('$ipingSite/home'),
     );
   }
 }

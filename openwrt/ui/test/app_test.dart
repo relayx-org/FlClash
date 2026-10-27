@@ -64,6 +64,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(IpingSubscriptionPage), findsOneWidget);
       expect(find.text(l.ipingManualSubscription), findsOneWidget);
+      expect(find.text(l.ipingConsole), findsOneWidget);
       await tester.tap(find.text(l.ipingImportSubscription));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -77,6 +78,61 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  for (final mobile in [false, true]) {
+    testWidgets('manual subscriptions keep account actions on mobile=$mobile', (
+      tester,
+    ) async {
+      tester.view.physicalSize = mobile
+          ? const Size(390, 844)
+          : const Size(1200, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final client = FakeRouterClient(signedIn: false)
+        ..manualSubscription = true
+        ..running = false;
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _DependencyAssets(),
+          child: RouterApp(client: client),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.current;
+      if (mobile) {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationDock),
+            matching: find.text(l.settings),
+          ),
+        );
+      } else {
+        await tester.tap(
+          find.byTooltip('${l.ipingAccount}\n${l.ipingManualSubscription}'),
+        );
+      }
+      await tester.pumpAndSettle();
+      expect(find.text(l.ipingConsole), findsOneWidget);
+      await tester.tap(find.text(l.ipingConsole));
+      await tester.pumpAndSettle();
+      expect(client.calls, contains('open:https://iping.my/home'));
+      expect(client.calls, isNot(contains('account')));
+      if (!mobile) {
+        await tester.tap(
+          find.byTooltip('${l.ipingAccount}\n${l.ipingManualSubscription}'),
+        );
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text(l.ipingSignOut));
+      await tester.pumpAndSettle();
+      expect(client.manualSubscription, isFalse);
+      expect(find.byType(IpingLoginPage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    });
+  }
 
   testWidgets(
     'failed manual imports restore login controls without browser prompts',

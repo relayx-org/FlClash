@@ -199,7 +199,20 @@ void main() {
       await pump(tester, const IpingSubscriptionDetails());
       expect(find.text('Manually imported subscription'), findsOneWidget);
       expect(find.text('Sign in with browser'), findsOneWidget);
-      expect(find.text('Open iPing console'), findsNothing);
+      expect(find.text('Open iPing console'), findsOneWidget);
+      await tester.ensureVisible(find.text('Open iPing console'));
+      await tester.tap(find.text('Open iPing console'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CommonDialog), findsOneWidget);
+      expect(
+        tester
+            .widget<SelectableText>(find.byType(SelectableText))
+            .textSpan!
+            .toPlainText(),
+        '$ipingSite/home',
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Import subscription link'));
       await tester.pumpAndSettle();
       expect(
@@ -549,6 +562,79 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CommonDialog), findsNothing);
   });
+
+  testWidgets('manual subscriptions keep mobile console and sign-out actions', (
+    tester,
+  ) async {
+    storage.stored = const IpingStoredSession(
+      manualUrl: 'https://example.com/subscription',
+    );
+    await pump(tester, const Scaffold(body: IpingAccountSection()));
+    expect(find.text('Manually imported subscription'), findsOneWidget);
+    expect(find.text('Open iPing console'), findsOneWidget);
+    expect(find.text('Sign out'), findsOneWidget);
+    expect(api.userInfoRequests, 0);
+
+    api.download = Completer<IpingSubscription>();
+    final refresh = container.read(ipingSessionProvider.notifier).synchronize();
+    await tester.pumpAndSettle();
+    final signOut = find.ancestor(
+      of: find.text('Sign out'),
+      matching: find.byType(ListItem),
+    );
+    expect(tester.widget<ListItem>(signOut).onTap, isNull);
+    await tester.tap(find.text('Open iPing console'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CommonDialog), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    api.download!.completeError(
+      const IpingException(IpingFailure.subscription),
+    );
+    await refresh;
+    await tester.pumpAndSettle();
+    expect(tester.widget<ListItem>(signOut).onTap, isNotNull);
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(find.text('Open iPing console'), findsNothing);
+    expect(storage.stored, isNull);
+    expect(container.read(ipingSessionProvider).hasSubscription, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final width in [48.0, 220.0]) {
+    testWidgets('manual subscription sidebar keeps actions at $width', (
+      tester,
+    ) async {
+      storage.stored = const IpingStoredSession(
+        manualUrl: 'https://example.com/subscription',
+      );
+      await pump(
+        tester,
+        Scaffold(
+          body: Align(
+            alignment: Alignment.bottomLeft,
+            child: SizedBox(width: width, child: const IpingAccountButton()),
+          ),
+        ),
+      );
+      expect(
+        find.text('Manually imported subscription'),
+        width > 100 ? findsOneWidget : findsNothing,
+      );
+      await tester.tap(
+        find.byTooltip('Account\nManually imported subscription'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Open iPing console'), findsOneWidget);
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(storage.stored, isNull);
+      expect(container.read(ipingSessionProvider).hasSubscription, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('mobile sign out is disabled during a subscription refresh', (
     tester,

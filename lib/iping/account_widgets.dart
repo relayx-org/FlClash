@@ -9,14 +9,14 @@ import 'site_config.dart';
 class IpingAccountMenu extends StatelessWidget {
   const IpingAccountMenu({
     super.key,
-    required this.email,
+    required this.label,
     required this.site,
     required this.busy,
     required this.onConsole,
     required this.onSignOut,
     this.menuBuilder,
   });
-  final String? email;
+  final String? label;
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
@@ -24,8 +24,8 @@ class IpingAccountMenu extends StatelessWidget {
   final WidgetBuilder? menuBuilder;
   @override
   Widget build(BuildContext context) {
-    final email = this.email;
-    if (email == null) {
+    final label = this.label;
+    if (label == null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(child: IpingLogo(src: site.logoUrl, size: 28)),
@@ -37,7 +37,7 @@ class IpingAccountMenu extends StatelessWidget {
       child: CommonPopupBox(
         placement: PopupPlacement.overAnchorStart,
         targetBuilder: (open) => Tooltip(
-          message: '${l.ipingAccount}\n$email',
+          message: '${l.ipingAccount}\n$label',
           child: TextButton(
             onPressed: open,
             style: TextButton.styleFrom(
@@ -65,7 +65,7 @@ class IpingAccountMenu extends StatelessWidget {
                               style: AppTextStyle.subheadline.of(context),
                             ),
                             Text(
-                              email,
+                              label,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyle.caption2
@@ -132,13 +132,13 @@ class IpingAccountActions extends StatelessWidget {
 class IpingAccountSummary extends StatelessWidget {
   const IpingAccountSummary({
     super.key,
-    required this.email,
+    required this.label,
     required this.site,
     required this.busy,
     required this.onConsole,
     required this.onSignOut,
   });
-  final String email;
+  final String label;
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
@@ -155,7 +155,7 @@ class IpingAccountSummary extends StatelessWidget {
         ListItem(
           leading: IpingLogo(src: site.logoUrl, size: 28),
           title: Text(site.name),
-          subtitle: Text(email),
+          subtitle: Text(label),
         ),
         ListItem(
           leading: const GlyphIcon(AppGlyphs.openExternal),

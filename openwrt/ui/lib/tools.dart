@@ -28,9 +28,11 @@ class RouterTools extends StatelessWidget {
     final router = RouterScope.of(context, aspect: RouterAspect.status);
     final app = RouterAppState.of(context);
     return SettingsPage(
-      account: context.isMobileView && router.signedIn
+      account: context.isMobileView && router.status.hasSubscription
           ? IpingAccountSummary(
-              email: router.email,
+              label: router.signedIn
+                  ? router.email
+                  : AppLocalizations.of(context).ipingManualSubscription,
               site: router.siteConfig,
               busy: router.busy,
               onConsole: () => router.client.open('${router.site}/home'),
@@ -189,9 +191,7 @@ class RouterSubscription extends StatelessWidget {
       manualSubscription: router.status.manualSubscription,
       onImport: () => importRouterSubscription(context),
       onSignIn: router.signedIn ? null : () => router.signIn(),
-      onConsole: router.signedIn
-          ? () => router.client.open('${router.site}/home')
-          : null,
+      onConsole: () => router.client.open('${router.site}/home'),
     );
   }
 }

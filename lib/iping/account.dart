@@ -14,7 +14,11 @@ class IpingAccountButton extends ConsumerWidget {
     final session = ref.watch(ipingBackendStateProvider);
     final backend = ref.read(ipingClientControllerProvider);
     return IpingAccountMenu(
-      email: session.signedIn ? session.email : null,
+      label: session.signedIn
+          ? session.email
+          : session.manualSubscription
+          ? context.appLocalizations.ipingManualSubscription
+          : null,
       site: ref.watch(ipingSiteConfigProvider),
       busy: session.busy,
       onConsole: () => dialogs.openUrl('$ipingSite/home'),
@@ -38,9 +42,11 @@ class IpingAccountSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(ipingBackendStateProvider);
     final backend = ref.read(ipingClientControllerProvider);
-    if (!session.signedIn) return const SizedBox.shrink();
+    if (!session.hasSubscription) return const SizedBox.shrink();
     return IpingAccountSummary(
-      email: session.email,
+      label: session.signedIn
+          ? session.email
+          : context.appLocalizations.ipingManualSubscription,
       site: ref.watch(ipingSiteConfigProvider),
       busy: session.busy,
       onConsole: () => dialogs.openUrl('$ipingSite/home'),

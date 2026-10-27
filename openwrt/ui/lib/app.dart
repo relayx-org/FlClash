@@ -448,7 +448,11 @@ class _AccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = RouterScope.of(context, aspect: RouterAspect.status);
     return IpingAccountMenu(
-      email: controller.signedIn ? controller.email : null,
+      label: controller.signedIn
+          ? controller.email
+          : controller.status.manualSubscription
+          ? AppLocalizations.of(context).ipingManualSubscription
+          : null,
       site: controller.siteConfig,
       busy: controller.busy,
       onConsole: () => controller.client.open('${controller.site}/home'),
