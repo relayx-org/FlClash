@@ -47,6 +47,51 @@ void main() {
   });
   tearDown(() => controller.dispose());
 
+  test(
+    'manual imports refresh proxy metadata even when node counts are unchanged',
+    () async {
+      when(
+        () => backend.importSubscription(any()),
+      ).thenAnswer((_) async => true);
+      await controller.initialize();
+      final revision = controller.revision;
+      expect(
+        await controller.importSubscription('https://example.com/sub'),
+        isTrue,
+      );
+      expect(controller.revision, greaterThan(revision));
+      expect(controller.pending, isFalse);
+    },
+  );
+
+  test(
+    'manual subscriptions poll telemetry and keep delay tests alive',
+    () async {
+      state = const IpingBackendState(
+        manualSubscription: true,
+        connected: true,
+      );
+      when(backend.readTelemetry).thenAnswer(
+        (_) async => const IpingTelemetry(connections: 3, mode: Mode.global),
+      );
+      final delay = Completer<Delay?>();
+      when(
+        () => backend.testDelay('Node', url: _url),
+      ).thenAnswer((_) => delay.future);
+      await controller.initialize();
+      expect(controller.signedIn, isFalse);
+      expect(controller.telemetry.connections, 3);
+      expect(controller.telemetry.mode, Mode.global);
+      final pending = controller.testDelay('Node', url: _url);
+      await _settle();
+      controller.receiveState(state);
+      expect(controller.isTestingDelay('Node', _url), isTrue);
+      delay.complete(const Delay(name: 'Node', url: _url, value: 42));
+      expect(await pending, 42);
+      verifyNever(backend.readAccount);
+    },
+  );
+
   test('telemetry polling preserves proxy metadata until it changes', () async {
     await controller.initialize();
     final revision = controller.revision;

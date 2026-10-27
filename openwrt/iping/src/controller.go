@@ -24,7 +24,7 @@ func (e controllerStatusError) Error() string { return "controller_unavailable" 
 func (e controllerStatusError) Unwrap() error { return failure("controller_unavailable") }
 
 func (a *app) controller(ctx context.Context, method, path string, body []byte) ([]byte, error) {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	if !a.running(ctx) {
@@ -480,7 +480,7 @@ func (a *app) connections(ctx context.Context, args arguments) (any, error) {
 }
 
 func (a *app) logs() (any, error) {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	file, err := os.Open(filepath.Join(a.runDir, "core.log"))

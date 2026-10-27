@@ -30,6 +30,139 @@ void main() {
 
   Future<void> signIn() => session.signIn();
 
+  const manualUrl = 'https://example.com/subscription?token=manual';
+
+  test('manual import persists and refreshes without an account', () async {
+    expect(await session.importSubscription('  $manualUrl  '), isTrue);
+    expect(session.state.account, isNull);
+    expect(session.state.manualUrl, manualUrl);
+    expect(session.state.canConnect, isTrue);
+    expect(storage.stored?.manualUrl, manualUrl);
+    expect(api.subscriptionUrlRequested, manualUrl);
+    expect(profiles.stops, 0);
+    await session.synchronize();
+    expect(profiles.saves, 2);
+    expect(api.subscriptionUrlRequested, manualUrl);
+  });
+
+  test('manual subscriptions restore their cache while offline', () async {
+    await session.importSubscription(manualUrl);
+    api.subscriptionFailure = IpingFailure.unavailable;
+    await session.initialize();
+    expect(session.state.manualUrl, manualUrl);
+    expect(session.state.canConnect, isTrue);
+    expect(session.state.failure, IpingFailure.unavailable);
+    expect(profiles.saves, 1);
+    expect(profiles.stops, 0);
+  });
+
+  test(
+    'invalid manual links never download or replace a subscription',
+    () async {
+      await session.importSubscription(manualUrl);
+      for (final url in [
+        '',
+        'file:///tmp/sub.yaml',
+        'ftp://example.com',
+        'https://',
+      ]) {
+        expect(await session.importSubscription(url), isFalse);
+        expect(session.state.manualUrl, manualUrl);
+        expect(session.state.canConnect, isTrue);
+      }
+      expect(api.downloads, 1);
+    },
+  );
+
+  test(
+    'failed manual imports preserve the current account and profile',
+    () async {
+      await signIn();
+      final previous = profiles.value;
+      api.subscriptionFailure = IpingFailure.session;
+      expect(await session.importSubscription(manualUrl), isFalse);
+      expect(session.state.account?.id, 7);
+      expect(session.state.manualUrl, isNull);
+      expect(session.state.failure, IpingFailure.subscription);
+      expect(profiles.value, previous);
+      expect(session.state.canConnect, isTrue);
+    },
+  );
+
+  test('failed profile saves restore the previous saved source', () async {
+    await session.importSubscription(manualUrl);
+    final previous = profiles.value;
+    profiles.saveFails = true;
+    expect(
+      await session.importSubscription('https://other.example/sub'),
+      isFalse,
+    );
+    expect(storage.stored?.manualUrl, manualUrl);
+    expect(session.state.manualUrl, manualUrl);
+    expect(session.state.busy, isFalse);
+    expect(profiles.value, previous);
+    expect(session.state.failure, IpingFailure.storage);
+  });
+
+  test(
+    'manual imports keep account access and use the imported link',
+    () async {
+      await signIn();
+      await session.importSubscription(manualUrl);
+      expect(session.state.account?.id, 7);
+      await session.synchronize();
+      expect(api.subscriptionUrlRequested, manualUrl);
+      api.subscriptionFailure = IpingFailure.session;
+      await session.synchronize();
+      expect(session.state.account?.id, 7);
+      expect(session.state.failure, IpingFailure.subscription);
+      expect(session.state.canConnect, isTrue);
+    },
+  );
+
+  test('signing in replaces a manually imported subscription', () async {
+    await session.importSubscription(manualUrl);
+    await signIn();
+    expect(session.state.account?.id, 7);
+    expect(session.state.manualUrl, isNull);
+    expect(storage.stored?.manualUrl, isNull);
+    expect(api.subscriptionUrlRequested, api.subscriptionUrl('subscription'));
+  });
+
+  test(
+    'empty manual subscriptions remain refreshable without connecting',
+    () async {
+      api.nodes = 0;
+      expect(await session.importSubscription(manualUrl), isTrue);
+      expect(session.state.hasSubscription, isTrue);
+      expect(session.state.canConnect, isFalse);
+      api.nodes = 3;
+      await session.synchronize();
+      expect(session.state.canConnect, isTrue);
+    },
+  );
+
+  test('sign out supersedes an unfinished manual import', () async {
+    api.download = Completer();
+    final pending = session.importSubscription(manualUrl);
+    await session.signOut();
+    api.download!.complete((bytes: Uint8List(0), nodes: 4));
+    expect(await pending, isFalse);
+    expect(storage.stored, isNull);
+    expect(profiles.value, isNull);
+    expect(session.state.hasSubscription, isFalse);
+  });
+
+  test('disposing during a manual download discards the result', () async {
+    api.download = Completer();
+    final pending = session.importSubscription(manualUrl);
+    session.dispose();
+    api.download!.complete((bytes: Uint8List(0), nodes: 4));
+    expect(await pending, isFalse);
+    expect(storage.stored, isNull);
+    expect(profiles.saves, 0);
+  });
+
   test(
     'startup without credentials stops and removes orphaned configuration',
     () async {

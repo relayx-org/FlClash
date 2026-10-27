@@ -2,12 +2,34 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'api.dart';
+import 'subscription_url.dart';
 
-typedef IpingStoredSession = IpingAccount;
+class IpingStoredSession {
+  const IpingStoredSession({this.account, this.manualUrl})
+    : assert(account != null || manualUrl != null);
 
-String encodeIpingSession(IpingAccount account) => jsonEncode(account.toJson());
-IpingAccount decodeIpingSession(String value) =>
-    IpingAccount.fromJson(jsonDecode(value) as Map<String, dynamic>);
+  final IpingAccount? account;
+  final String? manualUrl;
+}
+
+String encodeIpingSession(IpingStoredSession session) => jsonEncode({
+  ...?session.account?.toJson(),
+  'subscription_url': ?session.manualUrl,
+});
+
+IpingStoredSession decodeIpingSession(String value) {
+  final json = jsonDecode(value) as Map<String, dynamic>;
+  final url = json['subscription_url'] as String?;
+  if (url != null && !isIpingSubscriptionUrl(url)) {
+    throw const FormatException('Invalid subscription URL');
+  }
+  return IpingStoredSession(
+    account: json.containsKey('subscription_token') || url == null
+        ? IpingAccount.fromJson(json)
+        : null,
+    manualUrl: url,
+  );
+}
 
 abstract interface class IpingSessionStorage {
   Future<IpingStoredSession?> read();
@@ -27,20 +49,23 @@ abstract interface class IpingProfileStorage {
 class IpingSessionState {
   const IpingSessionState({
     this.account,
+    this.manualUrl,
     this.busy = false,
     this.initialized = false,
     this.nodes = 0,
     this.updated,
     this.failure,
   });
-  final IpingStoredSession? account;
+  final IpingAccount? account;
+  final String? manualUrl;
   final bool busy;
   final bool initialized;
   final int nodes;
   final DateTime? updated;
   final IpingFailure? failure;
 
-  bool get canConnect => account != null && nodes > 0;
+  bool get hasSubscription => account != null || manualUrl != null;
+  bool get canConnect => hasSubscription && nodes > 0;
 }
 
 class IpingSession {
@@ -59,7 +84,7 @@ class IpingSession {
   final IpingProfileStorage profiles;
   final void Function(IpingSessionState state) onChanged;
   IpingSessionState state = const IpingSessionState();
-  IpingStoredSession? _account;
+  IpingStoredSession? _session;
   int _epoch = 0;
   bool _disposed = false;
   Future<void> _writes = Future.value();
@@ -74,7 +99,8 @@ class IpingSession {
   }) {
     if (_disposed) return;
     state = IpingSessionState(
-      account: _account,
+      account: _session?.account,
+      manualUrl: _session?.manualUrl,
       initialized: true,
       busy: busy,
       nodes: profile?.nodes ?? state.nodes,
@@ -96,10 +122,10 @@ class IpingSession {
     final epoch = ++_epoch;
     _publish(busy: true);
     try {
-      final account = await storage.read();
+      final session = await storage.read();
       if (!_current(epoch)) return;
-      _account = account;
-      if (account == null) {
+      _session = session;
+      if (session == null) {
         await _commit(epoch, () async {
           try {
             await profiles.stop();
@@ -141,7 +167,7 @@ class IpingSession {
         return;
       }
       if (!_current(epoch)) return;
-      if (_account != null && _account!.id != account.id) {
+      if (_session != null && _session!.account?.id != account.id) {
         _publish(busy: true, profile: (nodes: 0, updated: null));
         await _commit(epoch, () async {
           await profiles.stop();
@@ -149,9 +175,10 @@ class IpingSession {
         });
       }
       if (!_current(epoch)) return;
-      await _commit(epoch, () => storage.write(account));
+      final session = IpingStoredSession(account: account);
+      await _commit(epoch, () => storage.write(session));
       if (!_current(epoch)) return;
-      _account = account;
+      _session = session;
       _publish(busy: true);
       await _synchronize(epoch);
     } on IpingException catch (error) {
@@ -167,8 +194,55 @@ class IpingSession {
     _publish();
   }
 
+  Future<bool> importSubscription(String value) async {
+    if (state.busy || _disposed) return false;
+    final url = value.trim();
+    if (!isIpingSubscriptionUrl(url)) {
+      _publish(failure: IpingFailure.subscription);
+      return false;
+    }
+    final epoch = ++_epoch;
+    final previous = _session;
+    final next = IpingStoredSession(account: previous?.account, manualUrl: url);
+    _publish(busy: true);
+    try {
+      final subscription = await api.subscription(url);
+      if (!_current(epoch)) return false;
+      IpingCachedProfile? saved;
+      await _commit(epoch, () async {
+        await storage.write(next);
+        try {
+          if (subscription.nodes == 0) await profiles.stop();
+          saved = await profiles.save(url, subscription);
+        } catch (_) {
+          if (previous == null) {
+            await storage.clear();
+          } else {
+            await storage.write(previous);
+          }
+          rethrow;
+        }
+      });
+      if (!_current(epoch)) return false;
+      _session = next;
+      _publish(profile: saved);
+      return true;
+    } on IpingException catch (error) {
+      if (_current(epoch)) {
+        _publish(
+          failure: error.failure == IpingFailure.session
+              ? IpingFailure.subscription
+              : error.failure,
+        );
+      }
+    } catch (_) {
+      if (_current(epoch)) _publish(failure: IpingFailure.storage);
+    }
+    return false;
+  }
+
   Future<void> synchronize() {
-    if (_account == null) return Future.value();
+    if (_session == null) return Future.value();
     if (_sync != null) return _sync!;
     if (state.busy) return Future.value();
     late final Future<void> operation;
@@ -182,7 +256,10 @@ class IpingSession {
     if (!_current(epoch)) return;
     _publish(busy: true);
     try {
-      final url = api.subscriptionUrl(_account!.subscriptionToken);
+      final manualUrl = _session!.manualUrl;
+      final url =
+          manualUrl ??
+          api.subscriptionUrl(_session!.account!.subscriptionToken);
       final subscription = await api.subscription(url);
       if (!_current(epoch)) return;
       IpingCachedProfile? saved;
@@ -196,11 +273,16 @@ class IpingSession {
       if (_current(epoch)) _publish(profile: saved);
     } on IpingException catch (error) {
       if (!_current(epoch)) return;
-      if (error.failure == IpingFailure.session) {
+      if (error.failure == IpingFailure.session &&
+          _session?.manualUrl == null) {
         await signOut();
         if (!_disposed) _publish(failure: IpingFailure.session);
       } else {
-        _publish(failure: error.failure);
+        _publish(
+          failure: error.failure == IpingFailure.session
+              ? IpingFailure.subscription
+              : error.failure,
+        );
       }
     } catch (_) {
       if (_current(epoch)) _publish(failure: IpingFailure.storage);
@@ -210,7 +292,7 @@ class IpingSession {
   Future<void> signOut() async {
     cancelAuthentication();
     final epoch = ++_epoch;
-    _account = null;
+    _session = null;
     _sync = null;
     _publish(busy: true, profile: (nodes: 0, updated: null));
     try {

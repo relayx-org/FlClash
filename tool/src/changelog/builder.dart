@@ -1,110 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'git.dart';
 import 'models.dart';
-import 'parser.dart';
 import 'render.dart';
-
-const changelogBaseline = '8d4f9744948751f1273fe871e1d05276fac09b0e';
 
 const changelogDataPath = 'changelog.json';
 
 const changelogMarkdownPath = 'CHANGELOG.md';
-
-class PendingVersion {
-  const PendingVersion({
-    required this.version,
-    required this.date,
-    this.prerelease = false,
-  });
-
-  final String version;
-  final String date;
-  final bool prerelease;
-
-  String get tag => 'v$version';
-}
-
-class ChangelogBuildResult {
-  const ChangelogBuildResult({
-    required this.changelog,
-    required this.warnings,
-    this.commitIdsByTag = const <String, Set<String>>{},
-  });
-
-  final Changelog changelog;
-  final List<String> warnings;
-
-  /// Short hashes of every commit that fed each version, including the ones
-  /// that produced no entry. `verify` uses it to allow hand written entries as
-  /// long as they point at a commit that really is in the version's range.
-  final Map<String, Set<String>> commitIdsByTag;
-}
-
-class ChangelogBuilder {
-  ChangelogBuilder(this.git, {this.boundary = changelogBaseline});
-
-  final Git git;
-  final String boundary;
-
-  ChangelogBuildResult build({PendingVersion? pending}) {
-    final frozenTags = git
-        .versionTags(revision: boundary)
-        .map((tag) => tag.name)
-        .toSet();
-    final stable = git
-        .stableTags()
-        .where((tag) => !frozenTags.contains(tag.name))
-        .toList();
-    final parser = ChangelogParser();
-    final versions = <ChangelogVersion>[];
-    final commitIdsByTag = <String, Set<String>>{};
-
-    if (pending != null && !git.tagExists(pending.tag)) {
-      final commits = git.commits(
-        from: stable.isEmpty ? boundary : stable.first.name,
-        to: 'HEAD',
-      );
-      commitIdsByTag[pending.tag] = _idsOf(commits);
-      versions.add(
-        ChangelogVersion(
-          version: pending.version,
-          tag: pending.tag,
-          date: pending.date,
-          prerelease: pending.prerelease,
-          groups: groupItems(parser.parseAll(commits)),
-        ),
-      );
-    }
-
-    for (var index = 0; index < stable.length; index++) {
-      final tag = stable[index];
-      final previous = index + 1 < stable.length
-          ? stable[index + 1].name
-          : boundary;
-      final commits = git.commits(from: previous, to: tag.name);
-      commitIdsByTag[tag.name] = _idsOf(commits);
-      versions.add(
-        ChangelogVersion(
-          version: tag.version,
-          tag: tag.name,
-          date: git.tagDate(tag.name),
-          groups: groupItems(parser.parseAll(commits)),
-        ),
-      );
-    }
-
-    return ChangelogBuildResult(
-      changelog: Changelog(versions: versions),
-      warnings: parser.warnings,
-      commitIdsByTag: commitIdsByTag,
-    );
-  }
-
-  Set<String> _idsOf(List<RawCommit> commits) =>
-      commits.map((commit) => commit.shortHash).toSet();
-}
 
 final _frozenComment = RegExp(r'\s*<!--.*?-->', dotAll: true);
 
@@ -139,8 +41,11 @@ String mergeMarkdown(
                 : '${existing.substring(0, existing.indexOf(changelogFrozenMarker)).trimRight()}\n\n'
                       '${existing.substring(boundary).trimLeft()}')
             .trimLeft();
-    if (tail.startsWith(changelogTitle)) {
-      tail = tail.substring(changelogTitle.length).trimLeft();
+    for (final title in [changelogTitle, '# Changelog']) {
+      if (tail.startsWith(title)) {
+        tail = tail.substring(title.length).trimLeft();
+        break;
+      }
     }
     return '$rendered$tail';
   }
@@ -152,36 +57,74 @@ String markdownHead(String content) {
   return boundary < 0 ? content : content.substring(0, boundary);
 }
 
-/// Tags [derived] has a version for that [recorded] never wrote down.
-///
-/// This is what catches a release tagged without running `release` first. The
-/// entry-by-entry checks in `verify` only look at versions both sides have, so
-/// a version missing from `changelog.json` outright would otherwise pass and
-/// only surface at the end of the release, when `render` finds no notes for the
-/// tag being published.
-List<String> missingReleaseTags(Changelog recorded, Changelog derived) {
-  final known = <String>{for (final version in recorded.versions) version.tag};
-  return <String>[
-    for (final version in derived.versions)
-      if (!known.contains(version.tag)) version.tag,
-  ];
-}
-
 String encodeChangelog(Changelog changelog) =>
     '${const JsonEncoder.withIndent('  ').convert(changelog.toJson())}\n';
 
 Changelog decodeChangelog(String source) =>
     Changelog.fromJson(jsonDecode(source) as Map<String, dynamic>);
 
-String readPubspecVersion(String pubspec) {
-  final match = RegExp(
-    r'^version:\s*(\d+\.\d+\.\d+)',
-    multiLine: true,
-  ).firstMatch(pubspec);
-  if (match == null) {
-    throw StateError('No version found in pubspec.yaml');
+Changelog readChangelog(String root) {
+  try {
+    final data =
+        jsonDecode(resolve(root, changelogDataPath).readAsStringSync())
+            as Map<String, dynamic>;
+    if (data['schemaVersion'] != changelogSchemaVersion) {
+      throw const FormatException('Unsupported changelog schema');
+    }
+    final changelog = Changelog.fromJson(data);
+    final problems = validateChangelog(changelog);
+    if (problems.isNotEmpty) {
+      throw FormatException(problems.join('\n'));
+    }
+    return changelog;
+  } on TypeError {
+    throw const FormatException('Invalid structure in changelog.json');
   }
-  return match.group(1)!;
+}
+
+ChangelogVersion changelogVersionFor(Changelog changelog, String value) =>
+    changelog.versions.firstWhere(
+      (version) => version.tag == value || version.version == value,
+      orElse: () => throw StateError(
+        'Add release notes for $value to $changelogDataPath first.',
+      ),
+    );
+
+List<String> validateChangelog(Changelog changelog) {
+  final problems = <String>[];
+  final versions = <String>{};
+  final tags = <String>{};
+  for (final version in changelog.versions) {
+    if (!RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version.version)) {
+      problems.add('Invalid version: ${version.version}');
+    }
+    if (!versions.add(version.version) || !tags.add(version.tag)) {
+      problems.add('Duplicate release: ${version.tag}');
+    }
+    if (version.tag != 'v${version.version}') {
+      problems.add('Tag does not match version: ${version.tag}');
+    }
+    if (version.date.isNotEmpty) {
+      final date = DateTime.tryParse(version.date);
+      if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(version.date) ||
+          date == null ||
+          date.toIso8601String().split('T').first != version.date) {
+        problems.add('Invalid release date: ${version.date}');
+      }
+    }
+    final groups = <ChangelogType>{};
+    for (final group in version.groups) {
+      if (!groups.add(group.type)) {
+        problems.add('Duplicate group in ${version.tag}: ${group.type.id}');
+      }
+      for (final entry in group.entries) {
+        if (entry.text.trim().isEmpty) {
+          problems.add('Empty release note in ${version.tag}');
+        }
+      }
+    }
+  }
+  return problems;
 }
 
 String today() {

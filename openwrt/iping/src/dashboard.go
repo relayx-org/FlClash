@@ -55,7 +55,7 @@ func (a *app) dashboardCounts() (dashboardCounts, error) {
 }
 
 func (a *app) dashboard(ctx context.Context) (any, error) {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	counts, err := a.dashboardCounts()

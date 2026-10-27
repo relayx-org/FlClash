@@ -334,8 +334,8 @@ imported.
 The shared selection page carries profile identity through validation and saving.
 Native profiles store proxy/provider/filter/rule IDs in `ProfileOverrides.resources`;
 `Profile.scriptId`/`extendType` remain the authoritative script selection and are
-projected into the backend contract. Router bindings are keyed by account identity
-inside its private settings file. Scripts transform source config before selected
+projected into the backend contract. Router bindings are keyed by account identity or a hash of the manually imported
+subscription URL inside its private settings file. Scripts transform source config before selected
 resources and prepended rules; platform security/network overrides remain last.
 Both languages exercise `test/fixtures/iping_profile_resources.json`. Rule DTOs
 preserve structured fields instead of parsing raw strings, including comma payloads

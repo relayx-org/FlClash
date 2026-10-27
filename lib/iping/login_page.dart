@@ -18,6 +18,8 @@ class IpingLoginPage extends StatelessWidget {
     required this.onForgotPassword,
     required this.onTerms,
     required this.onPrivacy,
+    this.onImport,
+    this.showBrowserWaiting = true,
   });
 
   final IpingSiteConfig site;
@@ -29,6 +31,8 @@ class IpingLoginPage extends StatelessWidget {
   final VoidCallback onForgotPassword;
   final VoidCallback onTerms;
   final VoidCallback onPrivacy;
+  final VoidCallback? onImport;
+  final bool showBrowserWaiting;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +126,13 @@ class IpingLoginPage extends StatelessWidget {
                   child: Text(l.ipingForgotPassword),
                 ),
               ),
-              if (busy) ...[
+              if (onImport != null) ...[
+                TextButton(
+                  onPressed: busy ? null : onImport,
+                  child: Text(l.ipingImportWithoutLogin),
+                ),
+              ],
+              if (busy && showBrowserWaiting) ...[
                 const SizedBox(height: 16),
                 Text(
                   l.ipingBrowserWaiting,

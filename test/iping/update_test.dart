@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -33,6 +35,14 @@ final _release = IpingUpdate(
   size: 3,
   format: 'zip',
 );
+final _storeRelease = IpingUpdate.fromJson({
+  'version': '1.1.0',
+  'buildNumber': 0,
+  'url': 'https://apps.apple.com/app/id123456789',
+  'sha256': '',
+  'size': 0,
+  'format': 'app-store',
+});
 
 class _Client extends IpingUpdateClient {
   Future<IpingUpdate?> Function() response = () async => _release;
@@ -67,6 +77,32 @@ class _Adapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class _BytesAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return ResponseBody(
+      Stream.value(Uint8List.fromList([1, 2, 3])),
+      200,
+      headers: {
+        Headers.contentLengthHeader: ['3'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _UnsendableListener {
+  final port = RawReceivePort();
+  final values = <double>[];
+  void onProgress(double value) => values.add(value);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -76,16 +112,21 @@ void main() {
     _Client client, {
     Future<void> Function()? onRequired,
     Future<void> Function(IpingUpdate, void Function(double))? install,
+    Future<bool> Function(Uri)? openStore,
+    Future<void> Function()? beforeInstall,
+    Future<void> Function()? exitApplication,
+    String target = 'macos-arm64-zip',
   }) {
     final updater = IpingUpdater(
       current: () => _current,
-      target: Future.value('macos-arm64-zip'),
+      target: Future.value(target),
       client: client,
       enabled: true,
       onRequired: onRequired ?? () async {},
-      beforeInstall: () async {},
-      exitApplication: () async {},
+      beforeInstall: beforeInstall ?? () async {},
+      exitApplication: exitApplication ?? () async {},
       install: install ?? (_, _) async {},
+      openStore: openStore,
     );
     addTearDown(updater.dispose);
     return updater;
@@ -96,6 +137,144 @@ void main() {
     expect(ipingUpdateArch(Abi.androidArm), 'arm');
     expect(ipingUpdateArch(Abi.linuxX64), 'amd64');
   });
+
+  test('App Store cache entries retain their installation route', () {
+    final restored = IpingUpdate.fromJson(_storeRelease.toJson());
+    expect(restored.isAppStore, isTrue);
+    expect(restored.url, _storeRelease.url);
+    expect(restored.isNewerThan(_current), isTrue);
+    for (final invalid in [
+      {..._storeRelease.toJson(), 'url': 'https://example.com/app/id123'},
+      {..._storeRelease.toJson(), 'url': 'https://apps.apple.com/app/id0'},
+      {..._storeRelease.toJson(), 'buildNumber': 11},
+    ]) {
+      expect(() => IpingUpdate.fromJson(invalid), throwsFormatException);
+    }
+  });
+
+  test(
+    'App Store installation opens the store and releases controls on failure',
+    () async {
+      var attempts = 0;
+      final client = _Client()..response = () async => _storeRelease;
+      final updater = makeUpdater(
+        client,
+        target: 'ios-app-store',
+        openStore: (url) async {
+          expect(url, _storeRelease.url);
+          return ++attempts > 1;
+        },
+        install: (_, _) async =>
+            fail('App Store updates must not install a package'),
+        beforeInstall: () async =>
+            fail('Opening the App Store must not prepare an app exit'),
+        exitApplication: () async =>
+            fail('Opening the App Store must not exit iPing'),
+      );
+      await updater.initialize();
+      await updater.install();
+      expect(updater.failed, isTrue);
+      expect(updater.busy, isFalse);
+      expect(updater.progress, isNull);
+      await updater.install();
+      expect(updater.failed, isFalse);
+      expect(updater.busy, isFalse);
+      expect(updater.required, isTrue);
+      expect(attempts, 2);
+    },
+  );
+
+  test(
+    'an App Store update remains available offline and clears after installing its version',
+    () async {
+      final first = makeUpdater(
+        _Client()..response = () async => _storeRelease,
+        target: 'ios-app-store',
+      );
+      await first.initialize();
+      final offline = _Client()
+        ..response = () async => throw const SocketException('offline');
+      final restored = makeUpdater(offline, target: 'ios-app-store');
+      await restored.initialize();
+      expect(restored.update?.isAppStore, isTrue);
+      final installed = IpingUpdater(
+        current: () => PackageInfo(
+          appName: 'iPing',
+          packageName: 'my.iping.client',
+          version: '1.1.0',
+          buildNumber: '20',
+        ),
+        target: Future.value('ios-app-store'),
+        client: _Client()..response = () async => null,
+        enabled: true,
+        onRequired: () async =>
+            fail('The installed App Store version is current'),
+        beforeInstall: () async {},
+        exitApplication: () async {},
+      );
+      addTearDown(installed.dispose);
+      await installed.initialize();
+      expect(installed.required, isFalse);
+    },
+  );
+
+  test('disposing during an App Store launch ignores its completion', () async {
+    final pending = Completer<bool>();
+    final updater = IpingUpdater(
+      current: () => _current,
+      target: Future.value('ios-app-store'),
+      client: _Client()..response = () async => _storeRelease,
+      enabled: true,
+      openStore: (_) => pending.future,
+      onRequired: () async {},
+      beforeInstall: () async {},
+      exitApplication: () async {},
+    );
+    await updater.initialize();
+    final launching = updater.install();
+    updater.dispose();
+    pending.complete(true);
+    await launching;
+  });
+
+  testWidgets(
+    'App Store updates show store-specific feedback without download percentages',
+    (tester) async {
+      final pending = Completer<bool>();
+      final updater = makeUpdater(
+        _Client()..response = () async => _storeRelease,
+        target: 'ios-app-store',
+        openStore: (_) => pending.future,
+      );
+      await updater.initialize();
+      await tester.pumpWidget(
+        TestApp(
+          child: ListenableBuilder(
+            listenable: updater,
+            builder: (_, _) => IpingRequiredUpdate(updater: updater),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Update in App Store'), findsOneWidget);
+      expect(
+        find.text('Install the update in the App Store, then reopen iPing.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Update in App Store'));
+      await tester.pump();
+      expect(find.byType(CommonCircleLoading), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('0%'), findsNothing);
+      pending.complete(false);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Unable to open the App Store. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Retry'), findsOneWidget);
+    },
+  );
 
   test('validates version, checksum, URL and same-version builds', () {
     final json = _release.toJson();
@@ -174,6 +353,26 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test(
+    'verifies a download whose progress listener cannot cross isolates',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'iping-update-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final client = IpingUpdateClient(
+        dio: Dio()..httpClientAdapter = _BytesAdapter(),
+        temporaryDirectory: () async => directory,
+      );
+      addTearDown(client.close);
+      final listener = _UnsendableListener();
+      addTearDown(listener.port.close);
+      final file = await client.download(_release, listener.onProgress);
+      expect(await file.readAsBytes(), [1, 2, 3]);
+      expect(listener.values.last, 1);
+    },
+  );
 
   test(
     'coalesces checks and keeps mandatory state through network failures',
@@ -266,6 +465,7 @@ void main() {
       await tester.tap(find.text('Update'));
       await tester.pumpAndSettle();
       expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('Download manually'), findsOneWidget);
       expect(find.text('ACCOUNT'), findsNothing);
       unawaited(
         dialogs.showCommonDialog<String>(

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:fl_clash/models/changelog.dart' as client;
 import 'package:test/test.dart';
 
 import '../../tool/src/changelog/builder.dart';
@@ -49,13 +52,15 @@ void main() {
         ),
       );
 
-      expect(markdown, startsWith('# Changelog\n'));
+      expect(markdown, startsWith('# 更新日志\n'));
       expect(markdown, contains('## v0.8.96 (2026-08-16)'));
-      expect(markdown, contains('**Breaking Changes**'));
-      expect(markdown, contains('- **lib** Backups need re-import (af20769)'));
-      expect(markdown, contains('- Scopeless entry (2b3c4d5)'));
+      expect(markdown, contains('**不兼容变更**'));
+      expect(markdown, contains('- **lib** Backups need re-import'));
+      expect(markdown, contains('- Scopeless entry'));
+      expect(markdown, isNot(contains('af20769')));
+      expect(markdown, isNot(contains('2b3c4d5')));
       expect(markdown, contains(changelogFrozenMarker));
-      expect(markdown.indexOf('**Features**'), greaterThan(0));
+      expect(markdown.indexOf('**新增功能**'), greaterThan(0));
       expect(markdown, isNot(contains('### ')));
     });
   });
@@ -107,7 +112,7 @@ void main() {
         first,
       );
 
-      expect(second, contains('- **windows** Fix TUN (5d6e7f8)'));
+      expect(second, contains('- **windows** Fix TUN'));
       expect(second, endsWith(legacy));
     });
   });
@@ -133,6 +138,32 @@ void main() {
   });
 
   group('renderRelease', () {
+    test('notes without commit IDs remain readable by the app', () {
+      final release = version(
+        groups: [
+          const ChangelogGroup(
+            type: ChangelogType.feat,
+            entries: [
+              ChangelogEntry(text: '无需登录即可导入订阅'),
+              ChangelogEntry(text: '支持从 App Store 更新'),
+            ],
+          ),
+        ],
+      );
+      final body = renderRelease(release);
+      final decoded = client.Changelog.fromJson(
+        jsonDecode(_payloadOf(body)) as Map<String, dynamic>,
+      );
+      final entries = decoded.versions.single.groups.single.entries;
+      expect(entries.map((entry) => entry.id), [
+        '0.8.96-feat-1',
+        '0.8.96-feat-2',
+      ]);
+      expect(entries.first.text, '无需登录即可导入订阅');
+      expect(release.groups.single.entries.first.id, isEmpty);
+      expect(renderRelease(release), body);
+    });
+
     test('wraps entries in the app readable markers', () {
       final body = renderRelease(
         version(
@@ -161,10 +192,7 @@ void main() {
         moreUrl: 'https://example.com',
       );
 
-      expect(
-        text,
-        '<b>Bug Fixes</b>\n• Reject &lt;script&gt; &amp; "quoted" input',
-      );
+      expect(text, '<b>问题修复</b>\n• Reject &lt;script&gt; &amp; "quoted" input');
     });
 
     test('says so when a version has no user facing changes', () {
@@ -226,7 +254,7 @@ void main() {
         moreUrl: 'https://example.com',
       );
 
-      expect(text, '<b>Bug Fixes</b>\n• Fix TUN');
+      expect(text, '<b>问题修复</b>\n• Fix TUN');
     });
 
     test('says so when a version has no user facing changes', () {
@@ -305,15 +333,6 @@ void main() {
 
     test('ends with a newline so the file is diff friendly', () {
       expect(encodeChangelog(const Changelog(versions: [])), endsWith('\n'));
-    });
-  });
-
-  group('readPubspecVersion', () {
-    test('reads the app version without the build number', () {
-      expect(
-        readPubspecVersion('name: fl_clash\nversion: 0.8.96+2026081501\n'),
-        '0.8.96',
-      );
     });
   });
 }

@@ -211,6 +211,7 @@ class RouterBackend implements IpingBackend {
     return IpingBackendState(
       initialized: true,
       signedIn: status['logged_in'] == true,
+      manualSubscription: status['manual_subscription'] == true,
       connected: status['running'] == true,
       busy: status['busy'] == true,
       nodes: (status['nodes'] as num?)?.toInt() ?? 0,
@@ -252,6 +253,12 @@ class RouterBackend implements IpingBackend {
 
   @override
   Future<void> synchronize() => _runJob('sync');
+
+  @override
+  Future<bool> importSubscription(String url) async {
+    await _runJob('import_subscription', {'url': url.trim()});
+    return true;
+  }
 
   @override
   Future<bool> setConnected(bool connected) async {

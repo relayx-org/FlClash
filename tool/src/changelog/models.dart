@@ -3,11 +3,11 @@ library;
 const changelogSchemaVersion = 2;
 
 enum ChangelogType {
-  breaking('breaking', 'Breaking Changes'),
-  feat('feat', 'Features'),
-  fix('fix', 'Bug Fixes'),
-  perf('perf', 'Performance'),
-  revert('revert', 'Reverts');
+  breaking('breaking', '不兼容变更'),
+  feat('feat', '新增功能'),
+  fix('fix', '问题修复'),
+  perf('perf', '性能优化'),
+  revert('revert', '变更回退');
 
   const ChangelogType(this.id, this.title);
 
@@ -24,35 +24,21 @@ enum ChangelogType {
   }
 }
 
-class RawCommit {
-  const RawCommit({
-    required this.hash,
-    required this.subject,
-    required this.body,
-  });
-
-  final String hash;
-  final String subject;
-  final String body;
-
-  String get shortHash => hash.length > 7 ? hash.substring(0, 7) : hash;
-}
-
 class ChangelogEntry {
-  const ChangelogEntry({required this.id, required this.text, this.scope});
+  const ChangelogEntry({this.id = '', required this.text, this.scope});
 
   final String id;
   final String? scope;
   final String text;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'id': id,
+    if (id.isNotEmpty) 'id': id,
     if (scope != null) 'scope': scope,
     'text': text,
   };
 
   static ChangelogEntry fromJson(Map<String, dynamic> json) => ChangelogEntry(
-    id: json['id'] as String,
+    id: json['id'] as String? ?? '',
     scope: json['scope'] as String?,
     text: json['text'] as String,
   );
@@ -69,10 +55,10 @@ class ChangelogGroup {
     'entries': entries.map((entry) => entry.toJson()).toList(),
   };
 
-  static ChangelogGroup? fromJson(Map<String, dynamic> json) {
+  static ChangelogGroup fromJson(Map<String, dynamic> json) {
     final type = ChangelogType.fromId(json['type'] as String);
     if (type == null) {
-      return null;
+      throw FormatException('Unknown changelog group: ${json['type']}');
     }
     return ChangelogGroup(
       type: type,
@@ -113,14 +99,13 @@ class ChangelogVersion {
   static ChangelogVersion fromJson(Map<String, dynamic> json) =>
       ChangelogVersion(
         version: json['version'] as String,
-        tag: json['tag'] as String,
-        date: json['date'] as String,
+        tag: json['tag'] as String? ?? 'v${json['version']}',
+        date: json['date'] as String? ?? '',
         prerelease: json['prerelease'] as bool? ?? false,
         groups: (json['groups'] as List<dynamic>)
             .map(
               (group) => ChangelogGroup.fromJson(group as Map<String, dynamic>),
             )
-            .whereType<ChangelogGroup>()
             .toList(),
       );
 }

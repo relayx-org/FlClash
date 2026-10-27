@@ -45,8 +45,17 @@ The published-release workflow builds this IPA on the existing macOS ARM64 runne
 and attaches it alongside the desktop, Android and OpenWrt packages with shared
 checksums. Stable releases also copy it to the versioned download directory in the
 existing MinIO storage. It only exports and publishes the IPA; it does not upload to
-TestFlight or App Store Connect. The application's automatic updater remains disabled
-on iOS.
+TestFlight or App Store Connect. Release builds check the App Store at startup,
+on resume (at most once every five minutes), and hourly. The lookup uses the running
+application's bundle ID and only offers a newer published version that supports the
+device's iOS version. Updating opens the App Store; the required-update screen stays
+until the installed application version catches up, including across offline restarts.
+
+The lookup uses the US store by default. Set `IPING_APP_STORE_COUNTRY` in the build's
+Dart defines to another two-letter store country, such as `hk`. An empty lookup
+result leaves the application usable, so publishing an IPA to MinIO before its App
+Store release does not trigger an update prompt. App Store checks compare the public
+version rather than the CI build number. No App Store numeric ID needs to be configured.
 
 CI follows the local GoRelay signing convention with these repository secrets:
 
@@ -131,8 +140,7 @@ state from bulk events and expires its listener when the UI stops polling.
 
 The extension uses a soft Go memory limit of 32 MiB; this is not an RSS ceiling.
 Large profiles and provider updates still need device memory-pressure testing.
-The desktop/Android package updater is disabled on iOS. Distribute updates through
-signed IPA builds. Android per-app routing, system proxy
+Application updates install through the App Store. Android per-app routing, system proxy
 switching, Quick Settings and Wi-Fi SSID exclusions are not iOS features in this
 first target.
 

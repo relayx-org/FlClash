@@ -47,39 +47,14 @@ expect_fail() {
   fi
 }
 
-expect_stderr() {
-  local name="$1"
-  local needle="$2"
-  shift 2
-  expect_pass "$name" "$@"
-  if ! grep -q "$needle" "$temp_dir/err"; then
-    echo "FAIL: $name should have warned about $needle" >&2
-    failures=$((failures + 1))
-  fi
-}
-
 expect_pass 'a conventional subject' "$subject"
-# A message left uncleaned starts with blank lines, and the subject then sits
-# below line one. Cutting the body from line two would put the subject in it.
-expect_fail 'a leading blank line does not hide a bad trailer' \
-  'Unknown changelog trailer' '' "$subject" '' 'Changelog-de: nope'
 expect_pass 'a leading blank line still finds the subject' '' "$subject"
 expect_pass 'a merge subject' 'Merge branch main into dev'
 expect_pass 'a fixup subject' "fixup! $subject"
-expect_pass 'a changelog trailer' \
-  'feat(profiles): support override scripts' \
-  '' \
-  'Changelog: Per-profile override scripts'
 expect_pass 'a breaking commit with its footer' \
   'feat(backup)!: new archive layout' \
   '' \
   'BREAKING CHANGE: Archives from 0.8.95 and earlier need re-import'
-expect_pass 'a changelog type override' \
-  'refactor(tray): replace the fork' \
-  '' \
-  'Changelog: Rebuilt tray' \
-  'Changelog-Type: perf'
-
 expect_fail 'an empty message' 'empty' ''
 expect_fail 'a non conventional subject' 'Conventional Commits' 'Optimize core service'
 expect_fail 'an upper case description' 'lower case' 'fix(core): Keep the socket alive'
@@ -88,14 +63,6 @@ expect_pass 'an acronym' 'fix(core): DNS leaks after wake'
 expect_fail 'an upper case first word before punctuation' 'lower case' \
   'fix(core): Keep, or drop, the socket'
 expect_fail 'a trailing period' 'period' "$subject."
-expect_fail 'a changelog translation trailer' 'Changelog-zh-CN' \
-  'feat: x' '' 'Changelog-zh-CN: 新功能'
-expect_fail 'an unknown changelog trailer' 'Changelog-de' \
-  'feat: x' '' 'Changelog-de: Neu'
-expect_fail 'a breaking translation trailer' 'Breaking-zh-CN' \
-  'feat: x' '' 'Breaking-zh-CN: 变更'
-expect_fail 'an unknown changelog type' 'Changelog-Type' \
-  'chore: x' '' 'Changelog: X' 'Changelog-Type: docs'
 expect_fail 'a breaking marker with no footer' 'BREAKING CHANGE' \
   'feat(core)!: drop the legacy socket'
 for trailer in \
@@ -109,8 +76,14 @@ done
 expect_pass 'a human co-author' \
   "$subject" '' 'Co-authored-by: Jane Doe <jane.doe@example.com>'
 
-expect_stderr 'a user facing commit without a trailer' 'Changelog:' \
+expect_pass 'a user facing commit without release copy' \
   'feat(profiles): support override scripts'
+if [[ -s "$temp_dir/err" ]]; then
+  echo 'FAIL: a commit without release copy should not produce a warning' >&2
+  failures=$((failures + 1))
+fi
+expect_fail 'leading blanks do not hide an agent co-author' 'coding agent' \
+  '' "$subject" '' 'Co-authored-by: Codex <codex@example.com>'
 
 if ((failures > 0)); then
   echo "$failures check(s) failed" >&2

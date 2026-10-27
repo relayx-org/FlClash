@@ -79,7 +79,12 @@ class _RouterDashboardState extends State<RouterDashboard>
 
   Future<void> _load() async {
     final router = _router!;
-    if (_loading || !router.signedIn || !router.visible || router.busy) return;
+    if (_loading ||
+        !router.status.hasSubscription ||
+        !router.visible ||
+        router.busy) {
+      return;
+    }
     _loading = true;
     final tables = !context.isMobileView;
     try {

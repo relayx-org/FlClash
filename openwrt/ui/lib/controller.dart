@@ -33,7 +33,7 @@ class RouterController extends IpingController {
   Future<void> refresh({bool force = false}) async {
     await super.refresh(force: force);
     if (_closed) return;
-    if (signedIn) {
+    if (status.hasSubscription) {
       await probes.refreshRoute();
     } else {
       probes.reset();

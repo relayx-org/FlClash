@@ -75,13 +75,14 @@ var methods = map[string]map[string]any{
 	"validate_scripts": {"scripts": []string{}},
 	"validate_proxies": {"proxies": []map[string]any{}},
 	"status":           {}, "account": {}, "sync": {}, "connect": {}, "disconnect": {}, "logout": {},
-	"begin_login":    {"redirect_uri": "", "session": ""},
-	"complete_login": {"code": "", "state": "", "session": ""},
-	"cancel_login":   {"session": ""},
-	"proxies":        {"group": "", "query": "", "offset": 0, "sort": "", "hide_timeout": false},
-	"select_proxy":   {"group": "", "name": "", "close_connections": false},
-	"delay_proxy":    {"name": "", "url": ""},
-	"telemetry":      {}, "connections": {"query": "", "offset": 0}, "logs": {},
+	"begin_login":         {"redirect_uri": "", "session": ""},
+	"complete_login":      {"code": "", "state": "", "session": ""},
+	"cancel_login":        {"session": ""},
+	"import_subscription": {"url": ""},
+	"proxies":             {"group": "", "query": "", "offset": 0, "sort": "", "hide_timeout": false},
+	"select_proxy":        {"group": "", "name": "", "close_connections": false},
+	"delay_proxy":         {"name": "", "url": ""},
+	"telemetry":           {}, "connections": {"query": "", "offset": 0}, "logs": {},
 	"close_connection": {"id": ""}, "set_mode": {"mode": ""},
 }
 
@@ -227,6 +228,8 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.completeLogin(ctx, args)
 	case "cancel_login":
 		return a.cancelLogin(args)
+	case "import_subscription":
+		return a.queueSubscription(args.URL, lock)
 	case "select_proxy":
 		return nil, a.selectProxy(ctx, args)
 	case "set_mode":
@@ -247,7 +250,7 @@ func (a *app) startJob(action string, lock *os.File) (any, error) {
 		return nil, failure("interrupted")
 	}
 	if action == "sync" || action == "connect" {
-		if _, err := a.account(); err != nil {
+		if _, err := a.subscriptionURL(); err != nil {
 			return nil, err
 		}
 	}
@@ -286,6 +289,8 @@ func (a *app) runJob(ctx context.Context, action string) {
 		err = a.applySettings(ctx)
 	case "sync":
 		err = a.syncProfile(ctx)
+	case "import_subscription":
+		err = a.importSubscription(ctx)
 	case "connect":
 		err = a.connect(ctx)
 	case "disconnect":
@@ -318,11 +323,13 @@ func (a *app) status(ctx context.Context) (any, error) {
 		job.Done, job.Error = true, "interrupted"
 	}
 	account, accountErr := a.account()
+	session, sessionErr := a.session()
 	var profile profileInfo
 	readJSON(filepath.Join(a.dataDir, "profile.json"), &profile)
 	return map[string]any{
 		"logged_in": accountErr == nil, "email": account.Email, "site": a.site,
-		"nodes": profile.Nodes, "synced": profile.Synced, "busy": busy || a.core.working.Load() > 0, "job": job,
+		"manual_subscription": sessionErr == nil && session.ManualURL != "",
+		"nodes":               profile.Nodes, "synced": profile.Synced, "busy": busy || a.core.working.Load() > 0, "job": job,
 		"running": a.running(ctx),
 	}, nil
 }

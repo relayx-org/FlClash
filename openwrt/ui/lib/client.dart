@@ -30,7 +30,7 @@ String routerErrorMessage(String code, AppLocalizations l) => switch (code) {
   'request_failed' ||
   'invalid_response' => l.ipingNetworkError,
   'invalid_subscription' || 'sync_required' => l.ipingSubscriptionError,
-  'no_nodes' => l.ipingNoNodes,
+  'no_nodes' => l.ipingManualNoNodes,
   'not_logged_in' ||
   'login_required' ||
   'login_expired' => l.ipingSessionExpired,

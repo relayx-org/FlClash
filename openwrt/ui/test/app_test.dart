@@ -23,11 +23,103 @@ import 'package:fl_clash/views/proxies/list_presentation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iping_openwrt/app.dart';
 import 'package:fl_clash/iping/login_page.dart';
+import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'fake_client.dart';
 
 void main() {
+  testWidgets(
+    'manual subscription import opens the dashboard without signing in',
+    (tester) async {
+      final client = FakeRouterClient(signedIn: false)..running = false;
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _DependencyAssets(),
+          child: RouterApp(client: client),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.current;
+      await tester.ensureVisible(find.text(l.ipingImportWithoutLogin));
+      await tester.tap(find.text(l.ipingImportWithoutLogin));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'file:///tmp/sub');
+      await tester.tap(find.text(l.submit));
+      await tester.pumpAndSettle();
+      expect(find.text(l.urlTip(l.url)), findsOneWidget);
+      expect(client.calls, isNot(contains('import_subscription')));
+      await tester.enterText(
+        find.byType(TextFormField),
+        'https://example.com/sub',
+      );
+      await tester.tap(find.text(l.submit));
+      await tester.pumpAndSettle();
+      expect(find.byType(IpingLoginPage), findsNothing);
+      expect(find.byType(DashboardProfileCard), findsOneWidget);
+      expect(client.signedIn, isFalse);
+      expect(client.calls, isNot(contains('account')));
+      await tester.ensureVisible(find.byTooltip(l.details(l.profile)));
+      await tester.tap(find.byTooltip(l.details(l.profile)));
+      await tester.pumpAndSettle();
+      expect(find.byType(IpingSubscriptionPage), findsOneWidget);
+      expect(find.text(l.ipingManualSubscription), findsOneWidget);
+      await tester.tap(find.text(l.ipingImportSubscription));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextFormField),
+        'https://example.com/new',
+      );
+      await tester.tap(find.text(l.submit));
+      await tester.pumpAndSettle();
+      expect(client.subscriptionUrl, 'https://example.com/new');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'failed manual imports restore login controls without browser prompts',
+    (tester) async {
+      final client = FakeRouterClient(signedIn: false)..running = false;
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _DependencyAssets(),
+          child: RouterApp(client: client),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.current;
+      await tester.ensureVisible(find.text(l.ipingImportWithoutLogin));
+      await tester.tap(find.text(l.ipingImportWithoutLogin));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextFormField),
+        'https://example.com/sub',
+      );
+      client.importRequest = Completer<void>();
+      client.failImport = true;
+      await tester.tap(find.text(l.submit));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text(l.ipingBrowserWaiting), findsNothing);
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      client.importRequest!.complete();
+      await tester.pumpAndSettle();
+      expect(find.text(l.ipingSubscriptionError), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'offline mode controls wait for completion and recover from failure',
     (tester) async {

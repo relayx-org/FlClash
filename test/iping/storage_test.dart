@@ -142,15 +142,18 @@ void main() {
     'session secure storage round-trips and rejects malformed saved data',
     () async {
       final storage = container.read(ipingStorageProvider);
-      const account = IpingStoredSession(
+      const account = IpingAccount(
         subscriptionToken: 'subscription',
         apiKey: '62ab74aa-0473-4790-9bd5-2f728dd42c56',
         id: 7,
         email: 'user@example.com',
       );
-      await storage.write(account);
-      expect((await storage.read())?.subscriptionToken, 'subscription');
-      expect((await storage.read())?.apiKey, account.apiKey);
+      await storage.write(const IpingStoredSession(account: account));
+      expect(
+        (await storage.read())?.account?.subscriptionToken,
+        'subscription',
+      );
+      expect((await storage.read())?.account?.apiKey, account.apiKey);
       await storage.clear();
       expect(await storage.read(), isNull);
       FlutterSecureStorage.setMockInitialValues({
@@ -169,8 +172,21 @@ void main() {
       }),
     });
     final account = await container.read(ipingStorageProvider).read();
-    expect(account?.subscriptionToken, 'legacy-subscription');
-    expect(account?.apiKey, isNull);
+    expect(account?.account?.subscriptionToken, 'legacy-subscription');
+    expect(account?.account?.apiKey, isNull);
+  });
+
+  test('manual subscription links round-trip through secure storage', () async {
+    const url = 'https://example.com/sub?token=secret';
+    final storage = container.read(ipingStorageProvider);
+    await storage.write(const IpingStoredSession(manualUrl: url));
+    final saved = await storage.read();
+    expect(saved?.account, isNull);
+    expect(saved?.manualUrl, url);
+    FlutterSecureStorage.setMockInitialValues({
+      'my.iping.client.subscription': '{"subscription_url":"file:///tmp/sub"}',
+    });
+    expect(await storage.read(), isNull);
   });
 
   test('invalid API credentials invalidate the saved secure session', () async {

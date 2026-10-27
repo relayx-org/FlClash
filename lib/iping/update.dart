@@ -13,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'update_installer.dart';
 
@@ -40,6 +41,8 @@ class IpingUpdate {
   final String format;
   final String notes;
 
+  bool get isAppStore => format == 'app-store';
+
   factory IpingUpdate.fromJson(Map<String, dynamic> json) {
     final version = json['version'] as String;
     final build = json['buildNumber'] as int;
@@ -47,21 +50,32 @@ class IpingUpdate {
     final hash = json['sha256'] as String;
     final size = json['size'] as int;
     final format = json['format'] as String;
-    if (!RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version) ||
-        build <= 0 ||
+    final appStore = format == 'app-store';
+    final validVersion = appStore
+        ? RegExp(r'^\d+(?:\.\d+){0,2}$').hasMatch(version)
+        : RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version);
+    final validPackage = appStore
+        ? build == 0 &&
+              hash.isEmpty &&
+              size == 0 &&
+              url.host == 'apps.apple.com' &&
+              RegExp(r'^/app/id[1-9]\d*$').hasMatch(url.path)
+        : build > 0 &&
+              RegExp(r'^[a-f0-9]{64}$').hasMatch(hash) &&
+              size > 0 &&
+              const {
+                'apk',
+                'exe',
+                'zip',
+                'deb',
+                'rpm',
+                'AppImage',
+              }.contains(format);
+    if (!validVersion ||
         url.scheme != 'https' ||
         url.host.isEmpty ||
         url.userInfo.isNotEmpty ||
-        !RegExp(r'^[a-f0-9]{64}$').hasMatch(hash) ||
-        size <= 0 ||
-        !const {
-          'apk',
-          'exe',
-          'zip',
-          'deb',
-          'rpm',
-          'AppImage',
-        }.contains(format)) {
+        !validPackage) {
       throw const FormatException('Invalid update metadata');
     }
     return IpingUpdate(
@@ -88,7 +102,8 @@ class IpingUpdate {
   bool isNewerThan(PackageInfo current) {
     final compared = compareVersions(version, current.version);
     return compared > 0 ||
-        (compared == 0 &&
+        (!isAppStore &&
+            compared == 0 &&
             buildNumber > (int.tryParse(current.buildNumber) ?? 0));
   }
 }
@@ -104,11 +119,15 @@ String ipingUpdateArch(Abi abi) => switch (abi) {
 };
 
 class IpingUpdateClient {
-  IpingUpdateClient({Dio? dio, this.baseUrl = ipingUpdateBase})
-    : dio = dio ?? Dio();
+  IpingUpdateClient({
+    Dio? dio,
+    this.baseUrl = ipingUpdateBase,
+    this.temporaryDirectory = getTemporaryDirectory,
+  }) : dio = dio ?? Dio();
 
   final Dio dio;
   final String baseUrl;
+  final Future<Directory> Function() temporaryDirectory;
   final _cancel = CancelToken();
 
   Future<IpingUpdate?> check(String target, PackageInfo current) async {
@@ -142,7 +161,7 @@ class IpingUpdateClient {
     IpingUpdate update,
     void Function(double progress) onProgress,
   ) async {
-    final temp = await getTemporaryDirectory();
+    final temp = await temporaryDirectory();
     final directory = await temp.createTemp('iping-update-');
     final file = File(p.join(directory.path, 'update.${update.format}'));
     try {
@@ -159,7 +178,7 @@ class IpingUpdateClient {
         },
       );
       await File('${file.path}.part').rename(file.path);
-      await Isolate.run(() => verifyIpingUpdate(file.path, update));
+      await _verifyInIsolate(file.path, update);
       return file;
     } catch (_) {
       await directory.delete(recursive: true);
@@ -172,6 +191,11 @@ class IpingUpdateClient {
     dio.close(force: true);
   }
 }
+
+// Isolate.run sends the closure's whole context, and a closure in download()
+// would share one with onProgress, which reaches the updater and its sockets.
+Future<void> _verifyInIsolate(String path, IpingUpdate update) =>
+    Isolate.run(() => verifyIpingUpdate(path, update));
 
 Future<void> verifyIpingUpdate(String path, IpingUpdate update) async {
   final file = File(path);
@@ -191,8 +215,10 @@ class IpingUpdater extends ChangeNotifier {
     required this.exitApplication,
     this.enabled = kReleaseMode && !safeModeBuild,
     Future<void> Function(IpingUpdate, void Function(double))? install,
+    Future<bool> Function(Uri)? openStore,
   }) : _current = current,
-       _install = install;
+       _install = install,
+       _openStore = openStore ?? _launchStore;
 
   final PackageInfo Function() _current;
   PackageInfo get current => _current();
@@ -203,6 +229,7 @@ class IpingUpdater extends ChangeNotifier {
   final Future<void> Function() exitApplication;
   final bool enabled;
   final Future<void> Function(IpingUpdate, void Function(double))? _install;
+  final Future<bool> Function(Uri) _openStore;
   IpingUpdate? update;
   bool busy = false;
   bool failed = false;
@@ -289,11 +316,15 @@ class IpingUpdater extends ChangeNotifier {
     if (release == null || busy || _disposed) return;
     busy = true;
     failed = false;
-    progress = 0;
+    progress = release.isAppStore ? null : 0;
     notifyListeners();
     try {
       final install = _install;
-      if (install != null) {
+      if (release.isAppStore) {
+        if (!await _openStore(release.url)) {
+          throw StateError('Unable to open App Store');
+        }
+      } else if (install != null) {
         await install(release, _onProgress);
       } else if (Platform.isAndroid) {
         await beforeInstall();
@@ -369,3 +400,6 @@ class IpingUpdater extends ChangeNotifier {
     super.dispose();
   }
 }
+
+Future<bool> _launchStore(Uri url) =>
+    launchUrl(url, mode: LaunchMode.externalApplication);

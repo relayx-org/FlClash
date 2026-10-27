@@ -9,6 +9,7 @@ import 'package:fl_clash/iping/brand.dart';
 import 'package:fl_clash/iping/browser.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/site_config.dart';
+import 'package:fl_clash/iping/session.dart';
 import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/iping/view.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -105,6 +106,119 @@ void main() {
       expect(find.byType(TextFormField), findsNothing);
       expect(find.text('Terms of service'), findsOneWidget);
       expect(find.text('Privacy policy'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'manual import validates links and opens home without signing in',
+    (tester) async {
+      await pump(tester, const IpingGate(child: Text('HOME')));
+      await tester.ensureVisible(
+        find.text('Import a subscription without signing in'),
+      );
+      await tester.tap(find.text('Import a subscription without signing in'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextFormField),
+        'file:///tmp/sub.yaml',
+      );
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      expect(find.text('URL must be a URL'), findsOneWidget);
+      expect(api.downloads, 0);
+      await tester.enterText(
+        find.byType(TextFormField),
+        '  https://example.com/subscription  ',
+      );
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      expect(find.text('HOME'), findsOneWidget);
+      expect(browser.registered, isNull);
+      expect(container.read(ipingSessionProvider).account, isNull);
+      expect(container.read(ipingSessionProvider).canConnect, isTrue);
+      expect(storage.stored?.manualUrl, 'https://example.com/subscription');
+    },
+  );
+
+  testWidgets(
+    'manual import shows progress and failure without browser waiting',
+    (tester) async {
+      await pump(tester, const IpingGate(child: Text('HOME')));
+      await tester.ensureVisible(
+        find.text('Import a subscription without signing in'),
+      );
+      await tester.tap(find.text('Import a subscription without signing in'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextFormField),
+        'https://example.com/sub',
+      );
+      final download = api.download = Completer();
+      await tester.tap(find.text('Submit'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      expect(find.textContaining('Complete sign-in'), findsNothing);
+      download.completeError(const IpingException(IpingFailure.subscription));
+      await tester.pumpAndSettle();
+      expect(find.text('HOME'), findsNothing);
+      expect(find.byType(IpingFailureText), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+      expect(storage.stored, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('manual import cancel leaves the subscription unchanged', (
+    tester,
+  ) async {
+    await pump(tester, const IpingLoginView());
+    await tester.ensureVisible(
+      find.text('Import a subscription without signing in'),
+    );
+    await tester.tap(find.text('Import a subscription without signing in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(api.downloads, 0);
+    expect(storage.stored, isNull);
+  });
+
+  testWidgets(
+    'manual subscription details refresh and replace the saved link',
+    (tester) async {
+      storage.stored = const IpingStoredSession(
+        manualUrl: 'https://example.com/old',
+      );
+      await pump(tester, const IpingSubscriptionDetails());
+      expect(find.text('Manually imported subscription'), findsOneWidget);
+      expect(find.text('Sign in with browser'), findsOneWidget);
+      expect(find.text('Open iPing console'), findsNothing);
+      await tester.tap(find.text('Import subscription link'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField))
+            .controller!
+            .text,
+        'https://example.com/old',
+      );
+      await tester.enterText(
+        find.byType(TextFormField),
+        'https://example.com/new',
+      );
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+      expect(storage.stored?.manualUrl, 'https://example.com/new');
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+      expect(api.subscriptionUrlRequested, 'https://example.com/new');
     },
   );
 
@@ -308,7 +422,7 @@ void main() {
     },
   );
 
-  testWidgets('an empty subscription offers refresh without manual import', (
+  testWidgets('an empty subscription offers refresh and manual import', (
     tester,
   ) async {
     api.nodes = 0;

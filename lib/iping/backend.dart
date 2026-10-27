@@ -30,6 +30,7 @@ class IpingBackendState {
   const IpingBackendState({
     this.initialized = false,
     this.signedIn = false,
+    this.manualSubscription = false,
     this.connected = false,
     this.busy = false,
     this.nodes = 0,
@@ -40,6 +41,8 @@ class IpingBackendState {
 
   final bool initialized;
   final bool signedIn;
+  final bool manualSubscription;
+  bool get hasSubscription => signedIn || manualSubscription;
   final bool connected;
   final bool busy;
   final int nodes;
@@ -73,6 +76,7 @@ abstract interface class IpingBackend {
   Future<void> signIn({bool register = false});
   void cancelSignIn();
   Future<void> synchronize();
+  Future<bool> importSubscription(String url);
   Future<bool> setConnected(bool connected);
   Future<void> setMode(Mode mode);
   Future<IpingTelemetry> readTelemetry();

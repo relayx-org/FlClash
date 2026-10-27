@@ -140,7 +140,7 @@ class IpingController extends ChangeNotifier {
     if (_disposed) return;
     _epoch++;
     _applyState(value);
-    if (!value.signedIn) telemetry = const IpingTelemetry();
+    if (!value.hasSubscription) telemetry = const IpingTelemetry();
     _changed();
   }
 
@@ -151,7 +151,7 @@ class IpingController extends ChangeNotifier {
       _sessionEpoch++;
       account = null;
     }
-    if (!value.connected || !value.signedIn) _cancelDelays();
+    if (!value.connected || !value.hasSubscription) _cancelDelays();
     if (value.connected != status.connected ||
         value.nodes != status.nodes ||
         value.updated != status.updated) {
@@ -189,9 +189,11 @@ class IpingController extends ChangeNotifier {
     try {
       final next = await backend.readState();
       if (_disposed || epoch != _epoch) return;
-      final data = next.signedIn && !next.busy
+      final data = next.hasSubscription && !next.busy
           ? await backend.readTelemetry()
-          : IpingTelemetry(mode: next.signedIn ? telemetry.mode : Mode.rule);
+          : IpingTelemetry(
+              mode: next.hasSubscription ? telemetry.mode : Mode.rule,
+            );
       if (_disposed || epoch != _epoch) return;
       _applyState(next);
       telemetry = data;
@@ -254,6 +256,12 @@ class IpingController extends ChangeNotifier {
 
   Future<bool> setConnected(bool connected) =>
       _operate(() => backend.setConnected(connected), overlap: true);
+
+  Future<bool> importSubscription(String url) => _operate(() async {
+    final imported = await backend.importSubscription(url);
+    if (imported) revision++;
+    return imported;
+  });
 
   Future<void> synchronize() {
     if (_synchronizing case final request?) return request;

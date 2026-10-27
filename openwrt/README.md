@@ -68,7 +68,8 @@ The installer maps OpenWrt's CPU architecture to the matching static binaries,
 installs runtime dependencies, and verifies the archive size, SHA-256 and every
 contained file before replacing the programs. It selects procd on OpenWrt or systemd on Linux and enables the
 Agent at boot and prints its Web address. Open `http://<router-LAN-address>:19091/`
-and sign in with your iPing account. There is no separate router access key.
+and sign in with your iPing account, or choose **Import a subscription without signing in** and paste a Clash
+subscription link. There is no separate router access key.
 
 Automatic updates are enabled by default. A procd cron task or systemd timer checks the stable update
 manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
@@ -97,7 +98,8 @@ account sign-in to the browser that started it.
 
 Browser login uses a one-time code, state, and PKCE verifier; pending login is
 bound to the initiating browser session. Allow its login popup. The account
-session and subscription credentials stay in the Agent's private data directory.
+session and subscription credentials, including manually imported links, stay in the Agent's private data directory.
+Manual subscriptions support refresh, replacement, and connections after restarting the Agent without an account.
 
 Sync downloads and validates the subscription before installing it. Connect
 starts the private Core; disconnect stops that process and releases its network
@@ -156,7 +158,7 @@ imported. Native file imports and rule-set compilation remain native capabilitie
 
 Saving a node, provider, filter, rule or script adds it to the resource library. The
 "Apply resources" page explicitly selects what the current profile uses. Selection
-is stored per native profile and per router account; an edit carries its profile
+is stored per native profile and per subscription source on the router; an edit carries its profile
 identity so switching profiles/accounts cannot redirect a pending save. Unselected
 library changes do not alter the running router profile or restart Core.
 

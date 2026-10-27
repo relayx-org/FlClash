@@ -1205,6 +1205,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Забыли пароль?",
     ),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("Прокси и туннель"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage(
+      "Импорт ссылки на подписку",
+    ),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "Импорт подписки без входа",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("Дата регистрации"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage(
       "Войдите, чтобы автоматически загрузить подписку.",
@@ -1212,9 +1218,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "Вход подтверждается в браузере. Клиент не сохраняет ваш пароль.",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "Нет доступных узлов. Проверьте ссылку на подписку или обновите её.",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Подписка, импортированная вручную",
+    ),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("Глобальная сеть"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "Не удалось подключиться к iPing. Проверьте сеть. Последняя подписка сохранена.",
+      "Не удалось подключиться. Проверьте соединение и повторите попытку. Предыдущая подписка сохранена.",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "Нет доступных узлов. Проверьте услуги в консоли iPing и обновите подписку.",
@@ -1288,7 +1300,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionCheck": MessageLookupByLibrary.simpleMessage("Подписка"),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "Не удалось загрузить подписку. Повторите попытку или обратитесь в поддержку.",
+      "Не удалось загрузить подписку. Проверьте ссылку на подписку или повторите попытку.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Обновить подписку"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Обновление…"),
@@ -1300,11 +1312,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "Трафик · Последние 30 дней",
     ),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось открыть App Store. Повторите попытку.",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "Установите обновление в App Store, затем снова откройте iPing.",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось обновить приложение. Проверьте подключение и разрешения на установку, затем повторите попытку.",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "Подтвердите установку в системных окнах. После обновления приложение перезапустится.",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "Скачать вручную",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "Обновить в App Store",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage(
       "Требуется обновление",

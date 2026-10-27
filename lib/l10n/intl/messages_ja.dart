@@ -980,6 +980,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "パスワードをお忘れですか？",
     ),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("プロキシとトンネル"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクをインポート",
+    ),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "ログインせずにサブスクリプションをインポート",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("登録日時"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage(
       "ログインするとサブスクリプションを自動で読み込みます。",
@@ -987,9 +993,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "認証はブラウザーで行います。クライアントはパスワードを保存しません。",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "利用可能なノードがありません。サブスクリプションリンクを確認するか、更新してください。",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "手動でインポートしたサブスクリプション",
+    ),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("世界のネットワーク"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "iPing に接続できません。接続を確認して再試行してください。前回の設定は保持されています。",
+      "接続できません。ネットワークを確認して再試行してください。前回のサブスクリプションは保持されています。",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "利用可能なノードがありません。iPing コンソールでサービスを管理してから更新してください。",
@@ -1039,7 +1051,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionCheck": MessageLookupByLibrary.simpleMessage("サブスクリプション"),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "サブスクリプションを読み込めません。再試行するかサポートに連絡してください。",
+      "サブスクリプションを読み込めません。リンクを確認するか、再試行してください。",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("サブスクリプションを更新"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("更新中…"),
@@ -1051,11 +1063,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "通信量 · 過去 30 日間",
     ),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "App Store を開けません。もう一度お試しください。",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "App Store でアップデートをインストールし、iPing を再度開いてください。",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "更新に失敗しました。ネットワーク接続とインストール権限を確認して再試行してください。",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "システムのインストール確認を完了してください。更新後にアプリが再起動します。",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "手動でダウンロード",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "App Store で更新",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage("更新が必要です"),
     "ipingUpdateRequiredDesc": m44,

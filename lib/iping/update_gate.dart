@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'update.dart';
 import 'update_provider.dart';
@@ -120,7 +121,7 @@ class IpingRequiredUpdate extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  if (updater.busy) ...[
+                  if (updater.busy && !update.isAppStore) ...[
                     LinearProgressIndicator(value: updater.progress),
                     const SizedBox(height: 12),
                     Text(
@@ -131,7 +132,9 @@ class IpingRequiredUpdate extends StatelessWidget {
                   ],
                   if (updater.failed) ...[
                     Text(
-                      l.ipingUpdateFailed,
+                      update.isAppStore
+                          ? l.ipingUpdateAppStoreFailed
+                          : l.ipingUpdateFailed,
                       style: AppTextStyle.body
                           .of(context)
                           .copyWith(color: context.colorScheme.error),
@@ -152,11 +155,31 @@ class IpingRequiredUpdate extends StatelessWidget {
                               ),
                             ),
                           ),
-                    child: Text(updater.failed ? l.retry : l.update),
+                    child: updater.busy && update.isAppStore
+                        ? const CommonCircleLoading(size: 20)
+                        : Text(
+                            updater.failed
+                                ? l.retry
+                                : update.isAppStore
+                                ? l.ipingUpdateOpenAppStore
+                                : l.update,
+                          ),
                   ),
+                  if (updater.failed && !update.isAppStore) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => launchUrl(
+                        update.url,
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      child: Text(l.ipingUpdateManualDownload),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Text(
-                    l.ipingUpdateInstallHint,
+                    update.isAppStore
+                        ? l.ipingUpdateAppStoreHint
+                        : l.ipingUpdateInstallHint,
                     style: AppTextStyle.footnote.of(context),
                   ),
                 ],

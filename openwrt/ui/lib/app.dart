@@ -9,6 +9,7 @@ import 'package:fl_clash/views/page_destination.dart';
 import 'dart:async';
 
 import 'package:fl_clash/iping/login_page.dart';
+import 'package:fl_clash/iping/subscription_url.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/ui_localizations.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -47,8 +48,13 @@ class RouterScope extends StatelessWidget {
 class _RouterState extends InheritedModel<RouterAspect> {
   _RouterState({required this.controller, required super.child})
     : values = {
-        RouterAspect.session: (controller.initialized, controller.signedIn),
+        RouterAspect.session: (
+          controller.initialized,
+          controller.status.hasSubscription,
+        ),
         RouterAspect.status: (
+          controller.signedIn,
+          controller.status.manualSubscription,
           controller.connected,
           controller.busy,
           controller.nodes,
@@ -274,7 +280,9 @@ class _Gate extends StatelessWidget {
     if (!controller.initialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return controller.signedIn ? const RouterHome() : const _Login();
+    return controller.status.hasSubscription
+        ? const RouterHome()
+        : const _Login();
   }
 }
 
@@ -287,6 +295,7 @@ class _Login extends StatelessWidget {
     return IpingLoginPage(
       site: controller.siteConfig,
       busy: controller.busy,
+      showBrowserWaiting: controller.authorizing,
       failure: controller.error == null
           ? null
           : Semantics(
@@ -301,6 +310,7 @@ class _Login extends StatelessWidget {
       onSignIn: () => controller.signIn(),
       onRegister: () => controller.signIn(register: true),
       onCancel: controller.cancelSignIn,
+      onImport: () => importRouterSubscription(context),
       onForgotPassword: () =>
           controller.client.open('${controller.site}/handler/forgot-password'),
       onTerms: () =>
@@ -309,6 +319,23 @@ class _Login extends StatelessWidget {
           controller.client.open('${controller.site}/privacy-policy.html'),
     );
   }
+}
+
+Future<void> importRouterSubscription(BuildContext context) async {
+  final controller = RouterScope.read(context);
+  if (controller.busy) return;
+  final l = AppLocalizations.of(context);
+  final url = await showFloatingDialog<String>(
+    context: context,
+    child: InputDialog(
+      title: l.ipingImportSubscription,
+      value: '',
+      labelText: l.url,
+      validator: (value) =>
+          isIpingSubscriptionUrl(value?.trim() ?? '') ? null : l.urlTip(l.url),
+    ),
+  );
+  if (url != null && context.mounted) await controller.importSubscription(url);
 }
 
 class RouterHome extends StatefulWidget {
@@ -421,7 +448,7 @@ class _AccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = RouterScope.of(context, aspect: RouterAspect.status);
     return IpingAccountMenu(
-      email: controller.email,
+      email: controller.signedIn ? controller.email : null,
       site: controller.siteConfig,
       busy: controller.busy,
       onConsole: () => controller.client.open('${controller.site}/home'),
@@ -444,7 +471,7 @@ String routerError(BuildContext context, String error) {
     'not_logged_in' ||
     'login_required' ||
     'login_expired' => l.ipingSessionExpired,
-    'no_nodes' => l.ipingNoNodes,
+    'no_nodes' => l.ipingManualNoNodes,
     'invalid_subscription' => l.ipingSubscriptionError,
     'storage_error' => l.ipingStorageError,
     'controller_unavailable' => l.memoryCoreNotRunning,

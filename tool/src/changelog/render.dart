@@ -2,14 +2,13 @@ import 'dart:convert';
 
 import 'models.dart';
 
-const changelogTitle = '# Changelog';
+const changelogTitle = '# 更新日志';
 
 /// Everything below this marker predates the structured pipeline and is kept
 /// verbatim. The generator never writes past it.
 const changelogFrozenMarker = '<!-- changelog:frozen -->';
 
-const changelogFrozenNote =
-    '<!-- Upstream FlClash history is preserved below the iPing release baseline. -->';
+const changelogFrozenNote = '<!-- 以下保留 iPing 发布基线之前的 FlClash 历史。 -->';
 
 const releaseBeginMarker = '<!-- flclash:changelog:begin -->';
 const releaseEndMarker = '<!-- flclash:changelog:end -->';
@@ -22,7 +21,7 @@ const releaseJsonEndMarker = '-->';
 
 const telegramLimit = 900;
 
-const emptyVersionNote = 'Internal improvements only.';
+const emptyVersionNote = '本次更新仅包含内部改进。';
 
 String renderMarkdown(Changelog changelog) {
   final buffer = StringBuffer()
@@ -42,7 +41,7 @@ String renderMarkdown(Changelog changelog) {
         ..writeln('**${group.type.title}**')
         ..writeln();
       for (final entry in group.entries) {
-        buffer.writeln('- ${_prefix(entry)}${entry.text} (${entry.id})');
+        buffer.writeln('- ${_prefix(entry)}${entry.text}');
       }
       buffer.writeln();
     }
@@ -79,17 +78,22 @@ String renderRelease(ChangelogVersion version) {
 /// `>` is escaped so no entry can close the comment early, which keeps a
 /// changelog line containing `-->` from truncating the payload.
 String renderReleaseJson(ChangelogVersion version) {
-  final payload = jsonEncode(
-    Changelog(versions: <ChangelogVersion>[version]).toJson(),
-  ).replaceAll('>', r'\u003e');
+  final data = Changelog(versions: <ChangelogVersion>[version]).toJson();
+  final record = (data['versions'] as List).single as Map;
+  for (final group in record['groups'] as List) {
+    for (final (index, entry) in (group['entries'] as List).indexed) {
+      entry['id'] ??= '${version.version}-${group['type']}-${index + 1}';
+    }
+  }
+  final payload = jsonEncode(data).replaceAll('>', r'\u003e');
   return '$releaseJsonBeginMarker\n$payload\n$releaseJsonEndMarker\n';
 }
 
 /// The caption is sent with a parse mode, so entry text is markup, not text: a
-/// commit subject carrying a `<` is a malformed tag and Telegram rejects the
+/// release entry carrying a `<` is a malformed tag and Telegram rejects the
 /// whole upload. HTML rather than Markdown because it is the one
-/// Telegram parse mode with a defined escape — legacy Markdown has none, and a
-/// subject containing a lone `*` or `_` cannot be made safe in it.
+/// Telegram parse mode with a defined escape — legacy Markdown has none, and an
+/// entry containing a lone `*` or `_` cannot be made safe in it.
 String escapeTelegramHtml(String value) => value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')

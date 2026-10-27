@@ -588,29 +588,22 @@ commit that introduced what it amends.
 - Asking for a fixup means creating the `fixup!` commit only. Do not run `git rebase --autosquash` or otherwise fold it
   into its target unless the user asks for the squash.
 
-### Changelog Trailers
+### Release Notes
 
-`tool/changelog.dart` builds the user facing changelog from the commit history, so the trailers below are the copy that
-ships to users. The subject stays the developer facing summary and is only the fallback.
+Commit messages are developer-facing English Conventional Commits. Release notes are independently authored in
+Simplified Chinese in `changelog.json`, grouped by version and type (`breaking`, `feat`, `fix`, `perf`, `revert`).
+Describe the behavior users gain or the problem fixed; one entry may summarize several commits, and internal commits
+need no release entry. Entries do not need a commit ID or a `Changelog:` trailer.
 
-```text
-feat(profiles): support per-profile override script
+`BREAKING CHANGE:` remains required for a commit whose subject carries `!`; it documents the developer-facing impact
+and does not generate release copy. Write the user-facing migration guidance separately in the release's `breaking` group.
+The commit hook validates commit conventions without requiring, interpreting, or warning about release-note trailers.
 
-Changelog: Per-profile override scripts
-```
-
-- `Changelog:` is the English entry. `Changelog: skip` drops the commit from the changelog entirely.
-- The changelog is English only. A `Changelog-<locale>:` or `Breaking-<locale>:` trailer fails the hook, because
-  translated release copy does not belong in the commit history. Translate after the fact if ever needed, not in the
-  commit message.
-- `Changelog-Type:` moves an entry into another group, for example to promote a `refactor` that users will notice. Valid
-  values are `breaking`, `feat`, `fix`, `perf`, `revert`.
-- `BREAKING CHANGE:` is required whenever the subject carries `!`, and its text becomes the breaking entry. A `!` commit
-  therefore needs two lines of copy: the footer for the breaking entry and `Changelog:` for the normal one.
-
-`feat`, `fix`, `perf`, `revert` and breaking commits are collected by default; every other type is dropped unless it
-carries a `Changelog:` trailer. Commits missing a trailer reuse their subject; for `feat`, `fix` and `perf` the hook
-says so without blocking.
+Edit `changelog.json` first, then run `dart run tool/changelog.dart build` to render `CHANGELOG.md`. The renderer preserves
+the frozen upstream history below `<!-- changelog:frozen -->`. `verify` checks the authored data and rendered Markdown;
+`release --version X.Y.Z` finalizes an existing version's date and prerelease status. Neither command reads commit history,
+requires Git tags, nor fills missing notes from commit subjects. Release preparation fails when the selected version has
+no authored notes. See `commands.md` for publishing and renderer commands.
 
 ## Migrations
 

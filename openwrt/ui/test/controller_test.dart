@@ -33,6 +33,54 @@ void main() {
   });
 
   test(
+    'manual import enables telemetry and probes without an account',
+    () async {
+      final client = FakeRouterClient(signedIn: false)..running = false;
+      final controller = RouterController(client);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      expect(
+        await controller.importSubscription('  https://example.com/sub  '),
+        isTrue,
+      );
+      expect(controller.status.hasSubscription, isTrue);
+      expect(controller.signedIn, isFalse);
+      expect(controller.connected, isFalse);
+      expect(client.subscriptionUrl, 'https://example.com/sub');
+      expect(
+        client.calls,
+        containsAll(['import_subscription', 'telemetry', 'probe_route']),
+      );
+      expect(client.calls, isNot(contains('account')));
+      expect(await controller.setConnected(true), isTrue);
+      expect(await controller.testDelay('Node A'), 42);
+      await controller.synchronize();
+      expect(client.calls, contains('sync'));
+    },
+  );
+
+  test(
+    'failed manual import preserves the previous source and releases controls',
+    () async {
+      final client = FakeRouterClient(signedIn: false)
+        ..manualSubscription = true
+        ..subscriptionUrl = 'https://example.com/old';
+      final controller = RouterController(client);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      client.failImport = true;
+      expect(
+        await controller.importSubscription('https://example.com/new'),
+        isFalse,
+      );
+      expect(client.subscriptionUrl, 'https://example.com/old');
+      expect(controller.status.hasSubscription, isTrue);
+      expect(controller.busy, isFalse);
+      expect(controller.error, isNotNull);
+    },
+  );
+
+  test(
     'dashboard reads typed telemetry through the injected backend',
     () async {
       final client = FakeRouterClient();

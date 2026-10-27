@@ -54,6 +54,11 @@ func (a *app) storedProfileSettings() (map[string]any, error) {
 }
 
 func (a *app) profileSettings() (map[string]any, error) {
+	id, _ := a.resourceProfileID()
+	return a.profileSettingsFor(id)
+}
+
+func (a *app) profileSettingsFor(id string) (map[string]any, error) {
 	values, err := a.storedProfileSettings()
 	if err != nil {
 		return nil, err
@@ -61,10 +66,8 @@ func (a *app) profileSettings() (map[string]any, error) {
 	scopes, _ := values[resourceBindingsKey].(map[string]any)
 	delete(values, resourceBindingsKey)
 	delete(values, "custom.bindings")
-	if id, err := a.resourceProfileID(); err == nil {
-		if bindings, exists := scopes[id]; exists {
-			values["custom.bindings"] = bindings
-		}
+	if bindings, exists := scopes[id]; exists {
+		values["custom.bindings"] = bindings
 	}
 	return values, nil
 }

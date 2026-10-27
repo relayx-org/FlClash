@@ -225,6 +225,7 @@ class IpingApi {
       url,
       options: Options(
         responseType: ResponseType.plain,
+        followRedirects: true,
         headers: {
           'User-Agent': 'iPing Clash.Meta',
           'Accept': 'text/yaml, text/plain',

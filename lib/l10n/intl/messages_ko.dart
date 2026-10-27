@@ -960,6 +960,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingFeatureSync": MessageLookupByLibrary.simpleMessage("구독 자동 동기화"),
     "ipingForgotPassword": MessageLookupByLibrary.simpleMessage("비밀번호 찾기"),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("프록시 및 터널"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage(
+      "구독 링크 가져오기",
+    ),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "로그인 없이 구독 가져오기",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("가입일"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage(
       "로그인하면 구독을 자동으로 불러옵니다.",
@@ -967,9 +973,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "인증은 브라우저에서 이루어집니다. 클라이언트는 비밀번호를 저장하지 않습니다.",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "사용 가능한 노드가 없습니다. 구독 링크를 확인하거나 새로고침하세요.",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "수동으로 가져온 구독",
+    ),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("글로벌 네트워크"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "iPing에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요. 이전 구독은 유지됩니다.",
+      "연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요. 이전 구독은 유지됩니다.",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "사용 가능한 노드가 없습니다. iPing 콘솔에서 서비스를 확인한 후 새로고침하세요.",
@@ -1021,7 +1033,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionCheck": MessageLookupByLibrary.simpleMessage("구독 상태"),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "구독을 불러올 수 없습니다. 다시 시도하거나 고객 지원에 문의하세요.",
+      "구독을 불러올 수 없습니다. 구독 링크를 확인하거나 다시 시도하세요.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("구독 새로고침"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("새로고침 중…"),
@@ -1031,11 +1043,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTelegramUnbound": MessageLookupByLibrary.simpleMessage("연결 안 됨"),
     "ipingTerms": MessageLookupByLibrary.simpleMessage("서비스 약관"),
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage("트래픽 · 최근 30일"),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "App Store를 열 수 없습니다. 다시 시도해 주세요.",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "App Store에서 업데이트를 설치한 후 iPing을 다시 여세요.",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "업데이트에 실패했습니다. 네트워크 연결과 설치 권한을 확인한 후 다시 시도하세요.",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "시스템 설치 승인 절차를 완료하세요. 업데이트 후 앱이 다시 시작됩니다.",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "직접 다운로드",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "App Store에서 업데이트",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage("업데이트 필요"),
     "ipingUpdateRequiredDesc": m44,

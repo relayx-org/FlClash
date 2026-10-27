@@ -104,7 +104,7 @@ func yamlSetting(config map[string]any, path string) any {
 }
 
 func (a *app) settings(ctx context.Context) (map[string]any, error) {
-	account, err := a.account()
+	account, err := a.session()
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,12 @@ func (a *app) settings(ctx context.Context) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return map[string]any{"values": values, "overrides": overrides, "profile_id": id, "profile_label": account.Email}, nil
+	label := account.Email
+	if account.ManualURL != "" {
+		u, _ := url.Parse(account.ManualURL)
+		label = u.Hostname()
+	}
+	return map[string]any{"values": values, "overrides": overrides, "profile_id": id, "profile_label": label}, nil
 }
 
 func validateSettings(changes map[string]any) error {
@@ -270,7 +275,7 @@ func validateSettings(changes map[string]any) error {
 }
 
 func (a *app) queueSettings(ctx context.Context, changes map[string]any, lock *os.File) (any, error) {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	if err := validateSettings(changes); err != nil {

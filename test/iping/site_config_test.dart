@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/session.dart';
 import 'package:fl_clash/iping/site_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,10 +30,12 @@ void main() {
   Future<void> storeAccount() => container
       .read(ipingStorageProvider)
       .write(
-        const IpingAccount(
-          id: 7,
-          email: 'user@example.com',
-          subscriptionToken: 'subscription',
+        const IpingStoredSession(
+          account: IpingAccount(
+            id: 7,
+            email: 'user@example.com',
+            subscriptionToken: 'subscription',
+          ),
         ),
       );
 

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -14,6 +15,7 @@ type credentials struct {
 	SubscriptionToken string `json:"subscription_token"`
 	AccessKey         string `json:"access_key"`
 	Site              string `json:"site"`
+	ManualURL         string `json:"subscription_url,omitempty"`
 }
 
 type profileInfo struct {
@@ -76,7 +78,7 @@ func (a *app) lock() (*os.File, error) {
 	return file, nil
 }
 
-func (a *app) account() (credentials, error) {
+func (a *app) session() (credentials, error) {
 	var account credentials
 	if err := readJSON(filepath.Join(a.dataDir, "session.json"), &account); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -84,8 +86,31 @@ func (a *app) account() (credentials, error) {
 		}
 		return account, failure("storage_error")
 	}
-	if account.Site != a.site || !validCredentials(account) {
+	if account.ManualURL != "" {
+		if !validSubscriptionURL(account.ManualURL) {
+			return account, failure("login_required")
+		}
+	} else if account.Site != a.site || !validCredentials(account) {
 		return account, failure("login_required")
 	}
 	return account, nil
+}
+
+func (a *app) account() (credentials, error) {
+	account, err := a.session()
+	if err == nil && (account.Site != a.site || !validCredentials(account)) {
+		err = failure("not_logged_in")
+	}
+	return account, err
+}
+
+func (a *app) subscriptionURL() (string, error) {
+	session, err := a.session()
+	if err != nil {
+		return "", err
+	}
+	if session.ManualURL != "" {
+		return session.ManualURL, nil
+	}
+	return a.site + "/api/tunnel/subscription?" + url.Values{"token": {session.SubscriptionToken}}.Encode(), nil
 }

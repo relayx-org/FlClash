@@ -892,14 +892,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingFeatureSync": MessageLookupByLibrary.simpleMessage("订阅自动同步"),
     "ipingForgotPassword": MessageLookupByLibrary.simpleMessage("忘记密码"),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("代理与隧道"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage("导入订阅链接"),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "不登录，手动导入订阅",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("注册时间"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage("登录后自动加载你的订阅。"),
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "账户验证在浏览器中完成，客户端不保存您的密码。",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "暂无可用节点，请检查订阅链接或刷新。",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage("手动导入的订阅"),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("全球网络"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "暂时无法连接 iping，请检查网络后重试。已保留上次订阅。",
+      "无法连接，请检查网络后重试。已保留上次的订阅。",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "暂无可用节点，请前往 iping 控制台管理服务后刷新。",
@@ -945,7 +953,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionCheck": MessageLookupByLibrary.simpleMessage("订阅状态"),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "订阅加载失败，请重试或联系 iping 客服。",
+      "无法加载订阅，请检查订阅链接或重试。",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("刷新订阅"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("正在刷新…"),
@@ -955,11 +963,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTelegramUnbound": MessageLookupByLibrary.simpleMessage("未绑定"),
     "ipingTerms": MessageLookupByLibrary.simpleMessage("服务条款"),
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage("流量统计 · 近 30 天"),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "无法打开 App Store，请重试。",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "请前往 App Store 安装更新，完成后重新打开 iPing。",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "更新失败。请检查网络连接和安装权限后重试。",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "请完成系统安装授权，更新完成后应用将重新启动。",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "手动下载安装包",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "在 App Store 更新",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage("需要更新"),
     "ipingUpdateRequiredDesc": m44,

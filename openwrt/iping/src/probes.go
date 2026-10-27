@@ -34,7 +34,7 @@ type probeRoute struct {
 }
 
 func (a *app) probeRoute(ctx context.Context) (*probeRoute, error) {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	cache := &a.probeRouteCache

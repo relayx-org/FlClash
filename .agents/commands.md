@@ -68,7 +68,13 @@ holds a `rust_api` library built from the same sources.
 
 ## iPing Updates
 
-Release builds check `https://video.iping.my/releases/latest.json` at startup,
+On iOS, release builds look up the app by bundle ID in Apple's App Store and open
+its store page to update. `IPING_APP_STORE_COUNTRY` selects the two-letter store
+country (default `us`). Only a newer published version compatible with the device's
+iOS version triggers the update gate; missing listings leave the app usable.
+Publishing the exported IPA remains separate from releasing it in App Store Connect.
+
+Android and desktop release builds check `https://video.iping.my/releases/latest.json` at startup,
 on resume (at most once every five minutes), and hourly. A newer version blocks
 normal navigation and connections until installed; a known required update is
 cached across restarts and remains required while offline. Debug and safe mode
@@ -325,61 +331,55 @@ emulator validation; Kotlin compilation cannot prove those system callbacks.
 
 ## Changelog And Release
 
-The changelog is derived from Conventional Commits by `tool/changelog.dart` and written to two committed files:
-`CHANGELOG.md` for readers and `changelog.json` for the renderers. See `.agents/rules.md` for the `Changelog:` trailers
-that decide the wording.
+`changelog.json` is the source of independently authored Simplified Chinese release notes. Commit messages remain
+English development summaries and never supply release copy. Add a version at the start of `versions`, set
+`prerelease: true` while drafting, and write entries under `breaking`, `feat`, `fix`, `perf`, or `revert` groups.
+A version needs `version` and `groups`; `tag` defaults to `v<version>` and `date` may be omitted until finalization.
+Each entry only needs `text`; one entry can summarize several commits. No commit IDs or trailers are required.
 
-The app ships no changelog of its own. `render release` appends the released version as JSON inside an HTML comment
-(`<!-- flclash:changelog:json … -->`), so the release body GitHub already returns to `checkForUpdate` carries the
-notes shown in the update dialog. `parseReleaseChangelog` reads that block and falls back to the English
-bullets when a release predates it.
+`build` renders `CHANGELOG.md` without modifying the JSON. Commit both files after editing notes. The website uses
+that Markdown, update manifests use the selected version's JSON text, and release/Telegram renderers use the same source.
+The upstream history below `<!-- changelog:frozen -->` stays intact when rebuilding the Markdown.
 
 ```bash
-dart run tool/changelog.dart verify                  # verify generated release notes
-dart run tool/changelog.dart release --version 0.1.0
-dart run tool/changelog.dart build --unreleased      # changelog.json only, includes untagged work
-dart run tool/changelog.dart render release --out release.md
-dart run tool/changelog.dart render telegram --out telegram.md
+dart run tool/changelog.dart build                       # render authored notes into Markdown
+dart run tool/changelog.dart verify --version 0.1.2       # check data, required version and Markdown
+dart run tool/changelog.dart release --version 0.1.2      # finalize date and prerelease status
+dart run tool/changelog.dart render release --tag v0.1.2 --out release.md
+dart run tool/changelog.dart render telegram --tag v0.1.2 --out telegram.md
 ```
+
+`verify` and `release` work without a Git repository. Missing versions and invalid data fail explicitly; notes are never
+reconstructed from commit ranges or tags. The legacy GitHub update dialog reads structured JSON embedded in the rendered
+release body (`<!-- flclash:changelog:json … -->`). The renderer supplies opaque entry identifiers for that consumer;
+authored notes remain independent of commits. Older releases still use the existing bullet fallback.
 
 Releasing a stable version, in order:
 
 ```bash
+# Author the target version in changelog.json first.
+dart run tool/changelog.dart release --version 0.1.2
 tool/bump_version.sh minor # use all when also bumping the app patch version
-git commit -am "chore(release): bump build number"
+dart run tool/changelog.dart verify --version 0.1.2
+git commit -am "chore(release): prepare v0.1.2"
 git push origin main
 gh workflow run build.yaml --repo relayx-org/FlClash --ref main -f ref="$(git rev-parse HEAD)"
 ```
 
-No new Git tag or GitHub Release is required. `release.yaml` remains an optional
-tag-push shortcut and passes that ref to the same workflow. Existing tags are not
-moved when rebuilding a pending MinIO release.
+Keep the authored version equal to the app version in `pubspec.yaml`; `tool/update_manifest.dart` requires notes for that
+version before preparing packages. No new Git tag or GitHub Release is required. `release.yaml` remains an optional
+tag-push shortcut and passes that ref to the same workflow. CI never writes notes back to the repository.
 
-The changelog renderer can still use Git tags for historical release notes.
-CI never writes back to the repository; verify the changelog locally before publishing. Wording in
-`changelog.json` may be edited by hand as long as no derivable entry disappears and every entry still points at a commit
-inside that version's range.
-
-The upstream history at commit `8d4f9744948751f1273fe871e1d05276fac09b0e` is frozen
-under the `<!-- changelog:frozen -->` marker in `CHANGELOG.md`. iPing starts a new
-version series at `0.1.0`; the builder excludes tags already reachable at that baseline.
-The initial fork release uses `release --freeze-history` once to preserve all upstream notes.
-
-`verify` compares a version only when its tag is reachable from `HEAD`, because that is the same scope the builder walks
-(`git tag --merged`). A branch cut before the newest release cannot derive that version at all, so `verify` names it as
-skipped and moves on instead of reporting drift that does not exist. Checking mere tag existence is what made every such
-branch fail on an unrelated release.
-
-Prerelease tags (`v0.1.0-pre.N`) skip the release commit. Their builds publish
-versioned MinIO packages without updating the production manifest. Generate their notes with `build --unreleased` before
-rendering; this reads the base version from `pubspec.yaml`, which must be bumped
-before the first prerelease of a cycle.
+`tool/release.sh stable` remains the optional local commit/tag flow. It requires a clean working tree and authored,
+rendered notes for the target version, previews those notes, then finalizes the metadata. Prerelease tags
+(`v0.1.2-pre.N`) use the manually authored base version (`0.1.2`) and skip finalizing its metadata. Their builds publish
+versioned MinIO packages without changing the production manifest. Neither flow collects commits for release notes.
 
 ### Website
 
 `site/` is the GitHub Pages site: a static page that renders `CHANGELOG.md` and the download links in the browser, and
 works as is for local previews. `tool/build_site.sh [dir]` assembles it with the preview images, the app icon,
-`CHANGELOG.md` read at the latest release tag, and a `release.json` of asset names, sizes and digests fetched through
+the current authored `CHANGELOG.md`, and a `release.json` of asset names, sizes and digests fetched through
 `gh`. Without `gh` access the page falls back to the newest version in `CHANGELOG.md` and lists the files without sizes.
 It then runs `tool/render_site.mjs` (Node), which writes the English page and a `zh/` copy for search engines: page
 text, the first changelog releases, canonical and `hreflang` links, JSON-LD and `sitemap.xml`, all from the strings,

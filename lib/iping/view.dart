@@ -22,7 +22,7 @@ class IpingGate extends ConsumerWidget {
     if (!ref.watch(initProvider) || !session.initialized) {
       return const Scaffold(body: Center(child: CommonCircleLoading.page()));
     }
-    return !session.signedIn ? const IpingLoginView() : child;
+    return !session.hasSubscription ? const IpingLoginView() : child;
   }
 }
 
@@ -36,12 +36,14 @@ class IpingLoginView extends ConsumerWidget {
     return IpingLoginPage(
       site: ref.watch(ipingSiteConfigProvider),
       busy: session.busy,
+      showBrowserWaiting: backend.authorizing,
       failure: session.failure == null
           ? null
           : IpingFailureText(failure: session.failure!),
       onSignIn: backend.signIn,
       onRegister: () => backend.signIn(register: true),
       onCancel: backend.cancelSignIn,
+      onImport: () => importIpingSubscription(context, ref),
       onForgotPassword: () => launchUrl(
         Uri.parse('$ipingSite/handler/forgot-password'),
         mode: LaunchMode.externalApplication,

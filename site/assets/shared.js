@@ -10,6 +10,11 @@ globalThis.FlClashSite = (() => {
     'Bug Fixes': 'fix',
     Performance: 'perf',
     Reverts: 'revert',
+    '不兼容变更': 'breaking',
+    '新增功能': 'feat',
+    '问题修复': 'fix',
+    '性能优化': 'perf',
+    '变更回退': 'revert',
   };
   const TYPE_KEYS = { breaking: 'typeBreaking', feat: 'typeFeat', fix: 'typeFix', perf: 'typePerf', revert: 'typeRevert' };
   const ICON_EXTERNAL =
@@ -232,7 +237,7 @@ globalThis.FlClashSite = (() => {
         entry.text += ` ${raw.trim()}`;
         continue;
       }
-      if (line === 'Internal improvements only.') version.empty = true;
+      if (line === 'Internal improvements only.' || line === '本次更新仅包含内部改进。') version.empty = true;
     }
     return versions;
   }

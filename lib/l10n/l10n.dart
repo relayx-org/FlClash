@@ -7952,6 +7952,46 @@ class AppLocalizations {
     );
   }
 
+  /// `Import subscription link`
+  String get ipingImportSubscription {
+    return Intl.message(
+      'Import subscription link',
+      name: 'ipingImportSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import a subscription without signing in`
+  String get ipingImportWithoutLogin {
+    return Intl.message(
+      'Import a subscription without signing in',
+      name: 'ipingImportWithoutLogin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manually imported subscription`
+  String get ipingManualSubscription {
+    return Intl.message(
+      'Manually imported subscription',
+      name: 'ipingManualSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No available nodes. Check your subscription link or refresh.`
+  String get ipingManualNoNodes {
+    return Intl.message(
+      'No available nodes. Check your subscription link or refresh.',
+      name: 'ipingManualNoNodes',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No available nodes. Manage your services in the iPing console, then refresh.`
   String get ipingNoNodes {
     return Intl.message(
@@ -8012,20 +8052,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Unable to reach iPing. Check your connection and retry. Your last subscription is kept.`
+  /// `Unable to connect. Check your connection and retry. Your last subscription is kept.`
   String get ipingNetworkError {
     return Intl.message(
-      'Unable to reach iPing. Check your connection and retry. Your last subscription is kept.',
+      'Unable to connect. Check your connection and retry. Your last subscription is kept.',
       name: 'ipingNetworkError',
       desc: '',
       args: [],
     );
   }
 
-  /// `The subscription could not be loaded. Retry or contact iPing support.`
+  /// `The subscription could not be loaded. Check the subscription link or try again.`
   String get ipingSubscriptionError {
     return Intl.message(
-      'The subscription could not be loaded. Retry or contact iPing support.',
+      'The subscription could not be loaded. Check the subscription link or try again.',
       name: 'ipingSubscriptionError',
       desc: '',
       args: [],
@@ -8217,11 +8257,51 @@ class AppLocalizations {
     );
   }
 
+  /// `Update in App Store`
+  String get ipingUpdateOpenAppStore {
+    return Intl.message(
+      'Update in App Store',
+      name: 'ipingUpdateOpenAppStore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Install the update in the App Store, then reopen iPing.`
+  String get ipingUpdateAppStoreHint {
+    return Intl.message(
+      'Install the update in the App Store, then reopen iPing.',
+      name: 'ipingUpdateAppStoreHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to open the App Store. Please try again.`
+  String get ipingUpdateAppStoreFailed {
+    return Intl.message(
+      'Unable to open the App Store. Please try again.',
+      name: 'ipingUpdateAppStoreFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Complete any system installation prompts. The application restarts after the update.`
   String get ipingUpdateInstallHint {
     return Intl.message(
       'Complete any system installation prompts. The application restarts after the update.',
       name: 'ipingUpdateInstallHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Download manually`
+  String get ipingUpdateManualDownload {
+    return Intl.message(
+      'Download manually',
+      name: 'ipingUpdateManualDownload',
       desc: '',
       args: [],
     );

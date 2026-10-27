@@ -85,7 +85,7 @@ func (r *coreRuntime) converge(ctx context.Context, restart bool) error {
 
 func (r *coreRuntime) start(ctx context.Context) error {
 	a := r.app
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return err
 	}
 	data, err := os.ReadFile(a.profile)

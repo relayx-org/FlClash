@@ -1238,6 +1238,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Mot de passe oublié ?",
     ),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("Proxy et tunnel"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage(
+      "Importer un lien d’abonnement",
+    ),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "Importer un abonnement sans se connecter",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("Date d’inscription"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage(
       "Connectez-vous pour charger automatiquement votre abonnement.",
@@ -1245,9 +1251,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "L’authentification se fait dans le navigateur. Le client ne conserve pas votre mot de passe.",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "Aucun nœud disponible. Vérifiez le lien d’abonnement ou actualisez.",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Abonnement importé manuellement",
+    ),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("Réseau mondial"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "Connexion à iPing impossible. Vérifiez votre réseau et réessayez. Votre abonnement précédent est conservé.",
+      "Connexion impossible. Vérifiez votre connexion et réessayez. Votre dernier abonnement est conservé.",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "Aucun nœud disponible. Gérez vos services dans la console iPing, puis actualisez.",
@@ -1323,7 +1335,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Abonnement",
     ),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "Impossible de charger l’abonnement. Réessayez ou contactez l’assistance.",
+      "Impossible de charger l’abonnement. Vérifiez le lien d’abonnement ou réessayez.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage(
       "Actualiser l’abonnement",
@@ -1339,11 +1351,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "Trafic · 30 derniers jours",
     ),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible d’ouvrir l’App Store. Veuillez réessayer.",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "Installez la mise à jour dans l’App Store, puis rouvrez iPing.",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "La mise à jour a échoué. Vérifiez la connexion et les autorisations d’installation, puis réessayez.",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "Confirmez les demandes d’installation du système. L’application redémarrera après la mise à jour.",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "Télécharger manuellement",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "Mettre à jour dans l’App Store",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage(
       "Mise à jour requise",

@@ -329,6 +329,7 @@ void main() {
         'https://iping.my/api/tunnel/subscription?token=key',
       );
       expect(subscription.nodes, 1);
+      expect(adapter.request.followRedirects, isTrue);
       expect(adapter.request.headers['User-Agent'], contains('Clash'));
       expect(adapter.request.headers.containsKey('Authorization'), isFalse);
     },

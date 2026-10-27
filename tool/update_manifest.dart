@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import 'src/changelog/builder.dart';
+
 const updateTargets = {
   'android-arm-apk',
   'android-arm64-apk',
@@ -155,19 +157,14 @@ Future<void> main(List<String> args) async {
   final pubspec =
       loadYaml(await File('pubspec.yaml').readAsString()) as YamlMap;
   final parts = (pubspec['version'] as String).split('+');
-  final changelog =
-      jsonDecode(await File('changelog.json').readAsString())
-          as Map<String, dynamic>;
-  final versions = changelog['versions'] as List<dynamic>? ?? [];
-  final notes = <String>[];
-  for (final dynamic item in versions) {
-    if (item['version'] != parts.first) continue;
-    for (final dynamic group in item['groups'] as List) {
-      for (final dynamic entry in group['entries'] as List) {
-        notes.add('• ${entry['text']}');
-      }
-    }
-  }
+  final release = changelogVersionFor(
+    readChangelog(Directory.current.path),
+    parts.first,
+  );
+  final notes = [
+    for (final group in release.groups)
+      for (final entry in group.entries) '• ${entry.text}',
+  ];
   final manifest = await buildUpdateManifest(
     artifacts: Directory(options['artifacts'] as String),
     output: Directory(options['output'] as String),

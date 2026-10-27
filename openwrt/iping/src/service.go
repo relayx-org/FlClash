@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.yaml.in/yaml/v3"
@@ -77,13 +78,59 @@ func (a *app) replaceProfile(ctx context.Context, files map[string][]byte, resta
 }
 
 func (a *app) syncProfile(ctx context.Context) error {
-	account, err := a.account()
+	target, err := a.subscriptionURL()
 	if err != nil {
 		return err
 	}
-	query := url.Values{"token": {account.SubscriptionToken}}
-	source, err := a.request(ctx, http.MethodGet, "/api/tunnel/subscription?"+query.Encode(), nil, "", 8*1024*1024)
+	return a.downloadProfile(ctx, target, nil)
+}
+
+func validSubscriptionURL(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && len(raw) <= 8192 && !strings.ContainsAny(raw, " \t\r\n") &&
+		(u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != ""
+}
+
+func (a *app) queueSubscription(raw string, lock *os.File) (any, error) {
+	raw = strings.TrimSpace(raw)
+	if !validSubscriptionURL(raw) {
+		return nil, failure("invalid_subscription")
+	}
+	if err := writeJSON(filepath.Join(a.runDir, "subscription-job.json"), raw); err != nil {
+		return nil, failure("storage_error")
+	}
+	return a.startJob("import_subscription", lock)
+}
+
+func (a *app) importSubscription(ctx context.Context) error {
+	path := filepath.Join(a.runDir, "subscription-job.json")
+	defer os.Remove(path)
+	var target string
+	if readJSON(path, &target) != nil || !validSubscriptionURL(target) {
+		return failure("invalid_subscription")
+	}
+	account, err := a.account()
 	if err != nil {
+		account = credentials{Site: a.site}
+	}
+	account.ManualURL = target
+	return a.downloadProfile(ctx, target, &account)
+}
+
+func (a *app) downloadProfile(ctx context.Context, target string, next *credentials) error {
+	manual := next != nil
+	if !manual {
+		session, err := a.session()
+		if err != nil {
+			return err
+		}
+		manual = session.ManualURL != ""
+	}
+	source, err := a.requestURL(ctx, http.MethodGet, target, nil, "", 8*1024*1024, true)
+	if err != nil {
+		if manual && errors.Is(err, failure("login_required")) {
+			return failure("invalid_subscription")
+		}
 		return err
 	}
 	var profile struct {
@@ -103,7 +150,14 @@ func (a *app) syncProfile(ctx context.Context) error {
 			return failure("invalid_subscription")
 		}
 	}
-	settings, err := a.profileSettings()
+	id, err := a.resourceProfileID()
+	if next != nil {
+		id, err = subscriptionProfileID(*next), nil
+	}
+	if err != nil {
+		return err
+	}
+	settings, err := a.profileSettingsFor(id)
 	if err != nil {
 		return err
 	}
@@ -115,15 +169,25 @@ func (a *app) syncProfile(ctx context.Context) error {
 		return failure("invalid_subscription")
 	}
 	info, _ := json.Marshal(profileInfo{len(profile.Proxies), time.Now().Unix()})
-	return a.replaceProfile(ctx, map[string][]byte{
+	files := map[string][]byte{
 		a.profile:                                candidate,
 		filepath.Join(a.dataDir, "source.yaml"):  source,
 		filepath.Join(a.dataDir, "profile.json"): info,
-	}, a.core.wanted.Load())
+	}
+	if next != nil {
+		files[filepath.Join(a.dataDir, "session.json")], err = json.Marshal(next)
+		if err != nil {
+			return failure("storage_error")
+		}
+	}
+	if err := ctx.Err(); err != nil {
+		return failure("interrupted")
+	}
+	return a.replaceProfile(ctx, files, a.core.wanted.Load())
 }
 
 func (a *app) connect(ctx context.Context) error {
-	if _, err := a.account(); err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return err
 	}
 	source, err := os.ReadFile(filepath.Join(a.dataDir, "source.yaml"))

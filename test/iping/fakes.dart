@@ -19,6 +19,7 @@ class FakeIpingApi extends IpingApi {
   int userId = 7;
   int nodes = 2;
   int downloads = 0;
+  String? subscriptionUrlRequested;
   IpingFailure? userInfoFailure;
   Completer<IpingUserInfo>? userInfoRequest;
   int userInfoRequests = 0;
@@ -97,27 +98,31 @@ class FakeIpingApi extends IpingApi {
   @override
   Future<IpingSubscription> subscription(String url) async {
     downloads++;
+    subscriptionUrlRequested = url;
     if (subscriptionFailure case final failure?) throw IpingException(failure);
     return download?.future ?? (bytes: Uint8List(0), nodes: nodes);
   }
 }
 
 class MemorySessionStorage implements IpingSessionStorage {
-  IpingStoredSession? value;
+  IpingStoredSession? stored;
+  IpingAccount? get value => stored?.account;
+  set value(IpingAccount? account) =>
+      stored = account == null ? null : IpingStoredSession(account: account);
   bool readFails = false;
   bool clearFails = false;
   @override
   Future<IpingStoredSession?> read() async {
     if (readFails) throw StateError('keychain unavailable');
-    return value;
+    return stored;
   }
 
   @override
-  Future<void> write(IpingStoredSession session) async => value = session;
+  Future<void> write(IpingStoredSession session) async => stored = session;
   @override
   Future<void> clear() async {
     if (clearFails) throw StateError('keychain unavailable');
-    value = null;
+    stored = null;
   }
 }
 
@@ -126,6 +131,7 @@ class MemoryProfileStorage implements IpingProfileStorage {
   int saves = 0;
   int stops = 0;
   bool stopFails = false;
+  bool saveFails = false;
   Completer<void>? pendingSave;
 
   @override
@@ -137,6 +143,7 @@ class MemoryProfileStorage implements IpingProfileStorage {
   ) async {
     saves++;
     await pendingSave?.future;
+    if (saveFails) throw StateError('save failed');
     return value = (nodes: subscription.nodes, updated: DateTime(2026, 10, 22));
   }
 

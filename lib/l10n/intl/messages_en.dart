@@ -1164,6 +1164,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Forgot password?",
     ),
     "ipingGateway": MessageLookupByLibrary.simpleMessage("Proxy & tunnel"),
+    "ipingImportSubscription": MessageLookupByLibrary.simpleMessage(
+      "Import subscription link",
+    ),
+    "ipingImportWithoutLogin": MessageLookupByLibrary.simpleMessage(
+      "Import a subscription without signing in",
+    ),
     "ipingJoinedAt": MessageLookupByLibrary.simpleMessage("Joined"),
     "ipingLoginHint": MessageLookupByLibrary.simpleMessage(
       "Sign in to load your subscription automatically.",
@@ -1171,9 +1177,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingLoginSecurityNote": MessageLookupByLibrary.simpleMessage(
       "Sign-in is verified in your browser. Your password stays out of the client.",
     ),
+    "ipingManualNoNodes": MessageLookupByLibrary.simpleMessage(
+      "No available nodes. Check your subscription link or refresh.",
+    ),
+    "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Manually imported subscription",
+    ),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("Global network"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
-      "Unable to reach iPing. Check your connection and retry. Your last subscription is kept.",
+      "Unable to connect. Check your connection and retry. Your last subscription is kept.",
     ),
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "No available nodes. Manage your services in the iPing console, then refresh.",
@@ -1245,7 +1257,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Subscription",
     ),
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
-      "The subscription could not be loaded. Retry or contact iPing support.",
+      "The subscription could not be loaded. Check the subscription link or try again.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Refresh subscription"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Refreshing…"),
@@ -1257,11 +1269,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "Traffic · Last 30 days",
     ),
+    "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to open the App Store. Please try again.",
+    ),
+    "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
+      "Install the update in the App Store, then reopen iPing.",
+    ),
     "ipingUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "The update failed. Check your connection and installation permissions, then retry.",
     ),
     "ipingUpdateInstallHint": MessageLookupByLibrary.simpleMessage(
       "Complete any system installation prompts. The application restarts after the update.",
+    ),
+    "ipingUpdateManualDownload": MessageLookupByLibrary.simpleMessage(
+      "Download manually",
+    ),
+    "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
+      "Update in App Store",
     ),
     "ipingUpdateRequired": MessageLookupByLibrary.simpleMessage(
       "Update required",

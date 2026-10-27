@@ -28,6 +28,10 @@ class FakeRouterClient implements RouterClient {
   void writePreferences(Map<String, Object?> value) => preferences = value;
 
   bool signedIn;
+  bool manualSubscription = false;
+  String? subscriptionUrl;
+  Completer<void>? importRequest;
+  bool failImport = false;
   String resourceProfileId = 'source/7';
   bool running = true;
   final started = DateTime.now().subtract(const Duration(minutes: 5));
@@ -103,6 +107,15 @@ class FakeRouterClient implements RouterClient {
     if (fail && method != 'status') {
       throw const RouterException('network_error');
     }
+    if (method == 'import_subscription') {
+      if (importRequest case final request?) await request.future;
+      if (failImport) throw const RouterException('invalid_subscription');
+      if (jobError == null) {
+        manualSubscription = true;
+        subscriptionUrl = args['url'] as String;
+        resourceProfileId = 'manual/fixture';
+      }
+    }
     if (method == 'set_mode') {
       if (failMode) throw const RouterException('storage_error');
       if (modeRequest case final pending?) await pending.future;
@@ -153,6 +166,7 @@ class FakeRouterClient implements RouterClient {
       ],
       'status' => {
         'logged_in': signedIn,
+        'manual_subscription': manualSubscription,
         'running': running,
         'busy': false,
         'nodes': 2,
@@ -220,6 +234,8 @@ class FakeRouterClient implements RouterClient {
 
   Object? _logout() {
     signedIn = false;
+    manualSubscription = false;
+    subscriptionUrl = null;
     running = false;
     return null;
   }
@@ -228,7 +244,11 @@ class FakeRouterClient implements RouterClient {
   Future<void> signIn({bool register = false}) async {
     calls.add('sign_in');
     if (login != null) await login!.future;
-    if (login == null) signedIn = true;
+    if (login == null) {
+      signedIn = true;
+      manualSubscription = false;
+      subscriptionUrl = null;
+    }
   }
 
   @override

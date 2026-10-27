@@ -98,24 +98,27 @@ class _IpingDiagnosticsState extends ConsumerState<IpingDiagnostics> {
                       ? l.ipingSubscriptionError
                       : session.nodes > 0
                       ? '${l.ipingNodeCount(session.nodes)}${session.updated == null ? '' : '\n${session.updated!.showFull}'}'
+                      : session.manualUrl != null
+                      ? l.ipingManualNoNodes
                       : l.ipingNoNodes,
                 ),
-                _CheckRow(
-                  title: l.ipingApiKey,
-                  ok: info.value != null && info.value!.status == 'active',
-                  message: session.account?.apiKey == null
-                      ? l.ipingAccountAuthorizeHint
-                      : info.isLoading
-                      ? l.ipingSyncing
-                      : sessionExpired
-                      ? l.ipingSessionExpired
-                      : info.hasError
-                      ? l.ipingAccountLoadFailed
-                      : info.value?.status == 'active'
-                      ? l.ipingApiAuthorized
-                      : l.ipingAccountInactive,
-                  pending: info.isLoading,
-                ),
+                if (session.account != null)
+                  _CheckRow(
+                    title: l.ipingApiKey,
+                    ok: info.value != null && info.value!.status == 'active',
+                    message: session.account?.apiKey == null
+                        ? l.ipingAccountAuthorizeHint
+                        : info.isLoading
+                        ? l.ipingSyncing
+                        : sessionExpired
+                        ? l.ipingSessionExpired
+                        : info.hasError
+                        ? l.ipingAccountLoadFailed
+                        : info.value?.status == 'active'
+                        ? l.ipingApiAuthorized
+                        : l.ipingAccountInactive,
+                    pending: info.isLoading,
+                  ),
                 _CheckRow(
                   title: l.ipingSystemDns(
                     Uri.parse(ref.watch(ipingApiProvider).site).host,
@@ -166,7 +169,7 @@ class _IpingDiagnosticsState extends ConsumerState<IpingDiagnostics> {
                 style: AppTextStyle.footnote.of(context),
               ),
             ),
-            if (session.account != null)
+            if (session.hasSubscription)
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(

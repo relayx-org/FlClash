@@ -75,6 +75,7 @@ final ipingBackendStateProvider = Provider<IpingBackendState>((ref) {
   return IpingBackendState(
     initialized: session.initialized,
     signedIn: session.account != null,
+    manualSubscription: session.manualUrl != null,
     connected: ref.watch(isStartProvider),
     busy: session.busy,
     nodes: session.nodes,
@@ -308,6 +309,12 @@ class _NativeIpingBackend implements IpingBackend {
   @override
   Future<void> synchronize() =>
       ref.read(ipingSessionProvider.notifier).synchronize();
+
+  @override
+  Future<bool> importSubscription(String url) => ref
+      .read(ipingSessionProvider.notifier)
+      .controller
+      .importSubscription(url);
 
   @override
   Future<bool> setConnected(bool connected) => ref

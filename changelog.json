@@ -2,6 +2,36 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.2",
+      "tag": "v0.1.2",
+      "date": "2026-10-27",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "feat",
+          "entries": [
+            {
+              "text": "支持免登录导入订阅链接，可在 Android、iOS、Windows、macOS、Linux 及 Linux Agent/OpenWrt 使用"
+            },
+            {
+              "text": "iOS 新增 App Store 更新检查与跳转入口"
+            },
+            {
+              "text": "更新历史改为中文并按版本独立维护，发布说明与代码提交记录分离"
+            }
+          ]
+        },
+        {
+          "type": "fix",
+          "entries": [
+            {
+              "text": "修复桌面端更新包校验失败的问题，并在自动更新失败时提供手动下载入口"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.1",
       "tag": "v0.1.1",
       "date": "2026-10-26",
@@ -11,19 +41,13 @@
           "type": "feat",
           "entries": [
             {
-              "id": "a7102c0",
-              "scope": "platforms",
-              "text": "Add standalone OpenWrt support and signed iOS IPA releases with a shared interface"
+              "text": "新增独立 OpenWrt 支持和签名 iOS IPA 发行包，并共用应用界面"
             },
             {
-              "id": "51bae43",
-              "scope": "proxies",
-              "text": "Proxy groups now start expanded"
+              "text": "节点组默认展开"
             },
             {
-              "id": "f21e8aa",
-              "scope": "desktop",
-              "text": "Tray and app icons now match the rounded app icon on every desktop platform"
+              "text": "统一各桌面平台的托盘图标与圆角应用图标"
             }
           ]
         }
@@ -39,8 +63,7 @@
           "type": "feat",
           "entries": [
             {
-              "id": "4879379",
-              "text": "Add iPing account login, managed subscriptions, connection diagnostics, and mandatory updates on Android, Windows, macOS, and Linux"
+              "text": "新增 iPing 账号登录、托管订阅、连接诊断，以及 Android、Windows、macOS 和 Linux 的强制更新"
             }
           ]
         }

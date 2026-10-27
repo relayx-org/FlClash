@@ -1,255 +1,194 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
 
 import '../../tool/src/changelog/builder.dart';
-import '../../tool/src/changelog/git.dart';
-import '../../tool/src/changelog/models.dart';
 import '../../tool/src/changelog/render.dart';
 
 void main() {
-  late Directory repo;
+  late Directory directory;
+  late File source;
+  late File markdown;
+  final script = File('tool/changelog.dart').absolute.path;
+  const history = '## v0.8.96 (2026-08-17)\n\n- 修复历史版本的问题\n';
 
-  void git(List<String> arguments) {
-    final result = Process.runSync(
-      'git',
-      arguments,
-      workingDirectory: repo.path,
-      environment: const {
-        'GIT_AUTHOR_DATE': '2026-01-02T00:00:00Z',
-        'GIT_COMMITTER_DATE': '2026-01-02T00:00:00Z',
-      },
-    );
-    if (result.exitCode != 0) {
-      fail('git ${arguments.join(' ')} failed: ${result.stderr}');
-    }
-  }
+  ProcessResult run(List<String> arguments) =>
+      Process.runSync('dart', [script, '--root', directory.path, ...arguments]);
 
-  void commit(String message) {
-    git(['commit', '--allow-empty', '--quiet', '--message', message]);
+  void succeeds(List<String> arguments) {
+    final result = run(arguments);
+    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
   }
 
   setUp(() {
-    repo = Directory.systemTemp.createTempSync('flclash-changelog-');
-    git(['init', '--quiet', '--initial-branch=main']);
-    git(['config', 'user.email', 'changelog-test@example.com']);
-    git(['config', 'user.name', 'Changelog test']);
-
-    commit('feat: initial release');
-    git(['tag', 'v1.0.0']);
-
-    commit('feat(a): first feature');
-    commit('fix(b): first fix');
-    git(['tag', 'backup-pre-squash-deadbee']);
-    git(['tag', 'v1.1.0-pre.1']);
-
-    commit('feat(c)!: second feature\n\nBREAKING CHANGE: The old flag is gone');
-    git(['tag', 'v1.1.0']);
-
-    commit('chore: bump build number');
+    directory = Directory.systemTemp.createTempSync('flclash-changelog-');
+    source = File('${directory.path}/changelog.json')
+      ..writeAsStringSync(
+        jsonEncode({
+          'schemaVersion': 2,
+          'versions': [
+            {
+              'version': '1.2.3',
+              'prerelease': true,
+              'groups': [
+                {
+                  'type': 'feat',
+                  'entries': [
+                    {'text': '无需登录即可导入订阅'},
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    markdown = File('${directory.path}/CHANGELOG.md')
+      ..writeAsStringSync('# 更新日志\n\n$changelogFrozenMarker\n\n$history');
   });
 
-  tearDown(() {
-    repo.deleteSync(recursive: true);
+  tearDown(() => directory.deleteSync(recursive: true));
+
+  test('build and verify use authored notes without a Git repository', () {
+    final authored = source.readAsStringSync();
+    succeeds(['build']);
+    succeeds(['verify', '--version', '1.2.3']);
+    expect(Directory('${directory.path}/.git').existsSync(), isFalse);
+    expect(source.readAsStringSync(), authored);
+    expect(markdown.readAsStringSync(), contains('**新增功能**\n\n- 无需登录即可导入订阅'));
+    expect(markdown.readAsStringSync(), endsWith(history));
+    final first = markdown.readAsStringSync();
+    succeeds(['build']);
+    expect(markdown.readAsStringSync(), first);
   });
 
-  ChangelogBuildResult build({PendingVersion? pending}) => ChangelogBuilder(
-    Git(workingDirectory: repo.path),
-    boundary: 'v1.0.0',
-  ).build(pending: pending);
-
-  test('collects one section per stable tag above the boundary', () {
-    final versions = build().changelog.versions;
-
-    expect(versions.map((version) => version.tag), ['v1.1.0']);
-    expect(versions.single.date, '2026-01-02');
+  test('release only finalizes an existing version and preserves its copy', () {
+    succeeds(['release', '--version', '1.2.3', '--date', '2026-10-27']);
+    final release = readChangelog(directory.path).versions.single;
+    expect(release.prerelease, isFalse);
+    expect(release.date, '2026-10-27');
+    expect(release.groups.single.entries.single.text, '无需登录即可导入订阅');
+    expect(release.groups.single.entries.single.id, isEmpty);
+    succeeds(['verify', '--version', 'v1.2.3']);
   });
 
-  test('preserves frozen history before the first structured release', () {
-    git(['checkout', '--quiet', '--orphan', 'frozen-history']);
-    commit('chore: optimize commented policy');
-    git(['tag', 'v0.8.96']);
-    final builder = ChangelogBuilder(
-      Git(workingDirectory: repo.path),
-      boundary: 'v0.8.96',
+  test('renderers use the selected authored version', () {
+    final authored = source.readAsStringSync();
+    succeeds(['render', 'release', '--tag', 'v1.2.3', '--out', 'release.md']);
+    final body = File('${directory.path}/release.md').readAsStringSync();
+    expect(body, contains('### 新增功能\n- 无需登录即可导入订阅'));
+    expect(body, contains('"id":"1.2.3-feat-1"'));
+    final telegram = run(['render', 'telegram', '--tag', '1.2.3']);
+    expect(telegram.exitCode, 0);
+    expect(telegram.stdout, '<b>新增功能</b>\n• 无需登录即可导入订阅');
+    expect(source.readAsStringSync(), authored);
+  });
+
+  test('missing version fails before changing either source file', () {
+    final authored = source.readAsStringSync();
+    final existing = markdown.readAsStringSync();
+    for (final arguments in [
+      ['release', '--version', '1.2.4'],
+      ['render', 'release', '--tag', 'v1.2.4'],
+      ['verify', '--version', '1.2.4'],
+    ]) {
+      final result = run(arguments);
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains('Add release notes for'));
+    }
+    expect(source.readAsStringSync(), authored);
+    expect(markdown.readAsStringSync(), existing);
+  });
+
+  test('verify detects stale Markdown after independently editing notes', () {
+    succeeds(['build']);
+    source.writeAsStringSync(
+      source.readAsStringSync().replaceAll('无需登录即可导入订阅', '手动导入任意订阅链接'),
     );
-    expect(builder.build().changelog.versions, isEmpty);
-
-    commit('fix: new release fix');
-    final next = builder
-        .build(
-          pending: const PendingVersion(version: '0.8.97', date: '2026-09-10'),
-        )
-        .changelog;
-    expect(next.versions.single.tag, 'v0.8.97');
-    expect(
-      next.versions.single.groups.single.entries.single.text,
-      'New release fix',
-    );
-
-    const history =
-        '## v0.8.96 (2026-08-17)\n\n'
-        '- Optimize commented policy\n'
-        '- Fix whole group delay test failing on Windows\n'
-        '- Optimize package icon loading and connections polling\n';
-    final original = '${renderMarkdown(builder.build().changelog)}$history';
-    final merged = mergeMarkdown(renderMarkdown(next), original);
-    expect(merged.substring(merged.indexOf('## v0.8.96')), history);
+    final result = run(['verify']);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('does not match'));
+    succeeds(['build']);
+    succeeds(['verify']);
+    expect(markdown.readAsStringSync(), contains('手动导入任意订阅链接'));
   });
 
-  test('a prerelease tag does not split the stable range', () {
-    final groups = build().changelog.versions.single.groups;
-    final features = groups
-        .firstWhere((group) => group.type == ChangelogType.feat)
-        .entries
-        .map((entry) => entry.text);
+  test('validation rejects malformed release metadata and empty copy', () {
+    final authored =
+        jsonDecode(source.readAsStringSync()) as Map<String, dynamic>;
+    final version = (authored['versions'] as List).single as Map;
+    final group = (version['groups'] as List).single as Map;
+    final entry = (group['entries'] as List).single as Map;
 
-    expect(features, ['Second feature', 'First feature']);
+    void rejects(String problem) {
+      source.writeAsStringSync(jsonEncode(authored));
+      expect(() => readChangelog(directory.path), throwsFormatException);
+      final result = run(['build']);
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains(problem));
+    }
+
+    version['date'] = '2026-02-30';
+    rejects('Invalid release date');
+    version.remove('date');
+    (authored['versions'] as List).add(version);
+    rejects('Duplicate release');
+    (authored['versions'] as List).removeLast();
+    group['type'] = 'unknown';
+    rejects('Unknown changelog group');
+    group['type'] = 'feat';
+    entry['text'] = '  ';
+    rejects('Empty release note');
   });
 
-  test('freezing history preserves generated and already frozen entries', () {
-    const existing =
-        '# Changelog\n\n## v0.9.1\n\n- Old release\n\n'
-        '<!-- changelog:frozen -->\n<!-- Old note -->\n\n## v0.8.96\n\n- Earlier release\n';
-    final rendered = renderMarkdown(const Changelog(versions: []));
-    final merged = mergeMarkdown(rendered, existing, freezeHistory: true);
-    expect(
-      merged,
-      '$rendered## v0.9.1\n\n- Old release\n\n'
-      '## v0.8.96\n\n- Earlier release\n',
-    );
-    expect(mergeMarkdown(rendered, merged), merged);
+  test('unsupported schema fails rather than replacing authored notes', () {
+    source.writeAsStringSync('{"schemaVersion": 99, "versions": []}');
+    final existing = markdown.readAsStringSync();
+    final result = run(['build']);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Unsupported changelog schema'));
+    expect(markdown.readAsStringSync(), existing);
   });
 
-  test('a commit baseline allows the fork to restart its version numbers', () {
-    final scoped = Git(workingDirectory: repo.path);
-    final baseline = scoped.head();
-    final builder = ChangelogBuilder(scoped, boundary: baseline);
-
-    commit('feat: first iPing release');
-    final pending = builder.build(
-      pending: const PendingVersion(version: '0.1.0', date: '2026-01-02'),
-    );
-    expect(pending.changelog.versions.single.tag, 'v0.1.0');
-    expect(
-      pending.changelog.versions.single.groups.single.entries.single.text,
-      'First iPing release',
-    );
-
-    git(['tag', 'v0.1.0']);
-    expect(
-      encodeChangelog(builder.build().changelog),
-      encodeChangelog(pending.changelog),
-    );
-    commit('fix: update installation');
-    git(['tag', 'v0.1.1']);
-    expect(builder.build().changelog.versions.map((version) => version.tag), [
-      'v0.1.1',
-      'v0.1.0',
-    ]);
+  test('malformed authored data reports a validation error', () {
+    source.writeAsStringSync('{"schemaVersion": 2, "versions": [{}]}');
+    final result = run(['build']);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Invalid structure'));
   });
 
-  test('ignores tags that are not release tags', () {
-    final tags = Git(workingDirectory: repo.path).versionTags();
+  test(
+    'update manifests require the app version and use its authored copy',
+    () {
+      final artifacts = Directory('${directory.path}/dist')..createSync();
+      File(
+        '${artifacts.path}/iPing-1.2.3-macos-arm64.zip',
+      ).writeAsBytesSync([1, 2, 3]);
+      final pubspec = File('${directory.path}/pubspec.yaml')
+        ..writeAsStringSync('version: 1.2.3+42\n');
+      final manifestScript = File('tool/update_manifest.dart').absolute.path;
 
-    expect(tags.map((tag) => tag.name), ['v1.1.0', 'v1.1.0-pre.1', 'v1.0.0']);
-  });
+      ProcessResult prepare() => Process.runSync('dart', [
+        manifestScript,
+        '--allow-partial',
+      ], workingDirectory: directory.path);
 
-  test('lifts breaking changes into their own group', () {
-    final groups = build().changelog.versions.single.groups;
+      final result = prepare();
+      expect(result.exitCode, 0, reason: result.stderr.toString());
+      final manifest = File(
+        '${directory.path}/build/update-release/latest.json',
+      );
+      final payload = jsonDecode(manifest.readAsStringSync()) as Map;
+      expect(payload['notes'], '• 无需登录即可导入订阅');
+      expect(payload['version'], '1.2.3');
+      expect(payload['buildNumber'], 42);
 
-    expect(groups.first.type, ChangelogType.breaking);
-    expect(groups.first.entries.single.text, 'The old flag is gone');
-  });
-
-  test('a pending version covers the commits after the newest stable tag', () {
-    final versions = build(
-      pending: const PendingVersion(version: '1.2.0', date: '2026-02-03'),
-    ).changelog.versions;
-
-    expect(versions.map((version) => version.tag), ['v1.2.0', 'v1.1.0']);
-    expect(versions.first.date, '2026-02-03');
-    expect(versions.first.isEmpty, isTrue);
-  });
-
-  test('a pending version is skipped once its tag exists', () {
-    final versions = build(
-      pending: const PendingVersion(version: '1.1.0', date: '2026-02-03'),
-    ).changelog.versions;
-
-    expect(versions.map((version) => version.tag), ['v1.1.0']);
-    expect(versions.single.date, '2026-01-02');
-  });
-
-  test('a release tag on another branch is not reachable from this one', () {
-    git(['checkout', '--quiet', '-b', 'feature', 'v1.0.0']);
-    commit('feat(d): work started before the release');
-
-    final scoped = Git(workingDirectory: repo.path);
-
-    expect(
-      scoped.tagExists('v1.1.0'),
-      isTrue,
-      reason: 'the tag is still in the repository',
-    );
-    expect(
-      scoped.tagIsReachable('v1.1.0'),
-      isFalse,
-      reason:
-          'verify must skip versions the builder cannot derive here, or every '
-          'branch forked before the newest release fails on an unrelated tag.',
-    );
-    expect(
-      scoped.versionTags().map((tag) => tag.name),
-      isNot(contains('v1.1.0')),
-      reason: 'tagIsReachable must agree with the tags the builder walks.',
-    );
-    expect(
-      scoped.tagIsReachable('v1.0.0'),
-      isTrue,
-      reason: 'a tag this branch was cut from is still checked.',
-    );
-  });
-
-  test('a release tag on this branch stays checked', () {
-    final scoped = Git(workingDirectory: repo.path);
-
-    expect(scoped.tagIsReachable('v1.1.0'), isTrue);
-    expect(
-      scoped.versionTags().map((tag) => tag.name),
-      contains('v1.1.0'),
-      reason:
-          'the skip must be narrow; on the release branch verify still '
-          'compares every derivable version.',
-    );
-  });
-
-  test('a tag with no version in changelog.json is reported', () {
-    final derived = build().changelog;
-    final recorded = Changelog(
-      versions: derived.versions
-          .where((version) => version.tag != 'v1.1.0')
-          .toList(),
-    );
-
-    expect(missingReleaseTags(recorded, derived), ['v1.1.0']);
-    expect(missingReleaseTags(derived, derived), isEmpty);
-  });
-
-  test('is deterministic across runs', () {
-    expect(
-      encodeChangelog(build().changelog),
-      encodeChangelog(build().changelog),
-    );
-  });
-
-  test('reports commits that are not conventional', () {
-    commit('Optimize core service');
-
-    final warnings = build(
-      pending: const PendingVersion(version: '1.2.0', date: '2026-02-03'),
-    ).warnings;
-
-    expect(warnings.single, contains('not a conventional commit'));
-  });
+      pubspec.writeAsStringSync('version: 1.2.4+43\n');
+      manifest.deleteSync();
+      final missing = prepare();
+      expect(missing.exitCode, isNot(0));
+      expect(missing.stderr, contains('Add release notes for 1.2.4'));
+      expect(manifest.existsSync(), isFalse);
+    },
+  );
 }

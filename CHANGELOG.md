@@ -1,821 +1,832 @@
-# Changelog
+# 更新日志
+
+## v0.1.2 (2026-10-27)
+
+**新增功能**
+
+- 支持免登录导入订阅链接，可在 Android、iOS、Windows、macOS、Linux 及 Linux Agent/OpenWrt 使用
+- iOS 新增 App Store 更新检查与跳转入口
+- 更新历史改为中文并按版本独立维护，发布说明与代码提交记录分离
+
+**问题修复**
+
+- 修复桌面端更新包校验失败的问题，并在自动更新失败时提供手动下载入口
 
 ## v0.1.1 (2026-10-26)
 
-**Features**
+**新增功能**
 
-- **platforms** Add standalone OpenWrt support and signed iOS IPA releases with a shared interface (a7102c0)
-- **proxies** Proxy groups now start expanded (51bae43)
-- **desktop** Tray and app icons now match the rounded app icon on every desktop platform (f21e8aa)
+- 新增独立 OpenWrt 支持和签名 iOS IPA 发行包，并共用应用界面
+- 节点组默认展开
+- 统一各桌面平台的托盘图标与圆角应用图标
 
 ## v0.1.0 (2026-10-23)
 
-**Features**
+**新增功能**
 
-- Add iPing account login, managed subscriptions, connection diagnostics, and mandatory updates on Android, Windows, macOS, and Linux (4879379)
+- 新增 iPing 账号登录、托管订阅、连接诊断，以及 Android、Windows、macOS 和 Linux 的强制更新
 
 <!-- changelog:frozen -->
-<!-- Upstream FlClash history is preserved below the iPing release baseline. -->
+<!-- 以下保留 iPing 发布基线之前的 FlClash 历史。 -->
 
 ## v0.9.1 (2026-10-17)
 
-**Breaking Changes**
+**不兼容变更**
 
-- **network** Desktop TUN keys follow the profile unless picked; changed values carry over (cb08088)
+- 桌面 TUN 设置默认跟随配置，仅覆盖选中的选项，并保留已修改的值
 
-**Features**
+**新增功能**
 
-- **l10n** French, Spanish and Korean translations (f43755c)
-- **android** No more Firebase analytics or crash reporting (bc72bba)
-- **network** Per-key desktop TUN settings; system proxy and tray fixes (cb08088)
-- **theme** Redesigned theme colors and color styles (5eafd7a)
-- **dashboard** A redesigned dashboard around the current exit (9bd258f)
-- **profiles** Profile-detail resources and include-all in custom groups (0bac500)
-- **proxies** Proxy groups as cards, group tabs as chips (2ea52fd)
-- **views** Sortable tables for connections, requests and DNS (da6fb0a)
-- **ui** Optional two-tier Liquid Glass and slide-to-pick menus (7c9627f)
-- **ui** iOS-style surfaces, alerts and sheets; clearer TV focus (9bd2286)
+- 新增法语、西班牙语和韩语翻译
+- 移除 Android 的 Firebase 分析与崩溃报告
+- 支持逐项配置桌面 TUN 设置，修复系统代理与托盘问题
+- 重新设计主题配色与颜色样式
+- 围绕当前出口重新设计仪表盘
+- 支持配置详情资源管理，以及自定义节点组包含全部节点
+- 节点组改为卡片展示，分组标签改为标签按钮
+- 连接、请求和 DNS 页面支持表格排序
+- 新增两档可选 Liquid Glass 效果与滑动选择菜单
+- 采用 iOS 风格的界面、弹窗和面板，改善电视端焦点显示
 
-**Bug Fixes**
+**问题修复**
 
-- **ui** Fix pasting and Chinese input in text fields (5607f70)
-- **core** Large profiles no longer crash; downloads trust core CAs (5984c16)
+- 修复文本框粘贴与中文输入问题
+- 修复大型配置导致的崩溃，下载时使用核心的受信任证书
 
-**Performance**
+**性能优化**
 
-- **android** Smoother Android UI while the proxy is busy (2201c19)
+- 改善代理繁忙时 Android 界面的流畅度
 
 ## v0.9.0 (2026-10-14)
 
-**Breaking Changes**
+**不兼容变更**
 
-- **views** DNS and NTP override toggles are removed; picked keys apply to every profile (491fae1)
-- **database** Custom overwrites are removed; rebuild them as custom profiles (1677024)
+- 移除 DNS 和 NTP 的整体覆盖开关，选中的设置项应用于所有配置
+- 移除自定义覆写，请改用自定义配置重建
 
-**Features**
+**新增功能**
 
-- **views** Per-key DNS, NTP, sniffer and TUN settings (491fae1)
-- **profiles** Custom profiles (3abda78)
-- **ui** Stacked sheets, context menus and a sort mode (8c43053)
-- **providers** DNS, Hosts and ports apply without a restart (532ebf0)
-- **android** Launcher shortcuts and one-step on-demand access (d3fa225)
-- **core** Share link import and mrs rule sets (2fa2f7f)
+- 支持逐项配置 DNS、NTP、嗅探器和 TUN 设置
+- 新增自定义配置
+- 新增叠层面板、上下文菜单和排序模式
+- DNS、Hosts 和端口设置无需重启即可应用
+- 新增 Android 桌面快捷方式和一步开启按需连接
+- 支持分享链接导入和 mrs 规则集
 
-**Bug Fixes**
+**问题修复**
 
-- **database** Unreadable settings no longer block startup or restores (1677024)
-- **desktop** Windows and Linux desktop fixes (94a25f4)
-- **core,helper** The elevated Core only answers its owner (d780cb8)
+- 设置数据损坏不再阻止启动或恢复备份
+- 修复 Windows 和 Linux 桌面端问题
+- 提权核心仅响应所属应用的请求
 
 ## v0.8.99 (2026-10-03)
 
-**Features**
+**新增功能**
 
-- **editor** Editor word wrap and snippets (e131675)
-- **dashboard** More dashboard cards (e62afb7)
-- **views** Hide timed-out nodes and search every list (8378c70)
-- **ui** Sidebar, floating dock and drag to go back (841d603)
-- **ui** New app glyphs, empty states and theme page (ee6a497)
-- **overwrite** Invalid override warnings and rule presets (46fb7fe)
-- **config** DNS query log and per-key DNS/NTP overrides (a390a42)
-- **core** Proxied service checks and outbound IP risk (8068e68)
-- **platform** Tray hotkeys, node delays and a delay test (1e97716)
+- 编辑器支持自动换行和代码片段
+- 新增更多仪表盘卡片
+- 支持隐藏超时节点，并为各列表增加搜索
+- 新增侧边栏、悬浮导航栏和拖动返回
+- 更新应用图标符号、空状态和主题页面
+- 新增无效覆写警告与规则预设
+- 新增 DNS 查询日志与逐项 DNS、NTP 覆盖设置
+- 支持通过代理检测服务可用性与出口 IP 风险
+- 支持托盘快捷键、节点延迟显示与测速
 
-**Bug Fixes**
+**问题修复**
 
-- **core** A changed resource link is now used by the next sync and by auto update (ff23f30)
-- **core** DNS lookups no longer fail on networks that report no DNS servers (e55f6d1)
-- **proxies** Smaller icons in icon-only group headers (786a6ab)
-- **core,android** Push notifications reconnect in Doze (1e9955d)
-- **backup,database** Restores never apply halfway (bee8f24)
+- 修改资源链接后，后续同步和自动更新会使用新链接
+- 修复系统未提供 DNS 服务器时的域名解析失败问题
+- 缩小仅显示图标的节点组标题图标
+- 支持 Android 休眠模式下重新连接推送通知
+- 备份恢复失败时不再留下部分已应用的数据
 
 ## v0.8.98 (2026-09-14)
 
-**Bug Fixes**
+**问题修复**
 
-- **resources** Refresh the geo file size and time after an update finishes (c5bf5bd)
-- **core** Keep the core running while Windows sleeps with the app suspended (60f371a)
+- 资源更新完成后刷新地理数据库文件的大小和时间
+- Windows 休眠且应用挂起时保持核心运行
 
 ## v0.8.97 (2026-09-10)
 
-**Features**
+**新增功能**
 
-- **ui** Rework the app UI and refresh the localization (26cfbaf)
-- **app** Rework the app layer and window handling, and add proxy authentication (aaf934c)
-- **desktop** Rework the desktop runners, packaging, and native build (c0fcbc0)
-- **android** Rework the Android VPN service and lifecycle handling (ae29f38)
-- **plugins** Rework the desktop plugins and add the Helper service and Rust bridge (adf715f)
-- **core** Rework the core IPC and process lifecycle (c6eaa0a)
+- 重构应用界面并更新本地化
+- 重构应用层与窗口处理，新增代理身份验证
+- 重构桌面运行器、打包与原生构建流程
+- 重构 Android VPN 服务及生命周期管理
+- 重构桌面插件，新增 Helper 服务与 Rust 桥接
+- 重构核心 IPC 与进程生命周期管理
 
 ## v0.8.96 (2026-08-17)
 
-- Optimize commented policy
-- Fix whole group delay test failing on Windows
-- Optimize package icon loading and connections polling
+- 优化注释策略
+- 修复 Windows 整组测速失败的问题
+- 优化应用图标加载与连接轮询
 
 ## v0.8.95 (2026-08-14)
 
-- Optimize core service
-- Optimize Android TV launcher icon
-- Optimize back navigation
-- Optimize more details
-- Fix some issues
-- Optimize app layout
-- Optimize focus control
-- Adjust android process
+- 优化核心服务
+- 优化 Android TV 启动器图标
+- 优化返回导航
+- 优化更多细节
+- 修复部分问题
+- 优化应用布局
+- 优化焦点控制
+- 调整 Android 进程
 
 ## v0.8.94 (2026-07-11)
 
-- Fix macos performance issue
-- Support custom global-ua
-- Update core
-- Optimize some details
-- Fix linux silent launching not working
+- 修复 macOS 性能问题
+- 支持自定义全局 User-Agent
+- 更新核心
+- 优化部分细节
+- 修复 Linux 静默启动不生效的问题
 
 ## v0.8.93 (2026-05-29)
 
-- Support custom overwrite
-- Support run on demand
-- Optimize windows ipc
-- Optimize windows arm64
-- Optimize build
-- Optimize some details
-- Update core
+- 支持自定义覆写
+- 支持按需运行
+- 优化 Windows IPC
+- 优化 Windows ARM64 支持
+- 优化构建流程
+- 优化部分细节
+- 更新核心
 
 ## v0.8.92 (2026-02-02)
 
-- Add sqlite store
-- Optimize android quick action
-- Optimize backup and restore
-- Optimize more details
+- 新增 SQLite 存储
+- 优化 Android 快捷操作
+- 优化备份与恢复
+- 优化更多细节
 
 ## v0.8.91 (2025-12-12)
 
-- Fix windows some issues
-- Optimize overwrite handle
-- Optimize access control page
-- Optimize some details
+- 修复 Windows 的部分问题
+- 优化覆写处理
+- 优化访问控制页面
+- 优化部分细节
 
 ## v0.8.90 (2025-10-08)
 
-- Fix android tile service
-- Support append system DNS
-- Fix some issues
-- Update changelog
+- 修复 Android 快捷设置服务
+- 支持追加系统 DNS
+- 修复部分问题
+- 更新日志
 
 ## v0.8.89 (2025-09-27)
 
-- Fix some issues
-- Optimize Windows service mode
-- Update core
-- Update changelog
+- 修复部分问题
+- 优化 Windows 服务模式
+- 更新核心
+- 更新日志
 
 ## v0.8.88 (2025-09-23)
 
-- Add android separates the core process
-- Support core status check and force restart
-- Optimize proxies page and access page
-- Update flutter and pub dependencies
-- Update go version
-- Optimize more details
-- Update changelog
+- Android 核心改为独立进程运行
+- 支持核心状态检查与强制重启
+- 优化节点页面与访问控制页面
+- 更新 Flutter 与 Pub 依赖
+- 更新 Go 版本
+- 优化更多细节
+- 更新日志
 
 ## v0.8.87 (2025-07-29)
 
-- Optimize desktop view
-- Optimize logs, requests, connection pages
-- Optimize windows tray auto hide
-- Optimize some details
-- Update core
-- Update changelog
+- 优化桌面界面
+- 优化日志、请求与连接页面
+- 优化 Windows 托盘自动隐藏
+- 优化部分细节
+- 更新核心
+- 更新日志
 
 ## v0.8.86 (2025-06-15)
 
-- Fix windows tun issues
-- Optimize android get system dns
-- Optimize more details
-- Update changelog
+- 修复 Windows TUN 问题
+- 优化 Android 系统 DNS 获取
+- 优化更多细节
+- 更新日志
 
 ## v0.8.85 (2025-06-07)
 
-- Support override script
-- Support proxies search
-- Support svg display
-- Optimize config persistence
-- Add some scenes auto close connections
-- Update core
-- Optimize more details
+- 支持覆写脚本
+- 支持节点搜索
+- 支持 SVG 显示
+- 优化配置持久化
+- 支持在部分场景自动关闭连接
+- 更新核心
+- 优化更多细节
 
 ## v0.8.84 (2025-05-01)
 
-- Fix windows service verify issues
-- Update changelog
+- 修复 Windows 服务校验问题
+- 更新日志
 
 ## v0.8.83 (2025-05-01)
 
-- Add windows server mode start process verify
-- Add linux deb dependencies
-- Add backup recovery strategy select
-- Support custom text scaling
-- Optimize the display of different text scale
-- Optimize windows setup experience
-- Optimize startTun performance
-- Optimize android tv experience
-- Optimize default option
-- Optimize computed text size
-- Optimize hyperOS freeform window
-- Add developer mode
-- Update core
-- Optimize more details
-- Add issues template
-- Update changelog
+- 新增 Windows 服务模式的启动进程校验
+- 补充 Linux DEB 依赖
+- 支持选择备份恢复策略
+- 支持自定义文字缩放
+- 优化不同文字缩放比例下的显示
+- 优化 Windows 安装体验
+- 优化 TUN 启动性能
+- 优化 Android TV 使用体验
+- 优化默认选项
+- 优化文字尺寸计算
+- 优化 HyperOS 自由窗口体验
+- 新增开发者模式
+- 更新核心
+- 优化更多细节
+- 新增问题反馈模板
+- 更新日志
 
 ## v0.8.82 (2025-04-18)
 
-- Optimize android vpn performance
-- Add custom primary color and color scheme
-- Add linux nad windows arm release
-- Optimize requests and logs page
-- Fix map input page delete issues
-- Update changelog
+- 优化 Android VPN 性能
+- 支持自定义主题色与配色方案
+- 新增 Linux 和 Windows ARM 发行包
+- 优化请求与日志页面
+- 修复映射输入页面的删除问题
+- 更新日志
 
 ## v0.8.81 (2025-04-08)
 
-- Add rule override
-- Update core
-- Optimize more details
-- Update changelog
+- 新增规则覆写
+- 更新核心
+- 优化更多细节
+- 更新日志
 
 ## v0.8.80 (2025-03-10)
 
-- Optimize dashboard performance
-- Fix some issues
-- Fix unselected proxy group delay issues
-- Fix asn url issues
-- Update changelog
+- 优化仪表盘性能
+- 修复部分问题
+- 修复未选中节点组的延迟问题
+- 修复 ASN 链接问题
+- 更新日志
 
 ## v0.8.79 (2025-03-07)
 
-- Fix tab delay view issues
-- Fix tray action issues
-- Fix get profile redirect client ua issues
-- Fix proxy card delay view issues
-- Add Russian, Japanese adaptation
-- Fix some issues
-- Update changelog
+- 修复标签页延迟显示问题
+- 修复托盘操作问题
+- 修复配置下载重定向时的客户端 User-Agent 问题
+- 修复节点卡片延迟显示问题
+- 新增俄语与日语适配
+- 修复部分问题
+- 更新日志
 
 ## v0.8.78 (2025-03-05)
 
-- Fix list form input view issues
-- Fix traffic view issues
-- Update changelog
+- 修复列表表单输入界面问题
+- 修复流量显示问题
+- 更新日志
 
 ## v0.8.77 (2025-03-05)
 
-- Optimize performance
-- Update core
-- Optimize core stability
-- Fix linux tun authority check error
-- Fix some issues
-- Fix scroll physics error
-- Update changelog
+- 优化性能
+- 更新核心
+- 优化核心稳定性
+- 修复 Linux TUN 权限检查错误
+- 修复部分问题
+- 修复滚动效果错误
+- 更新日志
 
 ## v0.8.75 (2025-02-09)
 
-- Add windows storage corruption detection
-- Fix core crash caused by windows resource manager restart
-- Optimize logs, requests, access to pages
-- Fix macos bypass domain issues
-- Update changelog
+- 新增 Windows 存储损坏检测
+- 修复 Windows 资源管理器重启导致核心崩溃的问题
+- 优化日志、请求与访问控制页面
+- 修复 macOS 绕过域名设置问题
+- 更新日志
 
 ## v0.8.74 (2025-02-03)
 
-- Fix some issues
-- Update changelog
+- 修复部分问题
+- 更新日志
 
 ## v0.8.73 (2025-02-02)
 
-- Update popup menu
-- Add file editor
-- Fix android service issues
-- Optimize desktop background performance
-- Optimize android main process performance
-- Optimize delay test
-- Optimize vpn protect
-- Update changelog
+- 更新弹出菜单
+- 新增文件编辑器
+- 修复 Android 服务问题
+- 优化桌面端后台性能
+- 优化 Android 主进程性能
+- 优化测速
+- 优化 VPN 套接字保护
+- 更新日志
 
 ## v0.8.72 (2025-01-10)
 
-- Update core
-- Fix some issues
-- Update changelog
+- 更新核心
+- 修复部分问题
+- 更新日志
 
 ## v0.8.71 (2025-01-09)
 
-- Remake dashboard
-- Optimize theme
-- Optimize more details
-- Update flutter version
-- Update changelog
+- 重新设计仪表盘
+- 优化主题
+- 优化更多细节
+- 更新 Flutter 版本
+- 更新日志
 
 ## v0.8.70 (2024-12-09)
 
-- Support better window position memory
-- Add windows arm64 and linux arm64 build script
-- Optimize some details
+- 改善窗口位置记忆
+- 新增 Windows ARM64 与 Linux ARM64 构建脚本
+- 优化部分细节
 
 ## v0.8.69 (2024-12-06)
 
-- Remake desktop
-- Optimize change proxy
-- Optimize network check
-- Fix fallback issues
-- Optimize lots of details
-- Update change.yaml
-- Fix android tile issues
-- Fix windows tray issues
-- Support setting bypassDomain
-- Update flutter version
-- Fix android service issues
-- Fix macos dock exit button issues
-- Add route address setting
-- Optimize provider view
-- Update changelog
-- Update CHANGELOG.md
+- 重新设计桌面端
+- 优化节点切换
+- 优化网络检查
+- 修复回退问题
+- 优化多项细节
+- 更新 change.yaml
+- 修复 Android 快捷设置磁贴问题
+- 修复 Windows 托盘问题
+- 支持设置绕过域名
+- 更新 Flutter 版本
+- 修复 Android 服务问题
+- 修复 macOS 程序坞退出按钮问题
+- 新增路由地址设置
+- 优化提供者显示
+- 更新日志
+- 更新 CHANGELOG.md
 
 ## v0.8.67 (2024-11-09)
 
-- Add android shortcuts
-- Fix init params issues
-- Fix dynamic color issues
-- Optimize navigator animate
-- Optimize window init
-- Optimize fab
-- Optimize save
+- 新增 Android 快捷方式
+- 修复初始化参数问题
+- 修复动态取色问题
+- 优化导航动画
+- 优化窗口初始化
+- 优化悬浮操作按钮
+- 优化保存操作
 
 ## v0.8.66 (2024-10-26)
 
-- Fix the collapse issues
-- Add fontFamily options
+- 修复折叠问题
+- 新增字体选项
 
 ## v0.8.65 (2024-10-26)
 
-- Update core version
-- Update flutter version
-- Optimize ip check
-- Optimize url-test
+- 更新核心版本
+- 更新 Flutter 版本
+- 优化 IP 检查
+- 优化 URL 测速
 
 ## v0.8.64 (2024-10-12)
 
-- Update release message
-- Init auto gen changelog
-- Fix windows tray issues
-- Fix urltest issues
-- Add auto changelog
-- Fix windows admin auto launch issues
-- Add android vpn options
-- Support proxies icon configuration
-- Optimize android immersion display
-- Fix some issues
-- Optimize ip detection
-- Support android vpn ipv6 inbound switch
-- Support log export
-- Optimize more details
-- Fix android system dns issues
-- Optimize dns default option
-- Fix some issues
-- Update readme
+- 更新发布说明
+- 初始化自动生成更新日志
+- 修复 Windows 托盘问题
+- 修复 URL 测速问题
+- 新增自动生成更新日志
+- 修复 Windows 管理员模式自动启动问题
+- 新增 Android VPN 选项
+- 支持配置节点图标
+- 优化 Android 沉浸式显示
+- 修复部分问题
+- 优化 IP 检测
+- 支持 Android VPN 的 IPv6 入站开关
+- 支持导出日志
+- 优化更多细节
+- 修复 Android 系统 DNS 问题
+- 优化 DNS 默认选项
+- 修复部分问题
+- 更新说明文档
 
 ## v0.8.60 (2024-09-17)
 
-- Fix build error2
-- Fix build error
-- Support desktop hotkey
-- Support android ipv6 inbound
-- Support android system dns
-- fix some bugs
+- 修复构建错误（二）
+- 修复构建错误
+- 支持桌面快捷键
+- 支持 Android IPv6 入站
+- 支持 Android 系统 DNS
+- 修复部分错误
 
 ## v0.8.59 (2024-09-09)
 
-- Fix delete profile error
+- 修复删除配置时的错误
 
 ## v0.8.58 (2024-09-08)
 
-- Fix submit error 2
-- Fix submit error
-- Optimize DNS strategy
-- Fix the problem that the tray is not displayed in some cases
-- Optimize tray
-- Update core
-- Fix some error
+- 修复提交错误（二）
+- 修复提交错误
+- 优化 DNS 策略
+- 修复部分情况下托盘不显示的问题
+- 优化托盘
+- 更新核心
+- 修复部分错误
 
 ## v0.8.57 (2024-09-02)
 
-- Fix tun update issues
-- Add DNS override
-- Fixed some bugs
-- Optimize more detail
-- Add Hosts override
+- 修复 TUN 更新问题
+- 新增 DNS 覆写
+- 修复部分错误
+- 优化更多细节
+- 新增 Hosts 覆写
 
 ## v0.8.56 (2024-08-26)
 
-- fix android tip error
-- fix windows auto launch error
+- 修复 Android 提示错误
+- 修复 Windows 自动启动错误
 
 ## v0.8.55 (2024-08-25)
 
-- Fix windows tray issues
-- Optimize windows logic
-- Optimize app logic
-- Support windows administrator auto launch
-- Support android close vpn
+- 修复 Windows 托盘问题
+- 优化 Windows 逻辑
+- 优化应用逻辑
+- 支持 Windows 管理员模式自动启动
+- 支持在 Android 关闭 VPN
 
 ## v0.8.53 (2024-08-15)
 
-- Change flutter version
-- Support profiles sort
-- Support windows country flags display
-- Optimize proxies page and profiles page columns
+- 调整 Flutter 版本
+- 支持配置排序
+- 支持 Windows 国家旗帜显示
+- 优化节点与配置页面的列数
 
 ## v0.8.52 (2024-08-11)
 
-- Update flutter version
-- Update version
-- Update timeout time
-- Update access control page
-- Fix bug
+- 更新 Flutter 版本
+- 更新版本
+- 调整超时时间
+- 更新访问控制页面
+- 修复错误
 
 ## v0.8.51 (2024-08-05)
 
-- Optimize provider page
-- Optimize delay test
-- Support local backup and recovery
-- Fix android tile service issues
+- 优化提供者页面
+- 优化测速
+- 支持本地备份与恢复
+- 修复 Android 快捷设置服务问题
 
 ## v0.8.49 (2024-07-31)
 
-- Fix linux core build error
-- Add proxy-only traffic statistics
-- Update core
-- Optimize more details
-- Merge pull request #140 from txyyh/main
-- 添加自建 F-Droid 仓库相关 workflow
-- Rename readme fingerprint
-- Rename workflow deploy repo name
-- Add download guide to README
-- Add push release files to fdroid-repo
+- 修复 Linux 核心构建错误
+- 新增仅代理流量统计
+- 更新核心
+- 优化更多细节
+- 合并来自 txyyh/main 的拉取请求 #140
+- 新增自建 F-Droid 仓库的工作流
+- 重命名说明文档中的指纹
+- 重命名工作流部署仓库
+- 在说明文档中新增下载指引
+- 支持将发行文件推送到 fdroid-repo
 
 ## v0.8.48 (2024-07-25)
 
-- Optimize proxies page
-- Fix ua issues
-- Optimize more details
+- 优化节点页面
+- 修复 User-Agent 问题
+- 优化更多细节
 
 ## v0.8.47 (2024-07-22)
 
-- Fix windows build error
+- 修复 Windows 构建错误
 
 ## v0.8.46 (2024-07-22)
 
-- Update app icon
-- Fix desktop backup error
-- Optimize request ua
-- Change android icon
-- Optimize dashboard
+- 更新应用图标
+- 修复桌面端备份错误
+- 优化请求的 User-Agent
+- 调整 Android 图标
+- 优化仪表盘
 
 ## v0.8.44 (2024-07-18)
 
-- Remove request validate certificate
-- Sync core
+- 移除请求的证书校验
+- 同步核心
 
 ## v0.8.43 (2024-07-18)
 
-- Fix windows error
+- 修复 Windows 错误
 
 ## v0.8.42 (2024-07-18)
 
-- Fix setup.dart error
-- Fix android system proxy not effective
-- Add macos arm64
+- 修复 setup.dart 错误
+- 修复 Android 系统代理不生效的问题
+- 新增 macOS ARM64 支持
 
 ## v0.8.41 (2024-07-17)
 
-- Optimize proxies page
-- Support mouse drag scroll
-- Adjust desktop ui
-- Revert "Fix android vpn issues"
-- This reverts commit 891977408e6938e2acd74e9b9adb959c48c79988.
+- 优化节点页面
+- 支持鼠标拖动滚动
+- 调整桌面界面
+- 回退“修复 Android VPN 问题”
+- 回退先前的修改
 
 ## v0.8.40 (2024-07-15)
 
-- Fix android vpn issues
-- Fix android vpn issues
-- Rollback partial modification
+- 修复 Android VPN 问题
+- 修复 Android VPN 问题
+- 回退部分修改
 
 ## v0.8.39 (2024-07-15)
 
-- Fix the problem that ui can't be synchronized when android vpn is occupied by an external
-- Override default socksPort,port
+- 修复 Android VPN 被外部占用时界面无法同步的问题
+- 覆盖 socksPort 和 port 的默认值
 
 ## v0.8.38 (2024-07-14)
 
-- Fix fab issues
+- 修复悬浮操作按钮问题
 
 ## v0.8.37 (2024-07-14)
 
-- Update version
-- Fix the problem that vpn cannot be started in some cases
-- Fix the problem that geodata url does not take effect
+- 更新版本
+- 修复部分情况下 VPN 无法启动的问题
+- 修复地理数据库链接不生效的问题
 
 ## v0.8.36 (2024-07-13)
 
-- Update ua
-- Fix change outbound mode without check ip issues
-- Separate android ui and vpn
-- Fix url validate issues 2
-- Add android hidden from the recent task
-- Add geoip file
-- Support modify geoData URL
+- 更新 User-Agent
+- 修复切换出站模式后未检查 IP 的问题
+- 分离 Android 界面与 VPN
+- 修复链接校验问题（二）
+- 支持在 Android 最近任务中隐藏应用
+- 新增 GeoIP 文件
+- 支持修改地理数据库链接
 
 ## v0.8.35 (2024-07-07)
 
-- Fix url validate issues
-- Fix check ip performance problem
-- Optimize resources page
+- 修复链接校验问题
+- 修复 IP 检查的性能问题
+- 优化资源页面
 
 ## v0.8.34 (2024-07-04)
 
-- Add ua selector
-- Support modify test url
-- Optimize android proxy
-- Fix the error that async proxy provider could not selected the proxy
+- 新增 User-Agent 选择器
+- 支持修改测速链接
+- 优化 Android 代理
+- 修复异步代理提供者无法选择节点的问题
 
 ## v0.8.33 (2024-07-01)
 
-- Fix android proxy error
-- Fix submit error
-- Add windows tun
-- Optimize android proxy
-- Optimize change profile
-- Update application ua
-- Optimize delay test
+- 修复 Android 代理错误
+- 修复提交错误
+- 新增 Windows TUN 支持
+- 优化 Android 代理
+- 优化配置切换
+- 更新应用 User-Agent
+- 优化测速
 
 ## v0.8.32 (2024-06-28)
 
-- Fix android repeated request notification issues
+- 修复 Android 重复请求通知的问题
 
 ## v0.8.31 (2024-06-28)
 
-- Fix memory overflow issues
+- 修复内存溢出问题
 
 ## v0.8.30 (2024-06-27)
 
-- Optimize proxies expansion panel 2
-- Fix android scan qrcode error
+- 优化节点展开面板（二）
+- 修复 Android 二维码扫描错误
 
 ## v0.8.29 (2024-06-27)
 
-- Optimize proxies expansion panel
-- Fix text error
+- 优化节点展开面板
+- 修复文字错误
 
 ## v0.8.28 (2024-06-26)
 
-- Optimize proxy
-- Optimize delayed sorting performance
-- Add expansion panel proxies page
-- Support to adjust the proxy card size
-- Support to adjust proxies columns number
-- Fix autoRun show issues
-- Fix Android 10 issues
-- Optimize ip show
+- 优化代理
+- 优化延迟排序性能
+- 节点页面新增展开面板
+- 支持调整节点卡片大小
+- 支持调整节点列数
+- 修复自动运行状态显示问题
+- 修复 Android 10 兼容性问题
+- 优化 IP 显示
 
 ## v0.8.26 (2024-06-22)
 
-- Add intranet IP display
-- Add connections page
-- Add search in connections, requests
-- Add keyword search in connections, requests, logs
-- Add basic viewing editing capabilities
-- Optimize update profile
+- 新增内网 IP 显示
+- 新增连接页面
+- 连接与请求页面新增搜索
+- 连接、请求与日志页面新增关键词搜索
+- 新增基本查看与编辑功能
+- 优化配置更新
 
 ## v0.8.25 (2024-06-19)
 
-- Update version
-- Fix the problem of excessive memory usage in traffic usage.
-- Add lightBlue theme color
-- Fix start unable to update profile issues
-- Fix flashback caused by process
+- 更新版本
+- 修复流量统计占用内存过多的问题
+- 新增浅蓝色主题
+- 修复启动时无法更新配置的问题
+- 修复进程导致的闪退
 
 ## v0.8.23 (2024-06-16)
 
-- Add build version
-- Optimize quick start
-- Update system default option
+- 新增构建版本号
+- 优化快速启动
+- 更新系统默认选项
 
 ## v0.8.22 (2024-06-16)
 
-- Update build.yml
-- Fix android vpn close issues
-- Add requests page
-- Fix checkUpdate dark mode style error
-- Fix quickStart error open app
-- Add memory proxies tab index
-- Support hidden group
-- Optimize logs
-- Fix externalController hot load error
+- 更新 build.yml
+- 修复 Android VPN 关闭问题
+- 新增请求页面
+- 修复检查更新页面的深色模式样式错误
+- 修复快速启动误打开应用的问题
+- 支持记忆节点标签页位置
+- 支持隐藏节点组
+- 优化日志
+- 修复外部控制器热加载错误
 
 ## v0.8.21 (2024-06-13)
 
-- Add tcp concurrent switch
-- Add system proxy switch
-- Add geodata loader switch
-- Add external controller switch
-- Add auto gc on trim memory
-- Fix android notification error
+- 新增 TCP 并发开关
+- 新增系统代理开关
+- 新增地理数据库加载方式开关
+- 新增外部控制器开关
+- 内存紧张时自动触发垃圾回收
+- 修复 Android 通知错误
 
 ## v0.8.20 (2024-06-12)
 
-- Fix ipv6 error
-- Fix android udp direct error
-- Add ipv6 switch
-- Add access all selected button
-- Remove android low version splash
+- 修复 IPv6 错误
+- 修复 Android UDP 直连错误
+- 新增 IPv6 开关
+- 新增访问控制全选按钮
+- 移除旧版 Android 启动画面
 
 ## v0.8.19 (2024-06-10)
 
-- Update version
-- Add allowBypass
-- Fix Android only pick .text file issues
+- 更新版本
+- 新增允许绕过 VPN 的选项
+- 修复 Android 只能选择 .text 文件的问题
 
 ## v0.8.18 (2024-06-09)
 
-- Fix search issues
+- 修复搜索问题
 
 ## v0.8.17 (2024-06-09)
 
-- Fix LoadBalance, Relay load error
-- Fix build.yml4
-- Fix build.yml3
-- Fix build.yml2
-- Fix build.yml
-- Add search function at access control
-- Fix the issues with the profile add button to cover the edit button
-- Adapt LoadBalance and Relay
-- Add arm
-- Fix android notification icon error
+- 修复负载均衡与链式代理加载错误
+- 修复 build.yml（四）
+- 修复 build.yml（三）
+- 修复 build.yml（二）
+- 修复 build.yml
+- 访问控制页面新增搜索功能
+- 修复添加配置按钮遮挡编辑按钮的问题
+- 适配负载均衡与链式代理
+- 新增 ARM 支持
+- 修复 Android 通知图标错误
 
 ## v0.8.16 (2024-06-08)
 
-- Add one-click update all profiles
-- Add expire show
+- 新增一键更新全部配置
+- 新增到期时间显示
 
 ## v0.8.15 (2024-06-06)
 
-- Temp remove tun mode
-- Remove macos in workflow
-- Change go version
+- 暂时移除 TUN 模式
+- 从工作流中移除 macOS
+- 调整 Go 版本
 
 ## v0.8.14 (2024-06-06)
 
-- Update Version
-- Fix tun unable to open
+- 更新版本
+- 修复 TUN 无法开启的问题
 
 ## v0.8.13 (2024-06-06)
 
-- Optimize delay test2
-- Optimize delay test
-- Add check ip
-- add check ip request
+- 优化测速（二）
+- 优化测速
+- 新增 IP 检查
+- 新增 IP 检查请求
 
 ## v0.8.12 (2024-06-06)
 
-- Fix the problem that the download of remote resources failed after GeodataMode was turned on, which caused the
-  application to flash back.
-- Fix edit profile error
-- Fix quickStart change proxy error
-- Fix core version
+- 修复启用 Geodata 模式后远程资源下载失败导致应用闪退的问题
+- 修复编辑配置时的错误
+- 修复快速启动切换节点错误
+- 修复核心版本
 
 ## v0.8.10 (2024-06-05)
 
-- Fix core version
+- 修复核心版本
 
 ## v0.8.9 (2024-06-05)
 
-- Update file_picker
-- Add resources page
-- Optimize more detail
-- Add access selected sorted
-- Fix notification duplicate creation issue
-- Fix AccessControl click issue
+- 更新 file_picker
+- 新增资源页面
+- 优化更多细节
+- 支持对已选应用排序
+- 修复重复创建通知的问题
+- 修复访问控制点击问题
 
 ## v0.8.7 (2024-05-31)
 
-- Fix Workflow
-- Fix Linux unable to open
-- Update README.md 3
-- Create LICENSE
-- Update README.md 2
-- Update README.md
-- Optimize workFlow
+- 修复工作流
+- 修复 Linux 无法启动的问题
+- 更新 README.md（三）
+- 新增许可证
+- 更新 README.md（二）
+- 更新 README.md
+- 优化工作流
 
 ## v0.8.6 (2024-05-31)
 
-- optimize checkUpdate
+- 优化检查更新
 
 ## v0.8.5 (2024-05-30)
 
-- Fix submit error
+- 修复提交错误
 
 ## v0.8.4 (2024-05-30)
 
-- add WebDAV
-- add Auto check updates
-- Optimize more details
-- optimize delayTest
+- 新增 WebDAV 支持
+- 新增自动检查更新
+- 优化更多细节
+- 优化测速
 
 ## v0.8.2 (2024-05-15)
 
-- upgrade flutter version
+- 升级 Flutter 版本
 
 ## v0.8.1 (2024-05-15)
 
-- Update kernel
-- Add import profile via QR code image
+- 更新核心
+- 支持通过二维码图片导入配置
 
 ## v0.8.0 (2024-05-11)
 
-- Add compatibility mode and adapt clash scheme.
+- 新增兼容模式并适配 Clash 链接协议
 
 ## v0.7.14 (2024-05-07)
 
-- update Version
-- Reconstruction application proxy logic
+- 更新版本
+- 重构应用代理逻辑
 
 ## v0.7.13 (2024-05-06)
 
-- Fix Tab destroy error
+- 修复标签页销毁错误
 
 ## v0.7.12 (2024-05-06)
 
-- Optimize repeat healthcheck
+- 优化重复健康检查
 
 ## v0.7.11 (2024-05-06)
 
-- Optimize Direct mode ui
+- 优化直连模式界面
 
 ## v0.7.10 (2024-05-06)
 
-- Optimize Healthcheck
-- Remove proxies position animation, improve performance
-- Add Telegram Link
-- Update healthcheck policy
-- New Check URLTest
-- Fix the problem of invalid auto-selection
+- 优化健康检查
+- 移除节点位置动画以提升性能
+- 新增 Telegram 链接
+- 更新健康检查策略
+- 新增 URL 测速检查
+- 修复自动选择失效的问题
 
 ## v0.7.8 (2024-05-05)
 
-- New Async UpdateConfig
-- add changeProfileDebounce
-- Update Workflow
-- Fix ChangeProfile block
-- Fix Release Message Error
+- 新增异步更新配置
+- 新增配置切换防抖
+- 更新工作流
+- 修复配置切换阻塞问题
+- 修复发布说明错误
 
 ## v0.7.7 (2024-05-04)
 
-- Update Selector 2
+- 更新节点选择器（二）
 
 ## v0.7.6 (2024-05-04)
 
-- Update Version
-- Fix Proxies Select Error
+- 更新版本
+- 修复节点选择错误
 
 ## v0.7.5 (2024-05-03)
 
-- Fix the problem that the proxy group is empty in global mode.
-- Fix the problem that the proxy group is empty in global mode.
+- 修复全局模式下节点组为空的问题
+- 修复全局模式下节点组为空的问题
 
 ## v0.7.4 (2024-05-03)
 
-- Add ProxyProvider2
+- 新增代理提供者（二）
 
 ## v0.7.3 (2024-05-03)
 
-- Add ProxyProvider
-- Update Version
-- Update ProxyGroup Sort
-- Fix Android quickStart VpnService some problems
+- 新增代理提供者
+- 更新版本
+- 更新节点组排序
+- 修复 Android 快速启动 VPN 服务的部分问题
 
 ## v0.7.1 (2024-05-01)
 
-- Update version
-- Set Android notification low importance
-- Fix the issue that VpnService can't be closed correctly in special cases
-- Fix the problem that TileService is not destroyed correctly in some cases
-- Adjust tab animation defaults
-- Add Telegram in README_zh_CN.md
-- Add Telegram
+- 更新版本
+- 将 Android 通知设为低重要性
+- 修复部分情况下 VPN 服务无法正确关闭的问题
+- 修复部分情况下快捷设置服务未正确销毁的问题
+- 调整标签页动画默认设置
+- 在 README_zh_CN.md 中新增 Telegram 链接
+- 新增 Telegram 链接
 
 ## v0.7.0 (2024-04-30)
 
-- update mobile_scanner
-- Initial commit
+- 更新 mobile_scanner
+- 初始提交

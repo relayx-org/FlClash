@@ -133,7 +133,11 @@ func (a *app) cancelLogin(args arguments) (any, error) {
 }
 
 func (a *app) request(ctx context.Context, method, path string, body []byte, key string, limit int64) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, method, a.site+path, bytes.NewReader(body))
+	return a.requestURL(ctx, method, a.site+path, body, key, limit, false)
+}
+
+func (a *app) requestURL(ctx context.Context, method, target string, body []byte, key string, limit int64, redirects bool) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, method, target, bytes.NewReader(body))
 	if err != nil {
 		return nil, failure("invalid_response")
 	}
@@ -145,6 +149,17 @@ func (a *app) request(ctx context.Context, method, path string, body []byte, key
 		req.Header.Set("Authorization", "Bearer "+key)
 	}
 	client := a.client
+	if redirects {
+		public := *client
+		public.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 || !validSubscriptionURL(req.URL.String()) {
+				return failure("invalid_subscription")
+			}
+			return nil
+		}
+		client = &public
+		req.Header.Set("Accept", "text/yaml, text/plain")
+	}
 	// The Agent bypasses its own TUN; fake DNS addresses require the Core's proxy resolver.
 	if a.core != nil && a.running(ctx) {
 		proxy, err := a.probeProxy(ctx, false)
@@ -155,7 +170,7 @@ func (a *app) request(ctx context.Context, method, path string, body []byte, key
 			}
 			transport.Proxy = http.ProxyURL(proxy)
 			defer transport.CloseIdleConnections()
-			routed := *a.client
+			routed := *client
 			routed.Transport = transport
 			client = &routed
 		}

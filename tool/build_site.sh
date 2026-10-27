@@ -31,16 +31,7 @@ else
   tag=""
 fi
 
-# The changelog comes from the released tag so the notes never run ahead of the
-# downloads; the working tree copy is only a fallback for local previews.
-if [[ -n "$tag" ]] && ! git -C "$root" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
-  git -C "$root" fetch -q --depth=1 origin "refs/tags/$tag:refs/tags/$tag" 2>/dev/null || true
-fi
-if [[ -n "$tag" ]] && git -C "$root" show "$tag:CHANGELOG.md" >"$out/CHANGELOG.md" 2>/dev/null; then
-  :
-else
-  cp "$root/CHANGELOG.md" "$out/CHANGELOG.md"
-fi
+cp "$root/CHANGELOG.md" "$out/CHANGELOG.md"
 
 node "$root/tool/render_site.mjs" "$out" "${SITE_URL:-https://chen08209.github.io/FlClash}"
 

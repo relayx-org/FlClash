@@ -87,6 +87,19 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('manual subscriptions omit account authorization checks', (
+    tester,
+  ) async {
+    final session = container.read(ipingSessionProvider.notifier).controller;
+    await session.initialize();
+    await session.signOut();
+    await session.importSubscription('https://example.com/sub');
+    await pump(tester, const IpingDiagnostics());
+    expect(find.text('API Key'), findsNothing);
+    expect(api.userInfoRequests, 0);
+    expect(find.text('Refresh subscription'), findsOneWidget);
+  });
+
   for (final brightness in Brightness.values) {
     testWidgets(
       'diagnostics fit narrow Russian text and reduced motion in ${brightness.name}',

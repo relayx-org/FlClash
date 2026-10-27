@@ -47,11 +47,18 @@ func parseResourceBindings(value any) (resourceBindings, error) {
 }
 
 func (a *app) resourceProfileID() (string, error) {
-	account, err := a.account()
+	account, err := a.session()
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimRight(account.Site, "/") + "/" + strconv.FormatInt(account.ID, 10), nil
+	return subscriptionProfileID(account), nil
+}
+
+func subscriptionProfileID(account credentials) string {
+	if account.ManualURL != "" {
+		return "manual/" + digest(account.ManualURL)
+	}
+	return strings.TrimRight(account.Site, "/") + "/" + strconv.FormatInt(account.ID, 10)
 }
 
 func validateBoundResources(values map[string]any) error {

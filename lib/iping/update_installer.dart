@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'update.dart';
 
 Future<String> ipingUpdateTarget() async {
+  if (Platform.isIOS) return 'ios-app-store';
   final arch = ipingUpdateArch(Abi.current());
   final platform = Platform.operatingSystem;
   final format = switch (platform) {

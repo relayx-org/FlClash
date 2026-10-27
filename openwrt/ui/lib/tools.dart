@@ -28,7 +28,7 @@ class RouterTools extends StatelessWidget {
     final router = RouterScope.of(context, aspect: RouterAspect.status);
     final app = RouterAppState.of(context);
     return SettingsPage(
-      account: context.isMobileView
+      account: context.isMobileView && router.signedIn
           ? IpingAccountSummary(
               email: router.email,
               site: router.siteConfig,
@@ -171,11 +171,27 @@ class RouterSubscription extends StatelessWidget {
     return IpingSubscriptionPage(
       nodes: router.nodes,
       busy: router.busy,
+      failure: router.error == null
+          ? null
+          : Semantics(
+              liveRegion: true,
+              child: Text(
+                routerError(context, router.error!),
+                style: AppTextStyle.body
+                    .of(context)
+                    .copyWith(color: context.colorScheme.error),
+              ),
+            ),
       updatedText: updated == null
           ? null
           : l.profileUpdatedAt(updated.toLocal().toString()),
       onSync: () => router.synchronize(),
-      onConsole: () => router.client.open('${router.site}/home'),
+      manualSubscription: router.status.manualSubscription,
+      onImport: () => importRouterSubscription(context),
+      onSignIn: router.signedIn ? null : () => router.signIn(),
+      onConsole: router.signedIn
+          ? () => router.client.open('${router.site}/home')
+          : null,
     );
   }
 }
