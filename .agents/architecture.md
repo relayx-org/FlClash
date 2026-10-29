@@ -1570,6 +1570,9 @@ that asks the OS for a permission, a global shortcut or a registration, must con
 `setup.dart` is the release build orchestrator: it writes `env.json` (`APP_ENV`), activates `flutter_distributor` from
 the `chen08209/flutter_distributor` fork pinned to a `v<version>-flclash.<n>` tag (cut a new tag there and bump
 `--git-ref` when the fork changes), and leaves the Core artifacts to their existing build owners.
+For Linux AppImage builds it applies `tool/patches/flutter-distributor-appimage.patch` to a temporary checkout of the
+pinned fork, then runs that checkout directly. The patch deduplicates shared libraries before copying them into the
+AppImage; remove it when the pinned fork carries the same fix.
 On macOS, `setup.dart ios` exports a signed arm64 IPA with `flutter build ipa` and delegates signature,
 provisioning-profile and architecture verification to `tool/package_ios.dart`. With explicit export options it
 archives first, then signs through `xcodebuild -exportArchive`, allowing Xcode-managed distribution profiles.

@@ -27,6 +27,10 @@ const _hostPlatform = {
   'windows': 'windows',
 };
 
+const _distributorRepository =
+    'https://github.com/chen08209/flutter_distributor.git';
+const _distributorRef = 'v0.6.11-flclash.3';
+
 Future<void> main(List<String> args) async {
   final parser = createSetupArgParser();
 
@@ -255,55 +259,74 @@ Future<int> _package(
     return 0;
   }
 
-  final activateResult = await Process.run('dart', [
-    'pub',
-    'global',
-    'activate',
-    '-s',
-    'git',
-    'https://github.com/chen08209/flutter_distributor.git',
-    '--git-ref',
-    'v0.6.11-flclash.3',
-    '--git-path',
-    'packages/flutter_distributor',
-  ]);
-  if (activateResult.exitCode != 0) {
-    stderr.write(activateResult.stderr);
-    return activateResult.exitCode;
+  final patchedAppImage =
+      platform == 'linux' && targets.split(',').contains('appimage');
+  Directory? distributor;
+  if (patchedAppImage) {
+    distributor = await _prepareAppImageDistributor(rootDir);
+  } else {
+    final activateResult = await Process.run('dart', [
+      'pub',
+      'global',
+      'activate',
+      '-s',
+      'git',
+      _distributorRepository,
+      '--git-ref',
+      _distributorRef,
+      '--git-path',
+      'packages/flutter_distributor',
+    ]);
+    if (activateResult.exitCode != 0) {
+      stderr.write(activateResult.stderr);
+      return activateResult.exitCode;
+    }
   }
 
   final distributionTargets = platform == 'macos'
       ? targets.split(',').where((target) => target != 'zip').join(',')
       : targets;
-  final process = await Process.start(
-    'flutter_distributor',
-    [
-      'package',
-      '--skip-clean',
-      if (platform == 'macos' &&
-          Platform.environment['CODESIGN_IDENTITY']?.isNotEmpty == true)
-        '--hook-pre=bash tool/sign_macos.sh',
-      '--platform',
-      platform,
-      '--targets',
-      distributionTargets.isEmpty ? 'dmg' : distributionTargets,
-      if (androidArch != null)
-        '--build-target-platform=${_androidFlutterTarget[androidArch]!}',
-      if (flutterBuildArgs.isNotEmpty)
-        '--flutter-build-args=${flutterBuildArgs.join(',')}',
-      ...descriptionArgs,
-    ],
-    includeParentEnvironment: true,
-    runInShell: Platform.isWindows,
-  );
+  late final int exitCode;
+  try {
+    final packageDir = distributor == null
+        ? null
+        : p.join(distributor.path, 'packages', 'flutter_distributor');
+    final process = await Process.start(
+      packageDir == null ? 'flutter_distributor' : 'dart',
+      [
+        if (packageDir != null) ...[
+          '--packages=${p.join(packageDir, '.dart_tool', 'package_config.json')}',
+          p.join(packageDir, 'bin', 'main.dart'),
+        ],
+        'package',
+        '--skip-clean',
+        if (platform == 'macos' &&
+            Platform.environment['CODESIGN_IDENTITY']?.isNotEmpty == true)
+          '--hook-pre=bash tool/sign_macos.sh',
+        '--platform',
+        platform,
+        '--targets',
+        distributionTargets.isEmpty ? 'dmg' : distributionTargets,
+        if (androidArch != null)
+          '--build-target-platform=${_androidFlutterTarget[androidArch]!}',
+        if (flutterBuildArgs.isNotEmpty)
+          '--flutter-build-args=${flutterBuildArgs.join(',')}',
+        ...descriptionArgs,
+      ],
+      includeParentEnvironment: true,
+      runInShell: Platform.isWindows,
+    );
 
-  process.stdout.listen((data) {
-    stdout.write(utf8.decode(data));
-  });
-  process.stderr.listen((data) {
-    stderr.write(utf8.decode(data));
-  });
-  final exitCode = await process.exitCode;
+    process.stdout.listen((data) {
+      stdout.write(utf8.decode(data));
+    });
+    process.stderr.listen((data) {
+      stderr.write(utf8.decode(data));
+    });
+    exitCode = await process.exitCode;
+  } finally {
+    if (distributor != null) await distributor.delete(recursive: true);
+  }
   if (exitCode == 0 &&
       platform == 'macos' &&
       targets.split(',').contains('zip')) {
@@ -337,6 +360,60 @@ Future<int> _package(
     }
   }
   return exitCode;
+}
+
+Future<Directory> _prepareAppImageDistributor(String rootDir) async {
+  final directory = await Directory.systemTemp.createTemp('iping-distributor-');
+  try {
+    await _runSetupCommand('git', [
+      'clone',
+      '--quiet',
+      '--depth',
+      '1',
+      '--branch',
+      _distributorRef,
+      _distributorRepository,
+      directory.path,
+    ]);
+    await _runSetupCommand('git', [
+      'apply',
+      '--unidiff-zero',
+      p.join(rootDir, 'tool', 'patches', 'flutter-distributor-appimage.patch'),
+    ], workingDirectory: directory.path);
+    await _runSetupCommand(
+      'dart',
+      ['pub', 'get'],
+      workingDirectory: p.join(
+        directory.path,
+        'packages',
+        'flutter_distributor',
+      ),
+    );
+    return directory;
+  } catch (_) {
+    await directory.delete(recursive: true);
+    rethrow;
+  }
+}
+
+Future<void> _runSetupCommand(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+}) async {
+  final result = await Process.run(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+  );
+  if (result.exitCode != 0) {
+    throw ProcessException(
+      executable,
+      arguments,
+      '${result.stdout}${result.stderr}',
+      result.exitCode,
+    );
+  }
 }
 
 String _detectArch() {
