@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -114,6 +115,35 @@ void main() {
       expect(await db.database.profilesDao.query().get(), isEmpty);
       expect(await file.exists(), isFalse);
       expect(container.read(currentProfileIdProvider), isNull);
+    },
+  );
+
+  test(
+    'subscription sync keeps selections changed while validation is pending',
+    () async {
+      final profiles = container.read(ipingProfilesProvider);
+      await profiles.save('https://example.com/sub', subscription('A'));
+      final validationStarted = Completer<void>();
+      final validationResult = Completer<String>();
+      when(() => core.validateConfig(any())).thenAnswer((_) {
+        validationStarted.complete();
+        return validationResult.future;
+      });
+
+      final sync = profiles.save('https://example.com/new', subscription('B'));
+      await validationStarted.future;
+      container
+          .read(profilesActionProvider.notifier)
+          .updateCurrentSelectedMap('GLOBAL', 'B');
+      validationResult.complete('');
+      await sync;
+
+      final current = container.read(profilesProvider).single;
+      expect(current.selectedMap['GLOBAL'], 'B');
+      expect(current.url, 'https://example.com/new');
+      expect((await db.database.profilesDao.query().get()).single.selectedMap, {
+        'GLOBAL': 'B',
+      });
     },
   );
 

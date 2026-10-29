@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/plugins/app.dart';
@@ -255,8 +254,15 @@ class _ManagedProfileStorage implements IpingProfileStorage {
       validate: (path, key) =>
           ref.read(coreHandlerProvider).validateProfile(path, key),
     );
-    await database.profiles.put(saved.toCompanion());
-    ref.read(profilesProvider.notifier).put(saved);
+    final latest = _profile;
+    final updated = latest != null && latest.id == saved.id
+        ? latest.copyWith(
+            url: saved.url,
+            autoUpdate: saved.autoUpdate,
+            lastUpdateDate: saved.lastUpdateDate,
+          )
+        : saved;
+    await ref.read(profilesProvider.notifier).putAsync(updated);
     ref.read(currentProfileIdProvider.notifier).value = saved.id;
     await ref.read(setupActionProvider.notifier).applyProfile(silence: true);
     await app?.setConnectionAllowed(subscription.nodes > 0);

@@ -201,14 +201,20 @@ class Profiles extends _$Profiles {
 
   /// A new provider label follows into custom profiles whatever path set it.
   void put(Profile profile) {
+    unawaited(putAsync(profile).catchError(_reportOptimisticFailure));
+  }
+
+  Future<void> putAsync(Profile profile) {
     final newProfile = labeled(profile);
     final previousLabel = state.getProfile(profile.id)?.realLabel;
     var next = state.copyAndPut(newProfile, (item) => item.id == newProfile.id);
     if (newProfile.type == ProfileType.custom ||
         previousLabel == null ||
         previousLabel == newProfile.realLabel) {
-      _optimistic(next, () => _serial(() => _putLatest([newProfile.id])));
-      return;
+      return _optimisticAsync(
+        next,
+        () => _serial(() => _putLatest([newProfile.id])),
+      );
     }
     final names = {previousLabel: newProfile.realLabel};
     final users = [
@@ -223,7 +229,7 @@ class Profiles extends _$Profiles {
     for (final user in users) {
       next = next.copyAndPut(user, (item) => item.id == user.id);
     }
-    _optimistic(
+    return _optimisticAsync(
       next,
       () => _serial(
         () => database.transaction(() async {
