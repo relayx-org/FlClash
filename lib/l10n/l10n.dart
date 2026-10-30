@@ -8931,6 +8931,26 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Announcement`
+  String get ipingPopupNoticeTitle {
+    return Intl.message(
+      'Announcement',
+      name: 'ipingPopupNoticeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Got it`
+  String get ipingPopupNoticeConfirm {
+    return Intl.message(
+      'Got it',
+      name: 'ipingPopupNoticeConfirm',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

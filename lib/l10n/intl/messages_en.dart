@@ -1213,6 +1213,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "Enter your password.",
     ),
+    "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage("Got it"),
+    "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage(
+      "Announcement",
+    ),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("Privacy policy"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Proxy status"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(

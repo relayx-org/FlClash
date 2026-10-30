@@ -1282,6 +1282,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "Introduce tu contraseña.",
     ),
+    "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage(
+      "Entendido",
+    ),
+    "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage("Aviso"),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidad",
     ),

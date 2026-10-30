@@ -1096,5 +1096,7 @@
   "ruleProviderFormat": "Format",
   "applyResources": "Appliquer les ressources au profil actuel",
   "resourceSelectionHint": "Les ressources enregistrées sont ajoutées à la bibliothèque. Sélectionnez celles à utiliser dans ce profil. Les nœuds et groupes de filtres sélectionnés sont ajoutés aux sélecteurs.",
-  "resourceLibraryHint": "Les ressources sont conservées dans la bibliothèque. Sélectionnez-les dans l’application au profil actuel."
+  "resourceLibraryHint": "Les ressources sont conservées dans la bibliothèque. Sélectionnez-les dans l’application au profil actuel.",
+  "ipingPopupNoticeTitle": "Annonce",
+  "ipingPopupNoticeConfirm": "Compris"
 }

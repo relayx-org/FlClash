@@ -13,6 +13,7 @@ import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/view.dart';
+import 'package:fl_clash/iping/popup_notice.dart';
 import 'package:fl_clash/iping/update_notice.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -142,7 +143,9 @@ class ApplicationState extends ConsumerState<Application> {
                 child: RemoteFocusAdapter(
                   enabled: system.isTV,
                   floatingKeyboard: app?.floatingKeyboard,
-                  child: IpingUpdateNotice(child: child!),
+                  child: IpingUpdateNotice(
+                    child: IpingPopupNotice(child: child!),
+                  ),
                 ),
               ),
             );

@@ -1096,5 +1096,7 @@
   "ruleProviderFormat": "形式",
   "applyResources": "現在のプロファイルにリソースを適用",
   "resourceSelectionHint": "保存したリソースはライブラリに追加されます。このプロファイルで使うリソースを選択してください。選択したノードとフィルターグループは選択グループに追加されます。",
-  "resourceLibraryHint": "リソースはライブラリに保存されます。「現在のプロファイルにリソースを適用」で選択してください。"
+  "resourceLibraryHint": "リソースはライブラリに保存されます。「現在のプロファイルにリソースを適用」で選択してください。",
+  "ipingPopupNoticeTitle": "お知らせ",
+  "ipingPopupNoticeConfirm": "了解"
 }

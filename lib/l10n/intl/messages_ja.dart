@@ -1018,6 +1018,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "パスワードを入力してください。",
     ),
+    "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage("了解"),
+    "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage("お知らせ"),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("プライバシーポリシー"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("プロキシ状態"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("紹介人数"),

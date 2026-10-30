@@ -1096,5 +1096,7 @@
   "ruleProviderFormat": "Formato",
   "applyResources": "Aplicar recursos al perfil actual",
   "resourceSelectionHint": "Los recursos guardados se añaden a la biblioteca. Selecciona cuáles usar en este perfil. Los nodos y grupos de filtros elegidos se añaden a los selectores.",
-  "resourceLibraryHint": "Los recursos se guardan en la biblioteca. Selecciónalos en Aplicar recursos al perfil actual."
+  "resourceLibraryHint": "Los recursos se guardan en la biblioteca. Selecciónalos en Aplicar recursos al perfil actual.",
+  "ipingPopupNoticeTitle": "Aviso",
+  "ipingPopupNoticeConfirm": "Entendido"
 }

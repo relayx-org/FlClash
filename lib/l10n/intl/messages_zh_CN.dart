@@ -923,6 +923,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNotifyTunnel": MessageLookupByLibrary.simpleMessage("隧道到期提醒"),
     "ipingPassword": MessageLookupByLibrary.simpleMessage("密码"),
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage("请输入密码。"),
+    "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage("我知道了"),
+    "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage("公告"),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("隐私政策"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("代理运行状态"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("推广人数"),

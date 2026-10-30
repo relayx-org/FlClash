@@ -1096,5 +1096,7 @@
   "ruleProviderFormat": "Format",
   "applyResources": "Apply resources to current profile",
   "resourceSelectionHint": "Saving resources adds them to the library. Select the resources to apply to this profile. Selected nodes and filter groups are added to its selectors.",
-  "resourceLibraryHint": "Resources are stored in the library. Choose Apply resources to current profile to use them."
+  "resourceLibraryHint": "Resources are stored in the library. Choose Apply resources to current profile to use them.",
+  "ipingPopupNoticeTitle": "Announcement",
+  "ipingPopupNoticeConfirm": "Got it"
 }

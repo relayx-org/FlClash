@@ -33,6 +33,14 @@ class FakeIpingApi extends IpingApi {
   Completer<IpingTrafficStats>? trafficRequest;
   int referralRequests = 0;
   int trafficRequests = 0;
+  String popupNoticeText = '';
+  int popupNoticeRequests = 0;
+  @override
+  Future<String> popupNotice() async {
+    popupNoticeRequests++;
+    return popupNoticeText;
+  }
+
   @override
   Future<IpingReferralStats> referralStats() async {
     referralRequests++;

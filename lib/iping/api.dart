@@ -190,6 +190,17 @@ class IpingApi {
   Future<IpingUserInfo> userInfo() async =>
       IpingUserInfo.fromJson(await get<Map<String, dynamic>>('user/info'));
 
+  Future<String> popupNotice() async {
+    final config = await get<Map<String, dynamic>>(
+      'system/config',
+      queryParameters: {'name': 'POPUP_NOTICE'},
+    );
+    return switch (config['POPUP_NOTICE']) {
+      final String value => value.trim(),
+      _ => '',
+    };
+  }
+
   Future<IpingReferralStats> referralStats() async =>
       IpingReferralStats.fromJson(
         await get<Map<String, dynamic>>('user/referral/stats'),

@@ -159,6 +159,17 @@ void main() {
     },
   );
 
+  test('popup notice is read with the API key and blank means none', () async {
+    adapter.body = {'POPUP_NOTICE': '  **Maintenance** tonight\n'};
+    expect(await api.popupNotice(), '**Maintenance** tonight');
+    expect(adapter.request.uri.path, '/api/system/config');
+    expect(adapter.request.uri.queryParameters, {'name': 'POPUP_NOTICE'});
+    expect(adapter.request.headers['Authorization'], 'Bearer $apiKey');
+
+    adapter.body = {'POPUP_NOTICE': null};
+    expect(await api.popupNotice(), isEmpty);
+  });
+
   test(
     'referral statistics retain website percentage and CNY earnings',
     () async {

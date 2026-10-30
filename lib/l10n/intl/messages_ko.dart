@@ -1002,6 +1002,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "비밀번호를 입력하세요.",
     ),
+    "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage("확인"),
+    "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage("공지"),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("개인정보 처리방침"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("프록시 상태"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("추천한 사용자 수"),

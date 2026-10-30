@@ -1096,5 +1096,7 @@
   "ruleProviderFormat": "格式",
   "applyResources": "应用资源到当前配置",
   "resourceSelectionHint": "保存资源只会加入资源库。请在这里选择当前配置使用的资源，选中的节点和筛选组会加入选择组。",
-  "resourceLibraryHint": "资源保存在资源库中，通过“应用资源到当前配置”选择使用。"
+  "resourceLibraryHint": "资源保存在资源库中，通过“应用资源到当前配置”选择使用。",
+  "ipingPopupNoticeTitle": "公告",
+  "ipingPopupNoticeConfirm": "我知道了"
 }
