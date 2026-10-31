@@ -20,6 +20,11 @@ const ipingUpdateBase = String.fromEnvironment(
   defaultValue: 'https://video.iping.my/releases/',
 );
 
+/// A profile build carries the same AOT code as a release one, so only debug
+/// and safe mode builds skip update checks.
+const ipingUpdateChecksEnabled =
+    (kReleaseMode || kProfileMode) && !safeModeBuild;
+
 class IpingUpdate {
   const IpingUpdate({
     required this.version,
@@ -210,7 +215,7 @@ class IpingUpdater extends ChangeNotifier {
     required this.client,
     required this.beforeInstall,
     required this.exitApplication,
-    this.enabled = kReleaseMode && !safeModeBuild,
+    this.enabled = ipingUpdateChecksEnabled,
     Future<void> Function(IpingUpdate, void Function(double))? install,
     Future<bool> Function(Uri)? openStore,
   }) : _current = current,
