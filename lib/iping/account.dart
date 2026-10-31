@@ -37,7 +37,10 @@ class IpingAccountButton extends ConsumerWidget {
 }
 
 class IpingAccountSection extends ConsumerWidget {
-  const IpingAccountSection({super.key});
+  const IpingAccountSection({super.key, this.accountCenter});
+
+  final Widget? accountCenter;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(ipingBackendStateProvider);
@@ -51,6 +54,7 @@ class IpingAccountSection extends ConsumerWidget {
       busy: session.busy,
       onConsole: () => dialogs.openUrl('$ipingSite/home'),
       onSignOut: backend.signOut,
+      accountCenter: accountCenter,
     );
   }
 }

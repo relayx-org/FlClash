@@ -12,6 +12,9 @@ NavigationItemsState navigationItemsState(Ref ref) {
   final signedIn = ref.watch(
     ipingSessionProvider.select((state) => state.account != null),
   );
+  final hasSubscription = ref.watch(
+    ipingSessionProvider.select((state) => state.hasSubscription),
+  );
   final isInit = ref.watch(initProvider);
   return NavigationItemsState(
     value:
@@ -19,6 +22,7 @@ NavigationItemsState navigationItemsState(Ref ref) {
           openLogs: openLogs,
           hasProxies: !isInit ? hasProfiles : hasProxies,
           signedIn: signedIn,
+          hasSubscription: hasSubscription,
         ) ??
         const [],
   );

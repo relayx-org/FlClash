@@ -137,12 +137,14 @@ class IpingAccountSummary extends StatelessWidget {
     required this.busy,
     required this.onConsole,
     required this.onSignOut,
+    this.accountCenter,
   });
   final String label;
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
   final VoidCallback onSignOut;
+  final Widget? accountCenter;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -162,6 +164,12 @@ class IpingAccountSummary extends StatelessWidget {
           title: Text(l.ipingConsole),
           onTap: onConsole,
         ),
+        if (accountCenter case final accountCenter?)
+          ListItem.open(
+            leading: const GlyphIcon(AppGlyphs.account),
+            title: Text(l.ipingProfileCenter),
+            widget: accountCenter,
+          ),
         ListItem(
           leading: GlyphIcon(AppGlyphs.arrowBack, color: signOutColor),
           title: Text(l.ipingSignOut, style: TextStyle(color: signOutColor)),

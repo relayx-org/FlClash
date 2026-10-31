@@ -1,6 +1,5 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/iping/account.dart';
 import 'package:fl_clash/iping/about.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -25,9 +24,6 @@ class ToolsView extends ConsumerWidget {
     final more = ref.watch(moreToolsSelectorStateProvider).navigationItems;
     return SettingsPage(
       storageKey: toolsStoreKey,
-      account: ref.watch(isMobileViewProvider)
-          ? const IpingAccountSection()
-          : null,
       more: [
         for (final item in more)
           SettingsRouteLink(

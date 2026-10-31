@@ -39,6 +39,7 @@ abstract interface class NavigationPort {
     bool openLogs,
     bool hasProxies,
     bool signedIn,
+    bool hasSubscription,
   });
 }
 

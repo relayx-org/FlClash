@@ -15,6 +15,7 @@ import 'package:fl_clash/iping/view.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/widgets/icon.dart';
+import 'package:fl_clash/views/services.dart';
 import 'package:fl_clash/views/tools.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -462,10 +463,10 @@ void main() {
     expect(api.downloads, downloads + 1);
   });
 
-  testWidgets('account actions and branding remain available after login', (
+  testWidgets('services tab keeps account actions and branding after login', (
     tester,
   ) async {
-    await pump(tester, const IpingGate(child: ToolsView()));
+    await pump(tester, const IpingGate(child: ServicesView()));
     final clip = tester.widget<ClipPath>(
       find.descendant(
         of: find.byType(IpingLogo),
@@ -815,4 +816,38 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  for (final signedIn in [true, false]) {
+    testWidgets(
+      'services tab ${signedIn ? 'holds' : 'leaves out'} the store pages',
+      (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        if (signedIn) {
+          await container
+              .read(ipingSessionProvider.notifier)
+              .controller
+              .signIn();
+        }
+        await pump(tester, const ServicesView());
+
+        expect(find.text('Sign out'), signedIn ? findsOneWidget : findsNothing);
+        expect(
+          find.text('Native IPs'),
+          signedIn ? findsOneWidget : findsNothing,
+        );
+        expect(find.text('Tunnels'), signedIn ? findsOneWidget : findsNothing);
+        expect(
+          find.descendant(
+            of: find.byType(IpingAccountSection),
+            matching: find.text('Account center'),
+          ),
+          signedIn ? findsOneWidget : findsNothing,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

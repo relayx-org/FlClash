@@ -5,6 +5,7 @@ extension PageLabelIcon on PageLabel {
   Glyph get glyph => switch (this) {
     PageLabel.dashboard => AppGlyphs.dashboard,
     PageLabel.proxies => AppGlyphs.proxies,
+    PageLabel.services => AppGlyphs.layers,
     PageLabel.profiles => AppGlyphs.profiles,
     PageLabel.account => AppGlyphs.account,
     PageLabel.nativeIp => AppGlyphs.locate,

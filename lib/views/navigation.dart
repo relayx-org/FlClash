@@ -16,6 +16,7 @@ class Navigation implements NavigationPort {
     bool openLogs = false,
     bool hasProxies = false,
     bool signedIn = false,
+    bool hasSubscription = false,
   }) {
     return [
       NavigationItem(
@@ -32,6 +33,13 @@ class Navigation implements NavigationPort {
         modes: hasProxies
             ? [NavigationItemMode.mobile, NavigationItemMode.desktop]
             : [],
+      ),
+      NavigationItem(
+        glyph: PageLabel.services.glyph,
+        label: PageLabel.services,
+        builder: (_) =>
+            const ServicesView(key: GlobalObjectKey(PageLabel.services)),
+        modes: hasSubscription ? [NavigationItemMode.mobile] : [],
       ),
       NavigationItem(
         glyph: PageLabel.requests.glyph,
@@ -80,27 +88,21 @@ class Navigation implements NavigationPort {
         label: PageLabel.nativeIp,
         builder: (_) =>
             const IpingNativeIpPage(key: GlobalObjectKey(PageLabel.nativeIp)),
-        modes: signedIn
-            ? [NavigationItemMode.desktop, NavigationItemMode.more]
-            : [],
+        modes: signedIn ? [NavigationItemMode.desktop] : [],
       ),
       NavigationItem(
         glyph: PageLabel.tunnels.glyph,
         label: PageLabel.tunnels,
         builder: (_) =>
             const IpingTunnelsPage(key: GlobalObjectKey(PageLabel.tunnels)),
-        modes: signedIn
-            ? [NavigationItemMode.desktop, NavigationItemMode.more]
-            : [],
+        modes: signedIn ? [NavigationItemMode.desktop] : [],
       ),
       NavigationItem(
         glyph: PageLabel.account.glyph,
         label: PageLabel.account,
         builder: (_) =>
             const IpingProfile(key: GlobalObjectKey(PageLabel.account)),
-        modes: signedIn
-            ? [NavigationItemMode.desktop, NavigationItemMode.more]
-            : [],
+        modes: signedIn ? [NavigationItemMode.desktop] : [],
       ),
     ];
   }

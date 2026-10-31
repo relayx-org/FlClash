@@ -140,6 +140,11 @@ class AppLocalizations {
     );
   }
 
+  /// `Services`
+  String get services {
+    return Intl.message('Services', name: 'services', desc: '', args: []);
+  }
+
   /// `Service status`
   String get serviceStatus {
     return Intl.message(

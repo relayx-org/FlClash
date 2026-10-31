@@ -13,6 +13,7 @@
   "trafficUsage": "Trafic utilisé",
   "networkSpeed": "Débit réseau",
   "outboundMode": "Mode sortant",
+  "services": "Services",
   "serviceStatus": "État des services",
   "serviceRestricted": "Accès restreint",
   "serviceAvailable": "Disponible",

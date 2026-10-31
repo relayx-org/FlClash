@@ -59,6 +59,62 @@ void main() {
     ]);
   });
 
+  test('a signed-in account gets the services tab on mobile', () {
+    final destinations = navigation
+        .getItems(signedIn: true, hasSubscription: true)
+        .where((item) => item.modes.contains(NavigationItemMode.mobile))
+        .map((item) => item.label);
+    expect(destinations, [
+      PageLabel.dashboard,
+      PageLabel.services,
+      PageLabel.tools,
+    ]);
+  });
+
+  test('a manual subscription keeps the services tab without store pages', () {
+    final items = navigation.getItems(hasSubscription: true);
+    final destinations = items
+        .where((item) => item.modes.contains(NavigationItemMode.mobile))
+        .map((item) => item.label);
+    expect(destinations, [
+      PageLabel.dashboard,
+      PageLabel.services,
+      PageLabel.tools,
+    ]);
+    final desktop = items
+        .where((item) => item.modes.contains(NavigationItemMode.desktop))
+        .map((item) => item.label);
+    expect(desktop, isNot(contains(PageLabel.nativeIp)));
+    expect(desktop, isNot(contains(PageLabel.tunnels)));
+    expect(desktop, isNot(contains(PageLabel.account)));
+  });
+
+  test('a signed-out app has no services tab', () {
+    final destinations = navigation
+        .getItems(hasProxies: true)
+        .where((item) => item.modes.contains(NavigationItemMode.mobile))
+        .map((item) => item.label);
+    expect(destinations, [
+      PageLabel.dashboard,
+      PageLabel.proxies,
+      PageLabel.tools,
+    ]);
+  });
+
+  test('account store pages stay out of the more tools drawer', () {
+    final more = navigation
+        .getItems(hasProxies: true, signedIn: true, hasSubscription: true)
+        .where(
+          (item) =>
+              item.modes.contains(NavigationItemMode.more) ||
+              item.modes.contains(NavigationItemMode.moreFull),
+        )
+        .map((item) => item.label);
+    expect(more, isNot(contains(PageLabel.nativeIp)));
+    expect(more, isNot(contains(PageLabel.tunnels)));
+    expect(more, isNot(contains(PageLabel.account)));
+  });
+
   testWidgets('initial desktop layout does not animate mobile navigation out', (
     tester,
   ) async {
