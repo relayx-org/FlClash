@@ -77,10 +77,10 @@ class _AnimatedVisibilityState extends State<AnimatedVisibility>
   @override
   void didUpdateWidget(covariant AnimatedVisibility oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.visible) {
+      _presentedChild = widget.child;
+    }
     if (widget.visible == oldWidget.visible) {
-      if (widget.visible) {
-        _presentedChild = widget.child;
-      }
       return;
     }
     if (widget.visible) {
@@ -141,7 +141,7 @@ class _AnimatedVisibilityState extends State<AnimatedVisibility>
                 position: _animation.drive(
                   Tween(begin: motion.hiddenOffset, end: Offset.zero),
                 ),
-                child: _presentedChild,
+                child: widget.visible ? widget.child : _presentedChild,
               ),
             ),
           )

@@ -8,6 +8,7 @@ import 'package:yaml/yaml.dart';
 
 import 'site_config.dart';
 import 'account_statistics.dart';
+import 'topup.dart';
 import 'user_info.dart';
 
 const ipingSite = String.fromEnvironment(
@@ -18,8 +19,12 @@ const ipingSite = String.fromEnvironment(
 enum IpingFailure { session, unavailable, subscription, storage }
 
 class IpingException implements Exception {
-  const IpingException(this.failure);
+  const IpingException(this.failure, {this.status, this.message});
   final IpingFailure failure;
+  final int? status;
+
+  /// The backend's own refusal, when it sent one.
+  final String? message;
 }
 
 class IpingAccount {
@@ -123,10 +128,18 @@ class IpingApi {
       return await operation();
     } on DioException catch (error) {
       final status = error.response?.statusCode;
+      final body = error.response?.data;
+      final message = body is Map ? body['error'] : null;
       if (sessionStatusCodes.contains(status)) {
         throw const IpingException(IpingFailure.session);
       }
-      throw const IpingException(IpingFailure.unavailable);
+      throw IpingException(
+        IpingFailure.unavailable,
+        status: status,
+        message: message is String && message.trim().isNotEmpty
+            ? message.trim()
+            : null,
+      );
     } on FormatException {
       throw const IpingException(IpingFailure.unavailable);
     } on TypeError {
@@ -162,7 +175,13 @@ class IpingApi {
     });
   });
 
-  Future<T> get<T>(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<T?> _send<T>(
+    String method,
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Object? data,
+    bool requiresBody = true,
+  }) async {
     final base = Uri.parse('$site/api/');
     final uri = base.resolve(path);
     if (uri.origin != base.origin || !uri.path.startsWith(base.path)) {
@@ -173,19 +192,38 @@ class IpingApi {
       throw const IpingException(IpingFailure.session);
     }
     return _request(() async {
-      final response = await _dio.get<T>(
+      final response = await _dio.request<T>(
         uri.toString(),
+        data: data,
         queryParameters: queryParameters,
         options: Options(
+          method: method,
           headers: {'Authorization': 'Bearer $apiKey'},
           followRedirects: false,
         ),
       );
-      final data = response.data;
-      if (data == null) throw const FormatException('Missing API response');
-      return data;
+      final body = response.data;
+      if (requiresBody && body == null) {
+        throw const FormatException('Missing API response');
+      }
+      return body;
     }, sessionStatusCodes: const {401});
   }
+
+  Future<T> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async => (await _send<T>('GET', path, queryParameters: queryParameters))!;
+
+  Future<T> post<T>(String path, {Object? data}) async =>
+      (await _send<T>('POST', path, data: data))!;
+
+  /// POST whose success body is empty, such as a 204.
+  Future<void> postVoid(String path, {Object? data}) =>
+      _send<Object>('POST', path, data: data, requiresBody: false);
+
+  Future<void> patchVoid(String path, {Object? data}) =>
+      _send<Object>('PATCH', path, data: data, requiresBody: false);
 
   Future<IpingUserInfo> userInfo() async =>
       IpingUserInfo.fromJson(await get<Map<String, dynamic>>('user/info'));
@@ -200,6 +238,59 @@ class IpingApi {
       _ => '',
     };
   }
+
+  Future<IpingTopupPage> topupOrders({int page = 1, int perPage = 20}) async =>
+      IpingTopupPage.fromJson(
+        await get<Map<String, dynamic>>(
+          'topup',
+          queryParameters: {'page': page, 'perPage': perPage},
+        ),
+      );
+
+  Future<IpingTopupOptions> topupOptions() async {
+    final [payments, activities, config] = await Future.wait<Object>([
+      get<List<dynamic>>('pay'),
+      get<List<dynamic>>('topup/activities'),
+      get<Map<String, dynamic>>(
+        'system/config',
+        queryParameters: {'name': 'MIN_TOPUP_AMOUNT'},
+      ),
+    ]);
+    return _request(
+      () async => IpingTopupOptions.fromJson(
+        payments: payments as List<dynamic>,
+        activities: activities as List<dynamic>,
+        minAmount: (config as Map<String, dynamic>)['MIN_TOPUP_AMOUNT'],
+        site: site,
+      ),
+    );
+  }
+
+  /// Returns the payment page; the order stays pending until it is paid, and
+  /// the backend cancels it after ten minutes.
+  Future<Uri> createTopup({
+    required double price,
+    required int paymentId,
+  }) async {
+    final data = await _send<Map<String, dynamic>>(
+      'POST',
+      'topup',
+      data: {
+        'price': price,
+        'payment_id': paymentId,
+        'redirect_url': '$site/account?trade_status=TRADE_SUCCESS',
+      },
+    );
+    final payUrl = data!['pay_url'];
+    final url = payUrl is String ? Uri.tryParse(payUrl) : null;
+    if (url == null || !url.isScheme('https') && !url.isScheme('http')) {
+      throw const IpingException(IpingFailure.unavailable);
+    }
+    return url;
+  }
+
+  Future<void> cancelTopup(int id) =>
+      _send<Object>('PATCH', 'topup/$id/cancel', requiresBody: false);
 
   Future<IpingReferralStats> referralStats() async =>
       IpingReferralStats.fromJson(

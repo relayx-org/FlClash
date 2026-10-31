@@ -127,127 +127,181 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m41(siteName) =>
       "Accede al sitio de ${siteName} con correo, Google o una clave de acceso. La suscripción se cargará al volver.";
 
-  static String m42(count) => "${count} nodos disponibles";
+  static String m42(count) => "Borrar (${count})";
 
-  static String m43(host) => "DNS del sistema · ${host}";
+  static String m43(count) => "Indica una cantidad de 1 a ${count}.";
 
-  static String m44(version) =>
+  static String m44(price) => "${price}/mes";
+
+  static String m45(count) => "${count} meses";
+
+  static String m46(count) => "Regiones · ${count}";
+
+  static String m47(count) => "${count} disponibles";
+
+  static String m48(count) => "${count} nodos disponibles";
+
+  static String m49(fee) => "Comisión de ${fee}";
+
+  static String m50(count, cost, shortfall) =>
+      "${count} elementos se renuevan en 7 días por unos ${cost}. Recarga al menos ${shortfall}.";
+
+  static String m51(host) => "DNS del sistema · ${host}";
+
+  static String m52(amount) => "${amount} extra";
+
+  static String m53(amount) => "desde ${amount}";
+
+  static String m54(percent) => "${percent} % extra";
+
+  static String m55(amount) => "hasta ${amount}";
+
+  static String m56(amount) => "Introduce un importe de al menos ${amount}.";
+
+  static String m57(amount) => "Bono de ${amount}";
+
+  static String m58(amount) => "Mínimo ${amount}";
+
+  static String m59(count) => "Se copiaron ${count} direcciones de escucha";
+
+  static String m60(count) => "Se renovaron ${count} túneles correctamente";
+
+  static String m61(count) => "${count} seleccionado(s)";
+
+  static String m62(count) => "Se copiaron ${count} entradas";
+
+  static String m63(address, count) => "${address} +${count}";
+
+  static String m64(rate) => "Multiplicador ${rate}";
+
+  static String m65(count) => "Túneles que vencen en 3 días: ${count}";
+
+  static String m66(count) => "Túneles casi sin tráfico: ${count}";
+
+  static String m67(price) => "La renovación descuenta ${price} del saldo.";
+
+  static String m68(used, quota) => "${used} / ${quota}";
+
+  static String m69(count) => "Túneles · ${count}";
+
+  static String m70(version) =>
       "La versión ${version} está disponible. Puedes actualizar ahora o más tarde.";
 
-  static String m45(id) => "ID de usuario ${id}";
+  static String m71(id) => "ID de usuario ${id}";
 
-  static String m46(version) => "Versión ${version}";
+  static String m72(version) => "Versión ${version}";
 
-  static String m47(siteName) => "Bienvenido a ${siteName}";
+  static String m73(siteName) => "Bienvenido a ${siteName}";
 
-  static String m48(count) =>
+  static String m74(count) =>
       "${Intl.plural(count, one: '1 elemento', other: '${count} elementos')}";
 
-  static String m49(line, message) => "Línea ${line}: ${message}";
+  static String m75(line, message) => "Línea ${line}: ${message}";
 
-  static String m50(appName) =>
+  static String m76(appName) =>
       "1. Abre Ajustes del sistema > Privacidad y seguridad\n2. Elige Servicios de localización\n3. Busca ${appName} en la lista y márcalo\n\nCuando termines, vuelve a la app para continuar. Gracias por tu colaboración.";
 
-  static String m51(label, max) =>
+  static String m77(label, max) =>
       "${label} debe tener como máximo ${max} caracteres";
 
-  static String m52(size) => "Liberado: ${size}";
-
-  static String m53(count) =>
-      "${Intl.plural(count, one: 'hace 1 minuto', other: 'hace ${count} minutos')}";
-
-  static String m54(count) =>
-      "${Intl.plural(count, other: 'hace ${count} min')}";
-
-  static String m55(count) =>
-      "${Intl.plural(count, one: 'hace 1 mes', other: 'hace ${count} meses')}";
-
-  static String m56(count) => "${Intl.plural(count, other: 'hace ${count} m')}";
-
-  static String m57(code) =>
-      "El servidor denegó el acceso (HTTP ${code}). Puede que el enlace haya caducado o que las credenciales sean incorrectas";
-
-  static String m58(code) => "El servidor rechazó la solicitud (HTTP ${code})";
-
-  static String m59(code) =>
-      "No se encontró nada en esta dirección (HTTP ${code}). Comprueba que la URL sea correcta";
-
-  static String m60(detail) => "Falló la solicitud de red: ${detail}";
-
-  static String m61(code) =>
-      "El servidor tuvo un problema (HTTP ${code}). Inténtalo de nuevo más tarde";
-
-  static String m62(label) => "Aún no hay ningún elemento (${label})";
-
-  static String m63(label, min, max) =>
-      "${label} debe estar entre ${min} y ${max}";
-
-  static String m64(label) => "${label} debe ser un número";
-
-  static String m65(label) => "${label} debe estar entre 1024 y 49151";
-
-  static String m66(port) => "Puerto ${port}";
-
-  static String m67(days) =>
-      "${Intl.plural(days, one: 'Queda 1 día', other: 'Quedan ${days} días')}";
-
-  static String m68(date, days) =>
-      "Vence el ${date}, ${Intl.plural(days, one: 'queda 1 día', other: 'quedan ${days} días')}";
-
-  static String m69(time) => "Actualizado ${time}";
-
-  static String m70(label, profiles) =>
-      "${label} sigue en uso en ${profiles}, que dejarán de funcionar correctamente si se elimina. ¿Seguro que quieres eliminarlo?";
-
-  static String m71(count, label) =>
-      "${Intl.plural(count, one: '1 proxy', other: '${label} proxies')}";
-
-  static String m72(name, count) => "${name} y otros (${count} proxies)";
-
-  static String m73(removed) =>
-      "Se eliminarán estos proxies: ${removed}. Una línea cuyo nombre cambió cuenta como un proxy nuevo, y los perfiles personalizados que mencionen los eliminados los marcarán como ausentes. ¿Aplicar de todos modos?";
-
-  static String m74(removed, added) =>
-      "Se eliminarán estos proxies: ${removed}. Se añadirán estos: ${added}. Una línea cuyo nombre cambió cuenta como un proxy nuevo, y los perfiles personalizados que mencionen los eliminados los marcarán como ausentes. ¿Aplicar de todos modos?";
-
-  static String m75(label) =>
-      "${label} sigue mencionado por reglas, grupos de proxies, proxies de marcación, DNS o NTP de este perfil, que dejarán de funcionar si se elimina. ¿Seguro que quieres eliminarlo?";
-
-  static String m76(count, label) =>
-      "${Intl.plural(count, one: '1 grupo de proxies', other: '${label} grupos de proxies')}";
-
-  static String m77(count, label) =>
-      "${Intl.plural(count, one: '1 regla', other: '${label} reglas')}";
-
-  static String m78(appName) => "${appName} (Modo seguro)";
+  static String m78(size) => "Liberado: ${size}";
 
   static String m79(count) =>
-      "${Intl.plural(count, one: '1 segundo', other: '${count} segundos')}";
+      "${Intl.plural(count, one: 'hace 1 minuto', other: 'hace ${count} minutos')}";
 
-  static String m80(count) => "${count} en vigor";
+  static String m80(count) =>
+      "${Intl.plural(count, other: 'hace ${count} min')}";
 
   static String m81(count) =>
+      "${Intl.plural(count, one: 'hace 1 mes', other: 'hace ${count} meses')}";
+
+  static String m82(count) => "${Intl.plural(count, other: 'hace ${count} m')}";
+
+  static String m83(code) =>
+      "El servidor denegó el acceso (HTTP ${code}). Puede que el enlace haya caducado o que las credenciales sean incorrectas";
+
+  static String m84(code) => "El servidor rechazó la solicitud (HTTP ${code})";
+
+  static String m85(code) =>
+      "No se encontró nada en esta dirección (HTTP ${code}). Comprueba que la URL sea correcta";
+
+  static String m86(detail) => "Falló la solicitud de red: ${detail}";
+
+  static String m87(code) =>
+      "El servidor tuvo un problema (HTTP ${code}). Inténtalo de nuevo más tarde";
+
+  static String m88(label) => "Aún no hay ningún elemento (${label})";
+
+  static String m89(label, min, max) =>
+      "${label} debe estar entre ${min} y ${max}";
+
+  static String m90(label) => "${label} debe ser un número";
+
+  static String m91(label) => "${label} debe estar entre 1024 y 49151";
+
+  static String m92(port) => "Puerto ${port}";
+
+  static String m93(days) =>
+      "${Intl.plural(days, one: 'Queda 1 día', other: 'Quedan ${days} días')}";
+
+  static String m94(date, days) =>
+      "Vence el ${date}, ${Intl.plural(days, one: 'queda 1 día', other: 'quedan ${days} días')}";
+
+  static String m95(time) => "Actualizado ${time}";
+
+  static String m96(label, profiles) =>
+      "${label} sigue en uso en ${profiles}, que dejarán de funcionar correctamente si se elimina. ¿Seguro que quieres eliminarlo?";
+
+  static String m97(count, label) =>
+      "${Intl.plural(count, one: '1 proxy', other: '${label} proxies')}";
+
+  static String m98(name, count) => "${name} y otros (${count} proxies)";
+
+  static String m99(removed) =>
+      "Se eliminarán estos proxies: ${removed}. Una línea cuyo nombre cambió cuenta como un proxy nuevo, y los perfiles personalizados que mencionen los eliminados los marcarán como ausentes. ¿Aplicar de todos modos?";
+
+  static String m100(removed, added) =>
+      "Se eliminarán estos proxies: ${removed}. Se añadirán estos: ${added}. Una línea cuyo nombre cambió cuenta como un proxy nuevo, y los perfiles personalizados que mencionen los eliminados los marcarán como ausentes. ¿Aplicar de todos modos?";
+
+  static String m101(label) =>
+      "${label} sigue mencionado por reglas, grupos de proxies, proxies de marcación, DNS o NTP de este perfil, que dejarán de funcionar si se elimina. ¿Seguro que quieres eliminarlo?";
+
+  static String m102(count, label) =>
+      "${Intl.plural(count, one: '1 grupo de proxies', other: '${label} grupos de proxies')}";
+
+  static String m103(count, label) =>
+      "${Intl.plural(count, one: '1 regla', other: '${label} reglas')}";
+
+  static String m104(appName) => "${appName} (Modo seguro)";
+
+  static String m105(count) =>
+      "${Intl.plural(count, one: '1 segundo', other: '${count} segundos')}";
+
+  static String m106(count) => "${count} en vigor";
+
+  static String m107(count) =>
       "${Intl.plural(count, one: '1 problema', other: '${count} problemas')}";
 
-  static String m82(time) => "Comprobado a las ${time}";
+  static String m108(time) => "Comprobado a las ${time}";
 
-  static String m83(count) =>
+  static String m109(count) =>
       "${Intl.plural(count, one: '1 ajuste', other: '${count} ajustes')}";
 
-  static String m84(link) => "No se pudo leer ningún proxy de ${link}";
+  static String m110(link) => "No se pudo leer ningún proxy de ${link}";
 
-  static String m85(label) => "${label} debe ser un solo elemento";
+  static String m111(label) => "${label} debe ser un solo elemento";
 
-  static String m86(value) => "Pico: ${value}";
+  static String m112(value) => "Pico: ${value}";
 
-  static String m87(value) => "Total: ${value}";
+  static String m113(value) => "Total: ${value}";
 
-  static String m88(label) => "${label} debe ser una URL";
+  static String m114(label) => "${label} debe ser una URL";
 
-  static String m89(count) =>
+  static String m115(count) =>
       "${Intl.plural(count, one: 'hace 1 año', other: 'hace ${count} años')}";
 
-  static String m90(count) => "${Intl.plural(count, other: 'hace ${count} a')}";
+  static String m116(count) =>
+      "${Intl.plural(count, other: 'hace ${count} a')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -1164,6 +1218,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Acceso autorizado en este dispositivo",
     ),
     "ipingApiKey": MessageLookupByLibrary.simpleMessage("Clave API"),
+    "ipingAvailableBalance": MessageLookupByLibrary.simpleMessage(
+      "Saldo disponible",
+    ),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("Saldo (CNY)"),
     "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage(
       "Tráfico facturado",
@@ -1254,6 +1311,103 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Suscripción importada manualmente",
     ),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("IP nativas"),
+    "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Todos"),
+    "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage(
+      "Incluir un túnel",
+    ),
+    "ipingNativeIpBundleHint": MessageLookupByLibrary.simpleMessage(
+      "Se configura un túnel por cada IP.",
+    ),
+    "ipingNativeIpBuy": MessageLookupByLibrary.simpleMessage("Comprar"),
+    "ipingNativeIpClearTags": m42,
+    "ipingNativeIpConfigureLater": MessageLookupByLibrary.simpleMessage(
+      "Los túneles se configuran automáticamente cuando se entregan las IP.",
+    ),
+    "ipingNativeIpConfigureNow": MessageLookupByLibrary.simpleMessage(
+      "Los túneles se configuran al completar la compra.",
+    ),
+    "ipingNativeIpContinentAF": MessageLookupByLibrary.simpleMessage("África"),
+    "ipingNativeIpContinentAN": MessageLookupByLibrary.simpleMessage(
+      "Antártida",
+    ),
+    "ipingNativeIpContinentAS": MessageLookupByLibrary.simpleMessage("Asia"),
+    "ipingNativeIpContinentEU": MessageLookupByLibrary.simpleMessage("Europa"),
+    "ipingNativeIpContinentNA": MessageLookupByLibrary.simpleMessage(
+      "América del Norte",
+    ),
+    "ipingNativeIpContinentOC": MessageLookupByLibrary.simpleMessage("Oceanía"),
+    "ipingNativeIpContinentSA": MessageLookupByLibrary.simpleMessage(
+      "América del Sur",
+    ),
+    "ipingNativeIpCopyAddress": MessageLookupByLibrary.simpleMessage(
+      "Copiar dirección",
+    ),
+    "ipingNativeIpCopyCredentials": MessageLookupByLibrary.simpleMessage(
+      "Copiar credenciales",
+    ),
+    "ipingNativeIpCopyUrl": MessageLookupByLibrary.simpleMessage(
+      "Copiar URL del proxy",
+    ),
+    "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("Cantidad"),
+    "ipingNativeIpCountInvalid": m43,
+    "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Duración"),
+    "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
+      "No hay IP nativas disponibles ahora.",
+    ),
+    "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
+      "Ninguna región coincide con estos filtros.",
+    ),
+    "ipingNativeIpInTunnel": MessageLookupByLibrary.simpleMessage(
+      "En un túnel",
+    ),
+    "ipingNativeIpLineA": MessageLookupByLibrary.simpleMessage("Línea A"),
+    "ipingNativeIpLineB": MessageLookupByLibrary.simpleMessage("Línea B"),
+    "ipingNativeIpLineC": MessageLookupByLibrary.simpleMessage("Línea C"),
+    "ipingNativeIpListPrice": MessageLookupByLibrary.simpleMessage(
+      "Este es el precio de lista. El descuento de revendedor se aplica al cobrar.",
+    ),
+    "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron cargar las IP nativas. Inténtalo de nuevo.",
+    ),
+    "ipingNativeIpMonthly": m44,
+    "ipingNativeIpMonths": m45,
+    "ipingNativeIpNoPlans": MessageLookupByLibrary.simpleMessage(
+      "No hay planes de túnel disponibles.",
+    ),
+    "ipingNativeIpOneMonth": MessageLookupByLibrary.simpleMessage("1 mes"),
+    "ipingNativeIpOpenTunnels": MessageLookupByLibrary.simpleMessage(
+      "Ir a túneles",
+    ),
+    "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("Pedido"),
+    "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("Compradas"),
+    "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aún no tienes IP nativas.",
+    ),
+    "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("Plan de túnel"),
+    "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron cargar los planes de túnel. Aún puedes comprar solo la IP.",
+    ),
+    "ipingNativeIpPurchaseFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo completar la compra. Inténtalo de nuevo.",
+    ),
+    "ipingNativeIpPurchased": MessageLookupByLibrary.simpleMessage(
+      "Compra realizada. Las IP aparecen con tus nodos tras la entrega.",
+    ),
+    "ipingNativeIpPurchasedTunnelLater": MessageLookupByLibrary.simpleMessage(
+      "Compra realizada. Los túneles se configuran cuando se entregan las IP.",
+    ),
+    "ipingNativeIpPurchasedWithTunnel": MessageLookupByLibrary.simpleMessage(
+      "Compra realizada. Los túneles ya están configurados.",
+    ),
+    "ipingNativeIpResultCount": m46,
+    "ipingNativeIpSoldOut": MessageLookupByLibrary.simpleMessage("Agotado"),
+    "ipingNativeIpStock": m47,
+    "ipingNativeIpTags": MessageLookupByLibrary.simpleMessage("Etiquetas"),
+    "ipingNativeIpTagsHint": MessageLookupByLibrary.simpleMessage(
+      "Cumplir todas las etiquetas elegidas",
+    ),
+    "ipingNativeIpTotal": MessageLookupByLibrary.simpleMessage("Total"),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("Red global"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
       "No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo. Se conserva tu última suscripción.",
@@ -1261,10 +1415,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "No hay nodos disponibles. Gestiona tus servicios en la consola iPing y actualiza.",
     ),
+    "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
+      "No hay métodos de pago disponibles en este momento.",
+    ),
     "ipingNoTraffic": MessageLookupByLibrary.simpleMessage(
       "No hay tráfico registrado en este período.",
     ),
-    "ipingNodeCount": m42,
+    "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage(
       "Notificaciones de Telegram",
     ),
@@ -1282,6 +1439,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "Introduce tu contraseña.",
     ),
+    "ipingPaymentFee": m49,
+    "ipingPaymentMethod": MessageLookupByLibrary.simpleMessage(
+      "Método de pago",
+    ),
+    "ipingPaymentRequired": MessageLookupByLibrary.simpleMessage(
+      "Elige un método de pago.",
+    ),
     "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage(
       "Entendido",
     ),
@@ -1289,7 +1453,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage(
       "Política de privacidad",
     ),
+    "ipingProfileCenter": MessageLookupByLibrary.simpleMessage(
+      "Centro de cuenta",
+    ),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Estado del proxy"),
+    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage(
+      "Recargas recientes",
+    ),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(
       "Personas referidas",
     ),
@@ -1315,6 +1485,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "El registro está cerrado. Las cuentas existentes pueden iniciar sesión.",
     ),
+    "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
+      "Es posible que el saldo no cubra las renovaciones",
+    ),
+    "ipingRenewalShortfallDetail": m50,
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Volver a comprobar",
     ),
@@ -1340,23 +1514,308 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Actualizar suscripción"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Actualizando…"),
-    "ipingSystemDns": m43,
+    "ipingSystemDns": m51,
     "ipingTelegram": MessageLookupByLibrary.simpleMessage("Telegram"),
     "ipingTelegramBound": MessageLookupByLibrary.simpleMessage("Vinculado"),
     "ipingTelegramUnbound": MessageLookupByLibrary.simpleMessage(
       "Sin vincular",
     ),
     "ipingTerms": MessageLookupByLibrary.simpleMessage("Términos del servicio"),
+    "ipingTopUp": MessageLookupByLibrary.simpleMessage("Recargar"),
+    "ipingTopupActivityFixed": m52,
+    "ipingTopupActivityFrom": m53,
+    "ipingTopupActivityPercent": m54,
+    "ipingTopupActivityUpTo": m55,
+    "ipingTopupAmount": MessageLookupByLibrary.simpleMessage("Importe"),
+    "ipingTopupBelowMinimum": m56,
+    "ipingTopupBonus": m57,
+    "ipingTopupCancel": MessageLookupByLibrary.simpleMessage("Cancelar pedido"),
+    "ipingTopupCancelConfirm": MessageLookupByLibrary.simpleMessage(
+      "¿Cancelar este pedido sin pagar? Después podrás hacer uno nuevo.",
+    ),
+    "ipingTopupCancelFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo cancelar el pedido. Inténtalo de nuevo.",
+    ),
+    "ipingTopupCredited": MessageLookupByLibrary.simpleMessage("Recibirás"),
+    "ipingTopupEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aún no hay recargas",
+    ),
+    "ipingTopupFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo crear el pedido. Inténtalo de nuevo.",
+    ),
+    "ipingTopupHistory": MessageLookupByLibrary.simpleMessage(
+      "Historial de recargas",
+    ),
+    "ipingTopupHistoryFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo cargar el historial de recargas. Inténtalo de nuevo.",
+    ),
+    "ipingTopupMinimum": m58,
+    "ipingTopupOpened": MessageLookupByLibrary.simpleMessage(
+      "Completa el pago en tu navegador. Tu saldo se actualizará al confirmarse el pago.",
+    ),
+    "ipingTopupOptionsFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron cargar las opciones de recarga. Inténtalo de nuevo.",
+    ),
+    "ipingTopupOtherAmount": MessageLookupByLibrary.simpleMessage(
+      "Otro importe",
+    ),
+    "ipingTopupPay": MessageLookupByLibrary.simpleMessage("Pagar"),
+    "ipingTopupPendingExists": MessageLookupByLibrary.simpleMessage(
+      "Tienes un pedido sin pagar. Págalo o cancélalo primero en el historial de recargas.",
+    ),
+    "ipingTopupStatusCancelled": MessageLookupByLibrary.simpleMessage(
+      "Cancelado",
+    ),
+    "ipingTopupStatusPending": MessageLookupByLibrary.simpleMessage(
+      "Pendiente",
+    ),
+    "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("Pagado"),
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "Tráfico · Últimos 30 días",
     ),
+    "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage(
+      "Renovación automática",
+    ),
+    "ipingTunnelAutoRenewDesc": MessageLookupByLibrary.simpleMessage(
+      "Renovación automática el día antes del vencimiento",
+    ),
+    "ipingTunnelBatchCopyAddresses": MessageLookupByLibrary.simpleMessage(
+      "Copiar direcciones",
+    ),
+    "ipingTunnelBatchCopyEmpty": MessageLookupByLibrary.simpleMessage(
+      "Los túneles seleccionados no tienen direcciones listas",
+    ),
+    "ipingTunnelBatchCopySuccess": m59,
+    "ipingTunnelBatchFillAddresses": MessageLookupByLibrary.simpleMessage(
+      "Relleno masivo de IPs",
+    ),
+    "ipingTunnelBatchFillAddressesHint": MessageLookupByLibrary.simpleMessage(
+      "Una por línea; dejar en blanco para no modificar",
+    ),
+    "ipingTunnelBatchFillNames": MessageLookupByLibrary.simpleMessage(
+      "Relleno masivo de nombres",
+    ),
+    "ipingTunnelBatchFillNamesGenerate": MessageLookupByLibrary.simpleMessage(
+      "Generar con número",
+    ),
+    "ipingTunnelBatchFillNamesPrefix": MessageLookupByLibrary.simpleMessage(
+      "Prefijo, ej: Tokio",
+    ),
+    "ipingTunnelBatchOperations": MessageLookupByLibrary.simpleMessage(
+      "Operaciones por lotes",
+    ),
+    "ipingTunnelBatchRenew": MessageLookupByLibrary.simpleMessage(
+      "Renovación por lotes",
+    ),
+    "ipingTunnelBatchRenewBalance": MessageLookupByLibrary.simpleMessage(
+      "Saldo actual",
+    ),
+    "ipingTunnelBatchRenewConfirm": MessageLookupByLibrary.simpleMessage(
+      "Confirmar renovación",
+    ),
+    "ipingTunnelBatchRenewInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Saldo insuficiente, recargue primero",
+    ),
+    "ipingTunnelBatchRenewSuccess": m60,
+    "ipingTunnelBatchRenewTotal": MessageLookupByLibrary.simpleMessage(
+      "Total estimado",
+    ),
+    "ipingTunnelBatchSelected": m61,
+    "ipingTunnelBatchStatusNoChange": MessageLookupByLibrary.simpleMessage(
+      "Sin cambios",
+    ),
+    "ipingTunnelBatchUpdate": MessageLookupByLibrary.simpleMessage(
+      "Configuración por lotes",
+    ),
+    "ipingTunnelBatchUpdateSuccess": MessageLookupByLibrary.simpleMessage(
+      "Actualización por lotes exitosa",
+    ),
+    "ipingTunnelCopyListen": MessageLookupByLibrary.simpleMessage(
+      "Copiar la dirección de escucha",
+    ),
+    "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage("Editar túnel"),
+    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("Entrada"),
+    "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("Salida"),
+    "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("Caducado"),
+    "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("Vencimiento"),
+    "ipingTunnelExport": MessageLookupByLibrary.simpleMessage("Exportar"),
+    "ipingTunnelExportClash": MessageLookupByLibrary.simpleMessage(
+      "Proxies de Clash (YAML)",
+    ),
+    "ipingTunnelExportCsv": MessageLookupByLibrary.simpleMessage("CSV"),
+    "ipingTunnelExportLines": MessageLookupByLibrary.simpleMessage(
+      "host:port:user:pass",
+    ),
+    "ipingTunnelExportSuccess": m62,
+    "ipingTunnelFilterAll": MessageLookupByLibrary.simpleMessage("Todos"),
+    "ipingTunnelFilterAutoRenew": MessageLookupByLibrary.simpleMessage(
+      "Renovación automática",
+    ),
+    "ipingTunnelFilterAutoRenewOff": MessageLookupByLibrary.simpleMessage(
+      "Desactivado",
+    ),
+    "ipingTunnelFilterAutoRenewOn": MessageLookupByLibrary.simpleMessage(
+      "Activado",
+    ),
+    "ipingTunnelFilterIpType": MessageLookupByLibrary.simpleMessage(
+      "Tipo de IP",
+    ),
+    "ipingTunnelFilterPort": MessageLookupByLibrary.simpleMessage(
+      "Puerto de escucha",
+    ),
+    "ipingTunnelFilterPortHint": MessageLookupByLibrary.simpleMessage(
+      "Introduce el número de puerto",
+    ),
+    "ipingTunnelFilterReset": MessageLookupByLibrary.simpleMessage(
+      "Restablecer filtros",
+    ),
+    "ipingTunnelFilterTitle": MessageLookupByLibrary.simpleMessage("Filtrar"),
+    "ipingTunnelFilterType": MessageLookupByLibrary.simpleMessage(
+      "Tipo de túnel",
+    ),
+    "ipingTunnelForward": MessageLookupByLibrary.simpleMessage("Destino"),
+    "ipingTunnelForwardAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "La dirección de reenvío no puede estar vacía",
+    ),
+    "ipingTunnelForwardHost": MessageLookupByLibrary.simpleMessage(
+      "IP o dominio de reenvío",
+    ),
+    "ipingTunnelForwardLocked": MessageLookupByLibrary.simpleMessage(
+      "No se puede cambiar mientras la IP de regalo esté activa",
+    ),
+    "ipingTunnelForwardPort": MessageLookupByLibrary.simpleMessage("Puerto"),
+    "ipingTunnelImportClipboard": MessageLookupByLibrary.simpleMessage(
+      "Importar del portapapeles",
+    ),
+    "ipingTunnelImportClipboardFailed": MessageLookupByLibrary.simpleMessage(
+      "No se reconoció ninguna dirección proxy válida",
+    ),
+    "ipingTunnelImportClipboardSuccess": MessageLookupByLibrary.simpleMessage(
+      "Dirección importada del portapapeles",
+    ),
+    "ipingTunnelListen": MessageLookupByLibrary.simpleMessage(
+      "Dirección de escucha",
+    ),
+    "ipingTunnelListenWaiting": MessageLookupByLibrary.simpleMessage(
+      "Esperando un puerto",
+    ),
+    "ipingTunnelLoadMore": MessageLookupByLibrary.simpleMessage("Cargar más"),
+    "ipingTunnelMoreAddresses": m63,
+    "ipingTunnelName": MessageLookupByLibrary.simpleMessage("Nombre del túnel"),
+    "ipingTunnelNameHint": MessageLookupByLibrary.simpleMessage(
+      "Introduce el nombre del túnel",
+    ),
+    "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage(
+      "Contraseña (opcional)",
+    ),
+    "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage(
+      "País/región de salida",
+    ),
+    "ipingTunnelPoolExit": MessageLookupByLibrary.simpleMessage(
+      "La salida proviene de un grupo de direcciones.",
+    ),
+    "ipingTunnelPoolInterval": MessageLookupByLibrary.simpleMessage(
+      "Intervalo de cambio automático (min)",
+    ),
+    "ipingTunnelPoolIntervalHint": MessageLookupByLibrary.simpleMessage(
+      "0 desactiva el cambio automático",
+    ),
+    "ipingTunnelPortConflict": MessageLookupByLibrary.simpleMessage(
+      "Puerto en uso",
+    ),
+    "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
+      "El puerto debe estar entre 1 y 65535",
+    ),
+    "ipingTunnelRate": m64,
+    "ipingTunnelReminderExpiring": m65,
+    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("Renovar"),
+    "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
+      "La renovación se descuenta del saldo.",
+    ),
+    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo renovar el túnel. Inténtalo de nuevo.",
+    ),
+    "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage(
+      "Túnel renovado.",
+    ),
+    "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
+      "Seleccionar de mis IP",
+    ),
+    "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
+      "No hay IP disponibles",
+    ),
+    "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("Activado"),
+    "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
+      "Desactivado",
+    ),
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage(
+      "Cambiar IP de salida",
+    ),
+    "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
+      "Error al cambiar la IP de salida",
+    ),
+    "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
+      "IP de salida cambiada con éxito",
+    ),
+    "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage(
+      "Cambiar puerto",
+    ),
+    "ipingTunnelSwitchPortFailed": MessageLookupByLibrary.simpleMessage(
+      "Error al cambiar el puerto. Inténtalo de nuevo",
+    ),
+    "ipingTunnelSwitchPortSuccess": MessageLookupByLibrary.simpleMessage(
+      "Puerto cambiado con éxito",
+    ),
+    "ipingTunnelTestConnection": MessageLookupByLibrary.simpleMessage(
+      "Probar conexión",
+    ),
+    "ipingTunnelTraffic": MessageLookupByLibrary.simpleMessage("Tráfico"),
+    "ipingTunnelTrafficOf": m68,
+    "ipingTunnelTypeMtcp": MessageLookupByLibrary.simpleMessage(
+      "TCP multiplexado",
+    ),
+    "ipingTunnelTypeMtls": MessageLookupByLibrary.simpleMessage(
+      "TLS cifrado multiplexado",
+    ),
+    "ipingTunnelTypeMwss": MessageLookupByLibrary.simpleMessage(
+      "WebSocket cifrado multiplexado",
+    ),
+    "ipingTunnelTypeRelayx": MessageLookupByLibrary.simpleMessage("RelayX"),
+    "ipingTunnelTypeTcp": MessageLookupByLibrary.simpleMessage("TCP"),
+    "ipingTunnelTypeTls": MessageLookupByLibrary.simpleMessage("TLS cifrado"),
+    "ipingTunnelTypeUdp": MessageLookupByLibrary.simpleMessage("UDP"),
+    "ipingTunnelTypeWss": MessageLookupByLibrary.simpleMessage(
+      "WebSocket cifrado",
+    ),
+    "ipingTunnelUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo actualizar el túnel. Inténtalo de nuevo.",
+    ),
+    "ipingTunnelUpdated": MessageLookupByLibrary.simpleMessage(
+      "Túnel actualizado.",
+    ),
+    "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage(
+      "Usuario (opcional)",
+    ),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Túneles"),
+    "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage(
+      "Todavía no hay túneles.",
+    ),
+    "ipingTunnelsFilteredEmpty": MessageLookupByLibrary.simpleMessage(
+      "Ningún túnel coincide con estos filtros.",
+    ),
+    "ipingTunnelsLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudieron cargar los túneles. Inténtalo de nuevo.",
+    ),
+    "ipingTunnelsResultCount": m69,
     "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
       "No se pudo abrir App Store. Inténtalo de nuevo.",
     ),
     "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
       "Instala la actualización en App Store y vuelve a abrir iPing.",
     ),
-    "ipingUpdateAvailableDesc": m44,
+    "ipingUpdateAvailableDesc": m70,
     "ipingUpdateCheckFailed": MessageLookupByLibrary.simpleMessage(
       "No se pudieron buscar actualizaciones. Comprueba la conexión e inténtalo de nuevo.",
     ),
@@ -1373,9 +1832,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
       "Actualizar en App Store",
     ),
-    "ipingUserId": m45,
-    "ipingVersion": m46,
-    "ipingWelcome": m47,
+    "ipingUserId": m71,
+    "ipingVersion": m72,
+    "ipingWelcome": m73,
     "ipv6Desc": MessageLookupByLibrary.simpleMessage(
       "El tráfico IPv6 solo se recibe mientras IPv6 esté activado.",
     ),
@@ -1385,7 +1844,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipv6Timeout": MessageLookupByLibrary.simpleMessage(
       "Tiempo de espera IPv6 (ms)",
     ),
-    "itemsCount": m48,
+    "itemsCount": m74,
     "ja": MessageLookupByLibrary.simpleMessage("Japonés"),
     "justNow": MessageLookupByLibrary.simpleMessage("Ahora mismo"),
     "keepAliveIdle": MessageLookupByLibrary.simpleMessage(
@@ -1408,7 +1867,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Diseño"),
     "light": MessageLookupByLibrary.simpleMessage("Claro"),
-    "lineIssueTip": m49,
+    "lineIssueTip": m75,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Ajuste de línea"),
     "link": MessageLookupByLibrary.simpleMessage("Enlace"),
     "linkDesc": MessageLookupByLibrary.simpleMessage(
@@ -1442,7 +1901,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "locationPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "El sistema requiere el permiso de ubicación para leer el nombre de la red Wi-Fi. En Android elige “Permitir todo el tiempo”; de lo contrario, no se podrá leer el nombre de la red Wi-Fi mientras la app esté en segundo plano.",
     ),
-    "locationPermissionGuide": m50,
+    "locationPermissionGuide": m76,
     "locationPermissionRequired": MessageLookupByLibrary.simpleMessage(
       "Se requiere permiso de ubicación",
     ),
@@ -1469,7 +1928,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "matchTarget": MessageLookupByLibrary.simpleMessage("MATCH-TARGET"),
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("Máximo de fallos"),
-    "maxLengthTip": m51,
+    "maxLengthTip": m77,
     "maximize": MessageLookupByLibrary.simpleMessage("Maximizar"),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage(
       "Memoria residente",
@@ -1499,7 +1958,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Memoria que usan la app y el núcleo",
     ),
     "memoryReleased": MessageLookupByLibrary.simpleMessage("Memoria liberada"),
-    "memoryReleasedSize": m52,
+    "memoryReleasedSize": m78,
     "messageTest": MessageLookupByLibrary.simpleMessage("Prueba de mensaje"),
     "messageTestTip": MessageLookupByLibrary.simpleMessage(
       "Esto es un mensaje.",
@@ -1509,21 +1968,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "Minimizar al salir",
     ),
     "minutes": MessageLookupByLibrary.simpleMessage("minutos"),
-    "minutesAgo": m53,
-    "minutesAgoShort": m54,
+    "minutesAgo": m79,
+    "minutesAgoShort": m80,
     "mixedPort": MessageLookupByLibrary.simpleMessage("Puerto mixto"),
     "mode": MessageLookupByLibrary.simpleMessage("Modo"),
     "monochromeScheme": MessageLookupByLibrary.simpleMessage("Monocromo"),
-    "monthsAgo": m55,
-    "monthsAgoShort": m56,
+    "monthsAgo": m81,
+    "monthsAgoShort": m82,
     "more": MessageLookupByLibrary.simpleMessage("Más"),
     "name": MessageLookupByLibrary.simpleMessage("Nombre"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage(
       "Barra inferior",
     ),
     "network": MessageLookupByLibrary.simpleMessage("Red"),
-    "networkAccessDeniedError": m57,
-    "networkBadResponseError": m58,
+    "networkAccessDeniedError": m83,
+    "networkBadResponseError": m84,
     "networkCancelledError": MessageLookupByLibrary.simpleMessage(
       "Se canceló la solicitud",
     ),
@@ -1534,13 +1993,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "No se pudo resolver la dirección del servidor. Comprueba que la URL sea correcta y que el DNS funcione",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("Nombre de la red"),
-    "networkNotFoundError": m59,
+    "networkNotFoundError": m85,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Demasiadas solicitudes (HTTP 429). Espera un momento e inténtalo de nuevo",
     ),
-    "networkRequestFailed": m60,
+    "networkRequestFailed": m86,
     "networkSecret": MessageLookupByLibrary.simpleMessage("Clave de la red"),
-    "networkServerError": m61,
+    "networkServerError": m87,
     "networkSpeed": MessageLookupByLibrary.simpleMessage("Velocidad de red"),
     "networkTakeover": MessageLookupByLibrary.simpleMessage(
       "Control del tráfico",
@@ -1586,9 +2045,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage(
       "Añade un perfil para empezar",
     ),
-    "nullTip": m62,
-    "numberRangeTip": m63,
-    "numberTip": m64,
+    "nullTip": m88,
+    "numberRangeTip": m89,
+    "numberTip": m90,
     "obfs": MessageLookupByLibrary.simpleMessage("Ofuscación"),
     "obfsHost": MessageLookupByLibrary.simpleMessage("Host de ofuscación"),
     "obfsMode": MessageLookupByLibrary.simpleMessage("Modo de ofuscación"),
@@ -1648,8 +2107,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Introduce un puerto diferente",
     ),
     "portHopping": MessageLookupByLibrary.simpleMessage("Salto de puertos"),
-    "portTip": m65,
-    "portValue": m66,
+    "portTip": m91,
+    "portValue": m92,
     "ports": MessageLookupByLibrary.simpleMessage("Puertos"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Clave precompartida"),
     "prerequisites": MessageLookupByLibrary.simpleMessage("Requisitos previos"),
@@ -1672,8 +2131,8 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Introduce el intervalo de actualización automática",
         ),
-    "profileDaysLeft": m67,
-    "profileExpiresIn": m68,
+    "profileDaysLeft": m93,
+    "profileExpiresIn": m94,
     "profileHasUpdate": MessageLookupByLibrary.simpleMessage(
       "El perfil se ha modificado. ¿Desactivar la actualización automática?",
     ),
@@ -1686,7 +2145,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileTunSettingsDesc": MessageLookupByLibrary.simpleMessage(
       "Se aplica solo a este perfil y tiene prioridad sobre las entradas de sobrescritura de TUN de los ajustes de red.",
     ),
-    "profileUpdatedAt": m69,
+    "profileUpdatedAt": m95,
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Introduce una URL de perfil válida",
     ),
@@ -1703,26 +2162,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "protocolVersion": MessageLookupByLibrary.simpleMessage(
       "Versión del protocolo",
     ),
-    "providerInUse": m70,
+    "providerInUse": m96,
     "providerUrlTip": MessageLookupByLibrary.simpleMessage(
       "Solo se admiten proveedores remotos",
     ),
     "providers": MessageLookupByLibrary.simpleMessage("Recursos externos"),
     "proxies": MessageLookupByLibrary.simpleMessage("Proxies"),
-    "proxiesCount": m71,
-    "proxiesProfileLabel": m72,
-    "proxiesRemovedTip": m73,
-    "proxiesReplacedTip": m74,
+    "proxiesCount": m97,
+    "proxiesProfileLabel": m98,
+    "proxiesRemovedTip": m99,
+    "proxiesReplacedTip": m100,
     "proxyChains": MessageLookupByLibrary.simpleMessage("Cadena de proxies"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Grupo de proxies"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "El grupo de proxies está vacío",
     ),
-    "proxyGroupInUse": m75,
+    "proxyGroupInUse": m101,
     "proxyGroupsAfterStart": MessageLookupByLibrary.simpleMessage(
       "Los grupos aparecen aquí cuando se inicia el núcleo",
     ),
-    "proxyGroupsCount": m76,
+    "proxyGroupsCount": m102,
     "proxyProviders": MessageLookupByLibrary.simpleMessage(
       "Proveedores de proxies",
     ),
@@ -2004,14 +2463,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "La regla debe empezar con un tipo admitido, por ejemplo DOMAIN,example.com,DIRECT",
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Reglas"),
-    "rulesCount": m77,
+    "rulesCount": m103,
     "runTime": MessageLookupByLibrary.simpleMessage("Tiempo de ejecución"),
     "running": MessageLookupByLibrary.simpleMessage("En ejecución"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage(
       "Configuración de ejecución",
     ),
     "safeMode": MessageLookupByLibrary.simpleMessage("Modo seguro"),
-    "safeModeAppTitle": m78,
+    "safeModeAppTitle": m104,
     "saturation": MessageLookupByLibrary.simpleMessage("Saturación"),
     "save": MessageLookupByLibrary.simpleMessage("Guardar"),
     "saveChanges": MessageLookupByLibrary.simpleMessage(
@@ -2026,9 +2485,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("Buscar"),
     "seconds": MessageLookupByLibrary.simpleMessage("segundos"),
-    "secondsCount": m79,
+    "secondsCount": m105,
     "secretKey": MessageLookupByLibrary.simpleMessage("Clave"),
-    "sectionsInEffect": m80,
+    "sectionsInEffect": m106,
     "selectAll": MessageLookupByLibrary.simpleMessage("Seleccionar todo"),
     "selectRuleSet": MessageLookupByLibrary.simpleMessage(
       "Selecciona un conjunto de reglas",
@@ -2038,7 +2497,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selected": MessageLookupByLibrary.simpleMessage("Seleccionado"),
     "server": MessageLookupByLibrary.simpleMessage("Servidor"),
-    "serviceAbnormalCount": m81,
+    "serviceAbnormalCount": m107,
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage(
       "Todo disponible",
     ),
@@ -2046,7 +2505,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Bloqueado"),
     "serviceCheck": MessageLookupByLibrary.simpleMessage("Comprobar"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Comprobar todo"),
-    "serviceCheckedAt": m82,
+    "serviceCheckedAt": m108,
     "serviceComingSoon": MessageLookupByLibrary.simpleMessage("Próximamente"),
     "serviceDisallowedIsp": MessageLookupByLibrary.simpleMessage(
       "ISP no permitido",
@@ -2076,8 +2535,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingEntries": MessageLookupByLibrary.simpleMessage("ajustes"),
     "settings": MessageLookupByLibrary.simpleMessage("Ajustes"),
-    "settingsCount": m83,
-    "shareLinkUnreadable": m84,
+    "settingsCount": m109,
+    "shareLinkUnreadable": m110,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage(
       "No se pudo leer ningún proxy de los enlaces",
     ),
@@ -2103,7 +2562,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(
       "Introduce aquí un solo enlace; para varios, usa la edición rápida de la lista",
     ),
-    "singleValueTip": m85,
+    "singleValueTip": m111,
     "size": MessageLookupByLibrary.simpleMessage("Tamaño"),
     "skipCertVerify": MessageLookupByLibrary.simpleMessage(
       "Omitir verificación de certificado",
@@ -2219,8 +2678,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Subido"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Puerto TProxy"),
     "traffic": MessageLookupByLibrary.simpleMessage("Tráfico"),
-    "trafficPeak": m86,
-    "trafficTotal": m87,
+    "trafficPeak": m112,
+    "trafficTotal": m113,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Uso de tráfico"),
     "transport": MessageLookupByLibrary.simpleMessage("Transporte"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
@@ -2258,7 +2717,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ancho de banda de subida",
     ),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m88,
+    "urlTip": m114,
     "useHosts": MessageLookupByLibrary.simpleMessage("Usar hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Usar hosts del sistema",
@@ -2287,8 +2746,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "Escribir en el sistema también ajusta el reloj del sistema; Android lo ignora.",
     ),
-    "yearsAgo": m89,
-    "yearsAgoShort": m90,
+    "yearsAgo": m115,
+    "yearsAgoShort": m116,
     "yes": MessageLookupByLibrary.simpleMessage("Sí"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Chino simplificado"),
   };

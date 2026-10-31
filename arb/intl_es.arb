@@ -1098,5 +1098,326 @@
   "resourceSelectionHint": "Los recursos guardados se añaden a la biblioteca. Selecciona cuáles usar en este perfil. Los nodos y grupos de filtros elegidos se añaden a los selectores.",
   "resourceLibraryHint": "Los recursos se guardan en la biblioteca. Selecciónalos en Aplicar recursos al perfil actual.",
   "ipingPopupNoticeTitle": "Aviso",
-  "ipingPopupNoticeConfirm": "Entendido"
+  "ipingPopupNoticeConfirm": "Entendido",
+  "ipingProfileCenter": "Centro de cuenta",
+  "ipingAvailableBalance": "Saldo disponible",
+  "ipingTopUp": "Recargar",
+  "ipingRecentTopups": "Recargas recientes",
+  "ipingTopupHistory": "Historial de recargas",
+  "ipingTopupEmpty": "Aún no hay recargas",
+  "ipingTopupAmount": "Importe",
+  "ipingTopupOtherAmount": "Otro importe",
+  "ipingTopupMinimum": "Mínimo {amount}",
+  "ipingTopupBelowMinimum": "Introduce un importe de al menos {amount}.",
+  "ipingPaymentMethod": "Método de pago",
+  "ipingPaymentFee": "Comisión de {fee}",
+  "ipingPaymentRequired": "Elige un método de pago.",
+  "ipingNoPaymentMethods": "No hay métodos de pago disponibles en este momento.",
+  "ipingTopupBonus": "Bono de {amount}",
+  "ipingTopupCredited": "Recibirás",
+  "ipingTopupPay": "Pagar",
+  "ipingTopupPendingExists": "Tienes un pedido sin pagar. Págalo o cancélalo primero en el historial de recargas.",
+  "ipingTopupFailed": "No se pudo crear el pedido. Inténtalo de nuevo.",
+  "ipingTopupOpened": "Completa el pago en tu navegador. Tu saldo se actualizará al confirmarse el pago.",
+  "ipingTopupStatusSuccess": "Pagado",
+  "ipingTopupStatusPending": "Pendiente",
+  "ipingTopupStatusCancelled": "Cancelado",
+  "ipingTopupCancel": "Cancelar pedido",
+  "ipingTopupCancelConfirm": "¿Cancelar este pedido sin pagar? Después podrás hacer uno nuevo.",
+  "ipingTopupCancelFailed": "No se pudo cancelar el pedido. Inténtalo de nuevo.",
+  "ipingTopupOptionsFailed": "No se pudieron cargar las opciones de recarga. Inténtalo de nuevo.",
+  "ipingTopupHistoryFailed": "No se pudo cargar el historial de recargas. Inténtalo de nuevo.",
+  "ipingTopupActivityPercent": "{percent} % extra",
+  "ipingTopupActivityFixed": "{amount} extra",
+  "ipingTopupActivityFrom": "desde {amount}",
+  "ipingTopupActivityUpTo": "hasta {amount}",
+  "ipingNativeIp": "IP nativas",
+  "ipingNativeIpBuy": "Comprar",
+  "ipingNativeIpLineA": "Línea A",
+  "ipingNativeIpLineB": "Línea B",
+  "ipingNativeIpLineC": "Línea C",
+  "ipingNativeIpOneMonth": "1 mes",
+  "ipingNativeIpMonths": "{count} meses",
+  "@ipingNativeIpMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpMonthly": "{price}/mes",
+  "@ipingNativeIpMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpStock": "{count} disponibles",
+  "@ipingNativeIpStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpSoldOut": "Agotado",
+  "ipingNativeIpEmpty": "No hay IP nativas disponibles ahora.",
+  "ipingNativeIpLoadFailed": "No se pudieron cargar las IP nativas. Inténtalo de nuevo.",
+  "ipingNativeIpPlansFailed": "No se pudieron cargar los planes de túnel. Aún puedes comprar solo la IP.",
+  "ipingNativeIpOrder": "Pedido",
+  "ipingNativeIpCount": "Cantidad",
+  "ipingNativeIpCountInvalid": "Indica una cantidad de 1 a {count}.",
+  "@ipingNativeIpCountInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpBundle": "Incluir un túnel",
+  "ipingNativeIpBundleHint": "Se configura un túnel por cada IP.",
+  "ipingNativeIpNoPlans": "No hay planes de túnel disponibles.",
+  "ipingNativeIpPlan": "Plan de túnel",
+  "ipingNativeIpConfigureNow": "Los túneles se configuran al completar la compra.",
+  "ipingNativeIpConfigureLater": "Los túneles se configuran automáticamente cuando se entregan las IP.",
+  "ipingNativeIpListPrice": "Este es el precio de lista. El descuento de revendedor se aplica al cobrar.",
+  "ipingNativeIpTotal": "Total",
+  "ipingNativeIpPurchaseFailed": "No se pudo completar la compra. Inténtalo de nuevo.",
+  "ipingNativeIpPurchased": "Compra realizada. Las IP aparecen con tus nodos tras la entrega.",
+  "ipingNativeIpPurchasedWithTunnel": "Compra realizada. Los túneles ya están configurados.",
+  "ipingNativeIpPurchasedTunnelLater": "Compra realizada. Los túneles se configuran cuando se entregan las IP.",
+  "ipingNativeIpDuration": "Duración",
+  "ipingNativeIpAll": "Todos",
+  "ipingNativeIpContinentNA": "América del Norte",
+  "ipingNativeIpContinentSA": "América del Sur",
+  "ipingNativeIpContinentEU": "Europa",
+  "ipingNativeIpContinentAS": "Asia",
+  "ipingNativeIpContinentOC": "Oceanía",
+  "ipingNativeIpContinentAF": "África",
+  "ipingNativeIpContinentAN": "Antártida",
+  "ipingNativeIpTags": "Etiquetas",
+  "ipingNativeIpTagsHint": "Cumplir todas las etiquetas elegidas",
+  "ipingNativeIpClearTags": "Borrar ({count})",
+  "@ipingNativeIpClearTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpResultCount": "Regiones · {count}",
+  "@ipingNativeIpResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpFilteredEmpty": "Ninguna región coincide con estos filtros.",
+  "ipingTunnels": "Túneles",
+  "ipingTunnelsEmpty": "Todavía no hay túneles.",
+  "ipingTunnelsLoadFailed": "No se pudieron cargar los túneles. Inténtalo de nuevo.",
+  "ipingTunnelsFilteredEmpty": "Ningún túnel coincide con estos filtros.",
+  "ipingTunnelsResultCount": "Túneles · {count}",
+  "@ipingTunnelsResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelStatusActive": "Activado",
+  "ipingTunnelStatusInactive": "Desactivado",
+  "ipingTunnelExpired": "Caducado",
+  "ipingTunnelPortConflict": "Puerto en uso",
+  "ipingTunnelTypeTcp": "TCP",
+  "ipingTunnelTypeMtcp": "TCP multiplexado",
+  "ipingTunnelTypeUdp": "UDP",
+  "ipingTunnelTypeRelayx": "RelayX",
+  "ipingTunnelTypeWss": "WebSocket cifrado",
+  "ipingTunnelTypeMwss": "WebSocket cifrado multiplexado",
+  "ipingTunnelTypeTls": "TLS cifrado",
+  "ipingTunnelTypeMtls": "TLS cifrado multiplexado",
+  "ipingTunnelTraffic": "Tráfico",
+  "ipingTunnelTrafficOf": "{used} / {quota}",
+  "@ipingTunnelTrafficOf": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "quota": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelExpires": "Vencimiento",
+  "ipingTunnelAutoRenew": "Renovación automática",
+  "ipingTunnelRenew": "Renovar",
+  "ipingTunnelRenewConfirm": "La renovación se descuenta del saldo.",
+  "ipingTunnelRenewConfirmPrice": "La renovación descuenta {price} del saldo.",
+  "@ipingTunnelRenewConfirmPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelRenewed": "Túnel renovado.",
+  "ipingTunnelUpdated": "Túnel actualizado.",
+  "ipingTunnelUpdateFailed": "No se pudo actualizar el túnel. Inténtalo de nuevo.",
+  "ipingTunnelRenewFailed": "No se pudo renovar el túnel. Inténtalo de nuevo.",
+  "ipingTunnelListen": "Dirección de escucha",
+  "ipingTunnelListenWaiting": "Esperando un puerto",
+  "ipingTunnelCopyListen": "Copiar la dirección de escucha",
+  "ipingTunnelLoadMore": "Cargar más",
+  "ipingTunnelEntrance": "Entrada",
+  "ipingTunnelExit": "Salida",
+  "ipingTunnelRate": "Multiplicador {rate}",
+  "@ipingTunnelRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelForward": "Destino",
+  "ipingTunnelPoolExit": "La salida proviene de un grupo de direcciones.",
+  "ipingTunnelMoreAddresses": "{address} +{count}",
+  "@ipingTunnelMoreAddresses": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelEdit": "Editar túnel",
+  "ipingTunnelName": "Nombre del túnel",
+  "ipingTunnelNameHint": "Introduce el nombre del túnel",
+  "ipingTunnelForwardHost": "IP o dominio de reenvío",
+  "ipingTunnelForwardPort": "Puerto",
+  "ipingTunnelForwardAddressRequired": "La dirección de reenvío no puede estar vacía",
+  "ipingTunnelPortInvalid": "El puerto debe estar entre 1 y 65535",
+  "ipingTunnelFilterAll": "Todos",
+  "ipingTunnelFilterType": "Tipo de túnel",
+  "ipingTunnelFilterAutoRenew": "Renovación automática",
+  "ipingTunnelFilterAutoRenewOn": "Activado",
+  "ipingTunnelFilterAutoRenewOff": "Desactivado",
+  "ipingTunnelFilterReset": "Restablecer filtros",
+  "ipingTunnelFilterTitle": "Filtrar",
+  "ipingTunnelSwitchPort": "Cambiar puerto",
+  "ipingTunnelSwitchPortSuccess": "Puerto cambiado con éxito",
+  "ipingTunnelSwitchPortFailed": "Error al cambiar el puerto. Inténtalo de nuevo",
+  "ipingTunnelUsername": "Usuario (opcional)",
+  "ipingTunnelPassword": "Contraseña (opcional)",
+  "ipingTunnelImportClipboard": "Importar del portapapeles",
+  "ipingTunnelImportClipboardSuccess": "Dirección importada del portapapeles",
+  "ipingTunnelImportClipboardFailed": "No se reconoció ninguna dirección proxy válida",
+  "ipingTunnelSelectFromNativeIps": "Seleccionar de mis IP",
+  "ipingTunnelSelectFromNativeIpsEmpty": "No hay IP disponibles",
+  "ipingTunnelForwardLocked": "No se puede cambiar mientras la IP de regalo esté activa",
+  "ipingTunnelFilterIpType": "Tipo de IP",
+  "ipingTunnelFilterPort": "Puerto de escucha",
+  "ipingTunnelFilterPortHint": "Introduce el número de puerto",
+  "ipingTunnelSwitchIp": "Cambiar IP de salida",
+  "ipingTunnelSwitchIpSuccess": "IP de salida cambiada con éxito",
+  "ipingTunnelSwitchIpFailed": "Error al cambiar la IP de salida",
+  "ipingTunnelAutoRenewDesc": "Renovación automática el día antes del vencimiento",
+  "ipingTunnelPoolCountry": "País/región de salida",
+  "ipingTunnelPoolInterval": "Intervalo de cambio automático (min)",
+  "ipingTunnelPoolIntervalHint": "0 desactiva el cambio automático",
+  "ipingTunnelBatchOperations": "Operaciones por lotes",
+  "ipingTunnelBatchSelected": "{count} seleccionado(s)",
+  "@ipingTunnelBatchSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchRenew": "Renovación por lotes",
+  "ipingTunnelBatchRenewConfirm": "Confirmar renovación",
+  "ipingTunnelBatchRenewTotal": "Total estimado",
+  "ipingTunnelBatchRenewBalance": "Saldo actual",
+  "ipingTunnelBatchRenewInsufficient": "Saldo insuficiente, recargue primero",
+  "ipingTunnelBatchRenewSuccess": "Se renovaron {count} túneles correctamente",
+  "@ipingTunnelBatchRenewSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchUpdate": "Configuración por lotes",
+  "ipingTunnelBatchUpdateSuccess": "Actualización por lotes exitosa",
+  "ipingTunnelBatchCopyAddresses": "Copiar direcciones",
+  "ipingTunnelBatchCopySuccess": "Se copiaron {count} direcciones de escucha",
+  "@ipingTunnelBatchCopySuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchCopyEmpty": "Los túneles seleccionados no tienen direcciones listas",
+  "ipingTunnelBatchStatusNoChange": "Sin cambios",
+  "ipingTunnelBatchFillAddresses": "Relleno masivo de IPs",
+  "ipingTunnelBatchFillAddressesHint": "Una por línea; dejar en blanco para no modificar",
+  "ipingTunnelBatchFillNames": "Relleno masivo de nombres",
+  "ipingTunnelBatchFillNamesPrefix": "Prefijo, ej: Tokio",
+  "ipingTunnelBatchFillNamesGenerate": "Generar con número",
+  "ipingRenewalShortfall": "Es posible que el saldo no cubra las renovaciones",
+  "ipingRenewalShortfallDetail": "{count} elementos se renuevan en 7 días por unos {cost}. Recarga al menos {shortfall}.",
+  "@ipingRenewalShortfallDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "shortfall": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpOwned": "Compradas",
+  "ipingNativeIpOwnedEmpty": "Aún no tienes IP nativas.",
+  "ipingNativeIpCopyAddress": "Copiar dirección",
+  "ipingNativeIpCopyCredentials": "Copiar credenciales",
+  "ipingNativeIpCopyUrl": "Copiar URL del proxy",
+  "ipingNativeIpInTunnel": "En un túnel",
+  "ipingNativeIpOpenTunnels": "Ir a túneles",
+  "ipingTunnelTestConnection": "Probar conexión",
+  "ipingTunnelReminderExpiring": "Túneles que vencen en 3 días: {count}",
+  "@ipingTunnelReminderExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelReminderTraffic": "Túneles casi sin tráfico: {count}",
+  "@ipingTunnelReminderTraffic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelExport": "Exportar",
+  "ipingTunnelExportLines": "host:port:user:pass",
+  "ipingTunnelExportClash": "Proxies de Clash (YAML)",
+  "ipingTunnelExportCsv": "CSV",
+  "ipingTunnelExportSuccess": "Se copiaron {count} entradas",
+  "@ipingTunnelExportSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1098,5 +1098,326 @@
   "resourceSelectionHint": "保存资源只会加入资源库。请在这里选择当前配置使用的资源，选中的节点和筛选组会加入选择组。",
   "resourceLibraryHint": "资源保存在资源库中，通过“应用资源到当前配置”选择使用。",
   "ipingPopupNoticeTitle": "公告",
-  "ipingPopupNoticeConfirm": "我知道了"
+  "ipingPopupNoticeConfirm": "我知道了",
+  "ipingProfileCenter": "个人中心",
+  "ipingAvailableBalance": "可用余额",
+  "ipingTopUp": "充值",
+  "ipingRecentTopups": "最近充值",
+  "ipingTopupHistory": "充值记录",
+  "ipingTopupEmpty": "暂无充值记录",
+  "ipingTopupAmount": "充值金额",
+  "ipingTopupOtherAmount": "其他金额",
+  "ipingTopupMinimum": "最低 {amount}",
+  "ipingTopupBelowMinimum": "充值金额不能低于 {amount}",
+  "ipingPaymentMethod": "支付方式",
+  "ipingPaymentFee": "手续费 {fee}",
+  "ipingPaymentRequired": "请选择支付方式",
+  "ipingNoPaymentMethods": "暂无可用的支付方式",
+  "ipingTopupBonus": "赠送 {amount}",
+  "ipingTopupCredited": "实际到账",
+  "ipingTopupPay": "去支付",
+  "ipingTopupPendingExists": "存在未完成的充值订单，请先在充值记录中支付或取消",
+  "ipingTopupFailed": "无法创建充值订单，请重试",
+  "ipingTopupOpened": "请在浏览器中完成支付，支付成功后余额会自动到账",
+  "ipingTopupStatusSuccess": "已到账",
+  "ipingTopupStatusPending": "待支付",
+  "ipingTopupStatusCancelled": "已取消",
+  "ipingTopupCancel": "取消订单",
+  "ipingTopupCancelConfirm": "确定取消这笔未支付的订单吗？取消后可以重新下单。",
+  "ipingTopupCancelFailed": "无法取消订单，请重试",
+  "ipingTopupOptionsFailed": "无法加载充值选项，请重试",
+  "ipingTopupHistoryFailed": "无法加载充值记录，请重试",
+  "ipingTopupActivityPercent": "赠送 {percent}%",
+  "ipingTopupActivityFixed": "赠送 {amount}",
+  "ipingTopupActivityFrom": "满 {amount}",
+  "ipingTopupActivityUpTo": "不超过 {amount}",
+  "ipingNativeIp": "原生 IP",
+  "ipingNativeIpBuy": "购买",
+  "ipingNativeIpLineA": "A 线路",
+  "ipingNativeIpLineB": "B 线路",
+  "ipingNativeIpLineC": "C 线路",
+  "ipingNativeIpOneMonth": "1 个月",
+  "ipingNativeIpMonths": "{count} 个月",
+  "@ipingNativeIpMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpMonthly": "{price}/月",
+  "@ipingNativeIpMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpStock": "库存 {count}",
+  "@ipingNativeIpStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpSoldOut": "已售罄",
+  "ipingNativeIpEmpty": "当前没有可购买的原生 IP",
+  "ipingNativeIpLoadFailed": "无法加载原生 IP，请重试",
+  "ipingNativeIpPlansFailed": "隧道套餐加载失败，仍可单独购买 IP",
+  "ipingNativeIpOrder": "订单",
+  "ipingNativeIpCount": "数量",
+  "ipingNativeIpCountInvalid": "数量需在 1 到 {count} 之间",
+  "@ipingNativeIpCountInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpBundle": "同时购买隧道",
+  "ipingNativeIpBundleHint": "每条 IP 配置一条隧道",
+  "ipingNativeIpNoPlans": "暂无可购买的隧道套餐",
+  "ipingNativeIpPlan": "隧道套餐",
+  "ipingNativeIpConfigureNow": "购买完成后立即配置隧道",
+  "ipingNativeIpConfigureLater": "IP 交付后自动配置隧道",
+  "ipingNativeIpListPrice": "此处为牌价，分销折扣在扣款时计算",
+  "ipingNativeIpTotal": "合计",
+  "ipingNativeIpPurchaseFailed": "无法完成购买，请重试",
+  "ipingNativeIpPurchased": "已下单，IP 交付后会出现在节点中",
+  "ipingNativeIpPurchasedWithTunnel": "已下单，隧道已配置完成",
+  "ipingNativeIpPurchasedTunnelLater": "已下单，隧道将在 IP 交付后自动配置",
+  "ipingNativeIpDuration": "时长",
+  "ipingNativeIpAll": "全部",
+  "ipingNativeIpContinentNA": "北美洲",
+  "ipingNativeIpContinentSA": "南美洲",
+  "ipingNativeIpContinentEU": "欧洲",
+  "ipingNativeIpContinentAS": "亚洲",
+  "ipingNativeIpContinentOC": "大洋洲",
+  "ipingNativeIpContinentAF": "非洲",
+  "ipingNativeIpContinentAN": "南极洲",
+  "ipingNativeIpTags": "标签",
+  "ipingNativeIpTagsHint": "同时满足所选标签",
+  "ipingNativeIpClearTags": "清除（{count}）",
+  "@ipingNativeIpClearTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpResultCount": "共 {count} 个地区",
+  "@ipingNativeIpResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpFilteredEmpty": "没有符合当前筛选条件的地区",
+  "ipingTunnels": "隧道",
+  "ipingTunnelsEmpty": "还没有隧道",
+  "ipingTunnelsLoadFailed": "无法加载隧道，请重试",
+  "ipingTunnelsFilteredEmpty": "没有符合当前筛选条件的隧道",
+  "ipingTunnelsResultCount": "共 {count} 条隧道",
+  "@ipingTunnelsResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelStatusActive": "启用",
+  "ipingTunnelStatusInactive": "禁用",
+  "ipingTunnelExpired": "已过期",
+  "ipingTunnelPortConflict": "端口被占用",
+  "ipingTunnelTypeTcp": "TCP",
+  "ipingTunnelTypeMtcp": "TCP（多路复用）",
+  "ipingTunnelTypeUdp": "UDP",
+  "ipingTunnelTypeRelayx": "RelayX",
+  "ipingTunnelTypeWss": "WS 加密",
+  "ipingTunnelTypeMwss": "WS 加密（多路复用）",
+  "ipingTunnelTypeTls": "TLS 加密",
+  "ipingTunnelTypeMtls": "TLS 加密（多路复用）",
+  "ipingTunnelTraffic": "流量",
+  "ipingTunnelTrafficOf": "{used} / {quota}",
+  "@ipingTunnelTrafficOf": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "quota": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelExpires": "到期",
+  "ipingTunnelAutoRenew": "自动续费",
+  "ipingTunnelRenew": "续费",
+  "ipingTunnelRenewConfirm": "续费会从余额中扣款。",
+  "ipingTunnelRenewConfirmPrice": "续费会从余额扣除 {price}。",
+  "@ipingTunnelRenewConfirmPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelRenewed": "已续费",
+  "ipingTunnelUpdated": "已更新",
+  "ipingTunnelUpdateFailed": "无法更新隧道，请重试",
+  "ipingTunnelRenewFailed": "无法续费，请重试",
+  "ipingTunnelListen": "监听地址",
+  "ipingTunnelListenWaiting": "等待分配端口",
+  "ipingTunnelCopyListen": "复制监听地址",
+  "ipingTunnelLoadMore": "加载更多",
+  "ipingTunnelEntrance": "入口",
+  "ipingTunnelExit": "出口",
+  "ipingTunnelRate": "倍率 {rate}",
+  "@ipingTunnelRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelForward": "转发目标",
+  "ipingTunnelPoolExit": "出口由地址池分配",
+  "ipingTunnelMoreAddresses": "{address} +{count}",
+  "@ipingTunnelMoreAddresses": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelEdit": "编辑隧道",
+  "ipingTunnelName": "隧道名称",
+  "ipingTunnelNameHint": "输入隧道名称",
+  "ipingTunnelForwardHost": "转发 IP 或域名",
+  "ipingTunnelForwardPort": "端口",
+  "ipingTunnelForwardAddressRequired": "转发地址不能为空",
+  "ipingTunnelPortInvalid": "端口必须在 1 到 65535 之间",
+  "ipingTunnelFilterAll": "全部",
+  "ipingTunnelFilterType": "隧道类型",
+  "ipingTunnelFilterAutoRenew": "自动续费",
+  "ipingTunnelFilterAutoRenewOn": "已开启",
+  "ipingTunnelFilterAutoRenewOff": "未开启",
+  "ipingTunnelFilterReset": "重置筛选",
+  "ipingTunnelFilterTitle": "筛选",
+  "ipingTunnelSwitchPort": "更换端口",
+  "ipingTunnelSwitchPortSuccess": "端口更换成功",
+  "ipingTunnelSwitchPortFailed": "更换端口失败，请重试",
+  "ipingTunnelUsername": "用户名（选填）",
+  "ipingTunnelPassword": "密码（选填）",
+  "ipingTunnelImportClipboard": "从剪贴板导入",
+  "ipingTunnelImportClipboardSuccess": "已从剪贴板导入转发地址",
+  "ipingTunnelImportClipboardFailed": "未能解析有效的代理地址",
+  "ipingTunnelSelectFromNativeIps": "从原生 IP 选择",
+  "ipingTunnelSelectFromNativeIpsEmpty": "暂无可用原生 IP",
+  "ipingTunnelForwardLocked": "赠送 IP 有效期内不能更改转发地址",
+  "ipingTunnelFilterIpType": "IP 类型",
+  "ipingTunnelFilterPort": "监听端口",
+  "ipingTunnelFilterPortHint": "输入端口号",
+  "ipingTunnelSwitchIp": "更换出口 IP",
+  "ipingTunnelSwitchIpSuccess": "出口 IP 更换成功，配置下发中",
+  "ipingTunnelSwitchIpFailed": "更换出口 IP 失败，请重试",
+  "ipingTunnelAutoRenewDesc": "到期前一天自动续费，请确保余额充足",
+  "ipingTunnelPoolCountry": "出口国家/地区",
+  "ipingTunnelPoolInterval": "自动切换间隔（分钟）",
+  "ipingTunnelPoolIntervalHint": "0 表示关闭自动切换",
+  "ipingTunnelBatchOperations": "批量操作",
+  "ipingTunnelBatchSelected": "已选 {count} 条",
+  "@ipingTunnelBatchSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchRenew": "批量续费",
+  "ipingTunnelBatchRenewConfirm": "确认批量续费",
+  "ipingTunnelBatchRenewTotal": "预计合计",
+  "ipingTunnelBatchRenewBalance": "当前余额",
+  "ipingTunnelBatchRenewInsufficient": "余额不足，请先充值",
+  "ipingTunnelBatchRenewSuccess": "批量续费成功，共 {count} 条隧道",
+  "@ipingTunnelBatchRenewSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchUpdate": "批量设置",
+  "ipingTunnelBatchUpdateSuccess": "批量更新成功",
+  "ipingTunnelBatchCopyAddresses": "复制地址",
+  "ipingTunnelBatchCopySuccess": "已复制 {count} 条监听地址",
+  "@ipingTunnelBatchCopySuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchCopyEmpty": "选中的隧道未分配有效监听地址",
+  "ipingTunnelBatchStatusNoChange": "保持不变",
+  "ipingTunnelBatchFillAddresses": "批量填充 IP",
+  "ipingTunnelBatchFillAddressesHint": "每行一个，按顺序填充；留空则不修改",
+  "ipingTunnelBatchFillNames": "批量填充名称",
+  "ipingTunnelBatchFillNamesPrefix": "前缀如：东京",
+  "ipingTunnelBatchFillNamesGenerate": "按序号生成",
+  "ipingRenewalShortfall": "余额可能不足以自动续费",
+  "ipingRenewalShortfallDetail": "7 天内有 {count} 项自动续费，约需 {cost}，建议至少充值 {shortfall}。",
+  "@ipingRenewalShortfallDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "shortfall": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpOwned": "已购买",
+  "ipingNativeIpOwnedEmpty": "还没有原生 IP。",
+  "ipingNativeIpCopyAddress": "复制地址",
+  "ipingNativeIpCopyCredentials": "复制认证信息",
+  "ipingNativeIpCopyUrl": "复制代理链接",
+  "ipingNativeIpInTunnel": "已用于隧道",
+  "ipingNativeIpOpenTunnels": "前往隧道",
+  "ipingTunnelTestConnection": "测试连接",
+  "ipingTunnelReminderExpiring": "{count} 条隧道将在 3 天内到期",
+  "@ipingTunnelReminderExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelReminderTraffic": "{count} 条隧道流量即将用尽",
+  "@ipingTunnelReminderTraffic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelExport": "导出",
+  "ipingTunnelExportLines": "host:port:user:pass",
+  "ipingTunnelExportClash": "Clash 代理（YAML）",
+  "ipingTunnelExportCsv": "CSV",
+  "ipingTunnelExportSuccess": "已复制 {count} 条",
+  "@ipingTunnelExportSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

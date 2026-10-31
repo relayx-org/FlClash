@@ -14,6 +14,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/view.dart';
 import 'package:fl_clash/iping/popup_notice.dart';
+import 'package:fl_clash/iping/tunnel_reminder.dart';
 import 'package:fl_clash/iping/update_notice.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -144,7 +145,9 @@ class ApplicationState extends ConsumerState<Application> {
                   enabled: system.isTV,
                   floatingKeyboard: app?.floatingKeyboard,
                   child: IpingUpdateNotice(
-                    child: IpingPopupNotice(child: child!),
+                    child: IpingPopupNotice(
+                      child: IpingTunnelReminder(child: child!),
+                    ),
                   ),
                 ),
               ),

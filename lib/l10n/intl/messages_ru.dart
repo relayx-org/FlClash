@@ -124,123 +124,176 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m41(siteName) =>
       "Войдите на сайте ${siteName} через почту, Google или ключ доступа. Подписка загрузится после возвращения.";
 
-  static String m42(count) => "Доступных узлов: ${count}";
+  static String m42(count) => "Сбросить (${count})";
 
-  static String m43(host) => "Системный DNS · ${host}";
+  static String m43(count) => "Укажите количество от 1 до ${count}.";
 
-  static String m44(version) =>
+  static String m44(price) => "${price}/мес.";
+
+  static String m45(count) => "${count} мес.";
+
+  static String m46(count) => "Регионов: ${count}";
+
+  static String m47(count) => "В наличии ${count}";
+
+  static String m48(count) => "Доступных узлов: ${count}";
+
+  static String m49(fee) => "Комиссия ${fee}";
+
+  static String m50(count, cost, shortfall) =>
+      "Автопродление ${count} позиций в ближайшие 7 дней стоит около ${cost}. Пополните минимум на ${shortfall}.";
+
+  static String m51(host) => "Системный DNS · ${host}";
+
+  static String m52(amount) => "+${amount} бонусом";
+
+  static String m53(amount) => "от ${amount}";
+
+  static String m54(percent) => "+${percent}% бонусом";
+
+  static String m55(amount) => "до ${amount}";
+
+  static String m56(amount) => "Введите сумму не менее ${amount}.";
+
+  static String m57(amount) => "Бонус ${amount}";
+
+  static String m58(amount) => "Минимум ${amount}";
+
+  static String m59(count) => "Скопировано адресов: ${count}";
+
+  static String m60(count) => "Продлено туннелей: ${count}";
+
+  static String m61(count) => "Выбрано: ${count}";
+
+  static String m62(count) => "Скопировано записей: ${count}";
+
+  static String m63(address, count) => "${address} +${count}";
+
+  static String m64(rate) => "Множитель ${rate}";
+
+  static String m65(count) => "Туннелей, истекающих в течение 3 дней: ${count}";
+
+  static String m66(count) => "Туннелей с почти исчерпанным трафиком: ${count}";
+
+  static String m67(price) => "Продление списывает ${price} с баланса.";
+
+  static String m68(used, quota) => "${used} / ${quota}";
+
+  static String m69(count) => "Туннелей: ${count}";
+
+  static String m70(version) =>
       "Доступна версия ${version}. Можно обновить сейчас или позже.";
 
-  static String m45(id) => "ID пользователя ${id}";
+  static String m71(id) => "ID пользователя ${id}";
 
-  static String m46(version) => "Версия ${version}";
+  static String m72(version) => "Версия ${version}";
 
-  static String m47(siteName) => "Добро пожаловать в ${siteName}";
+  static String m73(siteName) => "Добро пожаловать в ${siteName}";
 
-  static String m48(count) =>
+  static String m74(count) =>
       "${Intl.plural(count, one: '${count} элемент', few: '${count} элемента', many: '${count} элементов', other: '${count} элемента')}";
 
-  static String m49(line, message) => "Строка ${line}: ${message}";
+  static String m75(line, message) => "Строка ${line}: ${message}";
 
-  static String m50(appName) =>
+  static String m76(appName) =>
       "1. Откройте Системные настройки > Конфиденциальность и безопасность\n2. Выберите Службы геолокации\n3. Найдите и отметьте ${appName} в списке\n\nПосле настройки вернитесь в приложение и продолжайте работу. Спасибо за сотрудничество.";
 
-  static String m51(label, max) => "«${label}» — не более ${max} символов";
+  static String m77(label, max) => "«${label}» — не более ${max} символов";
 
-  static String m52(size) => "Освобождено ${size}";
-
-  static String m53(count) =>
-      "${Intl.plural(count, one: '${count} минуту назад', few: '${count} минуты назад', many: '${count} минут назад', other: '${count} минуты назад')}";
-
-  static String m54(count) => "${count} мин назад";
-
-  static String m55(count) =>
-      "${Intl.plural(count, one: '${count} месяц назад', few: '${count} месяца назад', many: '${count} месяцев назад', other: '${count} месяца назад')}";
-
-  static String m56(count) => "${count} мес. назад";
-
-  static String m57(code) =>
-      "Сервер запретил доступ (HTTP ${code}). Возможно, ссылка устарела или учётные данные неверны";
-
-  static String m58(code) => "Сервер отклонил запрос (HTTP ${code})";
-
-  static String m59(code) =>
-      "По этому адресу ничего не найдено (HTTP ${code}). Проверьте правильность URL";
-
-  static String m60(detail) => "Сетевой запрос не выполнен: ${detail}";
-
-  static String m61(code) =>
-      "На сервере произошла ошибка (HTTP ${code}). Повторите попытку позже";
-
-  static String m62(label) => "Пока нет: ${label}";
-
-  static String m63(label, min, max) =>
-      "Значение «${label}» должно быть от ${min} до ${max}";
-
-  static String m64(label) => "Значение «${label}» должно быть числом";
-
-  static String m65(label) =>
-      "Значение «${label}» должно быть от 1024 до 49151";
-
-  static String m66(port) => "Порт ${port}";
-
-  static String m67(days) => "Осталось дней: ${days}";
-
-  static String m68(date, days) => "Истекает ${date}, осталось дней: ${days}";
-
-  static String m69(time) => "Обновлено ${time}";
-
-  static String m70(label, profiles) =>
-      "«${label}» всё ещё используется профилями: ${profiles}. После удаления они будут работать неправильно. Вы уверены, что хотите удалить его?";
-
-  static String m71(count, label) =>
-      "${Intl.plural(count, other: '${label} прокси')}";
-
-  static String m72(name, count) => "${name} и другие (${count} прокси)";
-
-  static String m73(removed) =>
-      "Будут удалены прокси: ${removed}. Строка с изменённым именем считается новым прокси, а пользовательские профили, ссылающиеся на удалённые, пометят их как отсутствующие. Применить?";
-
-  static String m74(removed, added) =>
-      "Будут удалены прокси: ${removed}. Будут добавлены: ${added}. Строка с изменённым именем считается новым прокси, а пользовательские профили, ссылающиеся на удалённые, пометят их как отсутствующие. Применить?";
-
-  static String m75(label) =>
-      "На «${label}» всё ещё ссылаются правила, группы прокси, прокси для подключения, DNS или NTP этого профиля, и после удаления эти ссылки перестанут работать. Вы уверены, что хотите удалить её?";
-
-  static String m76(count, label) =>
-      "${Intl.plural(count, one: '${label} группа прокси', few: '${label} группы прокси', many: '${label} групп прокси', other: '${label} группы прокси')}";
-
-  static String m77(count, label) =>
-      "${Intl.plural(count, one: '${label} правило', few: '${label} правила', many: '${label} правил', other: '${label} правила')}";
-
-  static String m78(appName) => "${appName} (Безопасный режим)";
+  static String m78(size) => "Освобождено ${size}";
 
   static String m79(count) =>
+      "${Intl.plural(count, one: '${count} минуту назад', few: '${count} минуты назад', many: '${count} минут назад', other: '${count} минуты назад')}";
+
+  static String m80(count) => "${count} мин назад";
+
+  static String m81(count) =>
+      "${Intl.plural(count, one: '${count} месяц назад', few: '${count} месяца назад', many: '${count} месяцев назад', other: '${count} месяца назад')}";
+
+  static String m82(count) => "${count} мес. назад";
+
+  static String m83(code) =>
+      "Сервер запретил доступ (HTTP ${code}). Возможно, ссылка устарела или учётные данные неверны";
+
+  static String m84(code) => "Сервер отклонил запрос (HTTP ${code})";
+
+  static String m85(code) =>
+      "По этому адресу ничего не найдено (HTTP ${code}). Проверьте правильность URL";
+
+  static String m86(detail) => "Сетевой запрос не выполнен: ${detail}";
+
+  static String m87(code) =>
+      "На сервере произошла ошибка (HTTP ${code}). Повторите попытку позже";
+
+  static String m88(label) => "Пока нет: ${label}";
+
+  static String m89(label, min, max) =>
+      "Значение «${label}» должно быть от ${min} до ${max}";
+
+  static String m90(label) => "Значение «${label}» должно быть числом";
+
+  static String m91(label) =>
+      "Значение «${label}» должно быть от 1024 до 49151";
+
+  static String m92(port) => "Порт ${port}";
+
+  static String m93(days) => "Осталось дней: ${days}";
+
+  static String m94(date, days) => "Истекает ${date}, осталось дней: ${days}";
+
+  static String m95(time) => "Обновлено ${time}";
+
+  static String m96(label, profiles) =>
+      "«${label}» всё ещё используется профилями: ${profiles}. После удаления они будут работать неправильно. Вы уверены, что хотите удалить его?";
+
+  static String m97(count, label) =>
+      "${Intl.plural(count, other: '${label} прокси')}";
+
+  static String m98(name, count) => "${name} и другие (${count} прокси)";
+
+  static String m99(removed) =>
+      "Будут удалены прокси: ${removed}. Строка с изменённым именем считается новым прокси, а пользовательские профили, ссылающиеся на удалённые, пометят их как отсутствующие. Применить?";
+
+  static String m100(removed, added) =>
+      "Будут удалены прокси: ${removed}. Будут добавлены: ${added}. Строка с изменённым именем считается новым прокси, а пользовательские профили, ссылающиеся на удалённые, пометят их как отсутствующие. Применить?";
+
+  static String m101(label) =>
+      "На «${label}» всё ещё ссылаются правила, группы прокси, прокси для подключения, DNS или NTP этого профиля, и после удаления эти ссылки перестанут работать. Вы уверены, что хотите удалить её?";
+
+  static String m102(count, label) =>
+      "${Intl.plural(count, one: '${label} группа прокси', few: '${label} группы прокси', many: '${label} групп прокси', other: '${label} группы прокси')}";
+
+  static String m103(count, label) =>
+      "${Intl.plural(count, one: '${label} правило', few: '${label} правила', many: '${label} правил', other: '${label} правила')}";
+
+  static String m104(appName) => "${appName} (Безопасный режим)";
+
+  static String m105(count) =>
       "${Intl.plural(count, one: '${count} секунда', few: '${count} секунды', many: '${count} секунд', other: '${count} секунды')}";
 
-  static String m80(count) => "Действуют: ${count}";
+  static String m106(count) => "Действуют: ${count}";
 
-  static String m81(count) => "Проблем: ${count}";
+  static String m107(count) => "Проблем: ${count}";
 
-  static String m82(time) => "Проверено в ${time}";
+  static String m108(time) => "Проверено в ${time}";
 
-  static String m83(count) =>
+  static String m109(count) =>
       "${Intl.plural(count, one: '${count} настройка', few: '${count} настройки', many: '${count} настроек', other: '${count} настройки')}";
 
-  static String m84(link) => "Не удалось прочитать прокси из ${link}";
+  static String m110(link) => "Не удалось прочитать прокси из ${link}";
 
-  static String m85(label) => "«${label}» — только одно значение";
+  static String m111(label) => "«${label}» — только одно значение";
 
-  static String m86(value) => "Пик ${value}";
+  static String m112(value) => "Пик ${value}";
 
-  static String m87(value) => "Всего ${value}";
+  static String m113(value) => "Всего ${value}";
 
-  static String m88(label) => "Значение «${label}» должно быть URL";
+  static String m114(label) => "Значение «${label}» должно быть URL";
 
-  static String m89(count) =>
+  static String m115(count) =>
       "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
 
-  static String m90(count) =>
+  static String m116(count) =>
       "${Intl.plural(count, one: '${count} г. назад', few: '${count} г. назад', many: '${count} л. назад', other: '${count} г. назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -1134,6 +1187,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Доступ на этом устройстве разрешён",
     ),
     "ipingApiKey": MessageLookupByLibrary.simpleMessage("API Key"),
+    "ipingAvailableBalance": MessageLookupByLibrary.simpleMessage(
+      "Доступный баланс",
+    ),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("Баланс (CNY)"),
     "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage(
       "Тарифицируемый трафик",
@@ -1224,6 +1280,103 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Подписка, импортированная вручную",
     ),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Нативные IP"),
+    "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Все"),
+    "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage(
+      "Вместе с туннелем",
+    ),
+    "ipingNativeIpBundleHint": MessageLookupByLibrary.simpleMessage(
+      "Для каждого IP настраивается один туннель.",
+    ),
+    "ipingNativeIpBuy": MessageLookupByLibrary.simpleMessage("Купить"),
+    "ipingNativeIpClearTags": m42,
+    "ipingNativeIpConfigureLater": MessageLookupByLibrary.simpleMessage(
+      "Туннели настраиваются автоматически после выдачи IP.",
+    ),
+    "ipingNativeIpConfigureNow": MessageLookupByLibrary.simpleMessage(
+      "Туннели настраиваются сразу после покупки.",
+    ),
+    "ipingNativeIpContinentAF": MessageLookupByLibrary.simpleMessage("Африка"),
+    "ipingNativeIpContinentAN": MessageLookupByLibrary.simpleMessage(
+      "Антарктида",
+    ),
+    "ipingNativeIpContinentAS": MessageLookupByLibrary.simpleMessage("Азия"),
+    "ipingNativeIpContinentEU": MessageLookupByLibrary.simpleMessage("Европа"),
+    "ipingNativeIpContinentNA": MessageLookupByLibrary.simpleMessage(
+      "Северная Америка",
+    ),
+    "ipingNativeIpContinentOC": MessageLookupByLibrary.simpleMessage("Океания"),
+    "ipingNativeIpContinentSA": MessageLookupByLibrary.simpleMessage(
+      "Южная Америка",
+    ),
+    "ipingNativeIpCopyAddress": MessageLookupByLibrary.simpleMessage(
+      "Копировать адрес",
+    ),
+    "ipingNativeIpCopyCredentials": MessageLookupByLibrary.simpleMessage(
+      "Копировать учётные данные",
+    ),
+    "ipingNativeIpCopyUrl": MessageLookupByLibrary.simpleMessage(
+      "Копировать URL прокси",
+    ),
+    "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("Количество"),
+    "ipingNativeIpCountInvalid": m43,
+    "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Срок"),
+    "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
+      "Сейчас нет доступных нативных IP.",
+    ),
+    "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
+      "Нет регионов по этим фильтрам",
+    ),
+    "ipingNativeIpInTunnel": MessageLookupByLibrary.simpleMessage("В туннеле"),
+    "ipingNativeIpLineA": MessageLookupByLibrary.simpleMessage("Линия A"),
+    "ipingNativeIpLineB": MessageLookupByLibrary.simpleMessage("Линия B"),
+    "ipingNativeIpLineC": MessageLookupByLibrary.simpleMessage("Линия C"),
+    "ipingNativeIpListPrice": MessageLookupByLibrary.simpleMessage(
+      "Это базовая цена. Скидка реселлера применяется при списании.",
+    ),
+    "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить нативные IP. Попробуйте ещё раз.",
+    ),
+    "ipingNativeIpMonthly": m44,
+    "ipingNativeIpMonths": m45,
+    "ipingNativeIpNoPlans": MessageLookupByLibrary.simpleMessage(
+      "Нет доступных тарифов туннелей.",
+    ),
+    "ipingNativeIpOneMonth": MessageLookupByLibrary.simpleMessage("1 месяц"),
+    "ipingNativeIpOpenTunnels": MessageLookupByLibrary.simpleMessage(
+      "К туннелям",
+    ),
+    "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("Заказ"),
+    "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("Купленные"),
+    "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
+      "У вас пока нет нативных IP.",
+    ),
+    "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("Тариф туннеля"),
+    "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить тарифы туннелей. IP можно купить отдельно.",
+    ),
+    "ipingNativeIpPurchaseFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось завершить покупку. Попробуйте ещё раз.",
+    ),
+    "ipingNativeIpPurchased": MessageLookupByLibrary.simpleMessage(
+      "Заказ оформлен. IP появятся среди узлов после выдачи.",
+    ),
+    "ipingNativeIpPurchasedTunnelLater": MessageLookupByLibrary.simpleMessage(
+      "Заказ оформлен. Туннели настроятся после выдачи IP.",
+    ),
+    "ipingNativeIpPurchasedWithTunnel": MessageLookupByLibrary.simpleMessage(
+      "Заказ оформлен. Туннели уже настроены.",
+    ),
+    "ipingNativeIpResultCount": m46,
+    "ipingNativeIpSoldOut": MessageLookupByLibrary.simpleMessage(
+      "Нет в наличии",
+    ),
+    "ipingNativeIpStock": m47,
+    "ipingNativeIpTags": MessageLookupByLibrary.simpleMessage("Теги"),
+    "ipingNativeIpTagsHint": MessageLookupByLibrary.simpleMessage(
+      "Совпадают все выбранные теги",
+    ),
+    "ipingNativeIpTotal": MessageLookupByLibrary.simpleMessage("Итого"),
     "ipingNetwork": MessageLookupByLibrary.simpleMessage("Глобальная сеть"),
     "ipingNetworkError": MessageLookupByLibrary.simpleMessage(
       "Не удалось подключиться. Проверьте соединение и повторите попытку. Предыдущая подписка сохранена.",
@@ -1231,10 +1384,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoNodes": MessageLookupByLibrary.simpleMessage(
       "Нет доступных узлов. Проверьте услуги в консоли iPing и обновите подписку.",
     ),
+    "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
+      "Сейчас нет доступных способов оплаты.",
+    ),
     "ipingNoTraffic": MessageLookupByLibrary.simpleMessage(
       "За этот период трафик не зафиксирован.",
     ),
-    "ipingNodeCount": m42,
+    "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage(
       "Уведомления Telegram",
     ),
@@ -1252,12 +1408,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPasswordRequired": MessageLookupByLibrary.simpleMessage(
       "Введите пароль.",
     ),
+    "ipingPaymentFee": m49,
+    "ipingPaymentMethod": MessageLookupByLibrary.simpleMessage("Способ оплаты"),
+    "ipingPaymentRequired": MessageLookupByLibrary.simpleMessage(
+      "Выберите способ оплаты.",
+    ),
     "ipingPopupNoticeConfirm": MessageLookupByLibrary.simpleMessage("Понятно"),
     "ipingPopupNoticeTitle": MessageLookupByLibrary.simpleMessage("Объявление"),
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage(
       "Политика конфиденциальности",
     ),
+    "ipingProfileCenter": MessageLookupByLibrary.simpleMessage(
+      "Личный кабинет",
+    ),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Состояние прокси"),
+    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage(
+      "Последние пополнения",
+    ),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(
       "Приглашённые пользователи",
     ),
@@ -1283,6 +1450,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "Регистрация закрыта. Существующие пользователи могут войти.",
     ),
+    "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
+      "Баланса может не хватить на автопродление",
+    ),
+    "ipingRenewalShortfallDetail": m50,
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Проверить снова",
     ),
@@ -1306,21 +1477,310 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Обновить подписку"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Обновление…"),
-    "ipingSystemDns": m43,
+    "ipingSystemDns": m51,
     "ipingTelegram": MessageLookupByLibrary.simpleMessage("Telegram"),
     "ipingTelegramBound": MessageLookupByLibrary.simpleMessage("Привязан"),
     "ipingTelegramUnbound": MessageLookupByLibrary.simpleMessage("Не привязан"),
     "ipingTerms": MessageLookupByLibrary.simpleMessage("Условия использования"),
+    "ipingTopUp": MessageLookupByLibrary.simpleMessage("Пополнить"),
+    "ipingTopupActivityFixed": m52,
+    "ipingTopupActivityFrom": m53,
+    "ipingTopupActivityPercent": m54,
+    "ipingTopupActivityUpTo": m55,
+    "ipingTopupAmount": MessageLookupByLibrary.simpleMessage("Сумма"),
+    "ipingTopupBelowMinimum": m56,
+    "ipingTopupBonus": m57,
+    "ipingTopupCancel": MessageLookupByLibrary.simpleMessage("Отменить заказ"),
+    "ipingTopupCancelConfirm": MessageLookupByLibrary.simpleMessage(
+      "Отменить этот неоплаченный заказ? После этого можно оформить новый.",
+    ),
+    "ipingTopupCancelFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось отменить заказ. Попробуйте ещё раз.",
+    ),
+    "ipingTopupCredited": MessageLookupByLibrary.simpleMessage(
+      "Будет зачислено",
+    ),
+    "ipingTopupEmpty": MessageLookupByLibrary.simpleMessage(
+      "Пополнений пока нет",
+    ),
+    "ipingTopupFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось создать заказ. Попробуйте ещё раз.",
+    ),
+    "ipingTopupHistory": MessageLookupByLibrary.simpleMessage(
+      "История пополнений",
+    ),
+    "ipingTopupHistoryFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить историю пополнений. Попробуйте ещё раз.",
+    ),
+    "ipingTopupMinimum": m58,
+    "ipingTopupOpened": MessageLookupByLibrary.simpleMessage(
+      "Завершите оплату в браузере. Баланс обновится автоматически после оплаты.",
+    ),
+    "ipingTopupOptionsFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить параметры пополнения. Попробуйте ещё раз.",
+    ),
+    "ipingTopupOtherAmount": MessageLookupByLibrary.simpleMessage(
+      "Другая сумма",
+    ),
+    "ipingTopupPay": MessageLookupByLibrary.simpleMessage("Оплатить"),
+    "ipingTopupPendingExists": MessageLookupByLibrary.simpleMessage(
+      "Есть неоплаченный заказ. Сначала оплатите или отмените его в истории пополнений.",
+    ),
+    "ipingTopupStatusCancelled": MessageLookupByLibrary.simpleMessage(
+      "Отменено",
+    ),
+    "ipingTopupStatusPending": MessageLookupByLibrary.simpleMessage(
+      "Ожидает оплаты",
+    ),
+    "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("Оплачено"),
     "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
       "Трафик · Последние 30 дней",
     ),
+    "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage(
+      "Автопродление",
+    ),
+    "ipingTunnelAutoRenewDesc": MessageLookupByLibrary.simpleMessage(
+      "Автопродление за день до окончания срока. Пополните баланс.",
+    ),
+    "ipingTunnelBatchCopyAddresses": MessageLookupByLibrary.simpleMessage(
+      "Копировать адреса",
+    ),
+    "ipingTunnelBatchCopyEmpty": MessageLookupByLibrary.simpleMessage(
+      "У выбранных туннелей нет готовых адресов",
+    ),
+    "ipingTunnelBatchCopySuccess": m59,
+    "ipingTunnelBatchFillAddresses": MessageLookupByLibrary.simpleMessage(
+      "Пакетный ввод IP",
+    ),
+    "ipingTunnelBatchFillAddressesHint": MessageLookupByLibrary.simpleMessage(
+      "По одной в строке; оставьте пустым, чтобы не менять",
+    ),
+    "ipingTunnelBatchFillNames": MessageLookupByLibrary.simpleMessage(
+      "Пакетный ввод имен",
+    ),
+    "ipingTunnelBatchFillNamesGenerate": MessageLookupByLibrary.simpleMessage(
+      "Сгенерировать номера",
+    ),
+    "ipingTunnelBatchFillNamesPrefix": MessageLookupByLibrary.simpleMessage(
+      "Префикс, например: Токио",
+    ),
+    "ipingTunnelBatchOperations": MessageLookupByLibrary.simpleMessage(
+      "Пакетные операции",
+    ),
+    "ipingTunnelBatchRenew": MessageLookupByLibrary.simpleMessage(
+      "Пакетное продление",
+    ),
+    "ipingTunnelBatchRenewBalance": MessageLookupByLibrary.simpleMessage(
+      "Текущий баланс",
+    ),
+    "ipingTunnelBatchRenewConfirm": MessageLookupByLibrary.simpleMessage(
+      "Подтвердить продление",
+    ),
+    "ipingTunnelBatchRenewInsufficient": MessageLookupByLibrary.simpleMessage(
+      "Недостаточно средств, пополните баланс",
+    ),
+    "ipingTunnelBatchRenewSuccess": m60,
+    "ipingTunnelBatchRenewTotal": MessageLookupByLibrary.simpleMessage(
+      "Итоговая сумма",
+    ),
+    "ipingTunnelBatchSelected": m61,
+    "ipingTunnelBatchStatusNoChange": MessageLookupByLibrary.simpleMessage(
+      "Без изменений",
+    ),
+    "ipingTunnelBatchUpdate": MessageLookupByLibrary.simpleMessage(
+      "Пакетные настройки",
+    ),
+    "ipingTunnelBatchUpdateSuccess": MessageLookupByLibrary.simpleMessage(
+      "Пакетное обновление успешно",
+    ),
+    "ipingTunnelCopyListen": MessageLookupByLibrary.simpleMessage(
+      "Копировать адрес",
+    ),
+    "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage(
+      "Редактировать туннель",
+    ),
+    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("Вход"),
+    "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("Выход"),
+    "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("Истёк"),
+    "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("Истекает"),
+    "ipingTunnelExport": MessageLookupByLibrary.simpleMessage("Экспорт"),
+    "ipingTunnelExportClash": MessageLookupByLibrary.simpleMessage(
+      "Прокси Clash (YAML)",
+    ),
+    "ipingTunnelExportCsv": MessageLookupByLibrary.simpleMessage("CSV"),
+    "ipingTunnelExportLines": MessageLookupByLibrary.simpleMessage(
+      "host:port:user:pass",
+    ),
+    "ipingTunnelExportSuccess": m62,
+    "ipingTunnelFilterAll": MessageLookupByLibrary.simpleMessage("Все"),
+    "ipingTunnelFilterAutoRenew": MessageLookupByLibrary.simpleMessage(
+      "Автопродление",
+    ),
+    "ipingTunnelFilterAutoRenewOff": MessageLookupByLibrary.simpleMessage(
+      "Отключено",
+    ),
+    "ipingTunnelFilterAutoRenewOn": MessageLookupByLibrary.simpleMessage(
+      "Включено",
+    ),
+    "ipingTunnelFilterIpType": MessageLookupByLibrary.simpleMessage("Тип IP"),
+    "ipingTunnelFilterPort": MessageLookupByLibrary.simpleMessage(
+      "Порт прослушивания",
+    ),
+    "ipingTunnelFilterPortHint": MessageLookupByLibrary.simpleMessage(
+      "Введите номер порта",
+    ),
+    "ipingTunnelFilterReset": MessageLookupByLibrary.simpleMessage(
+      "Сбросить фильтры",
+    ),
+    "ipingTunnelFilterTitle": MessageLookupByLibrary.simpleMessage("Фильтр"),
+    "ipingTunnelFilterType": MessageLookupByLibrary.simpleMessage(
+      "Тип туннеля",
+    ),
+    "ipingTunnelForward": MessageLookupByLibrary.simpleMessage("Назначение"),
+    "ipingTunnelForwardAddressRequired": MessageLookupByLibrary.simpleMessage(
+      "Адрес пересылки не может быть пустым",
+    ),
+    "ipingTunnelForwardHost": MessageLookupByLibrary.simpleMessage(
+      "IP или домен пересылки",
+    ),
+    "ipingTunnelForwardLocked": MessageLookupByLibrary.simpleMessage(
+      "Нельзя изменить адрес пока активен подарочный IP",
+    ),
+    "ipingTunnelForwardPort": MessageLookupByLibrary.simpleMessage("Порт"),
+    "ipingTunnelImportClipboard": MessageLookupByLibrary.simpleMessage(
+      "Импорт из буфера",
+    ),
+    "ipingTunnelImportClipboardFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось распознать адрес прокси",
+    ),
+    "ipingTunnelImportClipboardSuccess": MessageLookupByLibrary.simpleMessage(
+      "Адрес пересылки импортирован из буфера",
+    ),
+    "ipingTunnelListen": MessageLookupByLibrary.simpleMessage(
+      "Адрес прослушивания",
+    ),
+    "ipingTunnelListenWaiting": MessageLookupByLibrary.simpleMessage(
+      "Ожидание порта",
+    ),
+    "ipingTunnelLoadMore": MessageLookupByLibrary.simpleMessage("Показать ещё"),
+    "ipingTunnelMoreAddresses": m63,
+    "ipingTunnelName": MessageLookupByLibrary.simpleMessage("Название туннеля"),
+    "ipingTunnelNameHint": MessageLookupByLibrary.simpleMessage(
+      "Введите название туннеля",
+    ),
+    "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage(
+      "Пароль (необязательно)",
+    ),
+    "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage(
+      "Страна/регион выхода",
+    ),
+    "ipingTunnelPoolExit": MessageLookupByLibrary.simpleMessage(
+      "Выход назначается из пула адресов.",
+    ),
+    "ipingTunnelPoolInterval": MessageLookupByLibrary.simpleMessage(
+      "Интервал автопереключения (мин)",
+    ),
+    "ipingTunnelPoolIntervalHint": MessageLookupByLibrary.simpleMessage(
+      "0 отключает автопереключение",
+    ),
+    "ipingTunnelPortConflict": MessageLookupByLibrary.simpleMessage(
+      "Порт занят",
+    ),
+    "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
+      "Порт должен быть от 1 до 65535",
+    ),
+    "ipingTunnelRate": m64,
+    "ipingTunnelReminderExpiring": m65,
+    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("Продлить"),
+    "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
+      "Продление списывается с баланса.",
+    ),
+    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось продлить туннель. Повторите попытку.",
+    ),
+    "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage(
+      "Туннель продлён.",
+    ),
+    "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
+      "Выбрать из списка IP",
+    ),
+    "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
+      "Нет доступных IP",
+    ),
+    "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("Включён"),
+    "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
+      "Выключен",
+    ),
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage(
+      "Сменить IP выхода",
+    ),
+    "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось сменить IP выхода. Повторите попытку",
+    ),
+    "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
+      "IP выхода успешно изменен",
+    ),
+    "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage(
+      "Сменить порт",
+    ),
+    "ipingTunnelSwitchPortFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось сменить порт. Повторите попытку",
+    ),
+    "ipingTunnelSwitchPortSuccess": MessageLookupByLibrary.simpleMessage(
+      "Порт успешно изменен",
+    ),
+    "ipingTunnelTestConnection": MessageLookupByLibrary.simpleMessage(
+      "Проверить соединение",
+    ),
+    "ipingTunnelTraffic": MessageLookupByLibrary.simpleMessage("Трафик"),
+    "ipingTunnelTrafficOf": m68,
+    "ipingTunnelTypeMtcp": MessageLookupByLibrary.simpleMessage(
+      "Мультиплексный TCP",
+    ),
+    "ipingTunnelTypeMtls": MessageLookupByLibrary.simpleMessage(
+      "Мультиплексный шифрованный TLS",
+    ),
+    "ipingTunnelTypeMwss": MessageLookupByLibrary.simpleMessage(
+      "Мультиплексный шифрованный WebSocket",
+    ),
+    "ipingTunnelTypeRelayx": MessageLookupByLibrary.simpleMessage("RelayX"),
+    "ipingTunnelTypeTcp": MessageLookupByLibrary.simpleMessage("TCP"),
+    "ipingTunnelTypeTls": MessageLookupByLibrary.simpleMessage(
+      "Шифрованный TLS",
+    ),
+    "ipingTunnelTypeUdp": MessageLookupByLibrary.simpleMessage("UDP"),
+    "ipingTunnelTypeWss": MessageLookupByLibrary.simpleMessage(
+      "Шифрованный WebSocket",
+    ),
+    "ipingTunnelUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось обновить туннель. Повторите попытку.",
+    ),
+    "ipingTunnelUpdated": MessageLookupByLibrary.simpleMessage(
+      "Туннель обновлён.",
+    ),
+    "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage(
+      "Имя пользователя (необязательно)",
+    ),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Туннели"),
+    "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage(
+      "Туннелей пока нет.",
+    ),
+    "ipingTunnelsFilteredEmpty": MessageLookupByLibrary.simpleMessage(
+      "Нет туннелей по этим фильтрам.",
+    ),
+    "ipingTunnelsLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить туннели. Повторите попытку.",
+    ),
+    "ipingTunnelsResultCount": m69,
     "ipingUpdateAppStoreFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось открыть App Store. Повторите попытку.",
     ),
     "ipingUpdateAppStoreHint": MessageLookupByLibrary.simpleMessage(
       "Установите обновление в App Store, затем снова откройте iPing.",
     ),
-    "ipingUpdateAvailableDesc": m44,
+    "ipingUpdateAvailableDesc": m70,
     "ipingUpdateCheckFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось проверить обновления. Проверьте подключение и повторите попытку.",
     ),
@@ -1337,9 +1797,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingUpdateOpenAppStore": MessageLookupByLibrary.simpleMessage(
       "Обновить в App Store",
     ),
-    "ipingUserId": m45,
-    "ipingVersion": m46,
-    "ipingWelcome": m47,
+    "ipingUserId": m71,
+    "ipingVersion": m72,
+    "ipingWelcome": m73,
     "ipv6Desc": MessageLookupByLibrary.simpleMessage(
       "Трафик IPv6 принимается, только когда IPv6 включён.",
     ),
@@ -1347,7 +1807,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "При включённом IPv6 VPN принимает входящий IPv6.",
     ),
     "ipv6Timeout": MessageLookupByLibrary.simpleMessage("Тайм-аут IPv6 (мс)"),
-    "itemsCount": m48,
+    "itemsCount": m74,
     "ja": MessageLookupByLibrary.simpleMessage("Японский"),
     "justNow": MessageLookupByLibrary.simpleMessage("Только что"),
     "keepAliveIdle": MessageLookupByLibrary.simpleMessage(
@@ -1370,7 +1830,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Макет"),
     "light": MessageLookupByLibrary.simpleMessage("Светлая"),
-    "lineIssueTip": m49,
+    "lineIssueTip": m75,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Перенос строк"),
     "link": MessageLookupByLibrary.simpleMessage("Ссылка"),
     "linkDesc": MessageLookupByLibrary.simpleMessage(
@@ -1404,7 +1864,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "locationPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "По требованию системы для получения имени сети Wi-Fi необходимо разрешение на геолокацию. На Android выберите «Разрешить всегда», иначе имя сети Wi-Fi нельзя получить, пока приложение в фоне.",
     ),
-    "locationPermissionGuide": m50,
+    "locationPermissionGuide": m76,
     "locationPermissionRequired": MessageLookupByLibrary.simpleMessage(
       "Требуется разрешение на геолокацию",
     ),
@@ -1431,7 +1891,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage(
       "Макс. число неудач",
     ),
-    "maxLengthTip": m51,
+    "maxLengthTip": m77,
     "maximize": MessageLookupByLibrary.simpleMessage("Развернуть"),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage(
       "Резидентная память",
@@ -1465,7 +1925,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryReleased": MessageLookupByLibrary.simpleMessage(
       "Память освобождена",
     ),
-    "memoryReleasedSize": m52,
+    "memoryReleasedSize": m78,
     "messageTest": MessageLookupByLibrary.simpleMessage("Тест сообщения"),
     "messageTestTip": MessageLookupByLibrary.simpleMessage("Это сообщение."),
     "minimize": MessageLookupByLibrary.simpleMessage("Свернуть"),
@@ -1473,19 +1933,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Сворачивать при выходе",
     ),
     "minutes": MessageLookupByLibrary.simpleMessage("минут"),
-    "minutesAgo": m53,
-    "minutesAgoShort": m54,
+    "minutesAgo": m79,
+    "minutesAgoShort": m80,
     "mixedPort": MessageLookupByLibrary.simpleMessage("Смешанный порт"),
     "mode": MessageLookupByLibrary.simpleMessage("Режим"),
     "monochromeScheme": MessageLookupByLibrary.simpleMessage("Монохром"),
-    "monthsAgo": m55,
-    "monthsAgoShort": m56,
+    "monthsAgo": m81,
+    "monthsAgoShort": m82,
     "more": MessageLookupByLibrary.simpleMessage("Ещё"),
     "name": MessageLookupByLibrary.simpleMessage("Название"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("Нижняя панель"),
     "network": MessageLookupByLibrary.simpleMessage("Сеть"),
-    "networkAccessDeniedError": m57,
-    "networkBadResponseError": m58,
+    "networkAccessDeniedError": m83,
+    "networkBadResponseError": m84,
     "networkCancelledError": MessageLookupByLibrary.simpleMessage(
       "Запрос отменён",
     ),
@@ -1496,13 +1956,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Не удалось определить адрес сервера. Проверьте правильность URL и работу DNS",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("Имя сети"),
-    "networkNotFoundError": m59,
+    "networkNotFoundError": m85,
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Слишком много запросов (HTTP 429). Подождите немного и повторите попытку",
     ),
-    "networkRequestFailed": m60,
+    "networkRequestFailed": m86,
     "networkSecret": MessageLookupByLibrary.simpleMessage("Секрет сети"),
-    "networkServerError": m61,
+    "networkServerError": m87,
     "networkSpeed": MessageLookupByLibrary.simpleMessage("Скорость сети"),
     "networkTakeover": MessageLookupByLibrary.simpleMessage("Перехват трафика"),
     "networkTimeoutError": MessageLookupByLibrary.simpleMessage(
@@ -1546,9 +2006,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage(
       "Добавьте профиль, чтобы начать",
     ),
-    "nullTip": m62,
-    "numberRangeTip": m63,
-    "numberTip": m64,
+    "nullTip": m88,
+    "numberRangeTip": m89,
+    "numberTip": m90,
     "obfs": MessageLookupByLibrary.simpleMessage("Обфускация"),
     "obfsHost": MessageLookupByLibrary.simpleMessage("Хост обфускации"),
     "obfsMode": MessageLookupByLibrary.simpleMessage("Режим обфускации"),
@@ -1610,8 +2070,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Введите другой порт",
     ),
     "portHopping": MessageLookupByLibrary.simpleMessage("Перескок портов"),
-    "portTip": m65,
-    "portValue": m66,
+    "portTip": m91,
+    "portValue": m92,
     "ports": MessageLookupByLibrary.simpleMessage("Порты"),
     "preSharedKey": MessageLookupByLibrary.simpleMessage("Общий ключ"),
     "prerequisites": MessageLookupByLibrary.simpleMessage(
@@ -1634,8 +2094,8 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("Введите корректный интервал"),
     "profileAutoUpdateIntervalNullValidationDesc":
         MessageLookupByLibrary.simpleMessage("Введите интервал автообновления"),
-    "profileDaysLeft": m67,
-    "profileExpiresIn": m68,
+    "profileDaysLeft": m93,
+    "profileExpiresIn": m94,
     "profileHasUpdate": MessageLookupByLibrary.simpleMessage(
       "Профиль изменён. Отключить автообновление?",
     ),
@@ -1648,7 +2108,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "profileTunSettingsDesc": MessageLookupByLibrary.simpleMessage(
       "Действует только для этого профиля и имеет приоритет над переопределяемыми параметрами TUN в настройках сети.",
     ),
-    "profileUpdatedAt": m69,
+    "profileUpdatedAt": m95,
     "profileUrlInvalidValidationDesc": MessageLookupByLibrary.simpleMessage(
       "Введите корректный URL профиля",
     ),
@@ -1661,26 +2121,26 @@ class MessageLookup extends MessageLookupByLibrary {
     "protocol": MessageLookupByLibrary.simpleMessage("Протокол"),
     "protocolParam": MessageLookupByLibrary.simpleMessage("Параметр протокола"),
     "protocolVersion": MessageLookupByLibrary.simpleMessage("Версия протокола"),
-    "providerInUse": m70,
+    "providerInUse": m96,
     "providerUrlTip": MessageLookupByLibrary.simpleMessage(
       "Поддерживаются только удалённые ресурсы",
     ),
     "providers": MessageLookupByLibrary.simpleMessage("Внешние ресурсы"),
     "proxies": MessageLookupByLibrary.simpleMessage("Прокси"),
-    "proxiesCount": m71,
-    "proxiesProfileLabel": m72,
-    "proxiesRemovedTip": m73,
-    "proxiesReplacedTip": m74,
+    "proxiesCount": m97,
+    "proxiesProfileLabel": m98,
+    "proxiesRemovedTip": m99,
+    "proxiesReplacedTip": m100,
     "proxyChains": MessageLookupByLibrary.simpleMessage("Цепочка прокси"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Группа прокси"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "Группа прокси пуста",
     ),
-    "proxyGroupInUse": m75,
+    "proxyGroupInUse": m101,
     "proxyGroupsAfterStart": MessageLookupByLibrary.simpleMessage(
       "Группы появятся здесь после запуска ядра",
     ),
-    "proxyGroupsCount": m76,
+    "proxyGroupsCount": m102,
     "proxyProviders": MessageLookupByLibrary.simpleMessage("Провайдеры прокси"),
     "proxyType": MessageLookupByLibrary.simpleMessage("Тип прокси"),
     "pruneCache": MessageLookupByLibrary.simpleMessage("Очистить кэш"),
@@ -1958,14 +2418,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Правило должно начинаться с поддерживаемого типа, например DOMAIN,example.com,DIRECT",
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Правила"),
-    "rulesCount": m77,
+    "rulesCount": m103,
     "runTime": MessageLookupByLibrary.simpleMessage("Время работы"),
     "running": MessageLookupByLibrary.simpleMessage("Работает"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage(
       "Конфигурация выполнения",
     ),
     "safeMode": MessageLookupByLibrary.simpleMessage("Безопасный режим"),
-    "safeModeAppTitle": m78,
+    "safeModeAppTitle": m104,
     "saturation": MessageLookupByLibrary.simpleMessage("Насыщенность"),
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения?"),
@@ -1978,9 +2438,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("Поиск"),
     "seconds": MessageLookupByLibrary.simpleMessage("секунд"),
-    "secondsCount": m79,
+    "secondsCount": m105,
     "secretKey": MessageLookupByLibrary.simpleMessage("Ключ"),
-    "sectionsInEffect": m80,
+    "sectionsInEffect": m106,
     "selectAll": MessageLookupByLibrary.simpleMessage("Выбрать всё"),
     "selectRuleSet": MessageLookupByLibrary.simpleMessage(
       "Выберите набор правил",
@@ -1990,13 +2450,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selected": MessageLookupByLibrary.simpleMessage("Выбрано"),
     "server": MessageLookupByLibrary.simpleMessage("Сервер"),
-    "serviceAbnormalCount": m81,
+    "serviceAbnormalCount": m107,
     "serviceAllAvailable": MessageLookupByLibrary.simpleMessage("Все доступны"),
     "serviceAvailable": MessageLookupByLibrary.simpleMessage("Доступен"),
     "serviceBlocked": MessageLookupByLibrary.simpleMessage("Заблокировано"),
     "serviceCheck": MessageLookupByLibrary.simpleMessage("Проверить"),
     "serviceCheckAll": MessageLookupByLibrary.simpleMessage("Проверить все"),
-    "serviceCheckedAt": m82,
+    "serviceCheckedAt": m108,
     "serviceComingSoon": MessageLookupByLibrary.simpleMessage("Скоро появится"),
     "serviceDisallowedIsp": MessageLookupByLibrary.simpleMessage(
       "Недопустимый провайдер",
@@ -2022,8 +2482,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingEntries": MessageLookupByLibrary.simpleMessage("параметры"),
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
-    "settingsCount": m83,
-    "shareLinkUnreadable": m84,
+    "settingsCount": m109,
+    "shareLinkUnreadable": m110,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage(
       "Не удалось прочитать прокси из ссылок",
     ),
@@ -2049,7 +2509,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "singleShareLinkOnly": MessageLookupByLibrary.simpleMessage(
       "Здесь укажите одну ссылку, несколько можно задать в быстром редактировании списка",
     ),
-    "singleValueTip": m85,
+    "singleValueTip": m111,
     "size": MessageLookupByLibrary.simpleMessage("Размер"),
     "skipCertVerify": MessageLookupByLibrary.simpleMessage(
       "Пропускать проверку сертификата",
@@ -2167,8 +2627,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "totalUpload": MessageLookupByLibrary.simpleMessage("Отдано"),
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Порт TProxy"),
     "traffic": MessageLookupByLibrary.simpleMessage("Трафик"),
-    "trafficPeak": m86,
-    "trafficTotal": m87,
+    "trafficPeak": m112,
+    "trafficTotal": m113,
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Статистика трафика"),
     "transport": MessageLookupByLibrary.simpleMessage("Транспорт"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
@@ -2204,7 +2664,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Отдача"),
     "uploadBandwidth": MessageLookupByLibrary.simpleMessage("Скорость отдачи"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
-    "urlTip": m88,
+    "urlTip": m114,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системный hosts",
@@ -2237,8 +2697,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "writeToSystemDesc": MessageLookupByLibrary.simpleMessage(
       "«Записывать в систему» также устанавливает системные часы; Android это игнорирует.",
     ),
-    "yearsAgo": m89,
-    "yearsAgoShort": m90,
+    "yearsAgo": m115,
+    "yearsAgoShort": m116,
     "yes": MessageLookupByLibrary.simpleMessage("Да"),
     "zhCN": MessageLookupByLibrary.simpleMessage("Упрощённый китайский"),
   };

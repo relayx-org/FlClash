@@ -1098,5 +1098,326 @@
   "resourceSelectionHint": "Сохранение добавляет ресурсы в библиотеку. Выберите ресурсы для этого профиля. Выбранные узлы и группы фильтров добавляются в группы выбора.",
   "resourceLibraryHint": "Ресурсы хранятся в библиотеке. Выберите их в разделе применения к текущему профилю.",
   "ipingPopupNoticeTitle": "Объявление",
-  "ipingPopupNoticeConfirm": "Понятно"
+  "ipingPopupNoticeConfirm": "Понятно",
+  "ipingProfileCenter": "Личный кабинет",
+  "ipingAvailableBalance": "Доступный баланс",
+  "ipingTopUp": "Пополнить",
+  "ipingRecentTopups": "Последние пополнения",
+  "ipingTopupHistory": "История пополнений",
+  "ipingTopupEmpty": "Пополнений пока нет",
+  "ipingTopupAmount": "Сумма",
+  "ipingTopupOtherAmount": "Другая сумма",
+  "ipingTopupMinimum": "Минимум {amount}",
+  "ipingTopupBelowMinimum": "Введите сумму не менее {amount}.",
+  "ipingPaymentMethod": "Способ оплаты",
+  "ipingPaymentFee": "Комиссия {fee}",
+  "ipingPaymentRequired": "Выберите способ оплаты.",
+  "ipingNoPaymentMethods": "Сейчас нет доступных способов оплаты.",
+  "ipingTopupBonus": "Бонус {amount}",
+  "ipingTopupCredited": "Будет зачислено",
+  "ipingTopupPay": "Оплатить",
+  "ipingTopupPendingExists": "Есть неоплаченный заказ. Сначала оплатите или отмените его в истории пополнений.",
+  "ipingTopupFailed": "Не удалось создать заказ. Попробуйте ещё раз.",
+  "ipingTopupOpened": "Завершите оплату в браузере. Баланс обновится автоматически после оплаты.",
+  "ipingTopupStatusSuccess": "Оплачено",
+  "ipingTopupStatusPending": "Ожидает оплаты",
+  "ipingTopupStatusCancelled": "Отменено",
+  "ipingTopupCancel": "Отменить заказ",
+  "ipingTopupCancelConfirm": "Отменить этот неоплаченный заказ? После этого можно оформить новый.",
+  "ipingTopupCancelFailed": "Не удалось отменить заказ. Попробуйте ещё раз.",
+  "ipingTopupOptionsFailed": "Не удалось загрузить параметры пополнения. Попробуйте ещё раз.",
+  "ipingTopupHistoryFailed": "Не удалось загрузить историю пополнений. Попробуйте ещё раз.",
+  "ipingTopupActivityPercent": "+{percent}% бонусом",
+  "ipingTopupActivityFixed": "+{amount} бонусом",
+  "ipingTopupActivityFrom": "от {amount}",
+  "ipingTopupActivityUpTo": "до {amount}",
+  "ipingNativeIp": "Нативные IP",
+  "ipingNativeIpBuy": "Купить",
+  "ipingNativeIpLineA": "Линия A",
+  "ipingNativeIpLineB": "Линия B",
+  "ipingNativeIpLineC": "Линия C",
+  "ipingNativeIpOneMonth": "1 месяц",
+  "ipingNativeIpMonths": "{count} мес.",
+  "@ipingNativeIpMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpMonthly": "{price}/мес.",
+  "@ipingNativeIpMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpStock": "В наличии {count}",
+  "@ipingNativeIpStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpSoldOut": "Нет в наличии",
+  "ipingNativeIpEmpty": "Сейчас нет доступных нативных IP.",
+  "ipingNativeIpLoadFailed": "Не удалось загрузить нативные IP. Попробуйте ещё раз.",
+  "ipingNativeIpPlansFailed": "Не удалось загрузить тарифы туннелей. IP можно купить отдельно.",
+  "ipingNativeIpOrder": "Заказ",
+  "ipingNativeIpCount": "Количество",
+  "ipingNativeIpCountInvalid": "Укажите количество от 1 до {count}.",
+  "@ipingNativeIpCountInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpBundle": "Вместе с туннелем",
+  "ipingNativeIpBundleHint": "Для каждого IP настраивается один туннель.",
+  "ipingNativeIpNoPlans": "Нет доступных тарифов туннелей.",
+  "ipingNativeIpPlan": "Тариф туннеля",
+  "ipingNativeIpConfigureNow": "Туннели настраиваются сразу после покупки.",
+  "ipingNativeIpConfigureLater": "Туннели настраиваются автоматически после выдачи IP.",
+  "ipingNativeIpListPrice": "Это базовая цена. Скидка реселлера применяется при списании.",
+  "ipingNativeIpTotal": "Итого",
+  "ipingNativeIpPurchaseFailed": "Не удалось завершить покупку. Попробуйте ещё раз.",
+  "ipingNativeIpPurchased": "Заказ оформлен. IP появятся среди узлов после выдачи.",
+  "ipingNativeIpPurchasedWithTunnel": "Заказ оформлен. Туннели уже настроены.",
+  "ipingNativeIpPurchasedTunnelLater": "Заказ оформлен. Туннели настроятся после выдачи IP.",
+  "ipingNativeIpDuration": "Срок",
+  "ipingNativeIpAll": "Все",
+  "ipingNativeIpContinentNA": "Северная Америка",
+  "ipingNativeIpContinentSA": "Южная Америка",
+  "ipingNativeIpContinentEU": "Европа",
+  "ipingNativeIpContinentAS": "Азия",
+  "ipingNativeIpContinentOC": "Океания",
+  "ipingNativeIpContinentAF": "Африка",
+  "ipingNativeIpContinentAN": "Антарктида",
+  "ipingNativeIpTags": "Теги",
+  "ipingNativeIpTagsHint": "Совпадают все выбранные теги",
+  "ipingNativeIpClearTags": "Сбросить ({count})",
+  "@ipingNativeIpClearTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpResultCount": "Регионов: {count}",
+  "@ipingNativeIpResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpFilteredEmpty": "Нет регионов по этим фильтрам",
+  "ipingTunnels": "Туннели",
+  "ipingTunnelsEmpty": "Туннелей пока нет.",
+  "ipingTunnelsLoadFailed": "Не удалось загрузить туннели. Повторите попытку.",
+  "ipingTunnelsFilteredEmpty": "Нет туннелей по этим фильтрам.",
+  "ipingTunnelsResultCount": "Туннелей: {count}",
+  "@ipingTunnelsResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelStatusActive": "Включён",
+  "ipingTunnelStatusInactive": "Выключен",
+  "ipingTunnelExpired": "Истёк",
+  "ipingTunnelPortConflict": "Порт занят",
+  "ipingTunnelTypeTcp": "TCP",
+  "ipingTunnelTypeMtcp": "Мультиплексный TCP",
+  "ipingTunnelTypeUdp": "UDP",
+  "ipingTunnelTypeRelayx": "RelayX",
+  "ipingTunnelTypeWss": "Шифрованный WebSocket",
+  "ipingTunnelTypeMwss": "Мультиплексный шифрованный WebSocket",
+  "ipingTunnelTypeTls": "Шифрованный TLS",
+  "ipingTunnelTypeMtls": "Мультиплексный шифрованный TLS",
+  "ipingTunnelTraffic": "Трафик",
+  "ipingTunnelTrafficOf": "{used} / {quota}",
+  "@ipingTunnelTrafficOf": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "quota": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelExpires": "Истекает",
+  "ipingTunnelAutoRenew": "Автопродление",
+  "ipingTunnelRenew": "Продлить",
+  "ipingTunnelRenewConfirm": "Продление списывается с баланса.",
+  "ipingTunnelRenewConfirmPrice": "Продление списывает {price} с баланса.",
+  "@ipingTunnelRenewConfirmPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelRenewed": "Туннель продлён.",
+  "ipingTunnelUpdated": "Туннель обновлён.",
+  "ipingTunnelUpdateFailed": "Не удалось обновить туннель. Повторите попытку.",
+  "ipingTunnelRenewFailed": "Не удалось продлить туннель. Повторите попытку.",
+  "ipingTunnelListen": "Адрес прослушивания",
+  "ipingTunnelListenWaiting": "Ожидание порта",
+  "ipingTunnelCopyListen": "Копировать адрес",
+  "ipingTunnelLoadMore": "Показать ещё",
+  "ipingTunnelEntrance": "Вход",
+  "ipingTunnelExit": "Выход",
+  "ipingTunnelRate": "Множитель {rate}",
+  "@ipingTunnelRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelForward": "Назначение",
+  "ipingTunnelPoolExit": "Выход назначается из пула адресов.",
+  "ipingTunnelMoreAddresses": "{address} +{count}",
+  "@ipingTunnelMoreAddresses": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelEdit": "Редактировать туннель",
+  "ipingTunnelName": "Название туннеля",
+  "ipingTunnelNameHint": "Введите название туннеля",
+  "ipingTunnelForwardHost": "IP или домен пересылки",
+  "ipingTunnelForwardPort": "Порт",
+  "ipingTunnelForwardAddressRequired": "Адрес пересылки не может быть пустым",
+  "ipingTunnelPortInvalid": "Порт должен быть от 1 до 65535",
+  "ipingTunnelFilterAll": "Все",
+  "ipingTunnelFilterType": "Тип туннеля",
+  "ipingTunnelFilterAutoRenew": "Автопродление",
+  "ipingTunnelFilterAutoRenewOn": "Включено",
+  "ipingTunnelFilterAutoRenewOff": "Отключено",
+  "ipingTunnelFilterReset": "Сбросить фильтры",
+  "ipingTunnelFilterTitle": "Фильтр",
+  "ipingTunnelSwitchPort": "Сменить порт",
+  "ipingTunnelSwitchPortSuccess": "Порт успешно изменен",
+  "ipingTunnelSwitchPortFailed": "Не удалось сменить порт. Повторите попытку",
+  "ipingTunnelUsername": "Имя пользователя (необязательно)",
+  "ipingTunnelPassword": "Пароль (необязательно)",
+  "ipingTunnelImportClipboard": "Импорт из буфера",
+  "ipingTunnelImportClipboardSuccess": "Адрес пересылки импортирован из буфера",
+  "ipingTunnelImportClipboardFailed": "Не удалось распознать адрес прокси",
+  "ipingTunnelSelectFromNativeIps": "Выбрать из списка IP",
+  "ipingTunnelSelectFromNativeIpsEmpty": "Нет доступных IP",
+  "ipingTunnelForwardLocked": "Нельзя изменить адрес пока активен подарочный IP",
+  "ipingTunnelFilterIpType": "Тип IP",
+  "ipingTunnelFilterPort": "Порт прослушивания",
+  "ipingTunnelFilterPortHint": "Введите номер порта",
+  "ipingTunnelSwitchIp": "Сменить IP выхода",
+  "ipingTunnelSwitchIpSuccess": "IP выхода успешно изменен",
+  "ipingTunnelSwitchIpFailed": "Не удалось сменить IP выхода. Повторите попытку",
+  "ipingTunnelAutoRenewDesc": "Автопродление за день до окончания срока. Пополните баланс.",
+  "ipingTunnelPoolCountry": "Страна/регион выхода",
+  "ipingTunnelPoolInterval": "Интервал автопереключения (мин)",
+  "ipingTunnelPoolIntervalHint": "0 отключает автопереключение",
+  "ipingTunnelBatchOperations": "Пакетные операции",
+  "ipingTunnelBatchSelected": "Выбрано: {count}",
+  "@ipingTunnelBatchSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchRenew": "Пакетное продление",
+  "ipingTunnelBatchRenewConfirm": "Подтвердить продление",
+  "ipingTunnelBatchRenewTotal": "Итоговая сумма",
+  "ipingTunnelBatchRenewBalance": "Текущий баланс",
+  "ipingTunnelBatchRenewInsufficient": "Недостаточно средств, пополните баланс",
+  "ipingTunnelBatchRenewSuccess": "Продлено туннелей: {count}",
+  "@ipingTunnelBatchRenewSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchUpdate": "Пакетные настройки",
+  "ipingTunnelBatchUpdateSuccess": "Пакетное обновление успешно",
+  "ipingTunnelBatchCopyAddresses": "Копировать адреса",
+  "ipingTunnelBatchCopySuccess": "Скопировано адресов: {count}",
+  "@ipingTunnelBatchCopySuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchCopyEmpty": "У выбранных туннелей нет готовых адресов",
+  "ipingTunnelBatchStatusNoChange": "Без изменений",
+  "ipingTunnelBatchFillAddresses": "Пакетный ввод IP",
+  "ipingTunnelBatchFillAddressesHint": "По одной в строке; оставьте пустым, чтобы не менять",
+  "ipingTunnelBatchFillNames": "Пакетный ввод имен",
+  "ipingTunnelBatchFillNamesPrefix": "Префикс, например: Токио",
+  "ipingTunnelBatchFillNamesGenerate": "Сгенерировать номера",
+  "ipingRenewalShortfall": "Баланса может не хватить на автопродление",
+  "ipingRenewalShortfallDetail": "Автопродление {count} позиций в ближайшие 7 дней стоит около {cost}. Пополните минимум на {shortfall}.",
+  "@ipingRenewalShortfallDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "shortfall": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpOwned": "Купленные",
+  "ipingNativeIpOwnedEmpty": "У вас пока нет нативных IP.",
+  "ipingNativeIpCopyAddress": "Копировать адрес",
+  "ipingNativeIpCopyCredentials": "Копировать учётные данные",
+  "ipingNativeIpCopyUrl": "Копировать URL прокси",
+  "ipingNativeIpInTunnel": "В туннеле",
+  "ipingNativeIpOpenTunnels": "К туннелям",
+  "ipingTunnelTestConnection": "Проверить соединение",
+  "ipingTunnelReminderExpiring": "Туннелей, истекающих в течение 3 дней: {count}",
+  "@ipingTunnelReminderExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelReminderTraffic": "Туннелей с почти исчерпанным трафиком: {count}",
+  "@ipingTunnelReminderTraffic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelExport": "Экспорт",
+  "ipingTunnelExportLines": "host:port:user:pass",
+  "ipingTunnelExportClash": "Прокси Clash (YAML)",
+  "ipingTunnelExportCsv": "CSV",
+  "ipingTunnelExportSuccess": "Скопировано записей: {count}",
+  "@ipingTunnelExportSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

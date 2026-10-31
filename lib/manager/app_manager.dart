@@ -160,11 +160,21 @@ class _Sidebar extends ConsumerWidget {
       appSettingProvider.select((state) => state.sidebarExpanded),
     );
     final version = ref.watch(versionProvider);
+    final frame = AppSidebarFrameState.read(context);
     return NavigationSidebar(
       footer: const IpingAccountButton(),
       destinations: [
         for (final item in items)
-          SidebarDestination(glyph: item.glyph, label: item.label.label),
+          SidebarDestination(
+            glyph: item.glyph,
+            label: item.label.label,
+            group:
+                item.label == PageLabel.account ||
+                    item.label == PageLabel.nativeIp ||
+                    item.label == PageLabel.tunnels
+                ? 1
+                : 0,
+          ),
       ],
       selectedIndex: currentIndex,
       expanded: canExpand && sidebarExpanded,
@@ -179,6 +189,9 @@ class _Sidebar extends ConsumerWidget {
                   );
             }
           : null,
+      onToggleReady: frame == null
+          ? null
+          : (toggle, progress) => frame.bindToggle(toggle, progress),
       windowControls: windowControlsOverSidebar(
         isMacOS: system.isMacOS,
         version: version,

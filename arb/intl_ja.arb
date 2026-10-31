@@ -1098,5 +1098,326 @@
   "resourceSelectionHint": "保存したリソースはライブラリに追加されます。このプロファイルで使うリソースを選択してください。選択したノードとフィルターグループは選択グループに追加されます。",
   "resourceLibraryHint": "リソースはライブラリに保存されます。「現在のプロファイルにリソースを適用」で選択してください。",
   "ipingPopupNoticeTitle": "お知らせ",
-  "ipingPopupNoticeConfirm": "了解"
+  "ipingPopupNoticeConfirm": "了解",
+  "ipingProfileCenter": "アカウントセンター",
+  "ipingAvailableBalance": "利用可能残高",
+  "ipingTopUp": "チャージ",
+  "ipingRecentTopups": "最近のチャージ",
+  "ipingTopupHistory": "チャージ履歴",
+  "ipingTopupEmpty": "チャージ履歴はありません",
+  "ipingTopupAmount": "チャージ金額",
+  "ipingTopupOtherAmount": "その他の金額",
+  "ipingTopupMinimum": "最低 {amount}",
+  "ipingTopupBelowMinimum": "{amount} 以上の金額を入力してください。",
+  "ipingPaymentMethod": "支払い方法",
+  "ipingPaymentFee": "手数料 {fee}",
+  "ipingPaymentRequired": "支払い方法を選択してください。",
+  "ipingNoPaymentMethods": "現在利用できる支払い方法はありません。",
+  "ipingTopupBonus": "{amount} ボーナス",
+  "ipingTopupCredited": "受取額",
+  "ipingTopupPay": "支払う",
+  "ipingTopupPendingExists": "未払いの注文があります。先にチャージ履歴で支払うかキャンセルしてください。",
+  "ipingTopupFailed": "注文を作成できませんでした。もう一度お試しください。",
+  "ipingTopupOpened": "ブラウザで支払いを完了してください。支払い後、残高に自動で反映されます。",
+  "ipingTopupStatusSuccess": "完了",
+  "ipingTopupStatusPending": "未払い",
+  "ipingTopupStatusCancelled": "キャンセル済み",
+  "ipingTopupCancel": "注文をキャンセル",
+  "ipingTopupCancelConfirm": "この未払いの注文をキャンセルしますか？キャンセル後に新しく注文できます。",
+  "ipingTopupCancelFailed": "注文をキャンセルできませんでした。もう一度お試しください。",
+  "ipingTopupOptionsFailed": "チャージオプションを読み込めませんでした。もう一度お試しください。",
+  "ipingTopupHistoryFailed": "チャージ履歴を読み込めませんでした。もう一度お試しください。",
+  "ipingTopupActivityPercent": "{percent}% 上乗せ",
+  "ipingTopupActivityFixed": "{amount} 上乗せ",
+  "ipingTopupActivityFrom": "{amount} 以上",
+  "ipingTopupActivityUpTo": "{amount} 以下",
+  "ipingNativeIp": "ネイティブ IP",
+  "ipingNativeIpBuy": "購入",
+  "ipingNativeIpLineA": "回線 A",
+  "ipingNativeIpLineB": "回線 B",
+  "ipingNativeIpLineC": "回線 C",
+  "ipingNativeIpOneMonth": "1 か月",
+  "ipingNativeIpMonths": "{count} か月",
+  "@ipingNativeIpMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpMonthly": "{price}/月",
+  "@ipingNativeIpMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpStock": "在庫 {count}",
+  "@ipingNativeIpStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpSoldOut": "売り切れ",
+  "ipingNativeIpEmpty": "購入できるネイティブ IP はありません",
+  "ipingNativeIpLoadFailed": "ネイティブ IP を読み込めませんでした。もう一度お試しください。",
+  "ipingNativeIpPlansFailed": "トンネルプランを読み込めませんでした。IP のみ購入できます。",
+  "ipingNativeIpOrder": "注文",
+  "ipingNativeIpCount": "数量",
+  "ipingNativeIpCountInvalid": "数量は 1 から {count} までにしてください。",
+  "@ipingNativeIpCountInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpBundle": "トンネルも購入",
+  "ipingNativeIpBundleHint": "IP ごとにトンネルを 1 つ設定します。",
+  "ipingNativeIpNoPlans": "購入できるトンネルプランはありません。",
+  "ipingNativeIpPlan": "トンネルプラン",
+  "ipingNativeIpConfigureNow": "購入完了と同時にトンネルを設定します。",
+  "ipingNativeIpConfigureLater": "IP の提供後にトンネルを自動設定します。",
+  "ipingNativeIpListPrice": "表示は定価です。再販割引は請求時に適用されます。",
+  "ipingNativeIpTotal": "合計",
+  "ipingNativeIpPurchaseFailed": "購入を完了できませんでした。もう一度お試しください。",
+  "ipingNativeIpPurchased": "注文しました。IP の提供後にノードへ表示されます。",
+  "ipingNativeIpPurchasedWithTunnel": "注文しました。トンネルの設定は完了しています。",
+  "ipingNativeIpPurchasedTunnelLater": "注文しました。トンネルは IP の提供後に自動設定されます。",
+  "ipingNativeIpDuration": "期間",
+  "ipingNativeIpAll": "すべて",
+  "ipingNativeIpContinentNA": "北アメリカ",
+  "ipingNativeIpContinentSA": "南アメリカ",
+  "ipingNativeIpContinentEU": "ヨーロッパ",
+  "ipingNativeIpContinentAS": "アジア",
+  "ipingNativeIpContinentOC": "オセアニア",
+  "ipingNativeIpContinentAF": "アフリカ",
+  "ipingNativeIpContinentAN": "南極",
+  "ipingNativeIpTags": "タグ",
+  "ipingNativeIpTagsHint": "選択したタグをすべて満たす",
+  "ipingNativeIpClearTags": "クリア（{count}）",
+  "@ipingNativeIpClearTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpResultCount": "{count} 件の地域",
+  "@ipingNativeIpResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingNativeIpFilteredEmpty": "条件に一致する地域はありません",
+  "ipingTunnels": "トンネル",
+  "ipingTunnelsEmpty": "トンネルはまだありません",
+  "ipingTunnelsLoadFailed": "トンネルを読み込めませんでした。もう一度お試しください。",
+  "ipingTunnelsFilteredEmpty": "条件に一致するトンネルはありません",
+  "ipingTunnelsResultCount": "トンネル {count} 件",
+  "@ipingTunnelsResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelStatusActive": "有効",
+  "ipingTunnelStatusInactive": "無効",
+  "ipingTunnelExpired": "期限切れ",
+  "ipingTunnelPortConflict": "ポートが使用中です",
+  "ipingTunnelTypeTcp": "TCP",
+  "ipingTunnelTypeMtcp": "多重化 TCP",
+  "ipingTunnelTypeUdp": "UDP",
+  "ipingTunnelTypeRelayx": "RelayX",
+  "ipingTunnelTypeWss": "暗号化 WebSocket",
+  "ipingTunnelTypeMwss": "多重化暗号化 WebSocket",
+  "ipingTunnelTypeTls": "暗号化 TLS",
+  "ipingTunnelTypeMtls": "多重化暗号化 TLS",
+  "ipingTunnelTraffic": "通信量",
+  "ipingTunnelTrafficOf": "{used} / {quota}",
+  "@ipingTunnelTrafficOf": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "quota": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelExpires": "有効期限",
+  "ipingTunnelAutoRenew": "自動更新",
+  "ipingTunnelRenew": "更新",
+  "ipingTunnelRenewConfirm": "更新すると残高から引き落とされます。",
+  "ipingTunnelRenewConfirmPrice": "更新すると残高から {price} が引き落とされます。",
+  "@ipingTunnelRenewConfirmPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelRenewed": "更新しました",
+  "ipingTunnelUpdated": "変更しました",
+  "ipingTunnelUpdateFailed": "トンネルを変更できませんでした。もう一度お試しください。",
+  "ipingTunnelRenewFailed": "トンネルを更新できませんでした。もう一度お試しください。",
+  "ipingTunnelListen": "待受アドレス",
+  "ipingTunnelListenWaiting": "ポートの割り当て待ち",
+  "ipingTunnelCopyListen": "待受アドレスをコピー",
+  "ipingTunnelLoadMore": "さらに読み込む",
+  "ipingTunnelEntrance": "入口",
+  "ipingTunnelExit": "出口",
+  "ipingTunnelRate": "倍率 {rate}",
+  "@ipingTunnelRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingTunnelForward": "転送先",
+  "ipingTunnelPoolExit": "出口はアドレスプールから割り当てられます",
+  "ipingTunnelMoreAddresses": "{address} +{count}",
+  "@ipingTunnelMoreAddresses": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelEdit": "トンネルを編集",
+  "ipingTunnelName": "トンネル名",
+  "ipingTunnelNameHint": "トンネル名を入力",
+  "ipingTunnelForwardHost": "転送先 IP またはドメイン",
+  "ipingTunnelForwardPort": "ポート",
+  "ipingTunnelForwardAddressRequired": "転送先アドレスを入力してください",
+  "ipingTunnelPortInvalid": "ポートは 1 から 65535 の間である必要があります",
+  "ipingTunnelFilterAll": "すべて",
+  "ipingTunnelFilterType": "トンネルタイプ",
+  "ipingTunnelFilterAutoRenew": "自動更新",
+  "ipingTunnelFilterAutoRenewOn": "有効",
+  "ipingTunnelFilterAutoRenewOff": "無効",
+  "ipingTunnelFilterReset": "フィルターをリセット",
+  "ipingTunnelFilterTitle": "フィルター",
+  "ipingTunnelSwitchPort": "ポートを変更",
+  "ipingTunnelSwitchPortSuccess": "ポートを変更しました",
+  "ipingTunnelSwitchPortFailed": "ポートの変更に失敗しました。再試行してください",
+  "ipingTunnelUsername": "ユーザー名（任意）",
+  "ipingTunnelPassword": "パスワード（任意）",
+  "ipingTunnelImportClipboard": "クリップボードからインポート",
+  "ipingTunnelImportClipboardSuccess": "クリップボードから転送先アドレスをインポートしました",
+  "ipingTunnelImportClipboardFailed": "有効なプロキシアドレスを解析できませんでした",
+  "ipingTunnelSelectFromNativeIps": "ネイティブ IP から選択",
+  "ipingTunnelSelectFromNativeIpsEmpty": "利用可能なネイティブ IP はありません",
+  "ipingTunnelForwardLocked": "付与された IP の有効期間中は転送先アドレスを変更できません",
+  "ipingTunnelFilterIpType": "IP タイプ",
+  "ipingTunnelFilterPort": "待受ポート",
+  "ipingTunnelFilterPortHint": "ポート番号を入力",
+  "ipingTunnelSwitchIp": "出口 IP を変更",
+  "ipingTunnelSwitchIpSuccess": "出口 IP を変更しました。設定を適用中",
+  "ipingTunnelSwitchIpFailed": "出口 IP の変更に失敗しました。再試行してください",
+  "ipingTunnelAutoRenewDesc": "有効期限の前日に自動更新されます。残高をご確認ください",
+  "ipingTunnelPoolCountry": "出口国/地域",
+  "ipingTunnelPoolInterval": "自動切替間隔（分）",
+  "ipingTunnelPoolIntervalHint": "0 で自動切替を無効化",
+  "ipingTunnelBatchOperations": "一括操作",
+  "ipingTunnelBatchSelected": "{count} 件選択中",
+  "@ipingTunnelBatchSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchRenew": "一括更新",
+  "ipingTunnelBatchRenewConfirm": "一括更新を確認",
+  "ipingTunnelBatchRenewTotal": "合計予定",
+  "ipingTunnelBatchRenewBalance": "現在の残高",
+  "ipingTunnelBatchRenewInsufficient": "残高不足です。チャージしてください",
+  "ipingTunnelBatchRenewSuccess": "{count} 件のトンネルを一括更新しました",
+  "@ipingTunnelBatchRenewSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchUpdate": "一括設定",
+  "ipingTunnelBatchUpdateSuccess": "一括更新に成功しました",
+  "ipingTunnelBatchCopyAddresses": "アドレスをコピー",
+  "ipingTunnelBatchCopySuccess": "{count} 件のリスンアドレスをコピーしました",
+  "@ipingTunnelBatchCopySuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelBatchCopyEmpty": "選択したトンネルに有効なアドレスがありません",
+  "ipingTunnelBatchStatusNoChange": "変更なし",
+  "ipingTunnelBatchFillAddresses": "IPを一括入力",
+  "ipingTunnelBatchFillAddressesHint": "1行に1件、順次反映。空欄の場合は変更しません",
+  "ipingTunnelBatchFillNames": "名前を一括入力",
+  "ipingTunnelBatchFillNamesPrefix": "接頭辞（例: 東京）",
+  "ipingTunnelBatchFillNamesGenerate": "連番生成",
+  "ipingRenewalShortfall": "残高が自動更新に足りない可能性があります",
+  "ipingRenewalShortfallDetail": "7 日以内に {count} 件が自動更新され、約 {cost} かかります。{shortfall} 以上チャージしてください。",
+  "@ipingRenewalShortfallDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "shortfall": {
+        "type": "String"
+      }
+    }
+  },
+  "ipingNativeIpOwned": "購入済み",
+  "ipingNativeIpOwnedEmpty": "ネイティブ IP はまだありません。",
+  "ipingNativeIpCopyAddress": "アドレスをコピー",
+  "ipingNativeIpCopyCredentials": "認証情報をコピー",
+  "ipingNativeIpCopyUrl": "プロキシ URL をコピー",
+  "ipingNativeIpInTunnel": "トンネルで使用中",
+  "ipingNativeIpOpenTunnels": "トンネルへ移動",
+  "ipingTunnelTestConnection": "接続をテスト",
+  "ipingTunnelReminderExpiring": "{count} 本のトンネルが 3 日以内に期限切れになります",
+  "@ipingTunnelReminderExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelReminderTraffic": "{count} 本のトンネルのトラフィックが残りわずかです",
+  "@ipingTunnelReminderTraffic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ipingTunnelExport": "エクスポート",
+  "ipingTunnelExportLines": "host:port:user:pass",
+  "ipingTunnelExportClash": "Clash プロキシ（YAML）",
+  "ipingTunnelExportCsv": "CSV",
+  "ipingTunnelExportSuccess": "{count} 件をコピーしました",
+  "@ipingTunnelExportSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

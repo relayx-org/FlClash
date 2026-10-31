@@ -8951,6 +8951,1781 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Account center`
+  String get ipingProfileCenter {
+    return Intl.message(
+      'Account center',
+      name: 'ipingProfileCenter',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Available balance`
+  String get ipingAvailableBalance {
+    return Intl.message(
+      'Available balance',
+      name: 'ipingAvailableBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Top up`
+  String get ipingTopUp {
+    return Intl.message('Top up', name: 'ipingTopUp', desc: '', args: []);
+  }
+
+  /// `Recent top-ups`
+  String get ipingRecentTopups {
+    return Intl.message(
+      'Recent top-ups',
+      name: 'ipingRecentTopups',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Top-up history`
+  String get ipingTopupHistory {
+    return Intl.message(
+      'Top-up history',
+      name: 'ipingTopupHistory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No top-ups yet`
+  String get ipingTopupEmpty {
+    return Intl.message(
+      'No top-ups yet',
+      name: 'ipingTopupEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Amount`
+  String get ipingTopupAmount {
+    return Intl.message('Amount', name: 'ipingTopupAmount', desc: '', args: []);
+  }
+
+  /// `Other amount`
+  String get ipingTopupOtherAmount {
+    return Intl.message(
+      'Other amount',
+      name: 'ipingTopupOtherAmount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Minimum {amount}`
+  String ipingTopupMinimum(String amount) {
+    return Intl.message(
+      'Minimum $amount',
+      name: 'ipingTopupMinimum',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Enter an amount of at least {amount}.`
+  String ipingTopupBelowMinimum(String amount) {
+    return Intl.message(
+      'Enter an amount of at least $amount.',
+      name: 'ipingTopupBelowMinimum',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Payment method`
+  String get ipingPaymentMethod {
+    return Intl.message(
+      'Payment method',
+      name: 'ipingPaymentMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{fee} fee`
+  String ipingPaymentFee(String fee) {
+    return Intl.message(
+      '$fee fee',
+      name: 'ipingPaymentFee',
+      desc: '',
+      args: [fee],
+    );
+  }
+
+  /// `Choose a payment method.`
+  String get ipingPaymentRequired {
+    return Intl.message(
+      'Choose a payment method.',
+      name: 'ipingPaymentRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No payment methods are available right now.`
+  String get ipingNoPaymentMethods {
+    return Intl.message(
+      'No payment methods are available right now.',
+      name: 'ipingNoPaymentMethods',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `+{amount} bonus`
+  String ipingTopupBonus(String amount) {
+    return Intl.message(
+      '+$amount bonus',
+      name: 'ipingTopupBonus',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `You receive`
+  String get ipingTopupCredited {
+    return Intl.message(
+      'You receive',
+      name: 'ipingTopupCredited',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pay`
+  String get ipingTopupPay {
+    return Intl.message('Pay', name: 'ipingTopupPay', desc: '', args: []);
+  }
+
+  /// `You have an unpaid order. Pay or cancel it in the top-up history first.`
+  String get ipingTopupPendingExists {
+    return Intl.message(
+      'You have an unpaid order. Pay or cancel it in the top-up history first.',
+      name: 'ipingTopupPendingExists',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to create the order. Please try again.`
+  String get ipingTopupFailed {
+    return Intl.message(
+      'Unable to create the order. Please try again.',
+      name: 'ipingTopupFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complete the payment in your browser. Your balance updates once it is paid.`
+  String get ipingTopupOpened {
+    return Intl.message(
+      'Complete the payment in your browser. Your balance updates once it is paid.',
+      name: 'ipingTopupOpened',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Paid`
+  String get ipingTopupStatusSuccess {
+    return Intl.message(
+      'Paid',
+      name: 'ipingTopupStatusSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unpaid`
+  String get ipingTopupStatusPending {
+    return Intl.message(
+      'Unpaid',
+      name: 'ipingTopupStatusPending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled`
+  String get ipingTopupStatusCancelled {
+    return Intl.message(
+      'Cancelled',
+      name: 'ipingTopupStatusCancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel order`
+  String get ipingTopupCancel {
+    return Intl.message(
+      'Cancel order',
+      name: 'ipingTopupCancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel this unpaid order? You can place a new one afterwards.`
+  String get ipingTopupCancelConfirm {
+    return Intl.message(
+      'Cancel this unpaid order? You can place a new one afterwards.',
+      name: 'ipingTopupCancelConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to cancel the order. Please try again.`
+  String get ipingTopupCancelFailed {
+    return Intl.message(
+      'Unable to cancel the order. Please try again.',
+      name: 'ipingTopupCancelFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load top-up options. Please try again.`
+  String get ipingTopupOptionsFailed {
+    return Intl.message(
+      'Unable to load top-up options. Please try again.',
+      name: 'ipingTopupOptionsFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load top-up history. Please try again.`
+  String get ipingTopupHistoryFailed {
+    return Intl.message(
+      'Unable to load top-up history. Please try again.',
+      name: 'ipingTopupHistoryFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{percent}% extra`
+  String ipingTopupActivityPercent(String percent) {
+    return Intl.message(
+      '$percent% extra',
+      name: 'ipingTopupActivityPercent',
+      desc: '',
+      args: [percent],
+    );
+  }
+
+  /// `{amount} extra`
+  String ipingTopupActivityFixed(String amount) {
+    return Intl.message(
+      '$amount extra',
+      name: 'ipingTopupActivityFixed',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `from {amount}`
+  String ipingTopupActivityFrom(String amount) {
+    return Intl.message(
+      'from $amount',
+      name: 'ipingTopupActivityFrom',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `up to {amount}`
+  String ipingTopupActivityUpTo(String amount) {
+    return Intl.message(
+      'up to $amount',
+      name: 'ipingTopupActivityUpTo',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Native IPs`
+  String get ipingNativeIp {
+    return Intl.message(
+      'Native IPs',
+      name: 'ipingNativeIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buy`
+  String get ipingNativeIpBuy {
+    return Intl.message('Buy', name: 'ipingNativeIpBuy', desc: '', args: []);
+  }
+
+  /// `Line A`
+  String get ipingNativeIpLineA {
+    return Intl.message(
+      'Line A',
+      name: 'ipingNativeIpLineA',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Line B`
+  String get ipingNativeIpLineB {
+    return Intl.message(
+      'Line B',
+      name: 'ipingNativeIpLineB',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Line C`
+  String get ipingNativeIpLineC {
+    return Intl.message(
+      'Line C',
+      name: 'ipingNativeIpLineC',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `1 month`
+  String get ipingNativeIpOneMonth {
+    return Intl.message(
+      '1 month',
+      name: 'ipingNativeIpOneMonth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} months`
+  String ipingNativeIpMonths(int count) {
+    return Intl.message(
+      '$count months',
+      name: 'ipingNativeIpMonths',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{price}/month`
+  String ipingNativeIpMonthly(String price) {
+    return Intl.message(
+      '$price/month',
+      name: 'ipingNativeIpMonthly',
+      desc: '',
+      args: [price],
+    );
+  }
+
+  /// `{count} in stock`
+  String ipingNativeIpStock(int count) {
+    return Intl.message(
+      '$count in stock',
+      name: 'ipingNativeIpStock',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Sold out`
+  String get ipingNativeIpSoldOut {
+    return Intl.message(
+      'Sold out',
+      name: 'ipingNativeIpSoldOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No native IPs are available right now.`
+  String get ipingNativeIpEmpty {
+    return Intl.message(
+      'No native IPs are available right now.',
+      name: 'ipingNativeIpEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load native IPs. Please try again.`
+  String get ipingNativeIpLoadFailed {
+    return Intl.message(
+      'Unable to load native IPs. Please try again.',
+      name: 'ipingNativeIpLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel plans could not be loaded. You can still buy the IP on its own.`
+  String get ipingNativeIpPlansFailed {
+    return Intl.message(
+      'Tunnel plans could not be loaded. You can still buy the IP on its own.',
+      name: 'ipingNativeIpPlansFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Order`
+  String get ipingNativeIpOrder {
+    return Intl.message(
+      'Order',
+      name: 'ipingNativeIpOrder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quantity`
+  String get ipingNativeIpCount {
+    return Intl.message(
+      'Quantity',
+      name: 'ipingNativeIpCount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a quantity from 1 to {count}.`
+  String ipingNativeIpCountInvalid(int count) {
+    return Intl.message(
+      'Enter a quantity from 1 to $count.',
+      name: 'ipingNativeIpCountInvalid',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Include a tunnel`
+  String get ipingNativeIpBundle {
+    return Intl.message(
+      'Include a tunnel',
+      name: 'ipingNativeIpBundle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `One tunnel is configured for each IP.`
+  String get ipingNativeIpBundleHint {
+    return Intl.message(
+      'One tunnel is configured for each IP.',
+      name: 'ipingNativeIpBundleHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No tunnel plans are available.`
+  String get ipingNativeIpNoPlans {
+    return Intl.message(
+      'No tunnel plans are available.',
+      name: 'ipingNativeIpNoPlans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel plan`
+  String get ipingNativeIpPlan {
+    return Intl.message(
+      'Tunnel plan',
+      name: 'ipingNativeIpPlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnels are configured as soon as the purchase completes.`
+  String get ipingNativeIpConfigureNow {
+    return Intl.message(
+      'Tunnels are configured as soon as the purchase completes.',
+      name: 'ipingNativeIpConfigureNow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnels are configured automatically once the IPs are delivered.`
+  String get ipingNativeIpConfigureLater {
+    return Intl.message(
+      'Tunnels are configured automatically once the IPs are delivered.',
+      name: 'ipingNativeIpConfigureLater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is the list price. Any reseller discount is applied when you are charged.`
+  String get ipingNativeIpListPrice {
+    return Intl.message(
+      'This is the list price. Any reseller discount is applied when you are charged.',
+      name: 'ipingNativeIpListPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total`
+  String get ipingNativeIpTotal {
+    return Intl.message(
+      'Total',
+      name: 'ipingNativeIpTotal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to complete the purchase. Please try again.`
+  String get ipingNativeIpPurchaseFailed {
+    return Intl.message(
+      'Unable to complete the purchase. Please try again.',
+      name: 'ipingNativeIpPurchaseFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase placed. The IPs appear with your nodes after delivery.`
+  String get ipingNativeIpPurchased {
+    return Intl.message(
+      'Purchase placed. The IPs appear with your nodes after delivery.',
+      name: 'ipingNativeIpPurchased',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase placed. The tunnels are already configured.`
+  String get ipingNativeIpPurchasedWithTunnel {
+    return Intl.message(
+      'Purchase placed. The tunnels are already configured.',
+      name: 'ipingNativeIpPurchasedWithTunnel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Purchase placed. The tunnels are configured once the IPs are delivered.`
+  String get ipingNativeIpPurchasedTunnelLater {
+    return Intl.message(
+      'Purchase placed. The tunnels are configured once the IPs are delivered.',
+      name: 'ipingNativeIpPurchasedTunnelLater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duration`
+  String get ipingNativeIpDuration {
+    return Intl.message(
+      'Duration',
+      name: 'ipingNativeIpDuration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get ipingNativeIpAll {
+    return Intl.message('All', name: 'ipingNativeIpAll', desc: '', args: []);
+  }
+
+  /// `North America`
+  String get ipingNativeIpContinentNA {
+    return Intl.message(
+      'North America',
+      name: 'ipingNativeIpContinentNA',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `South America`
+  String get ipingNativeIpContinentSA {
+    return Intl.message(
+      'South America',
+      name: 'ipingNativeIpContinentSA',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Europe`
+  String get ipingNativeIpContinentEU {
+    return Intl.message(
+      'Europe',
+      name: 'ipingNativeIpContinentEU',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Asia`
+  String get ipingNativeIpContinentAS {
+    return Intl.message(
+      'Asia',
+      name: 'ipingNativeIpContinentAS',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Oceania`
+  String get ipingNativeIpContinentOC {
+    return Intl.message(
+      'Oceania',
+      name: 'ipingNativeIpContinentOC',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Africa`
+  String get ipingNativeIpContinentAF {
+    return Intl.message(
+      'Africa',
+      name: 'ipingNativeIpContinentAF',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Antarctica`
+  String get ipingNativeIpContinentAN {
+    return Intl.message(
+      'Antarctica',
+      name: 'ipingNativeIpContinentAN',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tags`
+  String get ipingNativeIpTags {
+    return Intl.message('Tags', name: 'ipingNativeIpTags', desc: '', args: []);
+  }
+
+  /// `Match all selected tags`
+  String get ipingNativeIpTagsHint {
+    return Intl.message(
+      'Match all selected tags',
+      name: 'ipingNativeIpTagsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear ({count})`
+  String ipingNativeIpClearTags(int count) {
+    return Intl.message(
+      'Clear ($count)',
+      name: 'ipingNativeIpClearTags',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Regions · {count}`
+  String ipingNativeIpResultCount(int count) {
+    return Intl.message(
+      'Regions · $count',
+      name: 'ipingNativeIpResultCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `No regions match these filters.`
+  String get ipingNativeIpFilteredEmpty {
+    return Intl.message(
+      'No regions match these filters.',
+      name: 'ipingNativeIpFilteredEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnels`
+  String get ipingTunnels {
+    return Intl.message('Tunnels', name: 'ipingTunnels', desc: '', args: []);
+  }
+
+  /// `No tunnels yet.`
+  String get ipingTunnelsEmpty {
+    return Intl.message(
+      'No tunnels yet.',
+      name: 'ipingTunnelsEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load tunnels. Please try again.`
+  String get ipingTunnelsLoadFailed {
+    return Intl.message(
+      'Unable to load tunnels. Please try again.',
+      name: 'ipingTunnelsLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No tunnels match these filters.`
+  String get ipingTunnelsFilteredEmpty {
+    return Intl.message(
+      'No tunnels match these filters.',
+      name: 'ipingTunnelsFilteredEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnels · {count}`
+  String ipingTunnelsResultCount(int count) {
+    return Intl.message(
+      'Tunnels · $count',
+      name: 'ipingTunnelsResultCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Enabled`
+  String get ipingTunnelStatusActive {
+    return Intl.message(
+      'Enabled',
+      name: 'ipingTunnelStatusActive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disabled`
+  String get ipingTunnelStatusInactive {
+    return Intl.message(
+      'Disabled',
+      name: 'ipingTunnelStatusInactive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expired`
+  String get ipingTunnelExpired {
+    return Intl.message(
+      'Expired',
+      name: 'ipingTunnelExpired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Port in use`
+  String get ipingTunnelPortConflict {
+    return Intl.message(
+      'Port in use',
+      name: 'ipingTunnelPortConflict',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TCP`
+  String get ipingTunnelTypeTcp {
+    return Intl.message('TCP', name: 'ipingTunnelTypeTcp', desc: '', args: []);
+  }
+
+  /// `Multiplexed TCP`
+  String get ipingTunnelTypeMtcp {
+    return Intl.message(
+      'Multiplexed TCP',
+      name: 'ipingTunnelTypeMtcp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `UDP`
+  String get ipingTunnelTypeUdp {
+    return Intl.message('UDP', name: 'ipingTunnelTypeUdp', desc: '', args: []);
+  }
+
+  /// `RelayX`
+  String get ipingTunnelTypeRelayx {
+    return Intl.message(
+      'RelayX',
+      name: 'ipingTunnelTypeRelayx',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Encrypted WebSocket`
+  String get ipingTunnelTypeWss {
+    return Intl.message(
+      'Encrypted WebSocket',
+      name: 'ipingTunnelTypeWss',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Multiplexed encrypted WebSocket`
+  String get ipingTunnelTypeMwss {
+    return Intl.message(
+      'Multiplexed encrypted WebSocket',
+      name: 'ipingTunnelTypeMwss',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Encrypted TLS`
+  String get ipingTunnelTypeTls {
+    return Intl.message(
+      'Encrypted TLS',
+      name: 'ipingTunnelTypeTls',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Multiplexed encrypted TLS`
+  String get ipingTunnelTypeMtls {
+    return Intl.message(
+      'Multiplexed encrypted TLS',
+      name: 'ipingTunnelTypeMtls',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Traffic`
+  String get ipingTunnelTraffic {
+    return Intl.message(
+      'Traffic',
+      name: 'ipingTunnelTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{used} / {quota}`
+  String ipingTunnelTrafficOf(String used, String quota) {
+    return Intl.message(
+      '$used / $quota',
+      name: 'ipingTunnelTrafficOf',
+      desc: '',
+      args: [used, quota],
+    );
+  }
+
+  /// `Expires`
+  String get ipingTunnelExpires {
+    return Intl.message(
+      'Expires',
+      name: 'ipingTunnelExpires',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-renew`
+  String get ipingTunnelAutoRenew {
+    return Intl.message(
+      'Auto-renew',
+      name: 'ipingTunnelAutoRenew',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Renew`
+  String get ipingTunnelRenew {
+    return Intl.message('Renew', name: 'ipingTunnelRenew', desc: '', args: []);
+  }
+
+  /// `Renewing spends your balance.`
+  String get ipingTunnelRenewConfirm {
+    return Intl.message(
+      'Renewing spends your balance.',
+      name: 'ipingTunnelRenewConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Renewing spends {price} from your balance.`
+  String ipingTunnelRenewConfirmPrice(String price) {
+    return Intl.message(
+      'Renewing spends $price from your balance.',
+      name: 'ipingTunnelRenewConfirmPrice',
+      desc: '',
+      args: [price],
+    );
+  }
+
+  /// `Tunnel renewed.`
+  String get ipingTunnelRenewed {
+    return Intl.message(
+      'Tunnel renewed.',
+      name: 'ipingTunnelRenewed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel updated.`
+  String get ipingTunnelUpdated {
+    return Intl.message(
+      'Tunnel updated.',
+      name: 'ipingTunnelUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to update this tunnel. Please try again.`
+  String get ipingTunnelUpdateFailed {
+    return Intl.message(
+      'Unable to update this tunnel. Please try again.',
+      name: 'ipingTunnelUpdateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to renew this tunnel. Please try again.`
+  String get ipingTunnelRenewFailed {
+    return Intl.message(
+      'Unable to renew this tunnel. Please try again.',
+      name: 'ipingTunnelRenewFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Listen address`
+  String get ipingTunnelListen {
+    return Intl.message(
+      'Listen address',
+      name: 'ipingTunnelListen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waiting for a port`
+  String get ipingTunnelListenWaiting {
+    return Intl.message(
+      'Waiting for a port',
+      name: 'ipingTunnelListenWaiting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy listen address`
+  String get ipingTunnelCopyListen {
+    return Intl.message(
+      'Copy listen address',
+      name: 'ipingTunnelCopyListen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Load more`
+  String get ipingTunnelLoadMore {
+    return Intl.message(
+      'Load more',
+      name: 'ipingTunnelLoadMore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Entrance`
+  String get ipingTunnelEntrance {
+    return Intl.message(
+      'Entrance',
+      name: 'ipingTunnelEntrance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Exit`
+  String get ipingTunnelExit {
+    return Intl.message('Exit', name: 'ipingTunnelExit', desc: '', args: []);
+  }
+
+  /// `Multiplier {rate}`
+  String ipingTunnelRate(String rate) {
+    return Intl.message(
+      'Multiplier $rate',
+      name: 'ipingTunnelRate',
+      desc: '',
+      args: [rate],
+    );
+  }
+
+  /// `Forward to`
+  String get ipingTunnelForward {
+    return Intl.message(
+      'Forward to',
+      name: 'ipingTunnelForward',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The exit comes from an address pool.`
+  String get ipingTunnelPoolExit {
+    return Intl.message(
+      'The exit comes from an address pool.',
+      name: 'ipingTunnelPoolExit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{address} +{count}`
+  String ipingTunnelMoreAddresses(String address, int count) {
+    return Intl.message(
+      '$address +$count',
+      name: 'ipingTunnelMoreAddresses',
+      desc: '',
+      args: [address, count],
+    );
+  }
+
+  /// `Edit Tunnel`
+  String get ipingTunnelEdit {
+    return Intl.message(
+      'Edit Tunnel',
+      name: 'ipingTunnelEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel Name`
+  String get ipingTunnelName {
+    return Intl.message(
+      'Tunnel Name',
+      name: 'ipingTunnelName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter tunnel name`
+  String get ipingTunnelNameHint {
+    return Intl.message(
+      'Enter tunnel name',
+      name: 'ipingTunnelNameHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Forward IP or domain`
+  String get ipingTunnelForwardHost {
+    return Intl.message(
+      'Forward IP or domain',
+      name: 'ipingTunnelForwardHost',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Port`
+  String get ipingTunnelForwardPort {
+    return Intl.message(
+      'Port',
+      name: 'ipingTunnelForwardPort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Forward address cannot be empty`
+  String get ipingTunnelForwardAddressRequired {
+    return Intl.message(
+      'Forward address cannot be empty',
+      name: 'ipingTunnelForwardAddressRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Port must be between 1 and 65535`
+  String get ipingTunnelPortInvalid {
+    return Intl.message(
+      'Port must be between 1 and 65535',
+      name: 'ipingTunnelPortInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get ipingTunnelFilterAll {
+    return Intl.message(
+      'All',
+      name: 'ipingTunnelFilterAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel Type`
+  String get ipingTunnelFilterType {
+    return Intl.message(
+      'Tunnel Type',
+      name: 'ipingTunnelFilterType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-renew`
+  String get ipingTunnelFilterAutoRenew {
+    return Intl.message(
+      'Auto-renew',
+      name: 'ipingTunnelFilterAutoRenew',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enabled`
+  String get ipingTunnelFilterAutoRenewOn {
+    return Intl.message(
+      'Enabled',
+      name: 'ipingTunnelFilterAutoRenewOn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disabled`
+  String get ipingTunnelFilterAutoRenewOff {
+    return Intl.message(
+      'Disabled',
+      name: 'ipingTunnelFilterAutoRenewOff',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Filters`
+  String get ipingTunnelFilterReset {
+    return Intl.message(
+      'Reset Filters',
+      name: 'ipingTunnelFilterReset',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Filter`
+  String get ipingTunnelFilterTitle {
+    return Intl.message(
+      'Filter',
+      name: 'ipingTunnelFilterTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Switch Port`
+  String get ipingTunnelSwitchPort {
+    return Intl.message(
+      'Switch Port',
+      name: 'ipingTunnelSwitchPort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Port switched successfully`
+  String get ipingTunnelSwitchPortSuccess {
+    return Intl.message(
+      'Port switched successfully',
+      name: 'ipingTunnelSwitchPortSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to switch port. Please try again.`
+  String get ipingTunnelSwitchPortFailed {
+    return Intl.message(
+      'Failed to switch port. Please try again.',
+      name: 'ipingTunnelSwitchPortFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Username (optional)`
+  String get ipingTunnelUsername {
+    return Intl.message(
+      'Username (optional)',
+      name: 'ipingTunnelUsername',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password (optional)`
+  String get ipingTunnelPassword {
+    return Intl.message(
+      'Password (optional)',
+      name: 'ipingTunnelPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import from Clipboard`
+  String get ipingTunnelImportClipboard {
+    return Intl.message(
+      'Import from Clipboard',
+      name: 'ipingTunnelImportClipboard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Forward address imported from clipboard`
+  String get ipingTunnelImportClipboardSuccess {
+    return Intl.message(
+      'Forward address imported from clipboard',
+      name: 'ipingTunnelImportClipboardSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to parse a valid proxy address`
+  String get ipingTunnelImportClipboardFailed {
+    return Intl.message(
+      'Failed to parse a valid proxy address',
+      name: 'ipingTunnelImportClipboardFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select from Native IPs`
+  String get ipingTunnelSelectFromNativeIps {
+    return Intl.message(
+      'Select from Native IPs',
+      name: 'ipingTunnelSelectFromNativeIps',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No available Native IPs`
+  String get ipingTunnelSelectFromNativeIpsEmpty {
+    return Intl.message(
+      'No available Native IPs',
+      name: 'ipingTunnelSelectFromNativeIpsEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot change forward address while gifted IP is active`
+  String get ipingTunnelForwardLocked {
+    return Intl.message(
+      'Cannot change forward address while gifted IP is active',
+      name: 'ipingTunnelForwardLocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `IP Type`
+  String get ipingTunnelFilterIpType {
+    return Intl.message(
+      'IP Type',
+      name: 'ipingTunnelFilterIpType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Listen Port`
+  String get ipingTunnelFilterPort {
+    return Intl.message(
+      'Listen Port',
+      name: 'ipingTunnelFilterPort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter port number`
+  String get ipingTunnelFilterPortHint {
+    return Intl.message(
+      'Enter port number',
+      name: 'ipingTunnelFilterPortHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Switch Exit IP`
+  String get ipingTunnelSwitchIp {
+    return Intl.message(
+      'Switch Exit IP',
+      name: 'ipingTunnelSwitchIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Exit IP switched successfully, applying configuration`
+  String get ipingTunnelSwitchIpSuccess {
+    return Intl.message(
+      'Exit IP switched successfully, applying configuration',
+      name: 'ipingTunnelSwitchIpSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to switch exit IP. Please try again.`
+  String get ipingTunnelSwitchIpFailed {
+    return Intl.message(
+      'Failed to switch exit IP. Please try again.',
+      name: 'ipingTunnelSwitchIpFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-renews one day before expiry. Keep sufficient balance.`
+  String get ipingTunnelAutoRenewDesc {
+    return Intl.message(
+      'Auto-renews one day before expiry. Keep sufficient balance.',
+      name: 'ipingTunnelAutoRenewDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Exit Country/Region`
+  String get ipingTunnelPoolCountry {
+    return Intl.message(
+      'Exit Country/Region',
+      name: 'ipingTunnelPoolCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto-switch Interval (min)`
+  String get ipingTunnelPoolInterval {
+    return Intl.message(
+      'Auto-switch Interval (min)',
+      name: 'ipingTunnelPoolInterval',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `0 disables automatic switching`
+  String get ipingTunnelPoolIntervalHint {
+    return Intl.message(
+      '0 disables automatic switching',
+      name: 'ipingTunnelPoolIntervalHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Batch Operations`
+  String get ipingTunnelBatchOperations {
+    return Intl.message(
+      'Batch Operations',
+      name: 'ipingTunnelBatchOperations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} selected`
+  String ipingTunnelBatchSelected(int count) {
+    return Intl.message(
+      '$count selected',
+      name: 'ipingTunnelBatchSelected',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Batch Renew`
+  String get ipingTunnelBatchRenew {
+    return Intl.message(
+      'Batch Renew',
+      name: 'ipingTunnelBatchRenew',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Batch Renew`
+  String get ipingTunnelBatchRenewConfirm {
+    return Intl.message(
+      'Confirm Batch Renew',
+      name: 'ipingTunnelBatchRenewConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Estimated Total`
+  String get ipingTunnelBatchRenewTotal {
+    return Intl.message(
+      'Estimated Total',
+      name: 'ipingTunnelBatchRenewTotal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Balance`
+  String get ipingTunnelBatchRenewBalance {
+    return Intl.message(
+      'Current Balance',
+      name: 'ipingTunnelBatchRenewBalance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insufficient balance, please top up`
+  String get ipingTunnelBatchRenewInsufficient {
+    return Intl.message(
+      'Insufficient balance, please top up',
+      name: 'ipingTunnelBatchRenewInsufficient',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Batch renewed {count} tunnels successfully`
+  String ipingTunnelBatchRenewSuccess(int count) {
+    return Intl.message(
+      'Batch renewed $count tunnels successfully',
+      name: 'ipingTunnelBatchRenewSuccess',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Batch Settings`
+  String get ipingTunnelBatchUpdate {
+    return Intl.message(
+      'Batch Settings',
+      name: 'ipingTunnelBatchUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Batch updated successfully`
+  String get ipingTunnelBatchUpdateSuccess {
+    return Intl.message(
+      'Batch updated successfully',
+      name: 'ipingTunnelBatchUpdateSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy Addresses`
+  String get ipingTunnelBatchCopyAddresses {
+    return Intl.message(
+      'Copy Addresses',
+      name: 'ipingTunnelBatchCopyAddresses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copied {count} listen addresses`
+  String ipingTunnelBatchCopySuccess(int count) {
+    return Intl.message(
+      'Copied $count listen addresses',
+      name: 'ipingTunnelBatchCopySuccess',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Selected tunnels have no ready listen addresses`
+  String get ipingTunnelBatchCopyEmpty {
+    return Intl.message(
+      'Selected tunnels have no ready listen addresses',
+      name: 'ipingTunnelBatchCopyEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No change`
+  String get ipingTunnelBatchStatusNoChange {
+    return Intl.message(
+      'No change',
+      name: 'ipingTunnelBatchStatusNoChange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Batch Fill IPs`
+  String get ipingTunnelBatchFillAddresses {
+    return Intl.message(
+      'Batch Fill IPs',
+      name: 'ipingTunnelBatchFillAddresses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `One per line, filled in order; leave empty to keep unchanged`
+  String get ipingTunnelBatchFillAddressesHint {
+    return Intl.message(
+      'One per line, filled in order; leave empty to keep unchanged',
+      name: 'ipingTunnelBatchFillAddressesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Batch Fill Names`
+  String get ipingTunnelBatchFillNames {
+    return Intl.message(
+      'Batch Fill Names',
+      name: 'ipingTunnelBatchFillNames',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Prefix, e.g. Tokyo`
+  String get ipingTunnelBatchFillNamesPrefix {
+    return Intl.message(
+      'Prefix, e.g. Tokyo',
+      name: 'ipingTunnelBatchFillNamesPrefix',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate numbered`
+  String get ipingTunnelBatchFillNamesGenerate {
+    return Intl.message(
+      'Generate numbered',
+      name: 'ipingTunnelBatchFillNamesGenerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance may not cover auto-renewals`
+  String get ipingRenewalShortfall {
+    return Intl.message(
+      'Balance may not cover auto-renewals',
+      name: 'ipingRenewalShortfall',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} auto-renewing items cost about {cost} within 7 days. Top up at least {shortfall}.`
+  String ipingRenewalShortfallDetail(int count, String cost, String shortfall) {
+    return Intl.message(
+      '$count auto-renewing items cost about $cost within 7 days. Top up at least $shortfall.',
+      name: 'ipingRenewalShortfallDetail',
+      desc: '',
+      args: [count, cost, shortfall],
+    );
+  }
+
+  /// `Purchased`
+  String get ipingNativeIpOwned {
+    return Intl.message(
+      'Purchased',
+      name: 'ipingNativeIpOwned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You have no Native IPs yet.`
+  String get ipingNativeIpOwnedEmpty {
+    return Intl.message(
+      'You have no Native IPs yet.',
+      name: 'ipingNativeIpOwnedEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy address`
+  String get ipingNativeIpCopyAddress {
+    return Intl.message(
+      'Copy address',
+      name: 'ipingNativeIpCopyAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy credentials`
+  String get ipingNativeIpCopyCredentials {
+    return Intl.message(
+      'Copy credentials',
+      name: 'ipingNativeIpCopyCredentials',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy proxy URL`
+  String get ipingNativeIpCopyUrl {
+    return Intl.message(
+      'Copy proxy URL',
+      name: 'ipingNativeIpCopyUrl',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In a tunnel`
+  String get ipingNativeIpInTunnel {
+    return Intl.message(
+      'In a tunnel',
+      name: 'ipingNativeIpInTunnel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Go to Tunnels`
+  String get ipingNativeIpOpenTunnels {
+    return Intl.message(
+      'Go to Tunnels',
+      name: 'ipingNativeIpOpenTunnels',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Test connection`
+  String get ipingTunnelTestConnection {
+    return Intl.message(
+      'Test connection',
+      name: 'ipingTunnelTestConnection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} tunnels expire within 3 days`
+  String ipingTunnelReminderExpiring(int count) {
+    return Intl.message(
+      '$count tunnels expire within 3 days',
+      name: 'ipingTunnelReminderExpiring',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} tunnels are almost out of traffic`
+  String ipingTunnelReminderTraffic(int count) {
+    return Intl.message(
+      '$count tunnels are almost out of traffic',
+      name: 'ipingTunnelReminderTraffic',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Export`
+  String get ipingTunnelExport {
+    return Intl.message(
+      'Export',
+      name: 'ipingTunnelExport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `host:port:user:pass`
+  String get ipingTunnelExportLines {
+    return Intl.message(
+      'host:port:user:pass',
+      name: 'ipingTunnelExportLines',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clash proxies (YAML)`
+  String get ipingTunnelExportClash {
+    return Intl.message(
+      'Clash proxies (YAML)',
+      name: 'ipingTunnelExportClash',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSV`
+  String get ipingTunnelExportCsv {
+    return Intl.message(
+      'CSV',
+      name: 'ipingTunnelExportCsv',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copied {count} entries`
+  String ipingTunnelExportSuccess(int count) {
+    return Intl.message(
+      'Copied $count entries',
+      name: 'ipingTunnelExportSuccess',
+      desc: '',
+      args: [count],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

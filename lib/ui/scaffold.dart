@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_clash/common/input_limits.dart';
 import 'package:fl_clash/common/iterable.dart';
 import 'package:fl_clash/ui/context.dart';
+import 'package:fl_clash/ui/sidebar.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/keyboard.dart';
 import 'package:fl_clash/ui/l10n.dart';
@@ -376,8 +377,12 @@ class CommonScaffoldState extends State<CommonScaffold> {
     );
   }
 
-  Widget? _buildLeading(VoidCallback? backAction, {required _SheetPop? pop}) {
-    final button = _buildLeadingButton(backAction, pop: pop);
+  Widget? _buildLeading(
+    VoidCallback? backAction, {
+    required _SheetPop? pop,
+    required _SheetForm form,
+  }) {
+    final button = _buildLeadingButton(backAction, pop: pop, form: form);
     if (button == null) {
       return null;
     }
@@ -403,6 +408,7 @@ class CommonScaffoldState extends State<CommonScaffold> {
   Widget? _buildLeadingButton(
     VoidCallback? backAction, {
     required _SheetPop? pop,
+    required _SheetForm form,
   }) {
     if (_isSearch) {
       return IconButton(
@@ -426,13 +432,20 @@ class CommonScaffoldState extends State<CommonScaffold> {
         },
       );
     }
-    final route = ModalRoute.of(context);
-    if (route?.impliesAppBarDismissal != true) {
-      return null;
+    final toggle = SidebarToggleScope.maybeOf(context);
+    if (toggle != null && form.pop == null) {
+      return SidebarToggleButton(
+        key: ValueKey(toggle.progress),
+        toggle: toggle,
+      );
     }
-    return route is PageRoute && route.fullscreenDialog
-        ? const CloseButton()
-        : const BackButton();
+    final route = ModalRoute.of(context);
+    if (route?.impliesAppBarDismissal == true) {
+      return route is PageRoute && route.fullscreenDialog
+          ? const CloseButton()
+          : const BackButton();
+    }
+    return null;
   }
 
   Widget _buildTitle(AppBarSearchState? startState, {required bool compact}) {
@@ -652,7 +665,11 @@ class CommonScaffoldState extends State<CommonScaffold> {
           ValueListenableBuilder<AppBarState>(
             valueListenable: _appBarState,
             builder: (_, state, _) {
-              final leading = _buildLeading(backAction, pop: form.pop);
+              final leading = _buildLeading(
+                backAction,
+                pop: form.pop,
+                form: form,
+              );
               final appBar = _buildAppBarWrap(
                 AppBar(
                   clipBehavior: Clip.none,

@@ -15,29 +15,72 @@ const _compactWidth = 48.0;
 const _expandedWidth = 220.0;
 const _itemSize = 40.0;
 const _itemGap = 4.0;
-const _toggleGap = 8.0;
 const _verticalInset = 4.0;
 const _maxSideInset = 12.0;
 const _iconSize = 24.0;
 const _labelGap = 12.0;
 const _indicatorWidth = 3.0;
 const _indicatorHeight = 16.0;
+const _dividerVerticalPadding = 6.0;
+const _dividerThickness = 1.0;
+const _dividerHeight = _dividerVerticalPadding * 2 + _dividerThickness;
 const _expandDuration = Duration(milliseconds: 250);
 const _indicatorDuration = Duration(milliseconds: 320);
 final _itemShape = AppShape.all(10);
 
 class SidebarDestination {
-  const SidebarDestination({required this.glyph, required this.label});
+  const SidebarDestination({
+    required this.glyph,
+    required this.label,
+    this.group = 0,
+  });
 
   final Glyph glyph;
   final String label;
+
+  /// Destinations sharing a group stay together; a rule separates one group
+  /// from the next.
+  final int group;
 }
 
-/// Where the sidebar cannot widen in place, [onToggle] is null and the toggle
-/// opens the expanded pane over the content instead.
-///
-/// [windowControls] is the area native window buttons cover at the top start
-/// corner; the pane keeps it clear and never gets narrower than it.
+class SidebarToggleScope extends InheritedWidget {
+  const SidebarToggleScope({
+    super.key,
+    required this.progress,
+    required this.onToggle,
+    required super.child,
+  });
+
+  final double progress;
+
+  final VoidCallback onToggle;
+
+  static SidebarToggleScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SidebarToggleScope>();
+
+  @override
+  bool updateShouldNotify(SidebarToggleScope oldWidget) =>
+      progress != oldWidget.progress;
+}
+
+class SidebarToggleButton extends StatelessWidget {
+  const SidebarToggleButton({super.key, required this.toggle});
+
+  final SidebarToggleScope toggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = UiLocalizations.of(context);
+    return IconButton(
+      tooltip: toggle.progress == 0
+          ? localizations.showMore
+          : localizations.showLess,
+      onPressed: toggle.onToggle,
+      icon: GlyphIcon(AppGlyphs.sidebar(toggle.progress)),
+    );
+  }
+}
+
 class NavigationSidebar extends StatefulWidget {
   const NavigationSidebar({
     super.key,
@@ -46,6 +89,7 @@ class NavigationSidebar extends StatefulWidget {
     required this.expanded,
     required this.onSelected,
     this.onToggle,
+    this.onToggleReady,
     this.windowControls = Size.zero,
     this.footer,
   });
@@ -55,14 +99,18 @@ class NavigationSidebar extends StatefulWidget {
   final bool expanded;
   final ValueChanged<int> onSelected;
   final VoidCallback? onToggle;
+
+  /// Hands the parent the control that widens the pane or opens the overlay,
+  /// and how far the pane has widened.
+  final void Function(VoidCallback onToggle, double progress)? onToggleReady;
   final Size windowControls;
   final Widget? footer;
 
   @override
-  State<NavigationSidebar> createState() => _NavigationSidebarState();
+  State<NavigationSidebar> createState() => NavigationSidebarState();
 }
 
-class _NavigationSidebarState extends State<NavigationSidebar>
+class NavigationSidebarState extends State<NavigationSidebar>
     with SingleTickerProviderStateMixin {
   final _overlayController = OverlayPortalController();
   late final AnimationController _overlayExpansion = AnimationController(
@@ -75,15 +123,31 @@ class _NavigationSidebarState extends State<NavigationSidebar>
   );
 
   @override
+  void initState() {
+    super.initState();
+    _reportToggle();
+  }
+
+  void _reportToggle() {
+    final report = widget.onToggleReady;
+    if (report == null) return;
+    final progress = widget.expanded ? 1.0 : _overlayExpansion.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) report(handleToggle, progress);
+    });
+  }
+
+  @override
   void didUpdateWidget(covariant NavigationSidebar oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _reportToggle();
     if (widget.onToggle != null && _overlayController.isShowing) {
       _overlayExpansion.value = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) => _hideIfDismissed());
     }
   }
 
-  void _handleToggle() {
+  void handleToggle() {
     final onToggle = widget.onToggle;
     if (onToggle != null) {
       onToggle();
@@ -93,6 +157,7 @@ class _NavigationSidebarState extends State<NavigationSidebar>
       _overlayController.show();
       _overlayExpansion.forward();
     }
+    _reportToggle();
   }
 
   void _closeOverlay() {
@@ -115,49 +180,52 @@ class _NavigationSidebarState extends State<NavigationSidebar>
   @override
   Widget build(BuildContext context) {
     final safePadding = MediaQuery.paddingOf(context);
-    return OverlayPortal.overlayChildLayoutBuilder(
-      controller: _overlayController,
-      overlayChildBuilder: (context, info) {
-        return _SidebarOverlay(
-          anchor: MatrixUtils.transformRect(
-            info.childPaintTransform,
-            Offset.zero & info.childSize,
-          ),
-          overlayWidth: info.overlaySize.width,
-          progress: _overlayProgress,
-          onDismiss: _closeOverlay,
-          builder: (progress) => Padding(
-            padding: safePadding,
-            child: _SidebarPane(
+    return SidebarToggleScope(
+      progress: widget.expanded ? 1 : 0,
+      onToggle: handleToggle,
+      child: OverlayPortal.overlayChildLayoutBuilder(
+        controller: _overlayController,
+        overlayChildBuilder: (context, info) {
+          return _SidebarOverlay(
+            anchor: MatrixUtils.transformRect(
+              info.childPaintTransform,
+              Offset.zero & info.childSize,
+            ),
+            overlayWidth: info.overlaySize.width,
+            progress: _overlayProgress,
+            onDismiss: _closeOverlay,
+            builder: (progress) => Padding(
+              padding: safePadding,
+              child: _SidebarPane(
+                footer: widget.footer,
+                progress: progress,
+                windowControls: widget.windowControls,
+                expanded: true,
+                destinations: widget.destinations,
+                selectedIndex: widget.selectedIndex,
+                onSelected: (index) {
+                  widget.onSelected(index);
+                  _closeOverlay();
+                },
+                onToggle: _closeOverlay,
+              ),
+            ),
+          );
+        },
+        child: SafeArea(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: widget.expanded ? 1.0 : 0.0),
+            duration: _expandDuration,
+            curve: Easing.standard,
+            builder: (context, progress, _) => _SidebarPane(
               footer: widget.footer,
               progress: progress,
               windowControls: widget.windowControls,
-              expanded: true,
+              expanded: widget.expanded,
               destinations: widget.destinations,
               selectedIndex: widget.selectedIndex,
-              onSelected: (index) {
-                widget.onSelected(index);
-                _closeOverlay();
-              },
-              onToggle: _closeOverlay,
+              onSelected: widget.onSelected,
             ),
-          ),
-        );
-      },
-      child: SafeArea(
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(end: widget.expanded ? 1.0 : 0.0),
-          duration: _expandDuration,
-          curve: Easing.standard,
-          builder: (context, progress, _) => _SidebarPane(
-            footer: widget.footer,
-            progress: progress,
-            windowControls: widget.windowControls,
-            expanded: widget.expanded,
-            destinations: widget.destinations,
-            selectedIndex: widget.selectedIndex,
-            onSelected: widget.onSelected,
-            onToggle: _handleToggle,
           ),
         ),
       ),
@@ -262,7 +330,7 @@ class _SidebarPane extends StatelessWidget {
     required this.destinations,
     required this.selectedIndex,
     required this.onSelected,
-    required this.onToggle,
+    this.onToggle,
   });
 
   final double progress;
@@ -272,7 +340,9 @@ class _SidebarPane extends StatelessWidget {
   final List<SidebarDestination> destinations;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
-  final VoidCallback onToggle;
+
+  /// Set only for the pane drawn over the content, which closes itself.
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -281,8 +351,7 @@ class _SidebarPane extends StatelessWidget {
     final labelOpacity = ((progress - 0.4) / 0.6).clamp(0.0, 1.0);
     final compactWidth = math.max(_compactWidth, windowControls.width);
     final sideInset = math.min(_maxSideInset, (compactWidth - _itemSize) / 2);
-    final itemWidth = compactWidth - sideInset * 2;
-    final iconInset = (itemWidth - _iconSize) / 2;
+    final iconInset = (compactWidth - sideInset * 2 - _iconSize) / 2;
     final itemHeight =
         _itemSize + MediaQuery.textScalerOf(context).scale(fontSize) - fontSize;
     final rowWidth = _expandedWidth - sideInset * 2;
@@ -302,24 +371,22 @@ class _SidebarPane extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(height: windowControls.height + _verticalInset),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: _SidebarButton(
-              colors: colors,
-              height: itemHeight,
-              sideInset: sideInset,
-              tooltip: expanded
-                  ? UiLocalizations.of(context).showLess
-                  : UiLocalizations.of(context).showMore,
-              tooltipIsLabel: true,
-              onTap: onToggle,
-              child: SizedBox(
-                width: itemWidth,
-                child: Center(child: GlyphIcon(AppGlyphs.sidebar(progress))),
+          if (onToggle case final onToggle?)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: _SidebarButton(
+                key: const ValueKey('overlay-toggle'),
+                colors: colors,
+                height: itemHeight,
+                sideInset: sideInset,
+                tooltip: UiLocalizations.of(context).showLess,
+                onTap: onToggle,
+                child: SizedBox(
+                  width: compactWidth - sideInset * 2,
+                  child: Center(child: GlyphIcon(AppGlyphs.sidebar(progress))),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: _toggleGap),
           Expanded(
             child: ScrollConfiguration(
               behavior: const HiddenBarScrollBehavior(),
@@ -329,7 +396,12 @@ class _SidebarPane extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (final (index, destination) in destinations.indexed)
+                        for (final (index, destination)
+                            in destinations.indexed) ...[
+                          if (index > 0 &&
+                              destination.group !=
+                                  destinations[index - 1].group)
+                            _SidebarDivider(sideInset: sideInset),
                           _SidebarButton(
                             key: ValueKey(destination.label),
                             colors: colors,
@@ -347,12 +419,14 @@ class _SidebarPane extends StatelessWidget {
                               labelOpacity: labelOpacity,
                             ),
                           ),
+                        ],
                       ],
                     ),
                     if (selectedIndex < destinations.length)
                       _SelectionIndicator(
                         color: colors.indicator,
                         index: selectedIndex,
+                        destinations: destinations,
                         start: sideInset,
                         stride: itemHeight + _itemGap,
                       ),
@@ -369,6 +443,25 @@ class _SidebarPane extends StatelessWidget {
   }
 }
 
+class _SidebarDivider extends StatelessWidget {
+  const _SidebarDivider({required this.sideInset});
+
+  final double sideInset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(
+        sideInset,
+        _dividerVerticalPadding,
+        sideInset,
+        _dividerVerticalPadding,
+      ),
+      child: const Divider(height: _dividerThickness),
+    );
+  }
+}
+
 class _SidebarButton extends StatelessWidget {
   const _SidebarButton({
     super.key,
@@ -379,7 +472,6 @@ class _SidebarButton extends StatelessWidget {
     required this.onTap,
     required this.child,
     this.selected,
-    this.tooltipIsLabel = false,
   });
 
   final _SidebarColors colors;
@@ -387,7 +479,6 @@ class _SidebarButton extends StatelessWidget {
   final double sideInset;
   final bool? selected;
   final String tooltip;
-  final bool tooltipIsLabel;
   final VoidCallback onTap;
   final Widget child;
 
@@ -415,7 +506,7 @@ class _SidebarButton extends StatelessWidget {
               overlayColor: colors.overlay,
               child: Tooltip(
                 message: tooltip,
-                excludeFromSemantics: !tooltipIsLabel,
+                excludeFromSemantics: true,
                 child: IconTheme.merge(
                   data: IconThemeData(size: _iconSize, color: colors.icon),
                   child: SizedBox(height: height, child: child),
@@ -505,12 +596,14 @@ class _SelectionIndicator extends StatefulWidget {
   const _SelectionIndicator({
     required this.color,
     required this.index,
+    required this.destinations,
     required this.start,
     required this.stride,
   });
 
   final Color color;
   final int index;
+  final List<SidebarDestination> destinations;
   final double start;
   final double stride;
 
@@ -542,8 +635,17 @@ class _SelectionIndicatorState extends State<_SelectionIndicator>
     super.dispose();
   }
 
-  double _topOf(int index) =>
-      index * widget.stride + (widget.stride - _indicatorHeight) / 2;
+  double _topOf(int index) {
+    var dividers = 0;
+    for (var i = 1; i <= index && i < widget.destinations.length; i++) {
+      if (widget.destinations[i].group != widget.destinations[i - 1].group) {
+        dividers++;
+      }
+    }
+    return index * widget.stride +
+        dividers * _dividerHeight +
+        (widget.stride - _indicatorHeight) / 2;
+  }
 
   @override
   Widget build(BuildContext context) {

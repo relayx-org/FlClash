@@ -9,12 +9,16 @@ NavigationItemsState navigationItemsState(Ref ref) {
   final hasProxies = ref.watch(
     currentGroupsStateProvider.select((state) => state.value.isNotEmpty),
   );
+  final signedIn = ref.watch(
+    ipingSessionProvider.select((state) => state.account != null),
+  );
   final isInit = ref.watch(initProvider);
   return NavigationItemsState(
     value:
         navigationPort?.getItems(
           openLogs: openLogs,
           hasProxies: !isInit ? hasProfiles : hasProxies,
+          signedIn: signedIn,
         ) ??
         const [],
   );

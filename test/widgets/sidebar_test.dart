@@ -69,6 +69,12 @@ Widget _sidebar({
 
 Finder get _sidebarFinder => find.byType(NavigationSidebar);
 
+SidebarToggleScope _toggleOf(WidgetTester tester) => SidebarToggleScope.maybeOf(
+  tester.element(
+    find.descendant(of: _sidebarFinder, matching: find.byType(SafeArea)),
+  ),
+)!;
+
 Finder _indicator(WidgetTester tester) {
   final primary = Theme.of(tester.element(_sidebarFinder)).colorScheme.primary;
   return find.byWidgetPredicate(
@@ -105,6 +111,32 @@ Finder _rowTooltip(String message) => find.byWidgetPredicate(
 );
 
 void main() {
+  testWidgets('a divider separates one group of destinations from the next', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _sidebar(
+        destinations: const [
+          ..._destinations,
+          SidebarDestination(
+            glyph: AppGlyphs.account,
+            label: 'Account',
+            group: 1,
+          ),
+        ],
+      ),
+    );
+
+    final divider = find.byType(Divider);
+    expect(divider, findsOneWidget);
+    final rule = tester.getCenter(divider);
+    expect(
+      rule.dy,
+      greaterThan(tester.getCenter(_glyph(AppGlyphs.profiles)).dy),
+    );
+    expect(rule.dy, lessThan(tester.getCenter(_glyph(AppGlyphs.account)).dy));
+  });
+
   testWidgets('keeps branding visible below the navigation at either width', (
     tester,
   ) async {
@@ -143,6 +175,30 @@ void main() {
     expect(
       tester.getSemantics(find.text('Proxies')),
       isSemantics(isSelected: true, isButton: true),
+    );
+  });
+
+  testWidgets('the indicator stays centered when selected across a divider', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _sidebar(
+        selectedIndex: 3,
+        destinations: const [
+          ..._destinations,
+          SidebarDestination(
+            glyph: AppGlyphs.account,
+            label: 'Account',
+            group: 1,
+          ),
+        ],
+      ),
+    );
+
+    final indicator = tester.getRect(_indicator(tester));
+    expect(
+      indicator.center.dy,
+      moreOrLessEquals(tester.getCenter(_glyph(AppGlyphs.account)).dy),
     );
   });
 
@@ -197,10 +253,10 @@ void main() {
     await tester.tap(_glyph(AppGlyphs.profiles));
     expect(selected, 2);
 
-    await tester.tap(find.byTooltip('Expand'));
-    await tester.pump();
+    final toggle = _toggleOf(tester);
+    expect(toggle.progress, 0);
+    toggle.onToggle();
     expect(toggled, 1);
-    expect(find.text('Proxies'), findsOneWidget);
 
     await tester.pumpWidget(_sidebar(onToggle: () {}));
     await tester.pump(const Duration(milliseconds: 120));
@@ -211,7 +267,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.getSize(_sidebarFinder).width, 220);
     expect(_rowTooltip('Proxies'), findsNothing);
-    expect(find.byTooltip('Collapse'), findsOneWidget);
+    expect(_toggleOf(tester).progress, 1);
   });
 
   testWidgets('an expanded row whose label is cut off keeps its tooltip', (
@@ -233,30 +289,18 @@ void main() {
   });
 
   testWidgets('the toggle glyph follows the pane as it widens', (tester) async {
-    List<Rect> glyph(String tooltip) => [
-      for (final shape
-          in tester
-              .widget<GlyphIcon>(
-                find.descendant(
-                  of: find.byTooltip(tooltip),
-                  matching: find.byType(GlyphIcon),
-                ),
-              )
-              .glyph
-              .shapes)
-        shape.path.getBounds(),
-    ];
-
     await tester.pumpWidget(_sidebar(expanded: false, onToggle: () {}));
-    final collapsed = glyph('Expand');
+    expect(_toggleOf(tester).progress, 0);
 
     await tester.pumpWidget(_sidebar(onToggle: () {}));
     await tester.pump(const Duration(milliseconds: 120));
-    final midway = glyph('Collapse');
-    expect(midway, isNot(collapsed));
+    expect(
+      _labelOpacities(tester, 'Proxies').single,
+      allOf(greaterThan(0), lessThan(1)),
+    );
 
     await tester.pumpAndSettle();
-    expect(glyph('Collapse'), isNot(midway));
+    expect(_toggleOf(tester).progress, 1);
   });
 
   testWidgets('window controls keep their corner clear', (tester) async {
@@ -270,12 +314,10 @@ void main() {
 
     final sidebar = tester.getRect(_sidebarFinder);
     expect(sidebar.width, 78);
-    final toggle = find.byTooltip('Expand');
     expect(
-      tester.getTopLeft(toggle).dy,
+      tester.getTopLeft(_glyph(AppGlyphs.dashboard)).dy,
       greaterThanOrEqualTo(sidebar.top + 32),
     );
-    expect(tester.getCenter(toggle).dx, sidebar.center.dx);
     expect(tester.getCenter(_glyph(AppGlyphs.profiles)).dx, sidebar.center.dx);
     final selectedItem = tester.getRect(
       find
@@ -294,15 +336,17 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.getSize(_sidebarFinder).width, 220);
-    expect(tester.getCenter(_glyph(AppGlyphs.profiles)), folder);
+    expect(tester.getCenter(_glyph(AppGlyphs.profiles)).dx, folder.dx);
   });
 
   group('without room to widen', () {
     Future<void> openOverlay(WidgetTester tester) async {
-      await tester.tap(find.byTooltip('Expand'));
+      _toggleOf(tester).onToggle();
       await tester.pumpAndSettle();
       expect(find.text('Proxies'), findsNWidgets(2));
     }
+
+    final overlayToggle = find.byKey(const ValueKey('overlay-toggle'));
 
     testWidgets('the toggle opens the pane over the content', (tester) async {
       await tester.pumpWidget(_sidebar(expanded: false));
@@ -318,10 +362,7 @@ void main() {
         contentWidth,
       );
       expect(_labelOpacities(tester, 'Proxies'), unorderedEquals([0, 1]));
-      expect(
-        tester.getTopLeft(find.byTooltip('Collapse')),
-        tester.getTopLeft(find.byTooltip('Expand')),
-      );
+      expect(overlayToggle, findsOneWidget);
       final colorScheme = Theme.of(tester.element(_sidebarFinder)).colorScheme;
       final pane = tester.widget<Material>(_paneFinder);
       expect(pane.color, colorScheme.chromeSurface);
@@ -330,7 +371,7 @@ void main() {
         Divider.createBorderSide(tester.element(_sidebarFinder)),
       );
 
-      await tester.tap(find.byTooltip('Collapse'));
+      await tester.tap(overlayToggle);
       await tester.pumpAndSettle();
       expect(find.text('Proxies'), findsOneWidget);
     });
@@ -344,9 +385,12 @@ void main() {
       );
       final sidebar = tester.getRect(_sidebarFinder);
       expect(sidebar.width, 48 + safePadding.left);
-      final toggle = tester.getTopLeft(find.byTooltip('Expand'));
-      expect(toggle.dx, greaterThanOrEqualTo(sidebar.left + safePadding.left));
-      expect(toggle.dy, greaterThanOrEqualTo(sidebar.top + safePadding.top));
+      final firstRow = tester.getTopLeft(_glyph(AppGlyphs.dashboard));
+      expect(
+        firstRow.dx,
+        greaterThanOrEqualTo(sidebar.left + safePadding.left),
+      );
+      expect(firstRow.dy, greaterThanOrEqualTo(sidebar.top + safePadding.top));
 
       await openOverlay(tester);
 
@@ -354,7 +398,6 @@ void main() {
       expect(pane.topLeft, sidebar.topLeft);
       expect(pane.height, sidebar.height);
       expect(pane.width, 220 + safePadding.left);
-      expect(tester.getTopLeft(find.byTooltip('Collapse')), toggle);
     });
 
     testWidgets('choosing a row selects it and closes the pane', (
@@ -392,11 +435,9 @@ void main() {
 
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       addTearDown(gesture.removePointer);
-      await gesture.addPointer(
-        location: tester.getCenter(find.byTooltip('Collapse')),
-      );
+      await gesture.addPointer(location: tester.getCenter(_shown('Proxies')));
       await tester.pump(const Duration(seconds: 1));
-      expect(find.text('Collapse'), findsOneWidget);
+      expect(find.text('Proxies'), findsWidgets);
     });
 
     testWidgets('widening the window closes the pane', (tester) async {

@@ -44,6 +44,21 @@ void main() {
     ]);
   });
 
+  test('a signed-in account gets its own desktop destination', () {
+    final destinations = navigation
+        .getItems(signedIn: true)
+        .where((item) => item.modes.contains(NavigationItemMode.desktop))
+        .map((item) => item.label);
+    expect(destinations, [
+      PageLabel.dashboard,
+      PageLabel.connections,
+      PageLabel.tools,
+      PageLabel.nativeIp,
+      PageLabel.tunnels,
+      PageLabel.account,
+    ]);
+  });
+
   testWidgets('initial desktop layout does not animate mobile navigation out', (
     tester,
   ) async {
@@ -259,13 +274,16 @@ void main() {
     final sidebar = find.byType(NavigationSidebar);
     expect(tester.getSize(sidebar).width, 220);
 
-    await tester.tap(find.byTooltip('Collapse'));
+    void toggle() =>
+        tester.state<NavigationSidebarState>(sidebar).handleToggle();
+
+    toggle();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(appSettingProvider).sidebarExpanded, isFalse);
     expect(tester.getSize(sidebar).width, 48);
 
-    await tester.tap(find.byTooltip('Expand'));
+    toggle();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.getSize(sidebar).width, 220);
@@ -276,7 +294,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.getSize(sidebar).width, 48);
 
-    await tester.tap(find.byTooltip('Expand'));
+    toggle();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.getSize(sidebar).width, 48);

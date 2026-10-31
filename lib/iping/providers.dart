@@ -17,6 +17,8 @@ import 'auth_session.dart';
 import 'browser.dart';
 import 'session.dart';
 import 'site_config.dart';
+import 'native_ip.dart';
+import 'topup.dart';
 import 'user_info.dart';
 
 final ipingApiProvider = Provider<IpingApi>((ref) => IpingApi());
@@ -60,6 +62,30 @@ final ipingUserInfoProvider = FutureProvider.autoDispose<IpingUserInfo?>((
   }
   return info;
 }, retry: (_, _) => null);
+
+final ipingRecentTopupsProvider = FutureProvider.autoDispose<IpingTopupPage?>((
+  ref,
+) {
+  final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+  if (account?.apiKey == null) return Future.value(null);
+  return ref.watch(ipingAuthenticatedApiProvider).topupOrders(perPage: 10);
+}, retry: (_, _) => null);
+
+final ipingTopupOptionsProvider = FutureProvider.autoDispose<IpingTopupOptions>(
+  (ref) => ref.watch(ipingAuthenticatedApiProvider).topupOptions(),
+  retry: (_, _) => null,
+);
+
+final ipingNativeIpInventoryProvider =
+    FutureProvider.autoDispose<List<NativeIpOffer>>(
+      (ref) => ref.watch(ipingAuthenticatedApiProvider).nativeIpInventory(),
+      retry: (_, _) => null,
+    );
+
+final ipingTunnelPlansProvider = FutureProvider.autoDispose<List<TunnelPlan>>(
+  (ref) => ref.watch(ipingAuthenticatedApiProvider).tunnelPlans(),
+  retry: (_, _) => null,
+);
 
 final ipingReferralStatsProvider = FutureProvider.autoDispose
     .family<IpingReferralStats?, IpingAccount>((ref, account) async {

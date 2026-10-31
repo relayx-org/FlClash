@@ -1,5 +1,8 @@
 import 'package:fl_clash/common/app_ports.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/native_ip_page.dart';
+import 'package:fl_clash/iping/tunnel_page.dart';
+import 'package:fl_clash/iping/profile.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/views/page_destination.dart';
 import 'package:fl_clash/views/views.dart';
@@ -12,6 +15,7 @@ class Navigation implements NavigationPort {
   List<NavigationItem> getItems({
     bool openLogs = false,
     bool hasProxies = false,
+    bool signedIn = false,
   }) {
     return [
       NavigationItem(
@@ -70,6 +74,33 @@ class Navigation implements NavigationPort {
         label: PageLabel.tools,
         builder: (_) => const ToolsView(key: GlobalObjectKey(PageLabel.tools)),
         modes: [NavigationItemMode.desktop, NavigationItemMode.mobile],
+      ),
+      NavigationItem(
+        glyph: PageLabel.nativeIp.glyph,
+        label: PageLabel.nativeIp,
+        builder: (_) =>
+            const IpingNativeIpPage(key: GlobalObjectKey(PageLabel.nativeIp)),
+        modes: signedIn
+            ? [NavigationItemMode.desktop, NavigationItemMode.more]
+            : [],
+      ),
+      NavigationItem(
+        glyph: PageLabel.tunnels.glyph,
+        label: PageLabel.tunnels,
+        builder: (_) =>
+            const IpingTunnelsPage(key: GlobalObjectKey(PageLabel.tunnels)),
+        modes: signedIn
+            ? [NavigationItemMode.desktop, NavigationItemMode.more]
+            : [],
+      ),
+      NavigationItem(
+        glyph: PageLabel.account.glyph,
+        label: PageLabel.account,
+        builder: (_) =>
+            const IpingProfile(key: GlobalObjectKey(PageLabel.account)),
+        modes: signedIn
+            ? [NavigationItemMode.desktop, NavigationItemMode.more]
+            : [],
       ),
     ];
   }

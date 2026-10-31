@@ -8,7 +8,7 @@ import '../ui/appearance.dart';
 import '../ui/ui.dart';
 import '../ui/icons/icons.dart';
 
-class AppSidebarFrame extends StatelessWidget {
+class AppSidebarFrame extends StatefulWidget {
   const AppSidebarFrame({
     super.key,
     required this.hasSidebar,
@@ -27,22 +27,54 @@ class AppSidebarFrame extends StatelessWidget {
   final Widget child;
 
   @override
+  State<AppSidebarFrame> createState() => AppSidebarFrameState();
+}
+
+class AppSidebarFrameState extends State<AppSidebarFrame> {
+  final _toggle = ValueNotifier<(VoidCallback, double)?>(null);
+
+  VoidCallback? get onToggle => _toggle.value?.$1;
+  double get progress => _toggle.value?.$2 ?? 0;
+
+  Listenable get toggleListenable => _toggle;
+
+  @override
+  void dispose() {
+    _toggle.dispose();
+    super.dispose();
+  }
+
+  static AppSidebarFrameState? read(BuildContext context) =>
+      context.findAncestorStateOfType<AppSidebarFrameState>();
+
+  /// The sidebar reports the control its page titles lead with.
+  void bindToggle(VoidCallback? toggle, double toggleProgress) {
+    if (toggle == null ||
+        identical(toggle, onToggle) && toggleProgress == progress) {
+      return;
+    }
+    _toggle.value = (toggle, toggleProgress);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isLtr = Directionality.of(context) == TextDirection.ltr;
     return Container(
-      color: backgroundColor ?? SurfaceLevel.page.colorOf(context.colorScheme),
+      color:
+          widget.backgroundColor ??
+          SurfaceLevel.page.colorOf(context.colorScheme),
       child: Row(
         children: [
           AnimatedVisibility.sidebar(
-            visible: hasSidebar,
+            visible: widget.hasSidebar,
             child: Material(
-              color: chromeColor ?? context.colorScheme.chromeSurface,
+              color: widget.chromeColor ?? context.colorScheme.chromeSurface,
               shape: BorderDirectional(end: Divider.createBorderSide(context)),
               child: MediaQuery.removePadding(
                 context: context,
                 removeLeft: !isLtr,
                 removeRight: isLtr,
-                child: sidebar,
+                child: widget.sidebar,
               ),
             ),
           ),
@@ -50,12 +82,12 @@ class AppSidebarFrame extends StatelessWidget {
             child: ClipRect(
               child: LayoutBuilder(
                 builder: (_, constraints) {
-                  onContentWidthChanged?.call(constraints.maxWidth);
+                  widget.onContentWidthChanged?.call(constraints.maxWidth);
                   return MediaQuery.removePadding(
                     context: context,
-                    removeLeft: hasSidebar && isLtr,
-                    removeRight: hasSidebar && !isLtr,
-                    child: child,
+                    removeLeft: widget.hasSidebar && isLtr,
+                    removeRight: widget.hasSidebar && !isLtr,
+                    child: widget.child,
                   );
                 },
               ),
@@ -197,7 +229,25 @@ class AppNavigationPage extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) {
-    final scoped = PageFocusScope(child: child);
+    final frame = AppSidebarFrameState.read(context);
+    final scoped = PageFocusScope(
+      child: frame == null
+          ? child
+          : ListenableBuilder(
+              listenable: frame.toggleListenable,
+              builder: (context, child) {
+                final onToggle = frame.onToggle;
+                return onToggle == null
+                    ? child!
+                    : SidebarToggleScope(
+                        progress: frame.progress,
+                        onToggle: onToggle,
+                        child: child!,
+                      );
+              },
+              child: child,
+            ),
+    );
     return PageActivityScope(
       isActive: active,
       child: TickerMode(

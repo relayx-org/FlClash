@@ -1,3 +1,16 @@
+/// Resolves a backend image path against [site]; empty unless it is web.
+String ipingImageUrl(String value, {required String site}) {
+  final uri = Uri.tryParse(value);
+  final resolved = value.isEmpty || uri == null
+      ? null
+      : Uri.parse(site).resolveUri(uri);
+  return resolved != null &&
+          (resolved.scheme == 'https' || resolved.scheme == 'http') &&
+          resolved.host.isNotEmpty
+      ? resolved.toString()
+      : '';
+}
+
 class IpingSiteConfig {
   const IpingSiteConfig({
     this.name = 'iPing',
@@ -21,20 +34,10 @@ class IpingSiteConfig {
     };
 
     final name = text('SITE_NAME');
-    final logo = text('LOGO_URL');
-    final uri = Uri.tryParse(logo);
-    final resolved = logo.isEmpty || uri == null
-        ? null
-        : Uri.parse(site).resolveUri(uri);
     return IpingSiteConfig(
       name: name.isEmpty ? 'iPing' : name,
       description: text('SITE_DESCRIPTION'),
-      logoUrl:
-          resolved != null &&
-              (resolved.scheme == 'https' || resolved.scheme == 'http') &&
-              resolved.host.isNotEmpty
-          ? resolved.toString()
-          : '',
+      logoUrl: ipingImageUrl(text('LOGO_URL'), site: site),
       allowRegister: switch (json['ALLOW_REGISTER']) {
         final bool value => value,
         _ => true,
