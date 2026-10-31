@@ -12,8 +12,16 @@ enum NativeIpLine {
   final String ipType;
 }
 
+enum NativeIpTagGroup { base, bandwidth, feature }
+
 class NativeIpTag {
-  const NativeIpTag({required this.key, required this.label, this.tone});
+  const NativeIpTag({
+    required this.key,
+    required this.label,
+    this.tone,
+    this.group,
+    this.order = 0,
+  });
 
   /// Stable filter id. Falls back to [label] when the payload omits a key.
   final String key;
@@ -21,6 +29,10 @@ class NativeIpTag {
 
   /// Visual tone from the store, such as `residential` or `live`.
   final String? tone;
+
+  /// Null when the backend predates tag groups or sends an unknown one.
+  final NativeIpTagGroup? group;
+  final int order;
 }
 
 class NativeIpOffer {
@@ -93,7 +105,14 @@ NativeIpTag? _nativeIpTag(Map<dynamic, dynamic> json) {
   final tone = rawTone is String && rawTone.trim().isNotEmpty
       ? rawTone.trim()
       : null;
-  return NativeIpTag(key: key, label: trimmed, tone: tone);
+  final order = json['order'];
+  return NativeIpTag(
+    key: key,
+    label: trimmed,
+    tone: tone,
+    group: NativeIpTagGroup.values.asNameMap()[json['group']],
+    order: order is num ? order.toInt() : 0,
+  );
 }
 
 class TunnelPlan {

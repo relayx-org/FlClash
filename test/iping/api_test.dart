@@ -502,6 +502,8 @@ void main() {
                 'key': 'residential',
                 'label': ' Residential ',
                 'tone': 'residential',
+                'group': 'base',
+                'order': 2,
               },
               {'label': '  '},
               {'label': 1},
@@ -555,10 +557,21 @@ void main() {
       expect(offers[1].stock, 2);
       expect(offers[1].price, 12.5);
       expect(offers[1].city, 'los-angeles');
-      expect(offers[1].tags.map((tag) => (tag.key, tag.label, tag.tone)), [
-        ('residential', 'Residential', 'residential'),
-        ('Plain', 'Plain', null),
-      ]);
+      expect(
+        offers[1].tags.map(
+          (tag) => (tag.key, tag.label, tag.tone, tag.group, tag.order),
+        ),
+        [
+          (
+            'residential',
+            'Residential',
+            'residential',
+            NativeIpTagGroup.base,
+            2,
+          ),
+          ('Plain', 'Plain', null, null, 0),
+        ],
+      );
       expect(offers[2].tags.single.key, 'ISP');
       expect(offers[0].stock, 0);
     },

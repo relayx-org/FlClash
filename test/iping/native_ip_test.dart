@@ -1,6 +1,7 @@
 import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/store_widgets.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/keyboard.dart';
@@ -30,7 +31,7 @@ Map<String, Object?> _offer({
   required String countryCode,
   required int stock,
   required num price,
-  List<Map<String, String>> tags = const [],
+  List<Map<String, Object>> tags = const [],
 }) => {
   'country_code': countryCode,
   'country': country,
@@ -491,6 +492,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('United States · Los Angeles'), findsOneWidget);
     expect(find.text('Japan · Tokyo'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('tag chips follow the store group and order', (tester) async {
+    api.nativeInventory['ipproxy/inventory/native'] = [
+      _offer(
+        country: 'United States',
+        cityName: 'Los Angeles',
+        city: 'los-angeles',
+        countryCode: 'US',
+        stock: 2,
+        price: 12,
+        tags: const [
+          {'key': 'legacy', 'label': 'Legacy'},
+          {'key': 'segment', 'label': 'Segment', 'group': 'feature'},
+          {'key': '300m', 'label': '300M', 'group': 'bandwidth', 'order': 3001},
+          {'key': 'socks', 'label': 'SOCKS5', 'group': 'base'},
+        ],
+      ),
+      _offer(
+        country: 'United States',
+        cityName: 'Seattle',
+        city: 'seattle',
+        countryCode: 'US',
+        stock: 2,
+        price: 12,
+        tags: const [
+          {'key': '20m', 'label': '20M', 'group': 'bandwidth', 'order': 201},
+        ],
+      ),
+    ];
+    await pump(tester);
+
+    final keys = tester
+        .widgetList<IpingPill>(find.byType(IpingPill))
+        .map((pill) => (pill.key! as ValueKey<String>).value)
+        .where((key) => key.startsWith('native-ip-filter-tag-'))
+        .map((key) => key.substring('native-ip-filter-tag-'.length));
+    expect(keys, ['socks', '20m', '300m', 'segment', 'legacy']);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

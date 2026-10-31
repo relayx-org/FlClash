@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/error_banner.dart';
@@ -58,7 +59,17 @@ List<NativeIpTag> _filterTags(List<NativeIpOffer> offers) {
       tags.putIfAbsent(tag.key, () => tag);
     }
   }
-  return tags.values.toList();
+  final groupless = NativeIpTagGroup.values.length;
+  final sorted = tags.values.toList();
+  mergeSort(
+    sorted,
+    compare: (a, b) {
+      final byGroup =
+          (a.group?.index ?? groupless) - (b.group?.index ?? groupless);
+      return byGroup != 0 ? byGroup : a.order - b.order;
+    },
+  );
+  return sorted;
 }
 
 class IpingNativeIpPage extends ConsumerStatefulWidget {
