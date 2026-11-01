@@ -140,6 +140,11 @@ class AppLocalizations {
     );
   }
 
+  /// `Share`
+  String get share {
+    return Intl.message('Share', name: 'share', desc: '', args: []);
+  }
+
   /// `Services`
   String get services {
     return Intl.message('Services', name: 'services', desc: '', args: []);

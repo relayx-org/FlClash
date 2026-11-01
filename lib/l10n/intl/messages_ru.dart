@@ -2484,6 +2484,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingEntries": MessageLookupByLibrary.simpleMessage("параметры"),
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "settingsCount": m109,
+    "share": MessageLookupByLibrary.simpleMessage("Поделиться"),
     "shareLinkUnreadable": m110,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage(
       "Не удалось прочитать прокси из ссылок",

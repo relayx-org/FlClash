@@ -78,6 +78,7 @@ dependencies:
     path: plugins/rust_api
   setup:
     path: plugins/setup
+  share_plus: ^13.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1833,6 +1833,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingEntries": MessageLookupByLibrary.simpleMessage("设置项"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "settingsCount": m109,
+    "share": MessageLookupByLibrary.simpleMessage("分享"),
     "shareLinkUnreadable": m110,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage("无法从链接中读取代理"),
     "show": MessageLookupByLibrary.simpleMessage("显示"),

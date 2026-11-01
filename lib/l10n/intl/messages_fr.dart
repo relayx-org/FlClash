@@ -2548,6 +2548,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingEntries": MessageLookupByLibrary.simpleMessage("réglages"),
     "settings": MessageLookupByLibrary.simpleMessage("Paramètres"),
     "settingsCount": m109,
+    "share": MessageLookupByLibrary.simpleMessage("Partager"),
     "shareLinkUnreadable": m110,
     "shareLinksInvalid": MessageLookupByLibrary.simpleMessage(
       "Aucun proxy n’a pu être lu dans les liens",

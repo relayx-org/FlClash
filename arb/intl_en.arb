@@ -13,6 +13,7 @@
   "trafficUsage": "Traffic usage",
   "networkSpeed": "Network speed",
   "outboundMode": "Outbound mode",
+  "share": "Share",
   "services": "Services",
   "serviceStatus": "Service status",
   "serviceRestricted": "Access restricted",

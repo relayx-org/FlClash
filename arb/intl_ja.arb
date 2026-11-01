@@ -13,6 +13,7 @@
   "trafficUsage": "トラフィック統計",
   "networkSpeed": "ネットワーク速度",
   "outboundMode": "アウトバウンドモード",
+  "share": "共有",
   "services": "サービス",
   "serviceStatus": "サービスの状態",
   "serviceRestricted": "アクセス制限",

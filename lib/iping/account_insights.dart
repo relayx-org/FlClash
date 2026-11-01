@@ -87,6 +87,8 @@ class IpingReferralSection extends StatelessWidget {
 
   final IpingReferralStats stats;
 
+  Future<void> _share() => shareText(stats.link);
+
   Future<void> _copy(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: stats.link));
     if (!context.mounted) return;
@@ -121,10 +123,20 @@ class IpingReferralSection extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          trailing: IconButton(
-            tooltip: l.copyLink,
-            onPressed: () => _copy(context),
-            icon: const GlyphIcon(AppGlyphs.copy),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: l.share,
+                onPressed: _share,
+                icon: const GlyphIcon(AppGlyphs.upload),
+              ),
+              IconButton(
+                tooltip: l.copyLink,
+                onPressed: () => _copy(context),
+                icon: const GlyphIcon(AppGlyphs.copy),
+              ),
+            ],
           ),
           onTap: () => _copy(context),
         ),
