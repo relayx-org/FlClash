@@ -35,26 +35,3 @@ class IpingAccountButton extends ConsumerWidget {
     );
   }
 }
-
-class IpingAccountSection extends ConsumerWidget {
-  const IpingAccountSection({super.key, this.accountCenter});
-
-  final Widget? accountCenter;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(ipingBackendStateProvider);
-    final backend = ref.read(ipingClientControllerProvider);
-    if (!session.hasSubscription) return const SizedBox.shrink();
-    return IpingAccountSummary(
-      label: session.signedIn
-          ? session.email
-          : context.appLocalizations.ipingManualSubscription,
-      site: ref.watch(ipingSiteConfigProvider),
-      busy: session.busy,
-      onConsole: () => dialogs.openUrl('$ipingSite/home'),
-      onSignOut: backend.signOut,
-      accountCenter: accountCenter,
-    );
-  }
-}

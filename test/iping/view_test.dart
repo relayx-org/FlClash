@@ -7,15 +7,16 @@ import 'package:fl_clash/iping/account.dart';
 import 'package:fl_clash/iping/about.dart';
 import 'package:fl_clash/iping/brand.dart';
 import 'package:fl_clash/iping/browser.dart';
+import 'package:fl_clash/iping/profile.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/site_config.dart';
 import 'package:fl_clash/iping/session.dart';
 import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/iping/view.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/widgets/icon.dart';
-import 'package:fl_clash/views/services.dart';
 import 'package:fl_clash/views/tools.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +25,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/glyph_finders.dart';
 import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
 import 'fakes.dart';
@@ -463,91 +465,50 @@ void main() {
     expect(api.downloads, downloads + 1);
   });
 
-  testWidgets('services tab keeps account actions and branding after login', (
-    tester,
-  ) async {
-    await pump(tester, const IpingGate(child: ServicesView()));
-    final clip = tester.widget<ClipPath>(
-      find.descendant(
-        of: find.byType(IpingLogo),
-        matching: find.byType(ClipPath),
-      ),
-    );
-    final path = clip.clipper!.getClip(const Size.square(48));
-    expect(path.contains(Offset.zero), isFalse);
-    expect(path.contains(const Offset(24, 24)), isTrue);
-
-    await tester.tap(find.byType(FilledButton));
-    await tester.pumpAndSettle();
-
-    expect(find.text('user@example.com'), findsOneWidget);
-    expect(find.text('Personal center'), findsNothing);
-    expect(find.textContaining('User ID'), findsNothing);
-    expect(find.byType(IpingAccountButton), findsNothing);
-    expect(find.byType(CommonPopupMenu), findsNothing);
-    expect(find.text('Open iPing console'), findsOneWidget);
-    expect(find.text('Contact support'), findsNothing);
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(find.text('Sign in with browser'), findsOneWidget);
-    expect(storage.value, isNull);
-  });
-
-  for (final width in [320.0, 390.0]) {
-    for (final brightness in Brightness.values) {
-      testWidgets(
-        'mobile account actions are flat at $width in ${brightness.name}',
-        (tester) async {
-          tester.view.physicalSize = Size(width, 844);
-          tester.view.devicePixelRatio = 1;
-          tester.platformDispatcher.textScaleFactorTestValue = 2;
-          addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-          api.siteSettings = const IpingSiteConfig(
-            name: 'A longer name for your network services',
-          );
-          storage.value = const IpingAccount(
-            id: 7,
-            email: 'a.long.account.email.address@example.com',
-            subscriptionToken: 'subscription',
-          );
-          final theme = ThemeData(
-            colorScheme: seededColorScheme(
-              seedColor: const Color(0xFF146B65),
-              brightness: brightness,
-            ),
-          ).withAppShapes.withAppSurfaces.withAppTypography;
-
-          await pump(
-            tester,
-            const Scaffold(
-              body: SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: IpingAccountSection(),
-              ),
-            ),
-            theme: theme,
-          );
-
-          expect(find.text(api.siteSettings.name), findsOneWidget);
-          expect(find.text(storage.value!.email), findsOneWidget);
-          expect(find.text('Open iPing console'), findsOneWidget);
-          expect(find.text('Sign out'), findsOneWidget);
-          expect(find.byType(IpingAccountButton), findsNothing);
-          expect(find.byType(CommonPopupBox), findsNothing);
-          expect(tester.takeException(), isNull);
-        },
+  testWidgets(
+    'profile after the login gate shows the account and its actions',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pump(tester, const IpingGate(child: IpingProfile()));
+      final clip = tester.widget<ClipPath>(
+        find.descendant(
+          of: find.byType(IpingLogo),
+          matching: find.byType(ClipPath),
+        ),
       );
-    }
-  }
+      final path = clip.clipper!.getClip(const Size.square(48));
+      expect(path.contains(Offset.zero), isFalse);
+      expect(path.contains(const Offset(24, 24)), isTrue);
 
-  testWidgets('mobile console action opens the external link confirmation', (
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('user@example.com'), findsOneWidget);
+      expect(find.textContaining('User ID'), findsNothing);
+      await tester.tap(find.byGlyph(AppGlyphs.more));
+      await tester.pumpAndSettle();
+      expect(find.text('Open iPing console'), findsOneWidget);
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sign in with browser'), findsOneWidget);
+      expect(storage.value, isNull);
+    },
+  );
+
+  testWidgets('profile menu opens the console link confirmation', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     storage.value = await api.authenticate();
-    await pump(tester, const Scaffold(body: IpingAccountSection()));
-
+    await pump(tester, const IpingProfile());
+    await tester.tap(find.byGlyph(AppGlyphs.more));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Open iPing console'));
     await tester.pumpAndSettle();
 
@@ -564,41 +525,24 @@ void main() {
     expect(find.byType(CommonDialog), findsNothing);
   });
 
-  testWidgets('manual subscriptions keep mobile console and sign-out actions', (
+  testWidgets('manual subscriptions keep the profile console and sign-out', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     storage.stored = const IpingStoredSession(
       manualUrl: 'https://example.com/subscription',
     );
-    await pump(tester, const Scaffold(body: IpingAccountSection()));
-    expect(find.text('Manually imported subscription'), findsOneWidget);
-    expect(find.text('Open iPing console'), findsOneWidget);
-    expect(find.text('Sign out'), findsOneWidget);
+    await pump(tester, const IpingProfile());
     expect(api.userInfoRequests, 0);
 
-    api.download = Completer<IpingSubscription>();
-    final refresh = container.read(ipingSessionProvider.notifier).synchronize();
+    await tester.tap(find.byGlyph(AppGlyphs.more));
     await tester.pumpAndSettle();
-    final signOut = find.ancestor(
-      of: find.text('Sign out'),
-      matching: find.byType(ListItem),
-    );
-    expect(tester.widget<ListItem>(signOut).onTap, isNull);
-    await tester.tap(find.text('Open iPing console'));
-    await tester.pumpAndSettle();
-    expect(find.byType(CommonDialog), findsOneWidget);
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-
-    api.download!.completeError(
-      const IpingException(IpingFailure.subscription),
-    );
-    await refresh;
-    await tester.pumpAndSettle();
-    expect(tester.widget<ListItem>(signOut).onTap, isNotNull);
+    expect(find.text('Open iPing console'), findsOneWidget);
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
-    expect(find.text('Open iPing console'), findsNothing);
     expect(storage.stored, isNull);
     expect(container.read(ipingSessionProvider).hasSubscription, isFalse);
     expect(tester.takeException(), isNull);
@@ -636,51 +580,6 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
-
-  testWidgets('mobile sign out is disabled during a subscription refresh', (
-    tester,
-  ) async {
-    storage.value = await api.authenticate();
-    await pump(tester, const Scaffold(body: IpingAccountSection()));
-    api.download = Completer<IpingSubscription>();
-    final refresh = container.read(ipingSessionProvider.notifier).synchronize();
-    await tester.pumpAndSettle();
-    final row = find.ancestor(
-      of: find.text('Sign out'),
-      matching: find.byType(ListItem),
-    );
-
-    expect(tester.widget<ListItem>(row).onTap, isNull);
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(container.read(ipingSessionProvider).account, isNotNull);
-
-    api.download!.complete((bytes: Uint8List(0), nodes: 2));
-    await refresh;
-    await tester.pumpAndSettle();
-    expect(tester.widget<ListItem>(row).onTap, isNotNull);
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(find.text('Sign out'), findsNothing);
-    expect(storage.value, isNull);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('mobile account actions disappear when sign out storage fails', (
-    tester,
-  ) async {
-    storage.value = await api.authenticate();
-    await pump(tester, const Scaffold(body: IpingAccountSection()));
-    storage.clearFails = true;
-
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Open iPing console'), findsNothing);
-    expect(find.text('Sign out'), findsNothing);
-    expect(container.read(ipingSessionProvider).failure, IpingFailure.storage);
-    expect(tester.takeException(), isNull);
-  });
 
   for (final width in [48.0, 220.0]) {
     for (final brightness in Brightness.values) {
@@ -805,7 +704,6 @@ void main() {
       await container.read(ipingSessionProvider.notifier).controller.signIn();
       await pump(tester, const ToolsView());
 
-      expect(find.byType(IpingAccountSection), findsNothing);
       expect(find.text('Sign out'), findsNothing);
       await tester.scrollUntilVisible(find.byType(IpingAboutSection), 400);
       await tester.pumpAndSettle();
@@ -817,37 +715,32 @@ void main() {
     },
   );
 
-  for (final signedIn in [true, false]) {
-    testWidgets(
-      'services tab ${signedIn ? 'holds' : 'leaves out'} the store pages',
-      (tester) async {
-        tester.view.physicalSize = const Size(390, 844);
-        tester.view.devicePixelRatio = 1;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        if (signedIn) {
-          await container
-              .read(ipingSessionProvider.notifier)
-              .controller
-              .signIn();
-        }
-        await pump(tester, const ServicesView());
+  testWidgets('mobile profile lists the store pages it owns', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    storage.value = await api.authenticate();
+    await pump(tester, const IpingProfile());
 
-        expect(find.text('Sign out'), signedIn ? findsOneWidget : findsNothing);
-        expect(
-          find.text('Native IPs'),
-          signedIn ? findsOneWidget : findsNothing,
-        );
-        expect(find.text('Tunnels'), signedIn ? findsOneWidget : findsNothing);
-        expect(
-          find.descendant(
-            of: find.byType(IpingAccountSection),
-            matching: find.text('Account center'),
-          ),
-          signedIn ? findsOneWidget : findsNothing,
-        );
-        expect(tester.takeException(), isNull);
-      },
-    );
-  }
+    expect(find.text('Native IPs'), findsOneWidget);
+    expect(find.text('Tunnels'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('desktop profile leaves the store pages to the sidebar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    container.read(viewSizeProvider.notifier).value = const Size(1400, 1000);
+    storage.value = await api.authenticate();
+    await pump(tester, const IpingProfile());
+
+    expect(find.text('Native IPs'), findsNothing);
+    expect(find.text('Tunnels'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

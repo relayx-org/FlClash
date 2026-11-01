@@ -6,7 +6,6 @@ extension PageLabelPresentation on PageLabel {
     return switch (this) {
       PageLabel.dashboard => appLocalizations.dashboard,
       PageLabel.proxies => appLocalizations.proxies,
-      PageLabel.services => appLocalizations.services,
       PageLabel.profiles => appLocalizations.profiles,
       PageLabel.account => appLocalizations.ipingProfileCenter,
       PageLabel.nativeIp => appLocalizations.ipingNativeIp,

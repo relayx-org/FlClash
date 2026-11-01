@@ -11,11 +11,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'account_insights.dart';
 import 'api.dart';
 import 'backend_native.dart';
+import 'native_ip_page.dart';
 import 'profile_widgets.dart';
 import 'providers.dart';
 import 'topup.dart';
 import 'topup_form.dart';
 import 'tunnel_digest.dart';
+import 'tunnel_page.dart';
 
 Future<void> _payTopup(IpingTopupOrder order) async {
   final url = Uri.tryParse(order.payUrl ?? '');
@@ -137,6 +139,7 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
       ipingSessionProvider.select((s) => s.account?.apiKey != null),
     );
     final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+    final session = ref.watch(ipingBackendStateProvider);
     final info = ref.watch(ipingUserInfoProvider);
     final recent = ref.watch(ipingRecentTopupsProvider);
     final digest = ref.watch(ipingTunnelDigestProvider).value;
@@ -160,6 +163,23 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
               onPressed: busy ? null : _refresh,
             )
           : null,
+      menuItems: [
+        if (context.isMobileView && session.hasSubscription) ...[
+          CommonPopupMenuItem(
+            glyph: AppGlyphs.openExternal,
+            label: l.ipingConsole,
+            onPressed: () => dialogs.openUrl('$ipingSite/home'),
+          ),
+          CommonPopupMenuItem(
+            glyph: AppGlyphs.arrowBack,
+            label: l.ipingSignOut,
+            danger: true,
+            onPressed: session.busy
+                ? null
+                : () => ref.read(ipingClientControllerProvider).signOut(),
+          ),
+        ],
+      ],
       body: Builder(
         builder: (context) => NullStatusSwitcher(
           isLoading: info.isLoading && user == null,
@@ -176,6 +196,22 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
                   ),
                   children: [
                     IpingProfileHeader(info: user, onTopUp: onTopUp),
+                    if (context.isMobileView)
+                      generateSection(
+                        title: l.services,
+                        items: [
+                          ListItem.open(
+                            leading: const GlyphIcon(AppGlyphs.locate),
+                            title: Text(l.ipingNativeIp),
+                            widget: const IpingNativeIpPage(),
+                          ),
+                          ListItem.open(
+                            leading: const GlyphIcon(AppGlyphs.swap),
+                            title: Text(l.ipingTunnels),
+                            widget: const IpingTunnelsPage(),
+                          ),
+                        ],
+                      ),
                     if (digest != null && shortfall != null) ...[
                       const SizedBox(height: 12),
                       IpingRenewalWarning(

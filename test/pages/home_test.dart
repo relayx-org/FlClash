@@ -59,37 +59,38 @@ void main() {
     ]);
   });
 
-  test('a signed-in account gets the services tab on mobile', () {
+  test('a signed-in account gets the account tab last on mobile', () {
     final destinations = navigation
         .getItems(signedIn: true, hasSubscription: true)
         .where((item) => item.modes.contains(NavigationItemMode.mobile))
         .map((item) => item.label);
     expect(destinations, [
       PageLabel.dashboard,
-      PageLabel.services,
       PageLabel.tools,
+      PageLabel.account,
     ]);
   });
 
-  test('a manual subscription keeps the services tab without store pages', () {
-    final items = navigation.getItems(hasSubscription: true);
-    final destinations = items
-        .where((item) => item.modes.contains(NavigationItemMode.mobile))
-        .map((item) => item.label);
-    expect(destinations, [
-      PageLabel.dashboard,
-      PageLabel.services,
-      PageLabel.tools,
-    ]);
-    final desktop = items
-        .where((item) => item.modes.contains(NavigationItemMode.desktop))
-        .map((item) => item.label);
-    expect(desktop, isNot(contains(PageLabel.nativeIp)));
-    expect(desktop, isNot(contains(PageLabel.tunnels)));
-    expect(desktop, isNot(contains(PageLabel.account)));
-  });
+  test(
+    'a manual subscription keeps the account tab without a sidebar page',
+    () {
+      final items = navigation.getItems(hasSubscription: true);
+      final destinations = items
+          .where((item) => item.modes.contains(NavigationItemMode.mobile))
+          .map((item) => item.label);
+      expect(destinations, [
+        PageLabel.dashboard,
+        PageLabel.tools,
+        PageLabel.account,
+      ]);
+      final desktop = items
+          .where((item) => item.modes.contains(NavigationItemMode.desktop))
+          .map((item) => item.label);
+      expect(desktop, isNot(contains(PageLabel.account)));
+    },
+  );
 
-  test('a signed-out app has no services tab', () {
+  test('a signed-out app has no account tab', () {
     final destinations = navigation
         .getItems(hasProxies: true)
         .where((item) => item.modes.contains(NavigationItemMode.mobile))

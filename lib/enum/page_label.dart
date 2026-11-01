@@ -1,7 +1,6 @@
 enum PageLabel {
   dashboard,
   proxies,
-  services,
   profiles,
   account,
   nativeIp,

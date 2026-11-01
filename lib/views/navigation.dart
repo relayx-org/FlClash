@@ -35,13 +35,6 @@ class Navigation implements NavigationPort {
             : [],
       ),
       NavigationItem(
-        glyph: PageLabel.services.glyph,
-        label: PageLabel.services,
-        builder: (_) =>
-            const ServicesView(key: GlobalObjectKey(PageLabel.services)),
-        modes: hasSubscription ? [NavigationItemMode.mobile] : [],
-      ),
-      NavigationItem(
         glyph: PageLabel.requests.glyph,
         label: PageLabel.requests,
         builder: (_) =>
@@ -102,7 +95,10 @@ class Navigation implements NavigationPort {
         label: PageLabel.account,
         builder: (_) =>
             const IpingProfile(key: GlobalObjectKey(PageLabel.account)),
-        modes: signedIn ? [NavigationItemMode.desktop] : [],
+        modes: [
+          if (hasSubscription) NavigationItemMode.mobile,
+          if (signedIn) NavigationItemMode.desktop,
+        ],
       ),
     ];
   }
