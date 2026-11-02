@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/plugins/app.dart';
@@ -290,6 +291,17 @@ class _ManagedProfileStorage implements IpingProfileStorage {
         : saved;
     await ref.read(profilesProvider.notifier).putAsync(updated);
     ref.read(currentProfileIdProvider.notifier).value = saved.id;
+    if (ipingSubscriptionEnablesIpv6(subscription.bytes)) {
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update(
+            (state) => state.copyWith(
+              ipv6: true,
+              dns: state.dns.copyWith(ipv6: true),
+              dnsOverrideKeys: {...state.dnsOverrideKeys, DnsOverrideKey.ipv6},
+            ),
+          );
+    }
     await ref.read(setupActionProvider.notifier).applyProfile(silence: true);
     await app?.setConnectionAllowed(subscription.nodes > 0);
     return (nodes: subscription.nodes, updated: saved.lastUpdateDate);

@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/database/database.dart' as db;
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/session.dart';
@@ -117,6 +118,30 @@ void main() {
       expect(container.read(currentProfileIdProvider), isNull);
     },
   );
+
+  test('a subscription that enables IPv6 turns on core and DNS IPv6', () async {
+    final configSubscription = container.listen(
+      patchClashConfigProvider,
+      (_, _) {},
+    );
+    addTearDown(configSubscription.close);
+    final profiles = container.read(ipingProfilesProvider);
+    await profiles.save('https://example.com/sub', (
+      bytes: Uint8List.fromList(
+        utf8.encode(
+          'ipv6: true\n'
+          'proxies:\n'
+          '  - {name: IPv6, type: ss, server: example.com, port: 443}\n',
+        ),
+      ),
+      nodes: 1,
+    ));
+
+    final config = container.read(patchClashConfigProvider);
+    expect(config.ipv6, isTrue);
+    expect(config.dns.ipv6, isTrue);
+    expect(config.dnsOverrideKeys, contains(DnsOverrideKey.ipv6));
+  });
 
   test(
     'subscription sync keeps selections changed while validation is pending',

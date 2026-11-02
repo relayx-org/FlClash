@@ -89,6 +89,19 @@ int ipingNodeCount(String content) {
   }
 }
 
+/// Whether an iPing profile explicitly asks the core to use IPv6.
+///
+/// The app owns the running core configuration, so the profile's own
+/// `ipv6: true` would otherwise be overwritten by the saved setting.
+bool ipingSubscriptionEnablesIpv6(Uint8List bytes) {
+  try {
+    final config = loadYaml(utf8.decode(bytes));
+    return config is Map && config['ipv6'] == true;
+  } on Exception {
+    return false;
+  }
+}
+
 class _SecureHttpOverrides extends HttpOverrides {
   HttpClient createClient() =>
       super.createHttpClient(SecurityContext.defaultContext);

@@ -485,6 +485,24 @@ void main() {
     expect(ipingNodeCount('proxies: []\n'), 0);
   });
 
+  test('subscription IPv6 intent is read from the profile', () {
+    Uint8List content(String value) => Uint8List.fromList(utf8.encode(value));
+
+    expect(
+      ipingSubscriptionEnablesIpv6(content('ipv6: true\nproxies: []\n')),
+      isTrue,
+    );
+    expect(
+      ipingSubscriptionEnablesIpv6(content('ipv6: false\nproxies: []\n')),
+      isFalse,
+    );
+    expect(ipingSubscriptionEnablesIpv6(content('proxies: []\n')), isFalse);
+    expect(
+      ipingSubscriptionEnablesIpv6(content('ipv6: true\nproxies: [')),
+      isFalse,
+    );
+  });
+
   test(
     'native IP inventory merges every line and keeps the list price',
     () async {
