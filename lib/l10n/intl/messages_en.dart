@@ -1019,9 +1019,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -1239,7 +1240,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Manually imported subscription",
     ),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Native IPs"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Network Purchase"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("All"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage(
       "Include a tunnel",
@@ -1281,7 +1282,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Duration"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
-      "No native IPs are available right now.",
+      "No networks are available right now.",
     ),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "No regions match these filters.",
@@ -1296,7 +1297,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "This is the list price. Any reseller discount is applied when you are charged.",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "Unable to load native IPs. Please try again.",
+      "Unable to load networks. Please try again.",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1310,7 +1311,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("Order"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("Purchased"),
     "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "You have no Native IPs yet.",
+      "You have no networks yet.",
     ),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("Tunnel plan"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
@@ -1385,7 +1386,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Account center",
     ),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Proxy status"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage("Recent top-ups"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(
       "People referred",
     ),
@@ -1649,10 +1649,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Tunnel renewed.",
     ),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "Select from Native IPs",
+      "Select a network",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "No available Native IPs",
+      "No available networks",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("Enabled"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
@@ -1706,7 +1706,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage(
       "Username (optional)",
     ),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Tunnels"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Tunnel Management"),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage(
       "No tunnels yet.",
     ),

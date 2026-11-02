@@ -94,7 +94,6 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
       final url = await ref
           .read(ipingAuthenticatedApiProvider)
           .createTopup(price: _price!, paymentId: payment.id);
-      ref.invalidate(ipingRecentTopupsProvider);
       unawaited(launchUrl(url, mode: LaunchMode.externalApplication));
       dialogs.showNotifier(l.ipingTopupOpened);
       if (mounted) Navigator.of(context).pop(true);

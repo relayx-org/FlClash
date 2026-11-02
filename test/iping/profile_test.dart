@@ -73,7 +73,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the profile shows the balance and recent top-ups', (
+  testWidgets('the profile shows the balance and opens the top-up history', (
     tester,
   ) async {
     api.topups = [
@@ -83,11 +83,15 @@ void main() {
     await pump(tester, const IpingProfile());
     expect(find.text('user@example.com'), findsOneWidget);
     expect(find.text('¥128.50'), findsOneWidget);
+    expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
+    expect(find.text('Paid'), findsNothing);
+    expect(api.topupPageRequests, isEmpty);
+
+    await tester.tap(find.text('Top-up history'));
+    await tester.pumpAndSettle();
+    expect(api.topupPageRequests.single.page, 1);
     expect(find.text('Unpaid'), findsOneWidget);
     expect(find.text('Paid'), findsOneWidget);
-    expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
-    expect(find.text('Top-up history'), findsNothing);
-    expect(api.topupPageRequests.single.perPage, 10);
 
     await tester.tap(find.text('Unpaid'));
     await tester.pumpAndSettle();

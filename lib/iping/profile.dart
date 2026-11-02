@@ -67,7 +67,6 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
 
   void _refresh() {
     ref.invalidate(ipingUserInfoProvider);
-    ref.invalidate(ipingRecentTopupsProvider);
     ref.invalidate(ipingTunnelDigestProvider);
     ref.invalidate(ipingReferralStatsProvider);
     ref.invalidate(ipingTrafficStatsProvider);
@@ -75,10 +74,6 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
 
   Future<void> _topUp() async {
     if (await showIpingTopup(context) == true) _refresh();
-  }
-
-  Future<void> _cancel(IpingTopupOrder order) async {
-    if (await _cancelTopup(ref, order)) _refresh();
   }
 
   NullStatus _nullStatus(AsyncValue<Object?> info, bool authorized) {
@@ -103,35 +98,6 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
     );
   }
 
-  List<Widget> _recentItems(AsyncValue<IpingTopupPage?> recent) {
-    final l = context.appLocalizations;
-    final page = recent.value;
-    final orders = page?.orders;
-    return [
-      ...?orders?.map(
-        (order) => IpingTopupOrderItem(
-          order: order,
-          onPay: () => _payTopup(order),
-          onCancel: () => _cancel(order),
-        ),
-      ),
-      if (orders == null && recent.hasError)
-        ListItem(title: Text(l.ipingTopupHistoryFailed)),
-      if (orders != null && orders.isEmpty)
-        ListItem(title: Text(l.ipingTopupEmpty)),
-      if (page != null && page.total > page.orders.length)
-        ListItem(
-          leading: const GlyphIcon(AppGlyphs.clock),
-          title: Text(l.ipingTopupHistory),
-          trailing: const DisclosureIndicator(),
-          onTap: () => showInSheet<void>(
-            context,
-            builder: (_) => const IpingTopupHistory(),
-          ),
-        ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = context.appLocalizations;
@@ -141,7 +107,6 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
     final account = ref.watch(ipingSessionProvider.select((s) => s.account));
     final session = ref.watch(ipingBackendStateProvider);
     final info = ref.watch(ipingUserInfoProvider);
-    final recent = ref.watch(ipingRecentTopupsProvider);
     final digest = ref.watch(ipingTunnelDigestProvider).value;
     final referrals = account == null
         ? null
@@ -152,7 +117,7 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
     final user = info.value;
     final shortfall = user == null ? null : digest?.shortfall(user.balance);
     final onTopUp = user?.status == 'active' ? _topUp : null;
-    final busy = info.isLoading || recent.isLoading;
+    final busy = info.isLoading;
     return CommonScaffold(
       title: l.ipingProfileCenter,
       primaryAction: authorized
@@ -222,9 +187,15 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
                       ),
                     ],
                     if (traffic != null) IpingTrafficChart(stats: traffic),
+                    const SizedBox(height: 12),
                     generateSection(
-                      title: l.ipingRecentTopups,
-                      items: _recentItems(recent),
+                      items: [
+                        ListItem.open(
+                          leading: const GlyphIcon(AppGlyphs.clock),
+                          title: Text(l.ipingTopupHistory),
+                          widget: const IpingTopupHistory(),
+                        ),
+                      ],
                     ),
                     if (referrals != null)
                       IpingReferralSection(stats: referrals),
@@ -306,7 +277,6 @@ class _IpingTopupHistoryState extends ConsumerState<IpingTopupHistory> {
 
   Future<void> _cancel(IpingTopupOrder order) async {
     if (!await _cancelTopup(ref, order) || !mounted) return;
-    ref.invalidate(ipingRecentTopupsProvider);
     _reload();
   }
 

@@ -1052,7 +1052,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "手動でインポートしたサブスクリプション",
     ),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("ネイティブ IP"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("ネットワーク購入"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("すべて"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage("トンネルも購入"),
     "ipingNativeIpBundleHint": MessageLookupByLibrary.simpleMessage(
@@ -1086,7 +1086,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("期間"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
-      "購入できるネイティブ IP はありません",
+      "購入できるネットワークはありません",
     ),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "条件に一致する地域はありません",
@@ -1099,7 +1099,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "表示は定価です。再販割引は請求時に適用されます。",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "ネイティブ IP を読み込めませんでした。もう一度お試しください。",
+      "ネットワークを読み込めませんでした。もう一度お試しください。",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1111,7 +1111,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("注文"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("購入済み"),
     "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "ネイティブ IP はまだありません。",
+      "ネットワークはまだありません。",
     ),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("トンネルプラン"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
@@ -1170,7 +1170,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("プライバシーポリシー"),
     "ipingProfileCenter": MessageLookupByLibrary.simpleMessage("アカウントセンター"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("プロキシ状態"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage("最近のチャージ"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("紹介人数"),
     "ipingReferralEarnings": MessageLookupByLibrary.simpleMessage("累計報酬（人民元）"),
     "ipingReferralHint": MessageLookupByLibrary.simpleMessage(
@@ -1392,10 +1391,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage("更新しました"),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "ネイティブ IP から選択",
+      "ネットワークから選択",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "利用可能なネイティブ IP はありません",
+      "利用可能なネットワークはありません",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("有効"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("無効"),
@@ -1431,7 +1430,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelUpdated": MessageLookupByLibrary.simpleMessage("変更しました"),
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage("ユーザー名（任意）"),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("トンネル"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("トンネル管理"),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage("トンネルはまだありません"),
     "ipingTunnelsFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "条件に一致するトンネルはありません",

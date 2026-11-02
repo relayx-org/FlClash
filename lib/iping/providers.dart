@@ -64,14 +64,6 @@ final ipingUserInfoProvider = FutureProvider.autoDispose<IpingUserInfo?>((
   return info;
 }, retry: (_, _) => null);
 
-final ipingRecentTopupsProvider = FutureProvider.autoDispose<IpingTopupPage?>((
-  ref,
-) {
-  final account = ref.watch(ipingSessionProvider.select((s) => s.account));
-  if (account?.apiKey == null) return Future.value(null);
-  return ref.watch(ipingAuthenticatedApiProvider).topupOrders(perPage: 10);
-}, retry: (_, _) => null);
-
 final ipingTopupOptionsProvider = FutureProvider.autoDispose<IpingTopupOptions>(
   (ref) => ref.watch(ipingAuthenticatedApiProvider).topupOptions(),
   retry: (_, _) => null,

@@ -1034,7 +1034,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "수동으로 가져온 구독",
     ),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("네이티브 IP"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("네트워크 구매"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("전체"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage("터널 함께 구매"),
     "ipingNativeIpBundleHint": MessageLookupByLibrary.simpleMessage(
@@ -1064,7 +1064,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("기간"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
-      "구매할 수 있는 네이티브 IP가 없습니다.",
+      "구매할 수 있는 네트워크가 없습니다.",
     ),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "조건에 맞는 지역이 없습니다",
@@ -1077,7 +1077,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "표시된 금액은 정가입니다. 리셀러 할인은 결제 시 적용됩니다.",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "네이티브 IP를 불러올 수 없습니다. 다시 시도하세요.",
+      "네트워크를 불러올 수 없습니다. 다시 시도하세요.",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1089,7 +1089,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("주문"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("구매함"),
     "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "아직 네이티브 IP가 없습니다.",
+      "아직 네트워크가 없습니다.",
     ),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("터널 요금제"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
@@ -1150,7 +1150,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("개인정보 처리방침"),
     "ipingProfileCenter": MessageLookupByLibrary.simpleMessage("계정 센터"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("프록시 상태"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage("최근 충전"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("추천한 사용자 수"),
     "ipingReferralEarnings": MessageLookupByLibrary.simpleMessage("총 수익 (CNY)"),
     "ipingReferralHint": MessageLookupByLibrary.simpleMessage(
@@ -1366,10 +1365,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage("갱신했습니다"),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "내 IP 목록에서 선택",
+      "네트워크에서 선택",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "사용 가능한 IP가 없습니다",
+      "사용 가능한 네트워크가 없습니다",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("사용"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("사용 안 함"),
@@ -1407,7 +1406,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelUpdated": MessageLookupByLibrary.simpleMessage("변경했습니다"),
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage("사용자 이름 (선택)"),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("터널"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("터널 관리"),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage("터널이 없습니다"),
     "ipingTunnelsFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "조건에 맞는 터널이 없습니다",

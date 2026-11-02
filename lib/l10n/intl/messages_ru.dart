@@ -1056,9 +1056,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -1280,7 +1281,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Подписка, импортированная вручную",
     ),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Нативные IP"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Покупка сети"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Все"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage(
       "Вместе с туннелем",
@@ -1322,7 +1323,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Срок"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
-      "Сейчас нет доступных нативных IP.",
+      "Сейчас нет доступных сетей.",
     ),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "Нет регионов по этим фильтрам",
@@ -1335,7 +1336,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Это базовая цена. Скидка реселлера применяется при списании.",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "Не удалось загрузить нативные IP. Попробуйте ещё раз.",
+      "Не удалось загрузить сети. Попробуйте ещё раз.",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1349,7 +1350,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("Заказ"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("Купленные"),
     "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "У вас пока нет нативных IP.",
+      "У вас пока нет сетей.",
     ),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("Тариф туннеля"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
@@ -1422,9 +1423,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Личный кабинет",
     ),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Состояние прокси"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage(
-      "Последние пополнения",
-    ),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(
       "Приглашённые пользователи",
     ),
@@ -1704,10 +1702,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Туннель продлён.",
     ),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "Выбрать из списка IP",
+      "Выбрать сеть",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "Нет доступных IP",
+      "Нет доступных сетей",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("Включён"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
@@ -1763,7 +1761,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage(
       "Имя пользователя (необязательно)",
     ),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Туннели"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage(
+      "Управление туннелями",
+    ),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage(
       "Туннелей пока нет.",
     ),

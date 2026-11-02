@@ -1104,7 +1104,6 @@
   "ipingProfileCenter": "Account center",
   "ipingAvailableBalance": "Available balance",
   "ipingTopUp": "Top up",
-  "ipingRecentTopups": "Recent top-ups",
   "ipingTopupHistory": "Top-up history",
   "ipingTopupEmpty": "No top-ups yet",
   "ipingTopupAmount": "Amount",
@@ -1189,7 +1188,7 @@
       }
     }
   },
-  "ipingNativeIp": "Native IPs",
+  "ipingNativeIp": "Network Purchase",
   "ipingNativeIpBuy": "Buy",
   "ipingNativeIpLineA": "Line A",
   "ipingNativeIpLineB": "Line B",
@@ -1220,8 +1219,8 @@
     }
   },
   "ipingNativeIpSoldOut": "Sold out",
-  "ipingNativeIpEmpty": "No native IPs are available right now.",
-  "ipingNativeIpLoadFailed": "Unable to load native IPs. Please try again.",
+  "ipingNativeIpEmpty": "No networks are available right now.",
+  "ipingNativeIpLoadFailed": "Unable to load networks. Please try again.",
   "ipingNativeIpPlansFailed": "Tunnel plans could not be loaded. You can still buy the IP on its own.",
   "ipingNativeIpOrder": "Order",
   "ipingNativeIpCount": "Quantity",
@@ -1273,7 +1272,7 @@
     }
   },
   "ipingNativeIpFilteredEmpty": "No regions match these filters.",
-  "ipingTunnels": "Tunnels",
+  "ipingTunnels": "Tunnel Management",
   "ipingTunnelsEmpty": "No tunnels yet.",
   "ipingTunnelsLoadFailed": "Unable to load tunnels. Please try again.",
   "ipingTunnelsFilteredEmpty": "No tunnels match these filters.",
@@ -1374,8 +1373,8 @@
   "ipingTunnelImportClipboard": "Import from Clipboard",
   "ipingTunnelImportClipboardSuccess": "Forward address imported from clipboard",
   "ipingTunnelImportClipboardFailed": "Failed to parse a valid proxy address",
-  "ipingTunnelSelectFromNativeIps": "Select from Native IPs",
-  "ipingTunnelSelectFromNativeIpsEmpty": "No available Native IPs",
+  "ipingTunnelSelectFromNativeIps": "Select a network",
+  "ipingTunnelSelectFromNativeIpsEmpty": "No available networks",
   "ipingTunnelForwardLocked": "Cannot change forward address while gifted IP is active",
   "ipingTunnelFilterIpType": "IP Type",
   "ipingTunnelFilterPort": "Listen Port",
@@ -1443,7 +1442,7 @@
     }
   },
   "ipingNativeIpOwned": "Purchased",
-  "ipingNativeIpOwnedEmpty": "You have no Native IPs yet.",
+  "ipingNativeIpOwnedEmpty": "You have no networks yet.",
   "ipingNativeIpCopyAddress": "Copy address",
   "ipingNativeIpCopyCredentials": "Copy credentials",
   "ipingNativeIpCopyUrl": "Copy proxy URL",

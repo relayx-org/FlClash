@@ -723,8 +723,9 @@ void main() {
     storage.value = await api.authenticate();
     await pump(tester, const IpingProfile());
 
-    expect(find.text('Native IPs'), findsOneWidget);
-    expect(find.text('Tunnels'), findsOneWidget);
+    expect(find.text('Network Purchase'), findsOneWidget);
+    expect(find.text('Tunnel Management'), findsOneWidget);
+    expect(find.text('Top-up history'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -739,8 +740,9 @@ void main() {
     storage.value = await api.authenticate();
     await pump(tester, const IpingProfile());
 
-    expect(find.text('Native IPs'), findsNothing);
-    expect(find.text('Tunnels'), findsNothing);
+    expect(find.text('Network Purchase'), findsNothing);
+    expect(find.text('Tunnel Management'), findsNothing);
+    expect(find.text('Top-up history'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

@@ -452,7 +452,7 @@ void main() {
     expect(find.widgetWithText(TextField, 'clipuser'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'clippass'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Select from Native IPs'));
+    await tester.tap(find.byTooltip('Select a network'));
     await _frames(tester);
 
     expect(find.text('198.51.100.99:9090'), findsOneWidget);
@@ -574,7 +574,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.text('Tunnels'), findsOneWidget);
+    expect(find.text('Tunnel Management'), findsOneWidget);
   });
 
   testWidgets('batch renew tunnels', (tester) async {

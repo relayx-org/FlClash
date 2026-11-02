@@ -93,6 +93,24 @@ class _IpingNativeIpPageState extends ConsumerState<IpingNativeIpPage> {
     });
   }
 
+  Future<void> _openTagSheet(
+    List<NativeIpTag> tags,
+    Set<String> selected,
+  ) async {
+    await showInSheet<void>(
+      context,
+      builder: (_) => _NativeIpTagSheet(
+        tags: tags,
+        selected: selected,
+        onApply: (keys) => setState(() {
+          _selectedTags
+            ..clear()
+            ..addAll(keys);
+        }),
+      ),
+    );
+  }
+
   Future<void> _buy(NativeIpOffer offer, List<TunnelPlan> plans) async {
     if (offer.stock < 1) return;
     final l = context.appLocalizations;
@@ -239,6 +257,8 @@ class _IpingNativeIpPageState extends ConsumerState<IpingNativeIpPage> {
                       onContinent: (value) =>
                           setState(() => _continent = value),
                       onTag: _toggleTag,
+                      onOpenTagSheet: () =>
+                          _openTagSheet(filterTags, selectedTags),
                       onClearTags: () => setState(_selectedTags.clear),
                     ),
                   ),
@@ -365,6 +385,7 @@ class _NativeIpFilters extends StatelessWidget {
     required this.resultCount,
     required this.onContinent,
     required this.onTag,
+    required this.onOpenTagSheet,
     required this.onClearTags,
   });
 
@@ -375,89 +396,180 @@ class _NativeIpFilters extends StatelessWidget {
   final int resultCount;
   final ValueChanged<String?> onContinent;
   final ValueChanged<String> onTag;
+  final VoidCallback onOpenTagSheet;
   final VoidCallback onClearTags;
 
   @override
   Widget build(BuildContext context) {
     final l = context.appLocalizations;
-    final caption = AppTextStyle.footnote
-        .of(context, emphasized: true)
-        .copyWith(color: context.colorScheme.onSurface);
+    final scheme = context.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
-        if (continents.isNotEmpty)
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              IpingPill(
-                key: const ValueKey('native-ip-filter-continent-all'),
-                label: l.ipingNativeIpAll,
-                selected: continent == null,
-                onPressed: () => onContinent(null),
-              ),
-              for (final code in continents)
-                IpingPill(
-                  key: ValueKey('native-ip-filter-continent-$code'),
-                  label: _continentLabel(l, code),
-                  selected: continent == code,
-                  onPressed: () => onContinent(code),
-                ),
-            ],
-          ),
-        if (tags.isNotEmpty) ...[
-          SizedBox(
-            height: 24,
-            child: Row(
-              children: [
-                Text(l.ipingNativeIpTags, style: caption),
-                const SizedBox(width: 8),
-                Text(l.ipingNativeIpTagsHint, style: context.listCaptionStyle),
-                const Spacer(),
-                if (selectedTags.isNotEmpty)
-                  InkWell(
-                    key: const ValueKey('native-ip-clear-tags'),
-                    customBorder: AppShape.sm,
-                    onTap: onClearTags,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      child: Text(
-                        l.ipingNativeIpClearTags(selectedTags.length),
-                        style: AppTextStyle.caption1
-                            .of(context, emphasized: true)
-                            .copyWith(color: context.colorScheme.primary),
-                      ),
+        Row(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    IpingPill(
+                      key: const ValueKey('native-ip-filter-continent-all'),
+                      label: l.ipingNativeIpAll,
+                      selected: continent == null,
+                      onPressed: () => onContinent(null),
                     ),
-                  ),
-              ],
+                    for (final code in continents)
+                      IpingPill(
+                        key: ValueKey('native-ip-filter-continent-$code'),
+                        label: _continentLabel(l, code),
+                        selected: continent == code,
+                        onPressed: () => onContinent(code),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
+            if (tags.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              IpingPill(
+                key: const ValueKey('native-ip-filter-tags'),
+                glyph: AppGlyphs.filter,
+                label: l.filter,
+                trailing: selectedTags.isEmpty
+                    ? null
+                    : DecoratedBox(
+                        decoration: ShapeDecoration(
+                          color: scheme.primary,
+                          shape: AppShape.full,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Text(
+                            '${selectedTags.length}',
+                            style: AppTextStyle.caption2
+                                .of(context, emphasized: true)
+                                .toTabular
+                                .copyWith(color: scheme.onPrimary),
+                          ),
+                        ),
+                      ),
+                onPressed: onOpenTagSheet,
+              ),
+            ],
+          ],
+        ),
+        if (selectedTags.isNotEmpty)
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
               for (final tag in tags)
-                IpingPill(
-                  key: ValueKey('native-ip-filter-tag-${tag.key}'),
-                  label: tag.label,
-                  selected: selectedTags.contains(tag.key),
-                  color: _tagColors(context, tag.tone).$1,
-                  foregroundColor: _tagColors(context, tag.tone).$2,
-                  onPressed: () => onTag(tag.key),
-                ),
+                if (selectedTags.contains(tag.key))
+                  IpingPill.removable(
+                    key: ValueKey('native-ip-filter-tag-${tag.key}'),
+                    label: tag.label,
+                    onPressed: () => onTag(tag.key),
+                  ),
+              IpingPill(
+                key: const ValueKey('native-ip-clear-tags'),
+                glyph: AppGlyphs.clearAll,
+                label: l.reset,
+                onPressed: onClearTags,
+              ),
             ],
           ),
-        ],
         Text(
           l.ipingNativeIpResultCount(resultCount),
           style: context.listCaptionStyle,
         ),
       ],
+    );
+  }
+}
+
+class _NativeIpTagSheet extends StatefulWidget {
+  const _NativeIpTagSheet({
+    required this.tags,
+    required this.selected,
+    required this.onApply,
+  });
+
+  final List<NativeIpTag> tags;
+  final Set<String> selected;
+  final ValueChanged<Set<String>> onApply;
+
+  @override
+  State<_NativeIpTagSheet> createState() => _NativeIpTagSheetState();
+}
+
+class _NativeIpTagSheetState extends State<_NativeIpTagSheet> {
+  late final _selected = {...widget.selected};
+
+  void _toggle(String key) {
+    setState(() {
+      if (!_selected.add(key)) _selected.remove(key);
+    });
+  }
+
+  void _apply() {
+    widget.onApply(_selected);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.appLocalizations;
+    return CommonScaffold(
+      title: l.ipingNativeIpTags,
+      iconActions: [
+        IconButtonData(
+          glyph: AppGlyphs.clearAll,
+          tooltip: l.reset,
+          onPressed: () => setState(_selected.clear),
+        ),
+      ],
+      primaryAction: IconButtonData(
+        glyph: AppGlyphs.check,
+        tooltip: l.confirm,
+        onPressed: _apply,
+      ),
+      body: Builder(
+        builder: (context) => ListView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            context.contentTopPadding,
+            16,
+            24 + BottomInsetScope.of(context),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+              child: Text(
+                l.ipingNativeIpTagsHint,
+                style: context.listCaptionStyle,
+              ),
+            ),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final tag in widget.tags)
+                  IpingPill(
+                    key: ValueKey('native-ip-filter-tag-${tag.key}'),
+                    label: tag.label,
+                    selected: _selected.contains(tag.key),
+                    color: _tagColors(context, tag.tone).$1,
+                    foregroundColor: _tagColors(context, tag.tone).$2,
+                    onPressed: () => _toggle(tag.key),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -162,7 +162,7 @@ void main() {
     api.nativeInventoryFailure = IpingFailure.unavailable;
     await pump(tester);
     expect(
-      find.text('Unable to load native IPs. Please try again.'),
+      find.text('Unable to load networks. Please try again.'),
       findsOneWidget,
     );
 
@@ -185,7 +185,7 @@ void main() {
 
   testWidgets('an empty catalog says so', (tester) async {
     await pump(tester);
-    expect(find.text('No native IPs are available right now.'), findsOneWidget);
+    expect(find.text('No networks are available right now.'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -413,7 +413,7 @@ void main() {
     },
   );
 
-  testWidgets('continent and tag chips filter together', (tester) async {
+  testWidgets('continent and tag filters combine', (tester) async {
     api.nativeInventory['ipproxy/inventory/native'] = [
       _offer(
         country: 'United States',
@@ -446,6 +446,10 @@ void main() {
     expect(find.text('Regions · 2'), findsOneWidget);
     expect(find.text('North America'), findsOneWidget);
     expect(find.text('Asia'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('native-ip-filter-tag-live')),
+      findsNothing,
+    );
 
     await tester.tap(
       find.byKey(const ValueKey('native-ip-filter-continent-NA')),
@@ -461,18 +465,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Japan · Tokyo'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('native-ip-filter-tags')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('native-ip-filter-tag-live')));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Confirm'));
     await tester.pumpAndSettle();
     expect(find.text('United States · Los Angeles'), findsOneWidget);
     expect(find.text('Japan · Tokyo'), findsNothing);
-    expect(find.text('Clear (1)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('native-ip-filter-tags')),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
 
+    await tester.tap(find.byKey(const ValueKey('native-ip-filter-tags')));
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('native-ip-filter-tag-residential')),
     );
+    await tester.pump();
+    await tester.tap(find.byTooltip('Confirm'));
     await tester.pumpAndSettle();
     expect(find.text('United States · Los Angeles'), findsOneWidget);
-    expect(find.text('Clear (2)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('native-ip-filter-tags')),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(
       find.byKey(const ValueKey('native-ip-filter-continent-AS')),
@@ -524,6 +548,8 @@ void main() {
       ),
     ];
     await pump(tester);
+    await tester.tap(find.byKey(const ValueKey('native-ip-filter-tags')));
+    await tester.pumpAndSettle();
 
     final keys = tester
         .widgetList<IpingPill>(find.byType(IpingPill))

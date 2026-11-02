@@ -1083,9 +1083,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Introduce el contenido de la regla",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Se denegó el permiso de lista de apps, por lo que no se pueden mostrar las apps instaladas. Concédelo manualmente en los ajustes del sistema.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Este sistema oculta la lista de apps instaladas hasta que se concede el permiso. Autorízalo para configurar el proxy por app.",
     ),
@@ -1311,7 +1312,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Suscripción importada manualmente",
     ),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("IP nativas"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Compra de red"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Todos"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage(
       "Incluir un túnel",
@@ -1353,7 +1354,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Duración"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
-      "No hay IP nativas disponibles ahora.",
+      "No hay redes disponibles ahora.",
     ),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "Ninguna región coincide con estos filtros.",
@@ -1368,7 +1369,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Este es el precio de lista. El descuento de revendedor se aplica al cobrar.",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "No se pudieron cargar las IP nativas. Inténtalo de nuevo.",
+      "No se pudieron cargar las redes. Inténtalo de nuevo.",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1382,7 +1383,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("Pedido"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("Compradas"),
     "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "Aún no tienes IP nativas.",
+      "Aún no tienes redes.",
     ),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("Plan de túnel"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
@@ -1457,9 +1458,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Centro de cuenta",
     ),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("Estado del proxy"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage(
-      "Recargas recientes",
-    ),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage(
       "Personas referidas",
     ),
@@ -1741,10 +1739,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Túnel renovado.",
     ),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "Seleccionar de mis IP",
+      "Seleccionar una red",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "No hay IP disponibles",
+      "No hay redes disponibles",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("Activado"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
@@ -1798,7 +1796,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage(
       "Usuario (opcional)",
     ),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Túneles"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("Gestión de túneles"),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage(
       "Todavía no hay túneles.",
     ),

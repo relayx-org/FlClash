@@ -7807,8 +7807,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -8987,16 +8986,6 @@ class AppLocalizations {
     return Intl.message('Top up', name: 'ipingTopUp', desc: '', args: []);
   }
 
-  /// `Recent top-ups`
-  String get ipingRecentTopups {
-    return Intl.message(
-      'Recent top-ups',
-      name: 'ipingRecentTopups',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Top-up history`
   String get ipingTopupHistory {
     return Intl.message(
@@ -9267,10 +9256,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Native IPs`
+  /// `Network Purchase`
   String get ipingNativeIp {
     return Intl.message(
-      'Native IPs',
+      'Network Purchase',
       name: 'ipingNativeIp',
       desc: '',
       args: [],
@@ -9362,20 +9351,20 @@ class AppLocalizations {
     );
   }
 
-  /// `No native IPs are available right now.`
+  /// `No networks are available right now.`
   String get ipingNativeIpEmpty {
     return Intl.message(
-      'No native IPs are available right now.',
+      'No networks are available right now.',
       name: 'ipingNativeIpEmpty',
       desc: '',
       args: [],
     );
   }
 
-  /// `Unable to load native IPs. Please try again.`
+  /// `Unable to load networks. Please try again.`
   String get ipingNativeIpLoadFailed {
     return Intl.message(
-      'Unable to load native IPs. Please try again.',
+      'Unable to load networks. Please try again.',
       name: 'ipingNativeIpLoadFailed',
       desc: '',
       args: [],
@@ -9672,9 +9661,14 @@ class AppLocalizations {
     );
   }
 
-  /// `Tunnels`
+  /// `Tunnel Management`
   String get ipingTunnels {
-    return Intl.message('Tunnels', name: 'ipingTunnels', desc: '', args: []);
+    return Intl.message(
+      'Tunnel Management',
+      name: 'ipingTunnels',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `No tunnels yet.`
@@ -10247,20 +10241,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Select from Native IPs`
+  /// `Select a network`
   String get ipingTunnelSelectFromNativeIps {
     return Intl.message(
-      'Select from Native IPs',
+      'Select a network',
       name: 'ipingTunnelSelectFromNativeIps',
       desc: '',
       args: [],
     );
   }
 
-  /// `No available Native IPs`
+  /// `No available networks`
   String get ipingTunnelSelectFromNativeIpsEmpty {
     return Intl.message(
-      'No available Native IPs',
+      'No available networks',
       name: 'ipingTunnelSelectFromNativeIpsEmpty',
       desc: '',
       args: [],
@@ -10597,10 +10591,10 @@ class AppLocalizations {
     );
   }
 
-  /// `You have no Native IPs yet.`
+  /// `You have no networks yet.`
   String get ipingNativeIpOwnedEmpty {
     return Intl.message(
-      'You have no Native IPs yet.',
+      'You have no networks yet.',
       name: 'ipingNativeIpOwnedEmpty',
       desc: '',
       args: [],

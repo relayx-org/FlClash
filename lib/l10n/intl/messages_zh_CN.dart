@@ -959,7 +959,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "暂无可用节点，请检查订阅链接或刷新。",
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage("手动导入的订阅"),
-    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("原生 IP"),
+    "ipingNativeIp": MessageLookupByLibrary.simpleMessage("网络购买"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("全部"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage("同时购买隧道"),
     "ipingNativeIpBundleHint": MessageLookupByLibrary.simpleMessage(
@@ -988,7 +988,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("数量"),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("时长"),
-    "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage("当前没有可购买的原生 IP"),
+    "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage("当前没有可购买的网络"),
     "ipingNativeIpFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "没有符合当前筛选条件的地区",
     ),
@@ -1000,7 +1000,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "此处为牌价，分销折扣在扣款时计算",
     ),
     "ipingNativeIpLoadFailed": MessageLookupByLibrary.simpleMessage(
-      "无法加载原生 IP，请重试",
+      "无法加载网络，请重试",
     ),
     "ipingNativeIpMonthly": m44,
     "ipingNativeIpMonths": m45,
@@ -1009,9 +1009,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNativeIpOpenTunnels": MessageLookupByLibrary.simpleMessage("前往隧道"),
     "ipingNativeIpOrder": MessageLookupByLibrary.simpleMessage("订单"),
     "ipingNativeIpOwned": MessageLookupByLibrary.simpleMessage("已购买"),
-    "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage(
-      "还没有原生 IP。",
-    ),
+    "ipingNativeIpOwnedEmpty": MessageLookupByLibrary.simpleMessage("还没有网络。"),
     "ipingNativeIpPlan": MessageLookupByLibrary.simpleMessage("隧道套餐"),
     "ipingNativeIpPlansFailed": MessageLookupByLibrary.simpleMessage(
       "隧道套餐加载失败，仍可单独购买 IP",
@@ -1061,7 +1059,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingPrivacy": MessageLookupByLibrary.simpleMessage("隐私政策"),
     "ipingProfileCenter": MessageLookupByLibrary.simpleMessage("个人中心"),
     "ipingProxyCheck": MessageLookupByLibrary.simpleMessage("代理运行状态"),
-    "ipingRecentTopups": MessageLookupByLibrary.simpleMessage("最近充值"),
     "ipingReferralCount": MessageLookupByLibrary.simpleMessage("推广人数"),
     "ipingReferralEarnings": MessageLookupByLibrary.simpleMessage("总收益（人民币）"),
     "ipingReferralHint": MessageLookupByLibrary.simpleMessage(
@@ -1261,10 +1258,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage("无法续费，请重试"),
     "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage("已续费"),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
-      "从原生 IP 选择",
+      "从网络选择",
     ),
     "ipingTunnelSelectFromNativeIpsEmpty": MessageLookupByLibrary.simpleMessage(
-      "暂无可用原生 IP",
+      "暂无可用网络",
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("启用"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("禁用"),
@@ -1298,7 +1295,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelUpdated": MessageLookupByLibrary.simpleMessage("已更新"),
     "ipingTunnelUsername": MessageLookupByLibrary.simpleMessage("用户名（选填）"),
-    "ipingTunnels": MessageLookupByLibrary.simpleMessage("隧道"),
+    "ipingTunnels": MessageLookupByLibrary.simpleMessage("隧道管理"),
     "ipingTunnelsEmpty": MessageLookupByLibrary.simpleMessage("还没有隧道"),
     "ipingTunnelsFilteredEmpty": MessageLookupByLibrary.simpleMessage(
       "没有符合当前筛选条件的隧道",
