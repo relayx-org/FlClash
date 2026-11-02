@@ -2,6 +2,22 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.6",
+      "tag": "v0.1.6",
+      "date": "2026-11-02",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "fix",
+          "entries": [
+            {
+              "text": "同步 iPing 订阅时自动开启内核和 DNS 的 IPv6，修复纯 IPv6 节点无法连接的问题"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.5",
       "tag": "v0.1.5",
       "date": "2026-11-01",
