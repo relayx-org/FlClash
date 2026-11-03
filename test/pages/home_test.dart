@@ -1453,6 +1453,53 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('a mobile page title has no sidebar toggle', (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        navigationItemsStateProvider.overrideWithValue(
+          NavigationItemsState(
+            value: [
+              NavigationItem(
+                glyph: AppGlyphs.dashboard,
+                label: PageLabel.dashboard,
+                builder: (_) => const _TitledPage(),
+              ),
+              NavigationItem(
+                glyph: AppGlyphs.tools,
+                label: PageLabel.tools,
+                builder: (_) => const _TitledPage(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    globalState.container = container;
+    container.read(viewSizeProvider.notifier).value = const Size(420, 800);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const TestApp(includeNavigatorKey: false, child: HomePage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(SidebarToggleButton), findsNothing);
+
+    container.read(viewSizeProvider.notifier).value = const Size(1200, 800);
+    await tester.pumpAndSettle();
+    expect(find.byType(SidebarToggleButton), findsOneWidget);
+  });
+}
+
+class _TitledPage extends StatelessWidget {
+  const _TitledPage();
+
+  @override
+  Widget build(BuildContext context) =>
+      const CommonScaffold(title: 'Page', body: SizedBox.shrink());
 }
 
 class _ThemeManagedTestApp extends StatelessWidget {

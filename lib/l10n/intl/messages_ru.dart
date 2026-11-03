@@ -169,13 +169,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(address, count) => "${address} +${count}";
 
-  static String m64(rate) => "Множитель ${rate}";
+  static String m64(count) => "Туннелей, истекающих в течение 3 дней: ${count}";
 
-  static String m65(count) => "Туннелей, истекающих в течение 3 дней: ${count}";
+  static String m65(count) => "Туннелей с почти исчерпанным трафиком: ${count}";
 
-  static String m66(count) => "Туннелей с почти исчерпанным трафиком: ${count}";
+  static String m66(price) => "Продление списывает ${price} с баланса.";
 
-  static String m67(price) => "Продление списывает ${price} с баланса.";
+  static String m67(name) => "Эта подписка включает только туннель «${name}»";
 
   static String m68(used, quota) => "${used} / ${quota}";
 
@@ -1181,8 +1181,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingAccountSettings": MessageLookupByLibrary.simpleMessage(
       "Настройки аккаунта",
     ),
-    "ipingActualTraffic": MessageLookupByLibrary.simpleMessage(
-      "Фактический трафик",
+    "ipingAccountSubscription": MessageLookupByLibrary.simpleMessage(
+      "Подписка аккаунта",
+    ),
+    "ipingAccountSubscriptionHint": MessageLookupByLibrary.simpleMessage(
+      "Эта подписка включает все туннели аккаунта",
     ),
     "ipingApiAuthorized": MessageLookupByLibrary.simpleMessage(
       "Доступ на этом устройстве разрешён",
@@ -1192,9 +1195,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Доступный баланс",
     ),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("Баланс (CNY)"),
-    "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage(
-      "Тарифицируемый трафик",
-    ),
     "ipingBilling": MessageLookupByLibrary.simpleMessage(
       "Счета и история баланса",
     ),
@@ -1219,6 +1219,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage(
       "Открыть консоль iPing",
+    ),
+    "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
+      "Скопировать ссылку подписки",
     ),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage(
       "Неверный адрес электронной почты или пароль.",
@@ -1248,6 +1251,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingExitOk": MessageLookupByLibrary.simpleMessage(
       "Текущий выход ответил.",
+    ),
+    "ipingExportSubscription": MessageLookupByLibrary.simpleMessage(
+      "Экспорт подписки",
     ),
     "ipingFeatureConnect": MessageLookupByLibrary.simpleMessage(
       "Гибкий выбор узлов",
@@ -1280,6 +1286,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Подписка, импортированная вручную",
+    ),
+    "ipingManualSubscriptionShort": MessageLookupByLibrary.simpleMessage(
+      "Ручная подписка",
     ),
     "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Покупка сети"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Все"),
@@ -1388,9 +1397,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
       "Сейчас нет доступных способов оплаты.",
     ),
-    "ipingNoTraffic": MessageLookupByLibrary.simpleMessage(
-      "За этот период трафик не зафиксирован.",
-    ),
     "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage(
       "Уведомления Telegram",
@@ -1473,6 +1479,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
       "Не удалось загрузить подписку. Проверьте ссылку на подписку или повторите попытку.",
     ),
+    "ipingSubscriptionLinkCopied": MessageLookupByLibrary.simpleMessage(
+      "Ссылка подписки скопирована",
+    ),
+    "ipingSubscriptionLinkFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось получить ссылку подписки. Попробуйте ещё раз.",
+    ),
+    "ipingSubscriptionQrHint": MessageLookupByLibrary.simpleMessage(
+      "Отсканируйте QR-код или скопируйте ссылку, чтобы добавить подписку",
+    ),
+    "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
+      "Ссылка подписки содержит учётные данные аккаунта. Не передавайте её другим.",
+    ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Обновить подписку"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Обновление…"),
     "ipingSystemDns": m51,
@@ -1531,9 +1549,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ожидает оплаты",
     ),
     "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("Оплачено"),
-    "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
-      "Трафик · Последние 30 дней",
-    ),
     "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage(
       "Автопродление",
     ),
@@ -1597,7 +1612,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage(
       "Редактировать туннель",
     ),
-    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("Вход"),
     "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("Выход"),
     "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("Истёк"),
     "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("Истекает"),
@@ -1669,6 +1683,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage(
       "Пароль (необязательно)",
     ),
+    "ipingTunnelPlan": MessageLookupByLibrary.simpleMessage("План туннеля"),
     "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage(
       "Страна/регион выхода",
     ),
@@ -1687,14 +1702,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
       "Порт должен быть от 1 до 65535",
     ),
-    "ipingTunnelRate": m64,
-    "ipingTunnelReminderExpiring": m65,
-    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelReminderExpiring": m64,
+    "ipingTunnelReminderTraffic": m65,
     "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("Продлить"),
     "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
       "Продление списывается с баланса.",
     ),
-    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewConfirmPrice": m66,
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось продлить туннель. Повторите попытку.",
     ),
@@ -1711,14 +1725,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
       "Выключен",
     ),
-    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage(
-      "Сменить IP выхода",
-    ),
+    "ipingTunnelSubscriptionHint": m67,
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("Сменить IP"),
     "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
-      "Не удалось сменить IP выхода. Повторите попытку",
+      "Не удалось сменить IP. Повторите попытку.",
     ),
     "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
-      "IP выхода успешно изменен",
+      "IP успешно изменён. Применяем настройки",
     ),
     "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage(
       "Сменить порт",

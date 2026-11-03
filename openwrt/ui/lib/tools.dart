@@ -191,7 +191,6 @@ class RouterSubscription extends StatelessWidget {
       manualSubscription: router.status.manualSubscription,
       onImport: () => importRouterSubscription(context),
       onSignIn: router.signedIn ? null : () => router.signIn(),
-      onConsole: () => router.client.open('${router.site}/home'),
     );
   }
 }

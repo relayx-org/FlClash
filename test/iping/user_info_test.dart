@@ -144,11 +144,8 @@ void main() {
       );
 
       final referralProvider = ipingReferralStatsProvider(_account);
-      final trafficProvider = ipingTrafficStatsProvider(_account);
       container.listen(referralProvider, (_, _) {});
-      container.listen(trafficProvider, (_, _) {});
       expect((await container.read(referralProvider.future))?.count, 3);
-      expect((await container.read(trafficProvider.future))?.actual, 0);
       expect(
         backend.requests
             .where((r) => r.uri.path != '/api/tunnel/subscription')
@@ -250,13 +247,9 @@ void main() {
           apiKey: _account.apiKey,
         );
         final referrals = ipingReferralStatsProvider(other);
-        final traffic = ipingTrafficStatsProvider(other);
         container.listen(referrals, (_, _) {});
-        container.listen(traffic, (_, _) {});
         expect(await container.read(referrals.future), isNull);
-        expect(await container.read(traffic.future), isNull);
         expect(api.referralRequests, 0);
-        expect(api.trafficRequests, 0);
       },
     );
 
@@ -266,19 +259,14 @@ void main() {
         await initialize();
         final account = container.read(ipingSessionProvider).account!;
         final referral = api.referralRequest = Completer<IpingReferralStats>();
-        final traffic = api.trafficRequest = Completer<IpingTrafficStats>();
         final referrals = ipingReferralStatsProvider(account);
-        final traffics = ipingTrafficStatsProvider(account);
         container.listen(referrals, (_, _) {});
-        container.listen(traffics, (_, _) {});
         expect(api.referralRequests, 1);
-        expect(api.trafficRequests, 1);
         await container
             .read(ipingSessionProvider.notifier)
             .controller
             .signOut();
         expect(await container.read(referrals.future), isNull);
-        expect(await container.read(traffics.future), isNull);
         referral.complete(
           IpingReferralStats(
             userId: account.id,
@@ -288,10 +276,8 @@ void main() {
             commissionRate: 10,
           ),
         );
-        traffic.complete(const IpingTrafficStats([]));
         await Future<void>.delayed(Duration.zero);
         expect(container.read(referrals).value, isNull);
-        expect(container.read(traffics).value, isNull);
       },
     );
 

@@ -13,6 +13,10 @@ import 'providers.dart';
 const ipingPopupNoticeCooldown = Duration(hours: 2);
 const ipingPopupNoticeShownKey = 'my.iping.client.popup-notice.shown';
 
+/// The web console caps the announcement at max-w-lg (512 dp) including the
+/// alert's 30 dp text insets.
+const _noticeContentWidth = 452.0;
+
 class IpingPopupNotice extends ConsumerStatefulWidget {
   const IpingPopupNotice({super.key, required this.child});
   final Widget child;
@@ -117,6 +121,7 @@ class IpingPopupNoticeDialog extends StatelessWidget {
     final l = context.appLocalizations;
     return CommonDialog(
       title: l.ipingPopupNoticeTitle,
+      contentMaxWidth: _noticeContentWidth,
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

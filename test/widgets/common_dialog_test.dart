@@ -16,6 +16,7 @@ Future<void> _pumpDialog(
   TextDirection textDirection = TextDirection.ltr,
   ValueChanged<String>? onPressed,
   bool destructive = false,
+  double? contentMaxWidth,
 }) async {
   await tester.pumpWidget(
     TestApp(
@@ -27,6 +28,7 @@ Future<void> _pumpDialog(
             child: CommonDialog(
               title: 'Title',
               destructive: destructive,
+              contentMaxWidth: contentMaxWidth,
               actions: [
                 for (final label in labels)
                   TextButton(
@@ -132,6 +134,45 @@ void main() {
     await _pumpDialog(tester, ['No', 'Yes'], textDirection: TextDirection.rtl);
 
     expect(_rectOf(tester, 'Yes').right, lessThan(_rectOf(tester, 'No').left));
+  });
+
+  testWidgets('long-form content can widen the alert past its own width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      TestApp(
+        overrides: [_viewSizeOverride],
+        child: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showFloatingDialog<void>(
+                context: context,
+                child: CommonDialog(
+                  title: 'Title',
+                  contentMaxWidth: 452,
+                  actions: [
+                    TextButton(onPressed: () {}, child: const Text('OK')),
+                  ],
+                  child: const Text('Body'),
+                ),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final surface = find
+        .descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(Material),
+        )
+        .first;
+    expect(tester.getSize(surface).width, closeTo(512, 0.5));
   });
 
   testWidgets('a label too long for half the width stacks the default on top', (

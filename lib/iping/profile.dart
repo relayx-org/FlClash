@@ -69,12 +69,14 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
     ref.invalidate(ipingUserInfoProvider);
     ref.invalidate(ipingTunnelDigestProvider);
     ref.invalidate(ipingReferralStatsProvider);
-    ref.invalidate(ipingTrafficStatsProvider);
   }
 
   Future<void> _topUp() async {
     if (await showIpingTopup(context) == true) _refresh();
   }
+
+  Future<void> _openHistory() =>
+      showInSheet<void>(context, builder: (_) => const IpingTopupHistory());
 
   NullStatus _nullStatus(AsyncValue<Object?> info, bool authorized) {
     final l = context.appLocalizations;
@@ -111,9 +113,6 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
     final referrals = account == null
         ? null
         : ref.watch(ipingReferralStatsProvider(account)).value;
-    final traffic = account == null
-        ? null
-        : ref.watch(ipingTrafficStatsProvider(account)).value;
     final user = info.value;
     final shortfall = user == null ? null : digest?.shortfall(user.balance);
     final onTopUp = user?.status == 'active' ? _topUp : null;
@@ -160,7 +159,11 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
                     24 + BottomInsetScope.of(context),
                   ),
                   children: [
-                    IpingProfileHeader(info: user, onTopUp: onTopUp),
+                    IpingProfileHeader(
+                      info: user,
+                      onTopUp: onTopUp,
+                      onHistory: _openHistory,
+                    ),
                     if (context.isMobileView)
                       generateSection(
                         title: l.services,
@@ -186,19 +189,10 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
                         onTopUp: onTopUp,
                       ),
                     ],
-                    if (traffic != null) IpingTrafficChart(stats: traffic),
-                    const SizedBox(height: 12),
-                    generateSection(
-                      items: [
-                        ListItem.open(
-                          leading: const GlyphIcon(AppGlyphs.clock),
-                          title: Text(l.ipingTopupHistory),
-                          widget: const IpingTopupHistory(),
-                        ),
-                      ],
-                    ),
-                    if (referrals != null)
+                    if (referrals != null) ...[
+                      const SizedBox(height: 12),
                       IpingReferralSection(stats: referrals),
+                    ],
                   ],
                 ),
         ),

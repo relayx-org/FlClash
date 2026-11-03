@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../helpers/test_app.dart';
 import 'fakes.dart';
@@ -37,6 +38,21 @@ Future<void> _openEdit(WidgetTester tester, int id) async {
   );
   menu.menuItems!
       .firstWhere((item) => item.label == 'Edit Tunnel')
+      .onPressed!();
+  await _frames(tester);
+}
+
+Future<void> _openExport(WidgetTester tester, int id) async {
+  final menu = tester.widget<ContextMenuRegion>(
+    find
+        .descendant(
+          of: find.byKey(ValueKey('tunnel-row-$id')),
+          matching: find.byType(ContextMenuRegion),
+        )
+        .first,
+  );
+  menu.menuItems!
+      .firstWhere((item) => item.label == 'Export subscription')
       .onPressed!();
   await _frames(tester);
 }
@@ -81,6 +97,7 @@ Map<String, Object?> _tunnel({
     ],
   },
   'out_node_group': {'name': 'Exit', 'traffic_rate': 1},
+  'tunnel_plan': {'id': 5, 'name': 'Japan IPLC'},
   'forward_addresses': {'10.1.0.8:80': 1},
   'tunnel_price': {
     'id': 3,
@@ -124,6 +141,23 @@ void main() {
   }
 
   void seed() {
+    api.tunnelPlans = [
+      {
+        'id': 5,
+        'name': 'Japan IPLC',
+        'in_node_group': {'is_maintenance': false},
+      },
+      {
+        'id': 6,
+        'name': 'HK Direct',
+        'in_node_group': {'is_maintenance': false},
+      },
+      {
+        'id': 7,
+        'name': 'Maintenance',
+        'in_node_group': {'is_maintenance': true},
+      },
+    ];
     api.tunnels = [
       _tunnel(
         id: 1,
@@ -168,6 +202,8 @@ void main() {
     expect(find.textContaining('Port in use'), findsOneWidget);
     expect(find.textContaining('198.51.100.2:80 +1'), findsOneWidget);
     expect(find.text('Expired'), findsWidgets);
+    expect(find.textContaining('Japan IPLC'), findsWidgets);
+    expect(find.text('US-Entry'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('tunnel-filter-active')));
     await tester.pumpAndSettle();
@@ -255,8 +291,14 @@ void main() {
     await _frames(tester);
     expect(find.text('Auto-renew'), findsOneWidget);
     expect(find.text('10.1.0.8:80'), findsOneWidget);
-    expect(find.textContaining('Multiplier 1.5'), findsOneWidget);
-    expect(find.text('0.5 GB / 100 GB'), findsWidgets);
+    expect(
+      find.descendant(
+        of: find.byType(IpingTunnelDetailPage),
+        matching: find.text('Japan IPLC'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('US-Entry'), findsNothing);
 
     String? copied;
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -354,12 +396,15 @@ void main() {
     );
     await tester.enterText(find.widgetWithText(TextField, '80'), '8080');
     await tester.pumpAndSettle();
+    await _choose(tester, 'tunnel-edit-plan', 'HK Direct');
 
     final saveButton = find.byTooltip('Save');
     await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
+    expect(api.tunnelUpdates.last['tunnel_plan_id'], 6);
     expect(find.text('Alpha Prime'), findsOneWidget);
+    expect(find.text('HK Direct'), findsOneWidget);
     expect(find.text('Tunnel updated.'), findsOneWidget);
   });
 
@@ -406,6 +451,50 @@ void main() {
     await _frames(tester);
     expect(find.text('Port switched successfully'), findsOneWidget);
     expect(find.text('444'), findsOneWidget);
+  });
+
+  testWidgets('a tunnel exports a scoped subscription link and QR code', (
+    tester,
+  ) async {
+    seed();
+    await pump(tester);
+
+    await _openExport(tester, 1);
+    await tester.pumpAndSettle();
+
+    expect(api.tunnelSubscriptionRequests, [1]);
+    expect(
+      find.text('https://iping.my/api/tunnel/subscription?token=t.1.signature'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('This subscription includes only the tunnel "Alpha"'),
+      findsOneWidget,
+    );
+    expect(find.byType(QrImageView), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a failed tunnel export offers a retry', (tester) async {
+    seed();
+    api.tunnelSubscriptionFailure = IpingFailure.session;
+    await pump(tester);
+
+    await _openExport(tester, 1);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Your session is no longer valid. Please sign in again.'),
+      findsOneWidget,
+    );
+
+    api.tunnelSubscriptionFailure = null;
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(api.tunnelSubscriptionRequests, [1]);
+    expect(find.byType(QrImageView), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('edit page imports from clipboard and selects from native IPs', (
@@ -522,10 +611,7 @@ void main() {
     await _frames(tester);
 
     expect(api.switchedIpTunnels, [11]);
-    expect(
-      find.textContaining('Exit IP switched successfully'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('IP switched successfully'), findsOneWidget);
   });
 
   testWidgets('filter sheet filters by IP type and port', (tester) async {
@@ -617,6 +703,7 @@ void main() {
       await tester.tap(find.text('Batch Settings'));
       await _frames(tester);
 
+      await _choose(tester, 'batch-plan', 'HK Direct');
       await _choose(tester, 'batch-status', 'Enabled');
       await _choose(tester, 'batch-auto-renew', 'Enabled');
       await tester.enterText(
@@ -642,6 +729,7 @@ void main() {
 
       expect(api.tunnelUpdates.last['status'], 'active');
       expect(api.tunnelUpdates.last['auto_renew'], isTrue);
+      expect(api.tunnelUpdates.last['tunnel_plan_id'], 6);
       expect(api.tunnelFills, isNotEmpty);
       final items =
           api.tunnelFills.last['items'] as List<Map<String, dynamic>>?;

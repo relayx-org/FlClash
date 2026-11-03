@@ -966,6 +966,8 @@
   "ipingImportSubscription": "Importer un lien d’abonnement",
   "ipingImportWithoutLogin": "Importer un abonnement sans se connecter",
   "ipingManualSubscription": "Abonnement importé manuellement",
+  "ipingAccountSubscription": "Abonnement du compte",
+  "ipingManualSubscriptionShort": "Abonnement manuel",
   "ipingManualNoNodes": "Aucun nœud disponible. Vérifiez le lien d’abonnement ou actualisez.",
   "ipingNoNodes": "Aucun nœud disponible. Gérez vos services dans la console iPing, puis actualisez.",
   "ipingSync": "Actualiser l’abonnement",
@@ -1048,10 +1050,6 @@
   "ipingNotifyTunnel": "Expiration du tunnel",
   "ipingNotifyIp": "Expiration de l’IP",
   "ipingNotificationsHint": "Ces préférences sont synchronisées avec le site. Associez Telegram pour recevoir les notifications ; modifiez les préférences sur le site.",
-  "ipingTraffic30Days": "Trafic · 30 derniers jours",
-  "ipingActualTraffic": "Trafic réel",
-  "ipingBilledTraffic": "Trafic facturé",
-  "ipingNoTraffic": "Aucun trafic enregistré sur cette période.",
   "ipingAccountServices": "Gérer les services du compte",
   "ipingAccountServicesHint": "Rechargez le compte, associez Telegram et gérez les clés API et les notifications sur le site.",
   "ipingBilling": "Factures et historique du solde",
@@ -1272,16 +1270,7 @@
   "ipingTunnelListenWaiting": "En attente d'un port",
   "ipingTunnelCopyListen": "Copier l'adresse d'écoute",
   "ipingTunnelLoadMore": "Afficher la suite",
-  "ipingTunnelEntrance": "Entrée",
   "ipingTunnelExit": "Sortie",
-  "ipingTunnelRate": "Multiplicateur {rate}",
-  "@ipingTunnelRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "ipingTunnelForward": "Transférer vers",
   "ipingTunnelPoolExit": "La sortie provient d'un groupe d'adresses.",
   "ipingTunnelMoreAddresses": "{address} +{count}",
@@ -1296,6 +1285,7 @@
     }
   },
   "ipingTunnelEdit": "Modifier le tunnel",
+  "ipingTunnelPlan": "Formule du tunnel",
   "ipingTunnelName": "Nom du tunnel",
   "ipingTunnelNameHint": "Entrez le nom du tunnel",
   "ipingTunnelForwardHost": "IP ou domaine de redirection",
@@ -1323,9 +1313,9 @@
   "ipingTunnelFilterIpType": "Type d'IP",
   "ipingTunnelFilterPort": "Port d'écoute",
   "ipingTunnelFilterPortHint": "Entrez le numéro de port",
-  "ipingTunnelSwitchIp": "Changer l'IP de sortie",
-  "ipingTunnelSwitchIpSuccess": "IP de sortie changée avec succès",
-  "ipingTunnelSwitchIpFailed": "Échec du changement d'IP de sortie",
+  "ipingTunnelSwitchIp": "Changer l’IP",
+  "ipingTunnelSwitchIpSuccess": "IP changée. Application de la configuration",
+  "ipingTunnelSwitchIpFailed": "Échec du changement d’IP. Réessayez.",
   "ipingTunnelAutoRenewDesc": "Renouvellement auto la veille de l'expiration",
   "ipingTunnelPoolCountry": "Pays/région de sortie",
   "ipingTunnelPoolInterval": "Intervalle de bascule auto (min)",
@@ -1414,6 +1404,21 @@
   "ipingTunnelExportClash": "Proxies Clash (YAML)",
   "ipingTunnelExportCsv": "CSV",
   "ipingTunnelExportSuccess": "{count} entrées copiées",
+  "ipingExportSubscription": "Exporter l’abonnement",
+  "ipingCopySubscriptionLink": "Copier le lien d’abonnement",
+  "ipingSubscriptionLinkCopied": "Lien d’abonnement copié",
+  "ipingSubscriptionLinkFailed": "Impossible d’obtenir le lien d’abonnement. Veuillez réessayer.",
+  "ipingSubscriptionQrHint": "Scannez le code QR ou copiez le lien pour ajouter l’abonnement",
+  "ipingAccountSubscriptionHint": "Cet abonnement inclut tous les tunnels de votre compte",
+  "ipingSubscriptionSecretHint": "Le lien d’abonnement contient vos identifiants de compte. Ne le partagez pas.",
+  "ipingTunnelSubscriptionHint": "Cet abonnement inclut uniquement le tunnel « {name} »",
+  "@ipingTunnelSubscriptionHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@ipingTunnelExportSuccess": {
     "placeholders": {
       "count": {

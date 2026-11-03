@@ -41,6 +41,10 @@ class IpingSubscriptionDetails extends ConsumerWidget {
     final failure = ref.watch(
       ipingSessionProvider.select((state) => state.failure),
     );
+    final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+    final exportUrl = !session.manualSubscription && account != null
+        ? ref.read(ipingApiProvider).subscriptionUrl(account.subscriptionToken)
+        : null;
     return IpingSubscriptionPage(
       nodes: session.nodes,
       busy: session.busy,
@@ -48,11 +52,11 @@ class IpingSubscriptionDetails extends ConsumerWidget {
           ? null
           : l.profileUpdatedAt(session.updated!.getLastUpdateTimeDesc(context)),
       failure: failure == null ? null : IpingFailureText(failure: failure),
+      exportUrl: exportUrl,
       manualSubscription: session.manualSubscription,
       onSync: backend.synchronize,
       onImport: () => importIpingSubscription(context, ref),
       onSignIn: session.signedIn ? null : backend.signIn,
-      onConsole: () => dialogs.openUrl('$ipingSite/home'),
     );
   }
 }

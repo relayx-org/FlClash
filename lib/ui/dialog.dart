@@ -334,6 +334,10 @@ class CommonDialog extends StatelessWidget {
   /// The last action destroys data: red on the plain fill, as in UIKit.
   final bool destructive;
 
+  /// Widens the content past the 348 dp an iOS alert gives it, for long-form
+  /// content such as a markdown notice. The dialog grows with it.
+  final double? contentMaxWidth;
+
   const CommonDialog({
     super.key,
     required this.title,
@@ -343,6 +347,7 @@ class CommonDialog extends StatelessWidget {
     this.padding,
     this.hasFields = false,
     this.destructive = false,
+    this.contentMaxWidth,
   });
 
   @override
@@ -391,9 +396,11 @@ class CommonDialog extends StatelessWidget {
           ),
       content: Container(
         constraints: BoxConstraints(
-          maxWidth: padding == null
-              ? _alertWidth - contentInset * 2
-              : _contentMaxWidth,
+          maxWidth:
+              contentMaxWidth ??
+              (padding == null
+                  ? _alertWidth - contentInset * 2
+                  : _contentMaxWidth),
         ),
         width: double.infinity,
         child: SingleChildScrollView(

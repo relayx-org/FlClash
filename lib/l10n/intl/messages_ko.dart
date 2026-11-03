@@ -155,13 +155,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(address, count) => "${address} +${count}";
 
-  static String m64(rate) => "배율 ${rate}";
+  static String m64(count) => "3일 이내에 만료되는 터널 ${count}개";
 
-  static String m65(count) => "3일 이내에 만료되는 터널 ${count}개";
+  static String m65(count) => "트래픽이 거의 소진된 터널 ${count}개";
 
-  static String m66(count) => "트래픽이 거의 소진된 터널 ${count}개";
+  static String m66(price) => "갱신하면 잔액에서 ${price}이 차감됩니다.";
 
-  static String m67(price) => "갱신하면 잔액에서 ${price}이 차감됩니다.";
+  static String m67(name) => "이 구독에는 터널 \"${name}\"만 포함됩니다";
 
   static String m68(used, quota) => "${used} / ${quota}";
 
@@ -968,12 +968,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "웹사이트에서 충전, Telegram 연결, API 키 및 알림 관리를 할 수 있습니다.",
     ),
     "ipingAccountSettings": MessageLookupByLibrary.simpleMessage("계정 설정"),
-    "ipingActualTraffic": MessageLookupByLibrary.simpleMessage("실제 트래픽"),
+    "ipingAccountSubscription": MessageLookupByLibrary.simpleMessage("계정 구독"),
+    "ipingAccountSubscriptionHint": MessageLookupByLibrary.simpleMessage(
+      "이 구독에는 계정의 모든 터널이 포함됩니다",
+    ),
     "ipingApiAuthorized": MessageLookupByLibrary.simpleMessage("이 기기에서 접근 허용됨"),
     "ipingApiKey": MessageLookupByLibrary.simpleMessage("API 키"),
     "ipingAvailableBalance": MessageLookupByLibrary.simpleMessage("사용 가능 잔액"),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("잔액 (CNY)"),
-    "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage("과금 트래픽"),
     "ipingBilling": MessageLookupByLibrary.simpleMessage("청구 및 잔액 내역"),
     "ipingBrandDescription": MessageLookupByLibrary.simpleMessage(
       "익숙한 계정에서 구독, 노드, 네트워크 연결을 한곳에서 관리하세요.",
@@ -989,6 +991,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "브라우저에서 로그인을 완료한 뒤 iPing으로 돌아오세요.",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing 콘솔 열기"),
+    "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
+      "구독 링크 복사",
+    ),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage(
       "이메일 또는 비밀번호가 올바르지 않습니다.",
     ),
@@ -1010,6 +1015,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "출구가 응답하지 않습니다. 노드를 변경하고 다시 확인하세요.",
     ),
     "ipingExitOk": MessageLookupByLibrary.simpleMessage("현재 출구가 정상 응답했습니다."),
+    "ipingExportSubscription": MessageLookupByLibrary.simpleMessage("구독 내보내기"),
     "ipingFeatureConnect": MessageLookupByLibrary.simpleMessage("유연한 노드 선택"),
     "ipingFeatureLogin": MessageLookupByLibrary.simpleMessage("브라우저 로그인"),
     "ipingFeatureSync": MessageLookupByLibrary.simpleMessage("구독 자동 동기화"),
@@ -1033,6 +1039,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "수동으로 가져온 구독",
+    ),
+    "ipingManualSubscriptionShort": MessageLookupByLibrary.simpleMessage(
+      "수동 구독",
     ),
     "ipingNativeIp": MessageLookupByLibrary.simpleMessage("네트워크 구매"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("전체"),
@@ -1125,9 +1134,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
       "현재 사용할 수 있는 결제 수단이 없습니다.",
     ),
-    "ipingNoTraffic": MessageLookupByLibrary.simpleMessage(
-      "이 기간에 기록된 트래픽이 없습니다.",
-    ),
     "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage("Telegram 알림"),
     "ipingNotificationsHint": MessageLookupByLibrary.simpleMessage(
@@ -1186,6 +1192,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
       "구독을 불러올 수 없습니다. 구독 링크를 확인하거나 다시 시도하세요.",
     ),
+    "ipingSubscriptionLinkCopied": MessageLookupByLibrary.simpleMessage(
+      "구독 링크가 복사되었습니다",
+    ),
+    "ipingSubscriptionLinkFailed": MessageLookupByLibrary.simpleMessage(
+      "구독 링크를 가져올 수 없습니다. 다시 시도하세요.",
+    ),
+    "ipingSubscriptionQrHint": MessageLookupByLibrary.simpleMessage(
+      "QR 코드를 스캔하거나 링크를 복사하여 구독을 추가하세요",
+    ),
+    "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
+      "구독 링크에는 계정 자격 증명이 포함되어 있습니다. 다른 사람과 공유하지 마세요.",
+    ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("구독 새로고침"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("새로고침 중…"),
     "ipingSystemDns": m51,
@@ -1232,7 +1250,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTopupStatusCancelled": MessageLookupByLibrary.simpleMessage("취소됨"),
     "ipingTopupStatusPending": MessageLookupByLibrary.simpleMessage("결제 대기"),
     "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("완료"),
-    "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage("트래픽 · 최근 30일"),
     "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage("자동 갱신"),
     "ipingTunnelAutoRenewDesc": MessageLookupByLibrary.simpleMessage(
       "만료 하루 전 자동 갱신됩니다. 잔액을 확인해 주세요",
@@ -1282,7 +1299,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelCopyListen": MessageLookupByLibrary.simpleMessage("수신 주소 복사"),
     "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage("터널 편집"),
-    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("입구"),
     "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("출구"),
     "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("만료됨"),
     "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("만료"),
@@ -1336,6 +1352,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelName": MessageLookupByLibrary.simpleMessage("터널 이름"),
     "ipingTunnelNameHint": MessageLookupByLibrary.simpleMessage("터널 이름 입력"),
     "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage("비밀번호 (선택)"),
+    "ipingTunnelPlan": MessageLookupByLibrary.simpleMessage("터널 플랜"),
     "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage("출구 국가/지역"),
     "ipingTunnelPoolExit": MessageLookupByLibrary.simpleMessage(
       "출구는 주소 풀에서 할당됩니다",
@@ -1352,14 +1369,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
       "포트는 1에서 65535 사이여야 합니다",
     ),
-    "ipingTunnelRate": m64,
-    "ipingTunnelReminderExpiring": m65,
-    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelReminderExpiring": m64,
+    "ipingTunnelReminderTraffic": m65,
     "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("갱신"),
     "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
       "갱신하면 잔액에서 차감됩니다.",
     ),
-    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewConfirmPrice": m66,
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
       "터널을 갱신하지 못했습니다. 다시 시도해 주세요.",
     ),
@@ -1372,12 +1388,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("사용"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("사용 안 함"),
-    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("출구 IP 변경"),
+    "ipingTunnelSubscriptionHint": m67,
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("IP 변경"),
     "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
-      "출구 IP 변경에 실패했습니다",
+      "IP 변경에 실패했습니다. 다시 시도하세요.",
     ),
     "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
-      "출구 IP가 변경되었습니다",
+      "IP가 변경되었습니다. 설정을 적용 중입니다",
     ),
     "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage("포트 변경"),
     "ipingTunnelSwitchPortFailed": MessageLookupByLibrary.simpleMessage(

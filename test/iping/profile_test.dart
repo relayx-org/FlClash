@@ -1,5 +1,6 @@
 import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/iping/profile.dart';
+import 'package:fl_clash/iping/profile_widgets.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/topup.dart';
 import 'package:fl_clash/iping/topup_form.dart';
@@ -85,6 +86,13 @@ void main() {
     expect(find.text('¥128.50'), findsOneWidget);
     expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
     expect(find.text('Paid'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(IpingProfileHeader),
+        matching: find.text('Top-up history'),
+      ),
+      findsOneWidget,
+    );
     expect(api.topupPageRequests, isEmpty);
 
     await tester.tap(find.text('Top-up history'));
@@ -99,8 +107,8 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('the profile charts traffic, lists referrals and warns of '
-      'renewals the balance cannot cover', (tester) async {
+  testWidgets('the profile lists referrals and warns of renewals the '
+      'balance cannot cover', (tester) async {
     api.balance = 5;
     api.tunnels = [
       {
@@ -124,15 +132,6 @@ void main() {
       ),
       findsOneWidget,
     );
-
-    expect(find.text('Traffic · Last 30 days'), findsOneWidget);
-    expect(find.text('9 GB'), findsOneWidget);
-    expect(find.text('7.5 GB'), findsOneWidget);
-    final bars = find.byKey(const ValueKey('iping-traffic-bars'));
-    expect(bars, paints..paragraph());
-    await tester.tapAt(tester.getBottomRight(bars) - const Offset(2, 2));
-    await tester.pump();
-    expect(find.text('2026-10-30 · Billed traffic'), findsOneWidget);
 
     await tester.scrollUntilVisible(find.text('Referral link'), 200);
     expect(find.textContaining('?ref=7'), findsOneWidget);

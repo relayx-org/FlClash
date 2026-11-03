@@ -274,6 +274,33 @@ class IpingUserProxy {
   }
 }
 
+class IpingTunnelPlanOption {
+  const IpingTunnelPlanOption({
+    required this.id,
+    required this.name,
+    this.maintenance = false,
+  });
+
+  final int id;
+  final String name;
+
+  /// The store refuses a plan whose entrance is in maintenance, so the picker
+  /// leaves those out.
+  final bool maintenance;
+
+  static IpingTunnelPlanOption? tryParse(Map<String, dynamic> json) {
+    final id = json['id'];
+    final name = json['name'];
+    if (id is! num || id <= 0 || name is! String || name.isEmpty) return null;
+    final group = json['in_node_group'];
+    return IpingTunnelPlanOption(
+      id: id.toInt(),
+      name: name,
+      maintenance: group is Map && group['is_maintenance'] == true,
+    );
+  }
+}
+
 class IpingTunnel {
   const IpingTunnel({
     required this.id,
@@ -295,6 +322,8 @@ class IpingTunnel {
     this.canChangeForwardAddress = true,
     this.planName,
     this.planPrice,
+    this.tunnelPlanId,
+    this.tunnelPlanName,
     this.poolExit = false,
     this.poolCountry,
     this.poolIntervalMinutes,
@@ -325,6 +354,10 @@ class IpingTunnel {
   final bool canChangeForwardAddress;
   final String? planName;
   final num? planPrice;
+
+  /// The plan the store sold this tunnel under; legacy tunnels have none.
+  final int? tunnelPlanId;
+  final String? tunnelPlanName;
   final bool poolExit;
   final String? poolCountry;
   final int? poolIntervalMinutes;
@@ -406,6 +439,8 @@ class IpingTunnel {
         canChangeForwardAddress ?? this.canChangeForwardAddress,
     planName: planName,
     planPrice: planPrice,
+    tunnelPlanId: tunnelPlanId,
+    tunnelPlanName: tunnelPlanName,
     poolExit: poolExit,
     poolCountry: poolCountry ?? this.poolCountry,
     poolIntervalMinutes: poolIntervalMinutes ?? this.poolIntervalMinutes,
@@ -424,6 +459,11 @@ class IpingTunnel {
     final price = json['tunnel_price'];
     final plan = price is Map ? Map<String, dynamic>.from(price) : null;
     final planName = plan?['name'];
+    final tunnelPlan = json['tunnel_plan'] is Map
+        ? Map<String, dynamic>.from(json['tunnel_plan'] as Map)
+        : null;
+    final tunnelPlanName = tunnelPlan?['name'];
+    final tunnelPlanId = json['tunnel_plan_id'];
     final planPrice = plan?['price'];
     final pool = json['sk5_pool_mode'];
     final protocol = json['forward_addresses_protocol'] is Map
@@ -462,6 +502,12 @@ class IpingTunnel {
       canChangeForwardAddress: json['can_change_forward_address'] != false,
       planName: planName is String && planName.isNotEmpty ? planName : null,
       planPrice: planPrice is num ? planPrice : null,
+      tunnelPlanId: tunnelPlanId is num && tunnelPlanId > 0
+          ? tunnelPlanId.toInt()
+          : null,
+      tunnelPlanName: tunnelPlanName is String && tunnelPlanName.isNotEmpty
+          ? tunnelPlanName
+          : null,
       poolExit: pool is String && pool.isNotEmpty,
       poolCountry: json['sk5_pool_country'] is String
           ? json['sk5_pool_country'] as String
@@ -508,6 +554,19 @@ extension TunnelApi on IpingApi {
     } on TypeError {
       throw const IpingException(IpingFailure.unavailable);
     }
+  }
+
+  Future<List<IpingTunnelPlanOption>> tunnelPlanOptions() async {
+    final json = await get<Map<String, dynamic>>('tunnel/plan');
+    final data = json['data'];
+    if (data is! List) {
+      throw const IpingException(IpingFailure.unavailable);
+    }
+    return [
+      for (final item in data)
+        if (item is Map)
+          ?IpingTunnelPlanOption.tryParse(Map<String, dynamic>.from(item)),
+    ];
   }
 
   Future<IpingTunnel?> tunnel(int id) async {
@@ -558,13 +617,19 @@ extension TunnelApi on IpingApi {
     );
   }
 
-  Future<void> updateTunnel(int id, {String? status, bool? autoRenew}) {
+  Future<void> updateTunnel(
+    int id, {
+    String? status,
+    bool? autoRenew,
+    int? tunnelPlanId,
+  }) {
     return patchVoid(
       'tunnel/batch/update',
       data: {
         'ids': [id],
         'status': ?status,
         'auto_renew': ?autoRenew,
+        'tunnel_plan_id': ?tunnelPlanId,
       },
     );
   }
@@ -573,9 +638,15 @@ extension TunnelApi on IpingApi {
     required List<int> ids,
     String? status,
     bool? autoRenew,
+    int? tunnelPlanId,
   }) => patchVoid(
     'tunnel/batch/update',
-    data: {'ids': ids, 'status': ?status, 'auto_renew': ?autoRenew},
+    data: {
+      'ids': ids,
+      'status': ?status,
+      'auto_renew': ?autoRenew,
+      'tunnel_plan_id': ?tunnelPlanId,
+    },
   );
 
   Future<void> batchFillTunnels(List<Map<String, dynamic>> items) =>
@@ -613,6 +684,17 @@ extension TunnelApi on IpingApi {
     );
   }
 
+  Future<String> tunnelSubscriptionToken(int id) async {
+    final json = await get<Map<String, dynamic>>(
+      'tunnel/$id/subscription-token',
+    );
+    final token = json['token'];
+    if (token is! String || token.isEmpty) {
+      throw const IpingException(IpingFailure.unavailable);
+    }
+    return token;
+  }
+
   Future<int> switchPort(int id) async {
     final res = await post<Map<String, dynamic>>('tunnel/$id/switch-port');
     final port = res['listen_port'];
@@ -628,6 +710,7 @@ extension TunnelApi on IpingApi {
     String? forwardPassword,
     String? status,
     bool? autoRenew,
+    int? tunnelPlanId,
   }) async {
     final futures = <Future<void>>[];
     if (name != null || forwardAddresses != null) {
@@ -641,8 +724,15 @@ extension TunnelApi on IpingApi {
         ),
       );
     }
-    if (status != null || autoRenew != null) {
-      futures.add(updateTunnel(id, status: status, autoRenew: autoRenew));
+    if (status != null || autoRenew != null || tunnelPlanId != null) {
+      futures.add(
+        updateTunnel(
+          id,
+          status: status,
+          autoRenew: autoRenew,
+          tunnelPlanId: tunnelPlanId,
+        ),
+      );
     }
     await Future.wait(futures);
   }

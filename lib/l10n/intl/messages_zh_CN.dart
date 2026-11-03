@@ -154,13 +154,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(address, count) => "${address} +${count}";
 
-  static String m64(rate) => "倍率 ${rate}";
+  static String m64(count) => "${count} 条隧道将在 3 天内到期";
 
-  static String m65(count) => "${count} 条隧道将在 3 天内到期";
+  static String m65(count) => "${count} 条隧道流量即将用尽";
 
-  static String m66(count) => "${count} 条隧道流量即将用尽";
+  static String m66(price) => "续费会从余额扣除 ${price}。";
 
-  static String m67(price) => "续费会从余额扣除 ${price}。";
+  static String m67(name) => "此订阅仅包含隧道「${name}」";
 
   static String m68(used, quota) => "${used} / ${quota}";
 
@@ -903,12 +903,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "前往网页充值、绑定 Telegram、管理密钥和通知。",
     ),
     "ipingAccountSettings": MessageLookupByLibrary.simpleMessage("账户设置"),
-    "ipingActualTraffic": MessageLookupByLibrary.simpleMessage("实际流量"),
+    "ipingAccountSubscription": MessageLookupByLibrary.simpleMessage("账户订阅"),
+    "ipingAccountSubscriptionHint": MessageLookupByLibrary.simpleMessage(
+      "此订阅包含账户下的全部隧道",
+    ),
     "ipingApiAuthorized": MessageLookupByLibrary.simpleMessage("此设备已授权"),
     "ipingApiKey": MessageLookupByLibrary.simpleMessage("API Key"),
     "ipingAvailableBalance": MessageLookupByLibrary.simpleMessage("可用余额"),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("余额（人民币）"),
-    "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage("计费流量"),
     "ipingBilling": MessageLookupByLibrary.simpleMessage("账单与余额记录"),
     "ipingBrandDescription": MessageLookupByLibrary.simpleMessage(
       "在熟悉的账户里管理订阅与节点，让每一次连接简单而有序。",
@@ -924,6 +926,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "请在浏览器完成登录，然后返回 iPing。",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("打开 iping 控制台"),
+    "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage("复制订阅链接"),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage("邮箱或密码不正确。"),
     "ipingDevice": MessageLookupByLibrary.simpleMessage("您的设备"),
     "ipingDiagnostics": MessageLookupByLibrary.simpleMessage("连接诊断"),
@@ -941,6 +944,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "当前出口未响应，可切换节点后重新检测。",
     ),
     "ipingExitOk": MessageLookupByLibrary.simpleMessage("当前出口检测成功。"),
+    "ipingExportSubscription": MessageLookupByLibrary.simpleMessage("导出订阅"),
     "ipingFeatureConnect": MessageLookupByLibrary.simpleMessage("灵活选择节点"),
     "ipingFeatureLogin": MessageLookupByLibrary.simpleMessage("浏览器登录"),
     "ipingFeatureSync": MessageLookupByLibrary.simpleMessage("订阅自动同步"),
@@ -959,6 +963,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "暂无可用节点，请检查订阅链接或刷新。",
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage("手动导入的订阅"),
+    "ipingManualSubscriptionShort": MessageLookupByLibrary.simpleMessage(
+      "手动订阅",
+    ),
     "ipingNativeIp": MessageLookupByLibrary.simpleMessage("网络购买"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("全部"),
     "ipingNativeIpBundle": MessageLookupByLibrary.simpleMessage("同时购买隧道"),
@@ -1040,7 +1047,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "暂无可用节点，请前往 iping 控制台管理服务后刷新。",
     ),
     "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage("暂无可用的支付方式"),
-    "ipingNoTraffic": MessageLookupByLibrary.simpleMessage("此期间暂无流量记录。"),
     "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage("Telegram 通知"),
     "ipingNotificationsHint": MessageLookupByLibrary.simpleMessage(
@@ -1093,6 +1099,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
       "无法加载订阅，请检查订阅链接或重试。",
     ),
+    "ipingSubscriptionLinkCopied": MessageLookupByLibrary.simpleMessage(
+      "订阅链接已复制",
+    ),
+    "ipingSubscriptionLinkFailed": MessageLookupByLibrary.simpleMessage(
+      "无法获取订阅链接，请重试",
+    ),
+    "ipingSubscriptionQrHint": MessageLookupByLibrary.simpleMessage(
+      "扫描二维码或复制链接添加订阅",
+    ),
+    "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
+      "订阅链接包含账户凭证，请勿分享给他人",
+    ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("刷新订阅"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("正在刷新…"),
     "ipingSystemDns": m51,
@@ -1137,7 +1155,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTopupStatusCancelled": MessageLookupByLibrary.simpleMessage("已取消"),
     "ipingTopupStatusPending": MessageLookupByLibrary.simpleMessage("待支付"),
     "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("已到账"),
-    "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage("流量统计 · 近 30 天"),
     "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage("自动续费"),
     "ipingTunnelAutoRenewDesc": MessageLookupByLibrary.simpleMessage(
       "到期前一天自动续费，请确保余额充足",
@@ -1185,7 +1202,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelCopyListen": MessageLookupByLibrary.simpleMessage("复制监听地址"),
     "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage("编辑隧道"),
-    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("入口"),
     "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("出口"),
     "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("已过期"),
     "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("到期"),
@@ -1235,6 +1251,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelName": MessageLookupByLibrary.simpleMessage("隧道名称"),
     "ipingTunnelNameHint": MessageLookupByLibrary.simpleMessage("输入隧道名称"),
     "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage("密码（选填）"),
+    "ipingTunnelPlan": MessageLookupByLibrary.simpleMessage("隧道方案"),
     "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage("出口国家/地区"),
     "ipingTunnelPoolExit": MessageLookupByLibrary.simpleMessage("出口由地址池分配"),
     "ipingTunnelPoolInterval": MessageLookupByLibrary.simpleMessage(
@@ -1247,14 +1264,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
       "端口必须在 1 到 65535 之间",
     ),
-    "ipingTunnelRate": m64,
-    "ipingTunnelReminderExpiring": m65,
-    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelReminderExpiring": m64,
+    "ipingTunnelReminderTraffic": m65,
     "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("续费"),
     "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
       "续费会从余额中扣款。",
     ),
-    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewConfirmPrice": m66,
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage("无法续费，请重试"),
     "ipingTunnelRenewed": MessageLookupByLibrary.simpleMessage("已续费"),
     "ipingTunnelSelectFromNativeIps": MessageLookupByLibrary.simpleMessage(
@@ -1265,12 +1281,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("启用"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("禁用"),
-    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("更换出口 IP"),
+    "ipingTunnelSubscriptionHint": m67,
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("更换 IP"),
     "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
-      "更换出口 IP 失败，请重试",
+      "更换 IP 失败，请重试",
     ),
     "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
-      "出口 IP 更换成功，配置下发中",
+      "IP 更换成功，配置下发中",
     ),
     "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage("更换端口"),
     "ipingTunnelSwitchPortFailed": MessageLookupByLibrary.simpleMessage(

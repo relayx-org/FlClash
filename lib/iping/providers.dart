@@ -19,6 +19,7 @@ import 'browser.dart';
 import 'session.dart';
 import 'site_config.dart';
 import 'native_ip.dart';
+import 'tunnel.dart';
 import 'topup.dart';
 import 'user_info.dart';
 
@@ -80,6 +81,12 @@ final ipingTunnelPlansProvider = FutureProvider.autoDispose<List<TunnelPlan>>(
   retry: (_, _) => null,
 );
 
+final ipingTunnelPlanOptionsProvider =
+    FutureProvider.autoDispose<List<IpingTunnelPlanOption>>(
+      (ref) => ref.watch(ipingAuthenticatedApiProvider).tunnelPlanOptions(),
+      retry: (_, _) => null,
+    );
+
 final ipingReferralStatsProvider = FutureProvider.autoDispose
     .family<IpingReferralStats?, IpingAccount>((ref, account) async {
       final current = ref.watch(ipingSessionProvider.select((s) => s.account));
@@ -91,15 +98,6 @@ final ipingReferralStatsProvider = FutureProvider.autoDispose
         throw const IpingException(IpingFailure.session);
       }
       return stats;
-    }, retry: (_, _) => null);
-
-final ipingTrafficStatsProvider = FutureProvider.autoDispose
-    .family<IpingTrafficStats?, IpingAccount>((ref, account) {
-      final current = ref.watch(ipingSessionProvider.select((s) => s.account));
-      if (current != account || account.apiKey == null) {
-        return Future.value(null);
-      }
-      return ref.watch(ipingAuthenticatedApiProvider).trafficStats();
     }, retry: (_, _) => null);
 
 final ipingDnsProvider = FutureProvider.autoDispose<bool>((ref) async {

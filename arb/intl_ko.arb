@@ -966,6 +966,8 @@
   "ipingImportSubscription": "구독 링크 가져오기",
   "ipingImportWithoutLogin": "로그인 없이 구독 가져오기",
   "ipingManualSubscription": "수동으로 가져온 구독",
+  "ipingAccountSubscription": "계정 구독",
+  "ipingManualSubscriptionShort": "수동 구독",
   "ipingManualNoNodes": "사용 가능한 노드가 없습니다. 구독 링크를 확인하거나 새로고침하세요.",
   "ipingNoNodes": "사용 가능한 노드가 없습니다. iPing 콘솔에서 서비스를 확인한 후 새로고침하세요.",
   "ipingSync": "구독 새로고침",
@@ -1048,10 +1050,6 @@
   "ipingNotifyTunnel": "터널 만료 알림",
   "ipingNotifyIp": "IP 만료 알림",
   "ipingNotificationsHint": "웹사이트와 같은 알림 설정입니다. Telegram을 연결하면 알림을 받을 수 있으며, 설정은 웹사이트에서 변경할 수 있습니다.",
-  "ipingTraffic30Days": "트래픽 · 최근 30일",
-  "ipingActualTraffic": "실제 트래픽",
-  "ipingBilledTraffic": "과금 트래픽",
-  "ipingNoTraffic": "이 기간에 기록된 트래픽이 없습니다.",
   "ipingAccountServices": "계정 서비스 관리",
   "ipingAccountServicesHint": "웹사이트에서 충전, Telegram 연결, API 키 및 알림 관리를 할 수 있습니다.",
   "ipingBilling": "청구 및 잔액 내역",
@@ -1272,16 +1270,7 @@
   "ipingTunnelListenWaiting": "포트 할당 대기",
   "ipingTunnelCopyListen": "수신 주소 복사",
   "ipingTunnelLoadMore": "더 보기",
-  "ipingTunnelEntrance": "입구",
   "ipingTunnelExit": "출구",
-  "ipingTunnelRate": "배율 {rate}",
-  "@ipingTunnelRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "ipingTunnelForward": "전달 대상",
   "ipingTunnelPoolExit": "출구는 주소 풀에서 할당됩니다",
   "ipingTunnelMoreAddresses": "{address} +{count}",
@@ -1296,6 +1285,7 @@
     }
   },
   "ipingTunnelEdit": "터널 편집",
+  "ipingTunnelPlan": "터널 플랜",
   "ipingTunnelName": "터널 이름",
   "ipingTunnelNameHint": "터널 이름 입력",
   "ipingTunnelForwardHost": "전달 IP 또는 도메인",
@@ -1323,9 +1313,9 @@
   "ipingTunnelFilterIpType": "IP 유형",
   "ipingTunnelFilterPort": "수신 포트",
   "ipingTunnelFilterPortHint": "포트 번호 입력",
-  "ipingTunnelSwitchIp": "출구 IP 변경",
-  "ipingTunnelSwitchIpSuccess": "출구 IP가 변경되었습니다",
-  "ipingTunnelSwitchIpFailed": "출구 IP 변경에 실패했습니다",
+  "ipingTunnelSwitchIp": "IP 변경",
+  "ipingTunnelSwitchIpSuccess": "IP가 변경되었습니다. 설정을 적용 중입니다",
+  "ipingTunnelSwitchIpFailed": "IP 변경에 실패했습니다. 다시 시도하세요.",
   "ipingTunnelAutoRenewDesc": "만료 하루 전 자동 갱신됩니다. 잔액을 확인해 주세요",
   "ipingTunnelPoolCountry": "출구 국가/지역",
   "ipingTunnelPoolInterval": "자동 전환 간격 (분)",
@@ -1414,6 +1404,21 @@
   "ipingTunnelExportClash": "Clash 프록시 (YAML)",
   "ipingTunnelExportCsv": "CSV",
   "ipingTunnelExportSuccess": "{count}개 항목을 복사했습니다",
+  "ipingExportSubscription": "구독 내보내기",
+  "ipingCopySubscriptionLink": "구독 링크 복사",
+  "ipingSubscriptionLinkCopied": "구독 링크가 복사되었습니다",
+  "ipingSubscriptionLinkFailed": "구독 링크를 가져올 수 없습니다. 다시 시도하세요.",
+  "ipingSubscriptionQrHint": "QR 코드를 스캔하거나 링크를 복사하여 구독을 추가하세요",
+  "ipingAccountSubscriptionHint": "이 구독에는 계정의 모든 터널이 포함됩니다",
+  "ipingSubscriptionSecretHint": "구독 링크에는 계정 자격 증명이 포함되어 있습니다. 다른 사람과 공유하지 마세요.",
+  "ipingTunnelSubscriptionHint": "이 구독에는 터널 \"{name}\"만 포함됩니다",
+  "@ipingTunnelSubscriptionHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@ipingTunnelExportSuccess": {
     "placeholders": {
       "count": {

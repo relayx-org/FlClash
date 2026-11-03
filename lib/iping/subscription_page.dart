@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../l10n/l10n.dart';
+import '../common/common.dart';
+import '../ui/icons/icons.dart';
 import '../ui/ui.dart';
+import 'subscription_export.dart';
 
 class IpingSubscriptionPage extends StatelessWidget {
   const IpingSubscriptionPage({
@@ -10,8 +12,8 @@ class IpingSubscriptionPage extends StatelessWidget {
     required this.busy,
     this.updatedText,
     this.failure,
+    this.exportUrl,
     required this.onSync,
-    this.onConsole,
     this.onImport,
     this.onSignIn,
     this.manualSubscription = false,
@@ -20,70 +22,115 @@ class IpingSubscriptionPage extends StatelessWidget {
   final bool busy;
   final String? updatedText;
   final Widget? failure;
+  final String? exportUrl;
   final VoidCallback onSync;
-  final VoidCallback? onConsole;
   final VoidCallback? onImport;
   final VoidCallback? onSignIn;
   final bool manualSubscription;
+
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
+    final l = context.appLocalizations;
+    final scheme = context.colorScheme;
+    final source = manualSubscription
+        ? l.ipingManualSubscriptionShort
+        : l.ipingAccountSubscription;
+    final actions = <Widget>[
+      if (onImport != null)
+        ListItem(
+          leading: const GlyphIcon(AppGlyphs.link),
+          title: Text(l.ipingImportSubscription),
+          onTap: busy ? null : onImport,
+        ),
+      if (exportUrl case final url?)
+        ListItem(
+          leading: const GlyphIcon(AppGlyphs.qrCode),
+          title: Text(l.ipingExportSubscription),
+          onTap: () => showIpingSubscriptionExport(
+            context,
+            hint: l.ipingAccountSubscriptionHint,
+            warning: l.ipingSubscriptionSecretHint,
+            loadUrl: () async => url,
+          ),
+        ),
+      if (onSignIn != null)
+        ListItem(
+          leading: const GlyphIcon(AppGlyphs.account),
+          title: Text(l.ipingBrowserLogin),
+          onTap: busy ? null : onSignIn,
+        ),
+    ];
     return CommonScaffold(
       title: l.subscriptionInfo,
+      primaryAction: IconButtonData(
+        glyph: AppGlyphs.sync,
+        tooltip: l.ipingSync,
+        isLoading: busy,
+        onPressed: busy ? null : onSync,
+      ),
       body: Builder(
         builder: (context) => ListView(
           padding: EdgeInsets.fromLTRB(
-            24,
-            context.appBarInset + 24,
-            24,
-            32 + BottomInsetScope.of(context),
+            16,
+            context.contentTopPadding,
+            16,
+            24 + BottomInsetScope.of(context),
           ),
           children: [
-            Text(
-              nodes > 0
-                  ? l.ipingNodeCount(nodes)
-                  : manualSubscription
-                  ? l.ipingManualNoNodes
-                  : l.ipingNoNodes,
-              style: AppTextStyle.headline.of(context),
+            CommonCard(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (nodes > 0)
+                          Text(
+                            l.ipingNodeCount(nodes),
+                            style: AppTextStyle.title3
+                                .of(context, emphasized: true)
+                                .toTabular,
+                          )
+                        else
+                          Text(
+                            manualSubscription
+                                ? l.ipingManualNoNodes
+                                : l.ipingNoNodes,
+                            style: AppTextStyle.body
+                                .of(context)
+                                .copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        if (updatedText case final text?) ...[
+                          const SizedBox(height: 4),
+                          Text(text, style: context.listCaptionStyle),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  MetaChip(label: source),
+                ],
+              ),
             ),
             if (manualSubscription) ...[
-              const SizedBox(height: 12),
-              Text(
-                l.ipingManualSubscription,
-                style: AppTextStyle.footnote.of(context),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  l.ipingManualSubscription,
+                  style: context.listCaptionStyle,
+                ),
               ),
-            ],
-            if (updatedText != null) ...[
-              const SizedBox(height: 12),
-              Text(updatedText!, style: AppTextStyle.footnote.of(context)),
             ],
             if (failure case final message?) ...[
               const SizedBox(height: 16),
               message,
             ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: busy ? null : onSync,
-              child: Text(busy ? l.ipingSyncing : l.ipingSync),
-            ),
-            if (onImport != null) ...[
+            if (actions.isNotEmpty) ...[
               const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: busy ? null : onImport,
-                child: Text(l.ipingImportSubscription),
-              ),
-            ],
-            if (onSignIn != null) ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: busy ? null : onSignIn,
-                child: Text(l.ipingBrowserLogin),
-              ),
-            ],
-            if (onConsole != null) ...[
-              const SizedBox(height: 12),
-              TextButton(onPressed: onConsole, child: Text(l.ipingConsole)),
+              generateSection(title: l.action, items: actions),
             ],
           ],
         ),

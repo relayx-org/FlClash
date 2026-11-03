@@ -39,6 +39,12 @@ class AppSidebarFrameState extends State<AppSidebarFrame> {
   Listenable get toggleListenable => _toggle;
 
   @override
+  void didUpdateWidget(covariant AppSidebarFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.hasSidebar) _toggle.value = null;
+  }
+
+  @override
   void dispose() {
     _toggle.dispose();
     super.dispose();

@@ -14,6 +14,7 @@ void main() {
     String expiredAt = '',
     Map<String, Object?> forwards = const {'10.1.0.8:80': 1},
     Object? pool,
+    Object? plan = const {'id': 5, 'name': 'Japan IPLC'},
   }) => {
     'id': 7,
     'name': 'LA-1',
@@ -38,6 +39,8 @@ void main() {
     'out_node_group': out,
     'forward_addresses': forwards,
     'sk5_pool_mode': pool,
+    'tunnel_plan': plan,
+    'tunnel_plan_id': 5,
     'tunnel_price': {
       'id': 3,
       'name': 'Standard',
@@ -53,6 +56,8 @@ void main() {
     )!;
 
     expect(parsed.exit, isNull);
+    expect(parsed.tunnelPlanId, 5);
+    expect(parsed.tunnelPlanName, 'Japan IPLC');
     expect(parsed.planName, 'Standard');
     expect(parsed.planPrice, 12);
     expect(parsed.autoRenew, isTrue);
@@ -60,6 +65,12 @@ void main() {
     expect(parsed.listenAddresses, ['203.0.113.10:443']);
     expect(parsed.isExpired, isFalse);
     expect(parsed.poolExit, isFalse);
+  });
+
+  test('a legacy tunnel without a plan reports none', () {
+    final parsed = IpingTunnel.tryParse(tunnel(plan: null))!;
+
+    expect(parsed.tunnelPlanName, isNull);
   });
 
   test('listen lines follow the store and a missing port waits', () {

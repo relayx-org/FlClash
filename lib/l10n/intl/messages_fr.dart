@@ -175,14 +175,15 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(address, count) => "${address} +${count}";
 
-  static String m64(rate) => "Multiplicateur ${rate}";
+  static String m64(count) => "Tunnels expirant sous 3 jours : ${count}";
 
-  static String m65(count) => "Tunnels expirant sous 3 jours : ${count}";
+  static String m65(count) => "Tunnels presque à court de trafic : ${count}";
 
-  static String m66(count) => "Tunnels presque à court de trafic : ${count}";
-
-  static String m67(price) =>
+  static String m66(price) =>
       "Le renouvellement débite ${price} de votre solde.";
+
+  static String m67(name) =>
+      "Cet abonnement inclut uniquement le tunnel « ${name} »";
 
   static String m68(used, quota) => "${used} / ${quota}";
 
@@ -1217,7 +1218,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingAccountSettings": MessageLookupByLibrary.simpleMessage(
       "Paramètres du compte",
     ),
-    "ipingActualTraffic": MessageLookupByLibrary.simpleMessage("Trafic réel"),
+    "ipingAccountSubscription": MessageLookupByLibrary.simpleMessage(
+      "Abonnement du compte",
+    ),
+    "ipingAccountSubscriptionHint": MessageLookupByLibrary.simpleMessage(
+      "Cet abonnement inclut tous les tunnels de votre compte",
+    ),
     "ipingApiAuthorized": MessageLookupByLibrary.simpleMessage(
       "Accès autorisé sur cet appareil",
     ),
@@ -1226,9 +1232,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Solde disponible",
     ),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("Solde (CNY)"),
-    "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage(
-      "Trafic facturé",
-    ),
     "ipingBilling": MessageLookupByLibrary.simpleMessage(
       "Factures et historique du solde",
     ),
@@ -1253,6 +1256,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage(
       "Ouvrir la console iPing",
+    ),
+    "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
+      "Copier le lien d’abonnement",
     ),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage(
       "Adresse e-mail ou mot de passe incorrect.",
@@ -1282,6 +1288,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingExitOk": MessageLookupByLibrary.simpleMessage(
       "La sortie actuelle a répondu.",
+    ),
+    "ipingExportSubscription": MessageLookupByLibrary.simpleMessage(
+      "Exporter l’abonnement",
     ),
     "ipingFeatureConnect": MessageLookupByLibrary.simpleMessage(
       "Choix flexible des nœuds",
@@ -1314,6 +1323,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "Abonnement importé manuellement",
+    ),
+    "ipingManualSubscriptionShort": MessageLookupByLibrary.simpleMessage(
+      "Abonnement manuel",
     ),
     "ipingNativeIp": MessageLookupByLibrary.simpleMessage("Achat de réseau"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("Tous"),
@@ -1422,9 +1434,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
       "Aucun moyen de paiement n’est disponible pour le moment.",
     ),
-    "ipingNoTraffic": MessageLookupByLibrary.simpleMessage(
-      "Aucun trafic enregistré sur cette période.",
-    ),
     "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage(
       "Notifications Telegram",
@@ -1511,6 +1520,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
       "Impossible de charger l’abonnement. Vérifiez le lien d’abonnement ou réessayez.",
     ),
+    "ipingSubscriptionLinkCopied": MessageLookupByLibrary.simpleMessage(
+      "Lien d’abonnement copié",
+    ),
+    "ipingSubscriptionLinkFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible d’obtenir le lien d’abonnement. Veuillez réessayer.",
+    ),
+    "ipingSubscriptionQrHint": MessageLookupByLibrary.simpleMessage(
+      "Scannez le code QR ou copiez le lien pour ajouter l’abonnement",
+    ),
+    "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
+      "Le lien d’abonnement contient vos identifiants de compte. Ne le partagez pas.",
+    ),
     "ipingSync": MessageLookupByLibrary.simpleMessage(
       "Actualiser l’abonnement",
     ),
@@ -1575,9 +1596,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "En attente",
     ),
     "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("Payée"),
-    "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
-      "Trafic · 30 derniers jours",
-    ),
     "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage(
       "Renouvellement automatique",
     ),
@@ -1641,7 +1659,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage(
       "Modifier le tunnel",
     ),
-    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("Entrée"),
     "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("Sortie"),
     "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("Expiré"),
     "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("Expiration"),
@@ -1719,6 +1736,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage(
       "Mot de passe (facultatif)",
     ),
+    "ipingTunnelPlan": MessageLookupByLibrary.simpleMessage(
+      "Formule du tunnel",
+    ),
     "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage(
       "Pays/région de sortie",
     ),
@@ -1737,14 +1757,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
       "Le port doit être compris entre 1 et 65535",
     ),
-    "ipingTunnelRate": m64,
-    "ipingTunnelReminderExpiring": m65,
-    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelReminderExpiring": m64,
+    "ipingTunnelReminderTraffic": m65,
     "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("Renouveler"),
     "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
       "Le renouvellement est débité de votre solde.",
     ),
-    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewConfirmPrice": m66,
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
       "Impossible de renouveler ce tunnel. Réessayez.",
     ),
@@ -1761,14 +1780,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage(
       "Désactivé",
     ),
-    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage(
-      "Changer l\'IP de sortie",
-    ),
+    "ipingTunnelSubscriptionHint": m67,
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("Changer l’IP"),
     "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
-      "Échec du changement d\'IP de sortie",
+      "Échec du changement d’IP. Réessayez.",
     ),
     "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
-      "IP de sortie changée avec succès",
+      "IP changée. Application de la configuration",
     ),
     "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage(
       "Changer de port",

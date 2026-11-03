@@ -7991,6 +7991,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Account subscription`
+  String get ipingAccountSubscription {
+    return Intl.message(
+      'Account subscription',
+      name: 'ipingAccountSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual subscription`
+  String get ipingManualSubscriptionShort {
+    return Intl.message(
+      'Manual subscription',
+      name: 'ipingManualSubscriptionShort',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No available nodes. Check your subscription link or refresh.`
   String get ipingManualNoNodes {
     return Intl.message(
@@ -8571,46 +8591,6 @@ class AppLocalizations {
     return Intl.message(
       'These preferences match the website. Link Telegram to receive notifications; change preferences on the website.',
       name: 'ipingNotificationsHint',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Traffic · Last 30 days`
-  String get ipingTraffic30Days {
-    return Intl.message(
-      'Traffic · Last 30 days',
-      name: 'ipingTraffic30Days',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Actual traffic`
-  String get ipingActualTraffic {
-    return Intl.message(
-      'Actual traffic',
-      name: 'ipingActualTraffic',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Billed traffic`
-  String get ipingBilledTraffic {
-    return Intl.message(
-      'Billed traffic',
-      name: 'ipingBilledTraffic',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `No traffic recorded in this period.`
-  String get ipingNoTraffic {
-    return Intl.message(
-      'No traffic recorded in this period.',
-      name: 'ipingNoTraffic',
       desc: '',
       args: [],
     );
@@ -9966,29 +9946,9 @@ class AppLocalizations {
     );
   }
 
-  /// `Entrance`
-  String get ipingTunnelEntrance {
-    return Intl.message(
-      'Entrance',
-      name: 'ipingTunnelEntrance',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Exit`
   String get ipingTunnelExit {
     return Intl.message('Exit', name: 'ipingTunnelExit', desc: '', args: []);
-  }
-
-  /// `Multiplier {rate}`
-  String ipingTunnelRate(String rate) {
-    return Intl.message(
-      'Multiplier $rate',
-      name: 'ipingTunnelRate',
-      desc: '',
-      args: [rate],
-    );
   }
 
   /// `Forward to`
@@ -10026,6 +9986,16 @@ class AppLocalizations {
     return Intl.message(
       'Edit Tunnel',
       name: 'ipingTunnelEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel plan`
+  String get ipingTunnelPlan {
+    return Intl.message(
+      'Tunnel plan',
+      name: 'ipingTunnelPlan',
       desc: '',
       args: [],
     );
@@ -10301,30 +10271,30 @@ class AppLocalizations {
     );
   }
 
-  /// `Switch Exit IP`
+  /// `Switch IP`
   String get ipingTunnelSwitchIp {
     return Intl.message(
-      'Switch Exit IP',
+      'Switch IP',
       name: 'ipingTunnelSwitchIp',
       desc: '',
       args: [],
     );
   }
 
-  /// `Exit IP switched successfully, applying configuration`
+  /// `IP switched successfully, applying configuration`
   String get ipingTunnelSwitchIpSuccess {
     return Intl.message(
-      'Exit IP switched successfully, applying configuration',
+      'IP switched successfully, applying configuration',
       name: 'ipingTunnelSwitchIpSuccess',
       desc: '',
       args: [],
     );
   }
 
-  /// `Failed to switch exit IP. Please try again.`
+  /// `Failed to switch IP. Please try again.`
   String get ipingTunnelSwitchIpFailed {
     return Intl.message(
-      'Failed to switch exit IP. Please try again.',
+      'Failed to switch IP. Please try again.',
       name: 'ipingTunnelSwitchIpFailed',
       desc: '',
       args: [],
@@ -10728,6 +10698,86 @@ class AppLocalizations {
       name: 'ipingTunnelExportSuccess',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `Export subscription`
+  String get ipingExportSubscription {
+    return Intl.message(
+      'Export subscription',
+      name: 'ipingExportSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy subscription link`
+  String get ipingCopySubscriptionLink {
+    return Intl.message(
+      'Copy subscription link',
+      name: 'ipingCopySubscriptionLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subscription link copied`
+  String get ipingSubscriptionLinkCopied {
+    return Intl.message(
+      'Subscription link copied',
+      name: 'ipingSubscriptionLinkCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to get the subscription link. Please try again.`
+  String get ipingSubscriptionLinkFailed {
+    return Intl.message(
+      'Unable to get the subscription link. Please try again.',
+      name: 'ipingSubscriptionLinkFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan the QR code or copy the link to add the subscription`
+  String get ipingSubscriptionQrHint {
+    return Intl.message(
+      'Scan the QR code or copy the link to add the subscription',
+      name: 'ipingSubscriptionQrHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This subscription includes every tunnel in your account`
+  String get ipingAccountSubscriptionHint {
+    return Intl.message(
+      'This subscription includes every tunnel in your account',
+      name: 'ipingAccountSubscriptionHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The subscription link contains your account credential. Do not share it.`
+  String get ipingSubscriptionSecretHint {
+    return Intl.message(
+      'The subscription link contains your account credential. Do not share it.',
+      name: 'ipingSubscriptionSecretHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This subscription includes only the tunnel "{name}"`
+  String ipingTunnelSubscriptionHint(String name) {
+    return Intl.message(
+      'This subscription includes only the tunnel "$name"',
+      name: 'ipingTunnelSubscriptionHint',
+      desc: '',
+      args: [name],
     );
   }
 }

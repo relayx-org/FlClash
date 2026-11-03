@@ -966,6 +966,8 @@
   "ipingImportSubscription": "导入订阅链接",
   "ipingImportWithoutLogin": "不登录，手动导入订阅",
   "ipingManualSubscription": "手动导入的订阅",
+  "ipingAccountSubscription": "账户订阅",
+  "ipingManualSubscriptionShort": "手动订阅",
   "ipingManualNoNodes": "暂无可用节点，请检查订阅链接或刷新。",
   "ipingNoNodes": "暂无可用节点，请前往 iping 控制台管理服务后刷新。",
   "ipingSync": "刷新订阅",
@@ -1048,10 +1050,6 @@
   "ipingNotifyTunnel": "隧道到期提醒",
   "ipingNotifyIp": "IP 到期提醒",
   "ipingNotificationsHint": "与网页端通知设置同步，绑定 Telegram 后接收通知，可前往网页修改。",
-  "ipingTraffic30Days": "流量统计 · 近 30 天",
-  "ipingActualTraffic": "实际流量",
-  "ipingBilledTraffic": "计费流量",
-  "ipingNoTraffic": "此期间暂无流量记录。",
   "ipingAccountServices": "账户服务管理",
   "ipingAccountServicesHint": "前往网页充值、绑定 Telegram、管理密钥和通知。",
   "ipingBilling": "账单与余额记录",
@@ -1272,16 +1270,7 @@
   "ipingTunnelListenWaiting": "等待分配端口",
   "ipingTunnelCopyListen": "复制监听地址",
   "ipingTunnelLoadMore": "加载更多",
-  "ipingTunnelEntrance": "入口",
   "ipingTunnelExit": "出口",
-  "ipingTunnelRate": "倍率 {rate}",
-  "@ipingTunnelRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "ipingTunnelForward": "转发目标",
   "ipingTunnelPoolExit": "出口由地址池分配",
   "ipingTunnelMoreAddresses": "{address} +{count}",
@@ -1296,6 +1285,7 @@
     }
   },
   "ipingTunnelEdit": "编辑隧道",
+  "ipingTunnelPlan": "隧道方案",
   "ipingTunnelName": "隧道名称",
   "ipingTunnelNameHint": "输入隧道名称",
   "ipingTunnelForwardHost": "转发 IP 或域名",
@@ -1323,9 +1313,9 @@
   "ipingTunnelFilterIpType": "IP 类型",
   "ipingTunnelFilterPort": "监听端口",
   "ipingTunnelFilterPortHint": "输入端口号",
-  "ipingTunnelSwitchIp": "更换出口 IP",
-  "ipingTunnelSwitchIpSuccess": "出口 IP 更换成功，配置下发中",
-  "ipingTunnelSwitchIpFailed": "更换出口 IP 失败，请重试",
+  "ipingTunnelSwitchIp": "更换 IP",
+  "ipingTunnelSwitchIpSuccess": "IP 更换成功，配置下发中",
+  "ipingTunnelSwitchIpFailed": "更换 IP 失败，请重试",
   "ipingTunnelAutoRenewDesc": "到期前一天自动续费，请确保余额充足",
   "ipingTunnelPoolCountry": "出口国家/地区",
   "ipingTunnelPoolInterval": "自动切换间隔（分钟）",
@@ -1414,6 +1404,21 @@
   "ipingTunnelExportClash": "Clash 代理（YAML）",
   "ipingTunnelExportCsv": "CSV",
   "ipingTunnelExportSuccess": "已复制 {count} 条",
+  "ipingExportSubscription": "导出订阅",
+  "ipingCopySubscriptionLink": "复制订阅链接",
+  "ipingSubscriptionLinkCopied": "订阅链接已复制",
+  "ipingSubscriptionLinkFailed": "无法获取订阅链接，请重试",
+  "ipingSubscriptionQrHint": "扫描二维码或复制链接添加订阅",
+  "ipingAccountSubscriptionHint": "此订阅包含账户下的全部隧道",
+  "ipingSubscriptionSecretHint": "订阅链接包含账户凭证，请勿分享给他人",
+  "ipingTunnelSubscriptionHint": "此订阅仅包含隧道「{name}」",
+  "@ipingTunnelSubscriptionHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@ipingTunnelExportSuccess": {
     "placeholders": {
       "count": {

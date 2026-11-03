@@ -189,7 +189,7 @@ class _Sidebar extends ConsumerWidget {
                   );
             }
           : null,
-      onToggleReady: frame == null
+      onToggleReady: frame == null || viewMode == ViewMode.mobile
           ? null
           : (toggle, progress) => frame.bindToggle(toggle, progress),
       windowControls: windowControlsOverSidebar(

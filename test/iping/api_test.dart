@@ -313,29 +313,6 @@ void main() {
     },
   );
 
-  test(
-    'traffic uses a 30-day UTC+08 reporting window and keeps GB units',
-    () async {
-      adapter.body = [
-        {'date': '2026-10-23', 'traffic': 2.5, 'traffic_cost': 3},
-        {'date': '2026-10-23', 'traffic': 1, 'traffic_cost': 2},
-        {'date': '2026-10-24', 'traffic': 0.5, 'traffic_cost': 1},
-      ];
-      final stats = await api.trafficStats(now: DateTime.utc(2026, 10, 23, 17));
-      expect(adapter.request.uri.path, '/api/tunnel/traffic/stats');
-      expect(adapter.request.headers['Authorization'], 'Bearer $apiKey');
-      expect(adapter.request.uri.queryParameters, {
-        'aggregate_by': 'day',
-        'start_date': '2026-09-25T00:00:00.000Z',
-      });
-      expect(stats.days, hasLength(30));
-      expect(stats.actual, 4);
-      expect(stats.billed, 6);
-      expect(stats.days.last.date, DateTime.utc(2026, 10, 24));
-      expect(stats.days.first.actual, 0);
-    },
-  );
-
   for (final key in [null, '', 'not-an-api-key', 'secret\r\nInjected: value']) {
     test(
       'missing or malformed API credentials never send an authenticated request',
@@ -392,6 +369,29 @@ void main() {
     expect(uri.origin, ipingSite);
     expect(uri.path, '/api/tunnel/subscription');
     expect(uri.queryParameters, {'token': 'subscription-key'});
+  });
+
+  test('a tunnel subscription token comes from its own route', () async {
+    adapter.body = {'token': 't.9.signature'};
+
+    expect(await api.tunnelSubscriptionToken(9), 't.9.signature');
+    expect(adapter.request.method, 'GET');
+    expect(adapter.request.uri.path, '/api/tunnel/9/subscription-token');
+  });
+
+  test('an empty tunnel subscription token is rejected', () async {
+    adapter.body = {'token': ''};
+
+    await expectLater(
+      api.tunnelSubscriptionToken(9),
+      throwsA(
+        isA<IpingException>().having(
+          (error) => error.failure,
+          'failure',
+          IpingFailure.unavailable,
+        ),
+      ),
+    );
   });
 
   test(
@@ -640,6 +640,33 @@ void main() {
     expect(plans.first.isTrial, isFalse);
   });
 
+  test('tunnel plan options come from the plan route', () async {
+    adapter.body = {
+      'data': [
+        {
+          'id': 6,
+          'name': 'HK Direct',
+          'in_node_group': {'is_maintenance': false},
+        },
+        {
+          'id': 7,
+          'name': 'JP IPLC',
+          'in_node_group': {'is_maintenance': true},
+        },
+        {'id': 0, 'name': 'Broken'},
+      ],
+      'total': 3,
+    };
+
+    final plans = await api.tunnelPlanOptions();
+
+    expect(adapter.request.uri.path, '/api/tunnel/plan');
+    expect(plans.map((plan) => (plan.id, plan.name, plan.maintenance)), [
+      (6, 'HK Direct', false),
+      (7, 'JP IPLC', true),
+    ]);
+  });
+
   test('buying a native IP sends the catalog fields and tunnel plan', () async {
     const offer = NativeIpOffer(
       line: NativeIpLine.b,
@@ -794,6 +821,12 @@ void main() {
         'ids': [4],
         'status': 'inactive',
         'auto_renew': false,
+      });
+
+      await api.batchUpdateTunnels(ids: [4, 5], tunnelPlanId: 6);
+      expect(jsonDecode(adapter.requestBody), {
+        'ids': [4, 5],
+        'tunnel_plan_id': 6,
       });
     },
   );

@@ -12,9 +12,11 @@ class IpingProfileHeader extends StatelessWidget {
     super.key,
     required this.info,
     required this.onTopUp,
+    required this.onHistory,
   });
   final IpingUserInfo info;
   final VoidCallback? onTopUp;
+  final VoidCallback onHistory;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -89,7 +91,36 @@ class IpingProfileHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              Text(l.ipingAvailableBalance, style: secondary),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l.ipingAvailableBalance,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: secondary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onHistory,
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.onSurfaceVariant,
+                      textStyle: AppTextStyle.footnote.of(context),
+                      minimumSize: const Size(0, 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l.ipingTopupHistory),
+                        const SizedBox(width: 2),
+                        const GlyphIcon(AppGlyphs.chevronForward, size: 12),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 2),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,

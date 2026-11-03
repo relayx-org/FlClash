@@ -966,6 +966,8 @@
   "ipingImportSubscription": "サブスクリプションリンクをインポート",
   "ipingImportWithoutLogin": "ログインせずにサブスクリプションをインポート",
   "ipingManualSubscription": "手動でインポートしたサブスクリプション",
+  "ipingAccountSubscription": "アカウントサブスクリプション",
+  "ipingManualSubscriptionShort": "手動サブスクリプション",
   "ipingManualNoNodes": "利用可能なノードがありません。サブスクリプションリンクを確認するか、更新してください。",
   "ipingNoNodes": "利用可能なノードがありません。iPing コンソールでサービスを管理してから更新してください。",
   "ipingSync": "サブスクリプションを更新",
@@ -1048,10 +1050,6 @@
   "ipingNotifyTunnel": "トンネル有効期限の通知",
   "ipingNotifyIp": "IP 有効期限の通知",
   "ipingNotificationsHint": "Web と同じ通知設定です。Telegram と連携すると通知を受信できます。設定は Web で変更できます。",
-  "ipingTraffic30Days": "通信量 · 過去 30 日間",
-  "ipingActualTraffic": "実際の通信量",
-  "ipingBilledTraffic": "課金対象の通信量",
-  "ipingNoTraffic": "この期間の通信記録はありません。",
   "ipingAccountServices": "アカウントサービス管理",
   "ipingAccountServicesHint": "Web でチャージ、Telegram 連携、API キーと通知の管理ができます。",
   "ipingBilling": "請求と残高履歴",
@@ -1272,16 +1270,7 @@
   "ipingTunnelListenWaiting": "ポートの割り当て待ち",
   "ipingTunnelCopyListen": "待受アドレスをコピー",
   "ipingTunnelLoadMore": "さらに読み込む",
-  "ipingTunnelEntrance": "入口",
   "ipingTunnelExit": "出口",
-  "ipingTunnelRate": "倍率 {rate}",
-  "@ipingTunnelRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "ipingTunnelForward": "転送先",
   "ipingTunnelPoolExit": "出口はアドレスプールから割り当てられます",
   "ipingTunnelMoreAddresses": "{address} +{count}",
@@ -1296,6 +1285,7 @@
     }
   },
   "ipingTunnelEdit": "トンネルを編集",
+  "ipingTunnelPlan": "トンネルプラン",
   "ipingTunnelName": "トンネル名",
   "ipingTunnelNameHint": "トンネル名を入力",
   "ipingTunnelForwardHost": "転送先 IP またはドメイン",
@@ -1323,9 +1313,9 @@
   "ipingTunnelFilterIpType": "IP タイプ",
   "ipingTunnelFilterPort": "待受ポート",
   "ipingTunnelFilterPortHint": "ポート番号を入力",
-  "ipingTunnelSwitchIp": "出口 IP を変更",
-  "ipingTunnelSwitchIpSuccess": "出口 IP を変更しました。設定を適用中",
-  "ipingTunnelSwitchIpFailed": "出口 IP の変更に失敗しました。再試行してください",
+  "ipingTunnelSwitchIp": "IP を変更",
+  "ipingTunnelSwitchIpSuccess": "IP を変更しました。設定を適用中",
+  "ipingTunnelSwitchIpFailed": "IP の変更に失敗しました。再試行してください",
   "ipingTunnelAutoRenewDesc": "有効期限の前日に自動更新されます。残高をご確認ください",
   "ipingTunnelPoolCountry": "出口国/地域",
   "ipingTunnelPoolInterval": "自動切替間隔（分）",
@@ -1414,6 +1404,21 @@
   "ipingTunnelExportClash": "Clash プロキシ（YAML）",
   "ipingTunnelExportCsv": "CSV",
   "ipingTunnelExportSuccess": "{count} 件をコピーしました",
+  "ipingExportSubscription": "サブスクリプションをエクスポート",
+  "ipingCopySubscriptionLink": "サブスクリプションリンクをコピー",
+  "ipingSubscriptionLinkCopied": "サブスクリプションリンクをコピーしました",
+  "ipingSubscriptionLinkFailed": "サブスクリプションリンクを取得できませんでした。もう一度お試しください。",
+  "ipingSubscriptionQrHint": "QR コードをスキャンするか、リンクをコピーしてサブスクリプションを追加してください",
+  "ipingAccountSubscriptionHint": "このサブスクリプションにはアカウント内のすべてのトンネルが含まれます",
+  "ipingSubscriptionSecretHint": "サブスクリプションリンクにはアカウントの認証情報が含まれています。他の人と共有しないでください。",
+  "ipingTunnelSubscriptionHint": "このサブスクリプションにはトンネル「{name}」のみが含まれます",
+  "@ipingTunnelSubscriptionHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@ipingTunnelExportSuccess": {
     "placeholders": {
       "count": {

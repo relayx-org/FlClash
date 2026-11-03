@@ -310,27 +310,6 @@ class IpingApi {
         await get<Map<String, dynamic>>('user/referral/stats'),
       );
 
-  Future<IpingTrafficStats> trafficStats({DateTime? now}) async {
-    final reportingTime = (now ?? DateTime.now()).toUtc().add(
-      const Duration(hours: 8),
-    );
-    final start = DateTime.utc(
-      reportingTime.year,
-      reportingTime.month,
-      reportingTime.day,
-    ).subtract(const Duration(days: 29));
-    return IpingTrafficStats.fromJson(
-      await get<List<dynamic>>(
-        'tunnel/traffic/stats',
-        queryParameters: {
-          'aggregate_by': 'day',
-          'start_date': start.toIso8601String(),
-        },
-      ),
-      start: start,
-    );
-  }
-
   String subscriptionUrl(String token) => Uri.parse(
     '$site/api/tunnel/subscription',
   ).replace(queryParameters: {'token': token}).toString();

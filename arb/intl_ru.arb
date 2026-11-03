@@ -966,6 +966,8 @@
   "ipingImportSubscription": "Импорт ссылки на подписку",
   "ipingImportWithoutLogin": "Импорт подписки без входа",
   "ipingManualSubscription": "Подписка, импортированная вручную",
+  "ipingAccountSubscription": "Подписка аккаунта",
+  "ipingManualSubscriptionShort": "Ручная подписка",
   "ipingManualNoNodes": "Нет доступных узлов. Проверьте ссылку на подписку или обновите её.",
   "ipingNoNodes": "Нет доступных узлов. Проверьте услуги в консоли iPing и обновите подписку.",
   "ipingSync": "Обновить подписку",
@@ -1048,10 +1050,6 @@
   "ipingNotifyTunnel": "Истечение срока туннеля",
   "ipingNotifyIp": "Истечение срока IP",
   "ipingNotificationsHint": "Настройки синхронизированы с сайтом. Привяжите Telegram для уведомлений; изменить настройки можно на сайте.",
-  "ipingTraffic30Days": "Трафик · Последние 30 дней",
-  "ipingActualTraffic": "Фактический трафик",
-  "ipingBilledTraffic": "Тарифицируемый трафик",
-  "ipingNoTraffic": "За этот период трафик не зафиксирован.",
   "ipingAccountServices": "Управление услугами",
   "ipingAccountServicesHint": "Пополняйте баланс, привязывайте Telegram и управляйте ключами API и уведомлениями на сайте.",
   "ipingBilling": "Счета и история баланса",
@@ -1272,16 +1270,7 @@
   "ipingTunnelListenWaiting": "Ожидание порта",
   "ipingTunnelCopyListen": "Копировать адрес",
   "ipingTunnelLoadMore": "Показать ещё",
-  "ipingTunnelEntrance": "Вход",
   "ipingTunnelExit": "Выход",
-  "ipingTunnelRate": "Множитель {rate}",
-  "@ipingTunnelRate": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "ipingTunnelForward": "Назначение",
   "ipingTunnelPoolExit": "Выход назначается из пула адресов.",
   "ipingTunnelMoreAddresses": "{address} +{count}",
@@ -1296,6 +1285,7 @@
     }
   },
   "ipingTunnelEdit": "Редактировать туннель",
+  "ipingTunnelPlan": "План туннеля",
   "ipingTunnelName": "Название туннеля",
   "ipingTunnelNameHint": "Введите название туннеля",
   "ipingTunnelForwardHost": "IP или домен пересылки",
@@ -1323,9 +1313,9 @@
   "ipingTunnelFilterIpType": "Тип IP",
   "ipingTunnelFilterPort": "Порт прослушивания",
   "ipingTunnelFilterPortHint": "Введите номер порта",
-  "ipingTunnelSwitchIp": "Сменить IP выхода",
-  "ipingTunnelSwitchIpSuccess": "IP выхода успешно изменен",
-  "ipingTunnelSwitchIpFailed": "Не удалось сменить IP выхода. Повторите попытку",
+  "ipingTunnelSwitchIp": "Сменить IP",
+  "ipingTunnelSwitchIpSuccess": "IP успешно изменён. Применяем настройки",
+  "ipingTunnelSwitchIpFailed": "Не удалось сменить IP. Повторите попытку.",
   "ipingTunnelAutoRenewDesc": "Автопродление за день до окончания срока. Пополните баланс.",
   "ipingTunnelPoolCountry": "Страна/регион выхода",
   "ipingTunnelPoolInterval": "Интервал автопереключения (мин)",
@@ -1414,6 +1404,21 @@
   "ipingTunnelExportClash": "Прокси Clash (YAML)",
   "ipingTunnelExportCsv": "CSV",
   "ipingTunnelExportSuccess": "Скопировано записей: {count}",
+  "ipingExportSubscription": "Экспорт подписки",
+  "ipingCopySubscriptionLink": "Скопировать ссылку подписки",
+  "ipingSubscriptionLinkCopied": "Ссылка подписки скопирована",
+  "ipingSubscriptionLinkFailed": "Не удалось получить ссылку подписки. Попробуйте ещё раз.",
+  "ipingSubscriptionQrHint": "Отсканируйте QR-код или скопируйте ссылку, чтобы добавить подписку",
+  "ipingAccountSubscriptionHint": "Эта подписка включает все туннели аккаунта",
+  "ipingSubscriptionSecretHint": "Ссылка подписки содержит учётные данные аккаунта. Не передавайте её другим.",
+  "ipingTunnelSubscriptionHint": "Эта подписка включает только туннель «{name}»",
+  "@ipingTunnelSubscriptionHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@ipingTunnelExportSuccess": {
     "placeholders": {
       "count": {

@@ -29,11 +29,8 @@ class FakeIpingApi extends IpingApi {
   bool? telegramBound = true;
   Set<String>? notifications = const {'topup', 'tunnel_expiring'};
   IpingFailure? referralFailure;
-  IpingFailure? trafficFailure;
   Completer<IpingReferralStats>? referralRequest;
-  Completer<IpingTrafficStats>? trafficRequest;
   int referralRequests = 0;
-  int trafficRequests = 0;
   List<IpingTopupOrder> topups = [];
   IpingTopupOptions topupSettings = const IpingTopupOptions(
     payments: [IpingPayment(id: 3, name: 'Alipay', percentFee: 0.03)],
@@ -99,23 +96,6 @@ class FakeIpingApi extends IpingApi {
   }
 
   @override
-  Future<IpingTrafficStats> trafficStats({DateTime? now}) async {
-    trafficRequests++;
-    if (trafficFailure case final failure?) throw IpingException(failure);
-    return trafficRequest?.future ??
-        IpingTrafficStats(
-          List.generate(
-            30,
-            (i) => IpingTrafficDay(
-              date: DateTime.utc(2026, 10, i + 1),
-              actual: i == 29 ? 7.5 : 0,
-              billed: i == 29 ? 9 : 0,
-            ),
-          ),
-        );
-  }
-
-  @override
   Future<IpingUserInfo> userInfo() async {
     userInfoRequests++;
     if (userInfoFailure case final failure?) throw IpingException(failure);
@@ -170,6 +150,7 @@ class FakeIpingApi extends IpingApi {
   String? nativeBuyMessage;
   Map<String, dynamic> nativeBuyResponse = const {};
   List<Map<String, Object?>> tunnels = [];
+  List<Map<String, Object?>> tunnelPlans = [];
   List<Map<String, Object?>> userProxiesList = [];
   final switchedIpTunnels = <int>[];
   IpingFailure? tunnelsFailure;
@@ -180,6 +161,8 @@ class FakeIpingApi extends IpingApi {
   final tunnelRenewals = <int>[];
   IpingFailure? tunnelActionFailure;
   String? tunnelActionMessage;
+  final tunnelSubscriptionRequests = <int>[];
+  IpingFailure? tunnelSubscriptionFailure;
 
   @override
   Future<T> get<T>(String path, {Map<String, dynamic>? queryParameters}) async {
@@ -232,11 +215,25 @@ class FakeIpingApi extends IpingApi {
             );
       return {'data': slice, 'total': matched.length} as T;
     }
+    if (path == 'tunnel/plan') {
+      return {'data': tunnelPlans, 'total': tunnelPlans.length} as T;
+    }
     if (path == 'tunnel/prices') {
       if (tunnelPlansFailure case final failure?) {
         throw IpingException(failure, message: tunnelPlansMessage);
       }
       return tunnelPrices as T;
+    }
+    final subscriptionToken = RegExp(
+      r'^tunnel/(\d+)/subscription-token$',
+    ).firstMatch(path);
+    if (subscriptionToken != null) {
+      final id = int.parse(subscriptionToken.group(1)!);
+      if (tunnelSubscriptionFailure case final failure?) {
+        throw IpingException(failure);
+      }
+      tunnelSubscriptionRequests.add(id);
+      return {'token': 't.$id.signature'} as T;
     }
     if (path.startsWith('ipproxy/inventory/')) {
       if (nativeInventoryFailure case final failure?) {
@@ -378,6 +375,15 @@ class FakeIpingApi extends IpingApi {
       if (body['status'] is String) tunnel['status'] = body['status'] as String;
       if (body['auto_renew'] is bool) {
         tunnel['auto_renew'] = body['auto_renew'] as bool;
+      }
+      if (body['tunnel_plan_id'] is num) {
+        final planId = (body['tunnel_plan_id'] as num).toInt();
+        tunnel['tunnel_plan_id'] = planId;
+        for (final plan in tunnelPlans) {
+          if (plan['id'] == planId) {
+            tunnel['tunnel_plan'] = {'id': planId, 'name': plan['name']};
+          }
+        }
       }
     }
   }

@@ -155,13 +155,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m63(address, count) => "${address} +${count}";
 
-  static String m64(rate) => "倍率 ${rate}";
+  static String m64(count) => "${count} 本のトンネルが 3 日以内に期限切れになります";
 
-  static String m65(count) => "${count} 本のトンネルが 3 日以内に期限切れになります";
+  static String m65(count) => "${count} 本のトンネルのトラフィックが残りわずかです";
 
-  static String m66(count) => "${count} 本のトンネルのトラフィックが残りわずかです";
+  static String m66(price) => "更新すると残高から ${price} が引き落とされます。";
 
-  static String m67(price) => "更新すると残高から ${price} が引き落とされます。";
+  static String m67(name) => "このサブスクリプションにはトンネル「${name}」のみが含まれます";
 
   static String m68(used, quota) => "${used} / ${quota}";
 
@@ -984,12 +984,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Web でチャージ、Telegram 連携、API キーと通知の管理ができます。",
     ),
     "ipingAccountSettings": MessageLookupByLibrary.simpleMessage("アカウント設定"),
-    "ipingActualTraffic": MessageLookupByLibrary.simpleMessage("実際の通信量"),
+    "ipingAccountSubscription": MessageLookupByLibrary.simpleMessage(
+      "アカウントサブスクリプション",
+    ),
+    "ipingAccountSubscriptionHint": MessageLookupByLibrary.simpleMessage(
+      "このサブスクリプションにはアカウント内のすべてのトンネルが含まれます",
+    ),
     "ipingApiAuthorized": MessageLookupByLibrary.simpleMessage("このデバイスで認証済み"),
     "ipingApiKey": MessageLookupByLibrary.simpleMessage("API Key"),
     "ipingAvailableBalance": MessageLookupByLibrary.simpleMessage("利用可能残高"),
     "ipingBalance": MessageLookupByLibrary.simpleMessage("残高（人民元）"),
-    "ipingBilledTraffic": MessageLookupByLibrary.simpleMessage("課金対象の通信量"),
     "ipingBilling": MessageLookupByLibrary.simpleMessage("請求と残高履歴"),
     "ipingBrandDescription": MessageLookupByLibrary.simpleMessage(
       "使い慣れたアカウントでサブスクリプション、ノード、ネットワーク接続を一元管理。",
@@ -1005,6 +1009,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "ブラウザでログインを完了し、iPing に戻ってください。",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing コンソールを開く"),
+    "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクをコピー",
+    ),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage(
       "メールアドレスまたはパスワードが正しくありません。",
     ),
@@ -1026,6 +1033,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "出口から応答がありません。ノードを変更して再確認してください。",
     ),
     "ipingExitOk": MessageLookupByLibrary.simpleMessage("現在の出口から応答がありました。"),
+    "ipingExportSubscription": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションをエクスポート",
+    ),
     "ipingFeatureConnect": MessageLookupByLibrary.simpleMessage("柔軟なノード選択"),
     "ipingFeatureLogin": MessageLookupByLibrary.simpleMessage("ブラウザーでログイン"),
     "ipingFeatureSync": MessageLookupByLibrary.simpleMessage("サブスクリプション自動同期"),
@@ -1051,6 +1061,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingManualSubscription": MessageLookupByLibrary.simpleMessage(
       "手動でインポートしたサブスクリプション",
+    ),
+    "ipingManualSubscriptionShort": MessageLookupByLibrary.simpleMessage(
+      "手動サブスクリプション",
     ),
     "ipingNativeIp": MessageLookupByLibrary.simpleMessage("ネットワーク購入"),
     "ipingNativeIpAll": MessageLookupByLibrary.simpleMessage("すべて"),
@@ -1147,7 +1160,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingNoPaymentMethods": MessageLookupByLibrary.simpleMessage(
       "現在利用できる支払い方法はありません。",
     ),
-    "ipingNoTraffic": MessageLookupByLibrary.simpleMessage("この期間の通信記録はありません。"),
     "ipingNodeCount": m48,
     "ipingNotifications": MessageLookupByLibrary.simpleMessage("Telegram 通知"),
     "ipingNotificationsHint": MessageLookupByLibrary.simpleMessage(
@@ -1206,6 +1218,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSubscriptionError": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションを読み込めません。リンクを確認するか、再試行してください。",
     ),
+    "ipingSubscriptionLinkCopied": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクをコピーしました",
+    ),
+    "ipingSubscriptionLinkFailed": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクを取得できませんでした。もう一度お試しください。",
+    ),
+    "ipingSubscriptionQrHint": MessageLookupByLibrary.simpleMessage(
+      "QR コードをスキャンするか、リンクをコピーしてサブスクリプションを追加してください",
+    ),
+    "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクにはアカウントの認証情報が含まれています。他の人と共有しないでください。",
+    ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("サブスクリプションを更新"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("更新中…"),
     "ipingSystemDns": m51,
@@ -1254,9 +1278,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTopupStatusPending": MessageLookupByLibrary.simpleMessage("未払い"),
     "ipingTopupStatusSuccess": MessageLookupByLibrary.simpleMessage("完了"),
-    "ipingTraffic30Days": MessageLookupByLibrary.simpleMessage(
-      "通信量 · 過去 30 日間",
-    ),
     "ipingTunnelAutoRenew": MessageLookupByLibrary.simpleMessage("自動更新"),
     "ipingTunnelAutoRenewDesc": MessageLookupByLibrary.simpleMessage(
       "有効期限の前日に自動更新されます。残高をご確認ください",
@@ -1306,7 +1327,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelCopyListen": MessageLookupByLibrary.simpleMessage("待受アドレスをコピー"),
     "ipingTunnelEdit": MessageLookupByLibrary.simpleMessage("トンネルを編集"),
-    "ipingTunnelEntrance": MessageLookupByLibrary.simpleMessage("入口"),
     "ipingTunnelExit": MessageLookupByLibrary.simpleMessage("出口"),
     "ipingTunnelExpired": MessageLookupByLibrary.simpleMessage("期限切れ"),
     "ipingTunnelExpires": MessageLookupByLibrary.simpleMessage("有効期限"),
@@ -1362,6 +1382,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelName": MessageLookupByLibrary.simpleMessage("トンネル名"),
     "ipingTunnelNameHint": MessageLookupByLibrary.simpleMessage("トンネル名を入力"),
     "ipingTunnelPassword": MessageLookupByLibrary.simpleMessage("パスワード（任意）"),
+    "ipingTunnelPlan": MessageLookupByLibrary.simpleMessage("トンネルプラン"),
     "ipingTunnelPoolCountry": MessageLookupByLibrary.simpleMessage("出口国/地域"),
     "ipingTunnelPoolExit": MessageLookupByLibrary.simpleMessage(
       "出口はアドレスプールから割り当てられます",
@@ -1378,14 +1399,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingTunnelPortInvalid": MessageLookupByLibrary.simpleMessage(
       "ポートは 1 から 65535 の間である必要があります",
     ),
-    "ipingTunnelRate": m64,
-    "ipingTunnelReminderExpiring": m65,
-    "ipingTunnelReminderTraffic": m66,
+    "ipingTunnelReminderExpiring": m64,
+    "ipingTunnelReminderTraffic": m65,
     "ipingTunnelRenew": MessageLookupByLibrary.simpleMessage("更新"),
     "ipingTunnelRenewConfirm": MessageLookupByLibrary.simpleMessage(
       "更新すると残高から引き落とされます。",
     ),
-    "ipingTunnelRenewConfirmPrice": m67,
+    "ipingTunnelRenewConfirmPrice": m66,
     "ipingTunnelRenewFailed": MessageLookupByLibrary.simpleMessage(
       "トンネルを更新できませんでした。もう一度お試しください。",
     ),
@@ -1398,12 +1418,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingTunnelStatusActive": MessageLookupByLibrary.simpleMessage("有効"),
     "ipingTunnelStatusInactive": MessageLookupByLibrary.simpleMessage("無効"),
-    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("出口 IP を変更"),
+    "ipingTunnelSubscriptionHint": m67,
+    "ipingTunnelSwitchIp": MessageLookupByLibrary.simpleMessage("IP を変更"),
     "ipingTunnelSwitchIpFailed": MessageLookupByLibrary.simpleMessage(
-      "出口 IP の変更に失敗しました。再試行してください",
+      "IP の変更に失敗しました。再試行してください",
     ),
     "ipingTunnelSwitchIpSuccess": MessageLookupByLibrary.simpleMessage(
-      "出口 IP を変更しました。設定を適用中",
+      "IP を変更しました。設定を適用中",
     ),
     "ipingTunnelSwitchPort": MessageLookupByLibrary.simpleMessage("ポートを変更"),
     "ipingTunnelSwitchPortFailed": MessageLookupByLibrary.simpleMessage(

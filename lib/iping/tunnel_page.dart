@@ -14,6 +14,7 @@ import 'package:material_ui/material_ui.dart';
 import 'api.dart';
 import 'providers.dart';
 import 'store_widgets.dart';
+import 'subscription_export.dart';
 import 'topup.dart';
 import 'tunnel.dart';
 import 'tunnel_export.dart';
@@ -46,9 +47,6 @@ String tunnelTypeLabel(AppLocalizations l, String type) => switch (type) {
   'mtls' => l.ipingTunnelTypeMtls,
   _ => type,
 };
-
-String tunnelRateLabel(num rate) =>
-    rate == rate.roundToDouble() ? rate.toInt().toString() : rate.toString();
 
 String _filterLabel(AppLocalizations l, _TunnelFilter filter) =>
     switch (filter) {
@@ -335,6 +333,9 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
     );
   }
 
+  Future<void> _exportSubscription(IpingTunnel tunnel) =>
+      showIpingTunnelSubscriptionExport(context, ref, tunnel: tunnel);
+
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
@@ -461,6 +462,7 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
       onSelect: () => _enterSelectionMode(tunnel.id),
       onCopy: _copy,
       onEdit: () => _openEdit(tunnel),
+      onExport: () => _exportSubscription(tunnel),
     ),
   );
 
@@ -968,6 +970,7 @@ class _TunnelCard extends StatelessWidget {
     required this.onTap,
     required this.onCopy,
     required this.onEdit,
+    required this.onExport,
     required this.onSelect,
     required this.onToggleSelect,
     this.selectionMode = false,
@@ -978,6 +981,7 @@ class _TunnelCard extends StatelessWidget {
   final VoidCallback onTap;
   final ValueChanged<String> onCopy;
   final VoidCallback onEdit;
+  final VoidCallback onExport;
   final VoidCallback onSelect;
   final VoidCallback onToggleSelect;
   final bool selectionMode;
@@ -1002,6 +1006,11 @@ class _TunnelCard extends StatelessWidget {
                   glyph: AppGlyphs.copy,
                   onPressed: () => onCopy(addresses.first),
                 ),
+              CommonPopupMenuItem(
+                label: l.ipingExportSubscription,
+                glyph: AppGlyphs.qrCode,
+                onPressed: onExport,
+              ),
               CommonPopupMenuItem(
                 label: l.ipingTunnelBatchOperations,
                 glyph: AppGlyphs.checkDouble,
@@ -1087,28 +1096,13 @@ class _TunnelCardBody extends StatelessWidget {
                         .of(context)
                         .copyWith(color: scheme.onSurface),
                   ),
-                  Row(
-                    spacing: 6,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          tunnelTypeLabel(l, tunnel.type),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: secondary,
-                        ),
-                      ),
-                      if (tunnel.autoRenew)
-                        Tooltip(
-                          message: l.ipingTunnelAutoRenew,
-                          child: GlyphIcon(
-                            AppGlyphs.sync,
-                            size: 13,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
+                  if (tunnel.tunnelPlanName case final plan?)
+                    Text(
+                      plan,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: secondary,
+                    ),
                 ],
               ),
             ),
@@ -1167,12 +1161,6 @@ class _TunnelCardBody extends StatelessWidget {
           const SizedBox(height: 10),
           const _PortConflictNote(),
         ],
-        if (tunnel.entrance != null ||
-            tunnel.exit != null ||
-            tunnel.poolExit) ...[
-          const SizedBox(height: 12),
-          _RouteLine(tunnel: tunnel),
-        ],
         const SizedBox(height: 14),
         _TrafficBar(tunnel: tunnel),
         const SizedBox(height: 8),
@@ -1198,58 +1186,6 @@ class _TunnelCardBody extends StatelessWidget {
             ),
           ],
         ),
-      ],
-    );
-  }
-}
-
-class _RouteLine extends StatelessWidget {
-  const _RouteLine({required this.tunnel});
-
-  final IpingTunnel tunnel;
-
-  Widget _end(BuildContext context, IpingTunnelEndpoint? endpoint) {
-    final scheme = context.colorScheme;
-    final style = AppTextStyle.footnote.of(context);
-    final secondary = style.copyWith(color: scheme.onSurfaceVariant);
-    if (endpoint == null) {
-      return Text(
-        tunnel.poolExit ? context.appLocalizations.ipingTunnelPoolExit : '—',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: secondary,
-      );
-    }
-    return Text.rich(
-      TextSpan(
-        text: endpoint.name,
-        style: style.copyWith(color: scheme.onSurface),
-        children: [
-          TextSpan(
-            text: ' ×${tunnelRateLabel(endpoint.trafficRate)}',
-            style: secondary.toTabular,
-          ),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Flexible(child: _end(context, tunnel.entrance)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: GlyphIcon(
-            AppGlyphs.chevronForward,
-            size: 12,
-            color: context.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        Flexible(child: _end(context, tunnel.exit)),
       ],
     );
   }
@@ -1443,6 +1379,9 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
     if (confirmed == true && mounted) await _apply(renew: true);
   }
 
+  Future<void> _exportSubscription() =>
+      showIpingTunnelSubscriptionExport(context, ref, tunnel: _tunnel);
+
   Future<void> _openEdit() async {
     await showInSheet<void>(
       context,
@@ -1461,8 +1400,6 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
     final l = context.appLocalizations;
     final tunnel = _tunnel;
     final addresses = tunnel.listenAddresses;
-    final entrance = tunnel.entrance;
-    final exit = tunnel.exit;
     final tabular = context.listTitleStyle.toTabular;
     return CommonScaffold(
       title: tunnel.name,
@@ -1472,6 +1409,13 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
         tooltip: l.ipingTunnelEdit,
         onPressed: _busy ? null : _openEdit,
       ),
+      iconActions: [
+        IconButtonData(
+          glyph: AppGlyphs.qrCode,
+          tooltip: l.ipingExportSubscription,
+          onPressed: _exportSubscription,
+        ),
+      ],
       body: Builder(
         builder: (context) => ListView(
           padding: EdgeInsets.fromLTRB(
@@ -1522,25 +1466,6 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
                         ),
                     ],
             ),
-            if (entrance != null || exit != null || tunnel.poolExit) ...[
-              _sectionGap,
-              generateSection(
-                items: [
-                  if (entrance != null)
-                    _EndpointRow(
-                      title: l.ipingTunnelEntrance,
-                      endpoint: entrance,
-                    ),
-                  if (exit != null)
-                    _EndpointRow(title: l.ipingTunnelExit, endpoint: exit)
-                  else if (tunnel.poolExit)
-                    ListItem(
-                      title: Text(l.ipingTunnelExit),
-                      subtitle: Text(l.ipingTunnelPoolExit),
-                    ),
-                ],
-              ),
-            ],
             if (tunnel.forwardAddresses.isNotEmpty)
               generateSection(
                 title: l.ipingTunnelForward,
@@ -1602,13 +1527,9 @@ class _TunnelOverview extends StatelessWidget {
     final secondary = AppTextStyle.footnote
         .of(context)
         .copyWith(color: scheme.onSurfaceVariant);
-    final plan = tunnel.planName;
+    final plan = tunnel.tunnelPlanName ?? tunnel.planName;
     final price = tunnel.planPrice;
-    final planLine = plan == null
-        ? null
-        : price == null
-        ? plan
-        : '$plan · ${ipingCurrency(price.toDouble())}';
+    final priceLine = price == null ? null : ipingCurrency(price.toDouble());
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: level.colorOf(scheme),
@@ -1630,17 +1551,18 @@ class _TunnelOverview extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 2,
                       children: [
-                        Text(
-                          tunnelTypeLabel(l, tunnel.type),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.headline
-                              .of(context)
-                              .copyWith(color: scheme.onSurface),
-                        ),
-                        if (planLine != null)
+                        if (plan != null)
                           Text(
-                            planLine,
+                            plan,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.headline
+                                .of(context)
+                                .copyWith(color: scheme.onSurface),
+                          ),
+                        if (priceLine != null)
+                          Text(
+                            priceLine,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: secondary,
@@ -1715,26 +1637,6 @@ class _TunnelOverview extends StatelessWidget {
   }
 }
 
-class _EndpointRow extends StatelessWidget {
-  const _EndpointRow({required this.title, required this.endpoint});
-
-  final String title;
-  final IpingTunnelEndpoint endpoint;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListItem(
-      title: Text(title),
-      subtitle: Text(endpoint.name),
-      trailing: MetaChip(
-        label: context.appLocalizations.ipingTunnelRate(
-          tunnelRateLabel(endpoint.trafficRate),
-        ),
-      ),
-    );
-  }
-}
-
 enum _EditField { name, address, port }
 
 class IpingTunnelEditPage extends ConsumerStatefulWidget {
@@ -1759,6 +1661,7 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
   late bool _enabled;
   late bool _autoRenew;
   late int? _listenPort;
+  late int? _tunnelPlanId;
   var _busy = false;
   _EditField? _invalid;
   String? _error;
@@ -1795,6 +1698,7 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
     );
     _enabled = widget.tunnel.enabled;
     _autoRenew = widget.tunnel.autoRenew;
+    _tunnelPlanId = widget.tunnel.tunnelPlanId;
     _listenPort = widget.tunnel.listenPort;
   }
 
@@ -1979,6 +1883,9 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
           forwardPassword: forwardPassword,
           status: _enabled ? 'active' : 'inactive',
           autoRenew: _autoRenew,
+          tunnelPlanId: _tunnelPlanId == widget.tunnel.tunnelPlanId
+              ? null
+              : _tunnelPlanId,
         );
       }
       IpingTunnel? fetched;
@@ -2024,6 +1931,16 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
       color: context.colorScheme.onSurfaceVariant,
     ),
   );
+
+  String? _planName(List<IpingTunnelPlanOption>? plans, int? id) {
+    if (id == null) return null;
+    for (final plan in plans ?? const <IpingTunnelPlanOption>[]) {
+      if (plan.id == id) return plan.name;
+    }
+    return id == widget.tunnel.tunnelPlanId
+        ? widget.tunnel.tunnelPlanName
+        : null;
+  }
 
   List<Widget> _poolRows(AppLocalizations l) => [
     FormRow(
@@ -2129,6 +2046,12 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
     final l = context.appLocalizations;
     final tunnel = widget.tunnel;
     final canEditAddress = tunnel.canChangeForwardAddress && !_busy;
+    final plans = ref.watch(ipingTunnelPlanOptionsProvider).asData?.value;
+    final planIds = <int>[
+      ?_tunnelPlanId,
+      for (final plan in plans ?? const <IpingTunnelPlanOption>[])
+        if (!plan.maintenance && plan.id != _tunnelPlanId) plan.id,
+    ];
     return FormPage(
       title: l.ipingTunnelEdit,
       saving: _busy,
@@ -2152,6 +2075,18 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
                       onChanged: _changed,
                     ),
                   ),
+                  if (!tunnel.poolExit && plans != null && planIds.isNotEmpty)
+                    ListItem<int?>.options(
+                      key: const ValueKey('tunnel-edit-plan'),
+                      title: Text(l.ipingTunnelPlan),
+                      options: [for (final id in planIds) id],
+                      value: _tunnelPlanId,
+                      textBuilder: (id) => _planName(plans, id) ?? '—',
+                      onChanged: (id) => setState(() {
+                        _tunnelPlanId = id;
+                        _error = null;
+                      }),
+                    ),
                 ],
               ),
               if (tunnel.poolExit)
@@ -2590,6 +2525,7 @@ class _BatchUpdateSheet extends ConsumerStatefulWidget {
 class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
   String? _status;
   bool? _autoRenew;
+  int? _tunnelPlanId;
   late final TextEditingController _ipController;
   late final TextEditingController _namePrefixController;
   late final TextEditingController _nameController;
@@ -2692,7 +2628,8 @@ class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
       fillItems.add(item);
     }
 
-    final hasFieldUpdate = _status != null || _autoRenew != null;
+    final hasFieldUpdate =
+        _status != null || _autoRenew != null || _tunnelPlanId != null;
     if (!hasFieldUpdate && fillItems.isEmpty) {
       setState(() => _error = l.ipingTunnelBatchStatusNoChange);
       return;
@@ -2726,6 +2663,7 @@ class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
           ids: widget.tunnels.map((t) => t.id).toList(),
           status: _status,
           autoRenew: _autoRenew,
+          tunnelPlanId: _tunnelPlanId,
         );
       }
       if (!mounted) return;
@@ -2764,10 +2702,22 @@ class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
     return count == 0 ? hint : '$hint · $count / ${widget.tunnels.length}';
   }
 
+  String _planName(List<IpingTunnelPlanOption>? plans, int id) {
+    for (final plan in plans ?? const <IpingTunnelPlanOption>[]) {
+      if (plan.id == id) return plan.name;
+    }
+    return '—';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.appLocalizations;
     final parsedIps = _parseProxyAddresses(_ipController.text);
+    final plans = ref.watch(ipingTunnelPlanOptionsProvider).asData?.value;
+    final planIds = [
+      for (final plan in plans ?? const <IpingTunnelPlanOption>[])
+        if (!plan.maintenance) plan.id,
+    ];
     return FormPage(
       title: l.ipingTunnelBatchUpdate,
       saveLabel: l.confirm,
@@ -2782,6 +2732,20 @@ class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
             children: [
               generateSection(
                 items: [
+                  if (planIds.isNotEmpty)
+                    ListItem<int?>.options(
+                      key: const ValueKey('batch-plan'),
+                      title: Text(l.ipingTunnelPlan),
+                      options: [null, ...planIds],
+                      value: _tunnelPlanId,
+                      textBuilder: (id) => id == null
+                          ? l.ipingTunnelBatchStatusNoChange
+                          : _planName(plans, id),
+                      onChanged: (id) => setState(() {
+                        _tunnelPlanId = id;
+                        _error = null;
+                      }),
+                    ),
                   ListItem<String?>.options(
                     key: const ValueKey('batch-status'),
                     title: Text(l.status),

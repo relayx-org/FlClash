@@ -201,21 +201,9 @@ void main() {
       );
       await pump(tester, const IpingSubscriptionDetails());
       expect(find.text('Manually imported subscription'), findsOneWidget);
+      expect(find.text('Manual subscription'), findsOneWidget);
       expect(find.text('Sign in with browser'), findsOneWidget);
-      expect(find.text('Open iPing console'), findsOneWidget);
-      await tester.ensureVisible(find.text('Open iPing console'));
-      await tester.tap(find.text('Open iPing console'));
-      await tester.pumpAndSettle();
-      expect(find.byType(CommonDialog), findsOneWidget);
-      expect(
-        tester
-            .widget<SelectableText>(find.byType(SelectableText))
-            .textSpan!
-            .toPlainText(),
-        '$ipingSite/home',
-      );
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
+      expect(find.text('Open iPing console'), findsNothing);
       await tester.tap(find.text('Import subscription link'));
       await tester.pumpAndSettle();
       expect(
@@ -232,7 +220,7 @@ void main() {
       await tester.tap(find.text('Submit'));
       await tester.pumpAndSettle();
       expect(storage.stored?.manualUrl, 'https://example.com/new');
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(find.byTooltip('Refresh subscription'));
       await tester.pumpAndSettle();
       expect(api.subscriptionUrlRequested, 'https://example.com/new');
     },
@@ -452,13 +440,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('No available nodes'), findsOneWidget);
-    expect(find.byType(FilledButton), findsOneWidget);
+    expect(find.byTooltip('Refresh subscription'), findsOneWidget);
     expect(find.text('Add profile'), findsNothing);
     expect(container.read(ipingSessionProvider).canConnect, isFalse);
     final siteRequests = api.siteRequests;
     final downloads = api.downloads;
 
-    await tester.tap(find.byType(FilledButton));
+    await tester.tap(find.byTooltip('Refresh subscription'));
     await tester.pumpAndSettle();
 
     expect(api.siteRequests, siteRequests + 1);
