@@ -1,16 +1,11 @@
 import 'dart:async';
 
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'api.dart';
-import 'providers.dart';
-import 'tunnel.dart';
+import '../l10n/l10n.dart';
 
 const _qrBackground = Color(0xFFFFFFFF);
 
@@ -30,21 +25,7 @@ Future<void> showIpingSubscriptionExport(
   );
 }
 
-Future<void> showIpingTunnelSubscriptionExport(
-  BuildContext context,
-  WidgetRef ref, {
-  required IpingTunnel tunnel,
-}) {
-  final api = ref.read(ipingAuthenticatedApiProvider);
-  return showIpingSubscriptionExport(
-    context,
-    hint: context.appLocalizations.ipingTunnelSubscriptionHint(tunnel.name),
-    loadUrl: () async =>
-        api.subscriptionUrl(await api.tunnelSubscriptionToken(tunnel.id)),
-  );
-}
-
-class _IpingSubscriptionExportSheet extends ConsumerStatefulWidget {
+class _IpingSubscriptionExportSheet extends StatefulWidget {
   const _IpingSubscriptionExportSheet({
     required this.hint,
     required this.warning,
@@ -56,14 +37,14 @@ class _IpingSubscriptionExportSheet extends ConsumerStatefulWidget {
   final Future<String> Function() loadUrl;
 
   @override
-  ConsumerState<_IpingSubscriptionExportSheet> createState() =>
+  State<_IpingSubscriptionExportSheet> createState() =>
       _IpingSubscriptionExportSheetState();
 }
 
 class _IpingSubscriptionExportSheetState
-    extends ConsumerState<_IpingSubscriptionExportSheet> {
+    extends State<_IpingSubscriptionExportSheet> {
   String? _url;
-  IpingFailure? _failure;
+  var _failed = false;
   var _loading = true;
   var _request = 0;
 
@@ -80,27 +61,21 @@ class _IpingSubscriptionExportSheetState
       if (!mounted || request != _request) return;
       setState(() {
         _url = url;
-        _failure = null;
+        _failed = false;
         _loading = false;
       });
-    } on IpingException catch (error) {
-      _fail(request, error.failure);
     } catch (_) {
-      _fail(request, IpingFailure.unavailable);
+      if (!mounted || request != _request) return;
+      setState(() {
+        _failed = true;
+        _loading = false;
+      });
     }
-  }
-
-  void _fail(int request, IpingFailure failure) {
-    if (!mounted || request != _request) return;
-    setState(() {
-      _failure = failure;
-      _loading = false;
-    });
   }
 
   void _retry() {
     setState(() {
-      _failure = null;
+      _failed = false;
       _loading = true;
     });
     unawaited(_load());
@@ -109,15 +84,16 @@ class _IpingSubscriptionExportSheetState
   Future<void> _copy(String url) async {
     await Clipboard.setData(ClipboardData(text: url));
     if (!mounted) return;
-    context.showNotifier(
-      context.appLocalizations.ipingSubscriptionLinkCopied,
-      level: MessageLevel.success,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context).ipingSubscriptionLinkCopied),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     final url = _url;
     return CommonScaffold(
       title: l.ipingExportSubscription,
@@ -161,12 +137,10 @@ class _IpingSubscriptionExportSheetState
                 padding: EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: CommonCircleLoading()),
               )
-            else ...[
+            else if (_failed) ...[
               const SizedBox(height: 8),
               Text(
-                _failure == IpingFailure.session
-                    ? l.ipingSessionExpired
-                    : l.ipingSubscriptionLinkFailed,
+                l.ipingSubscriptionLinkFailed,
                 style: AppTextStyle.body
                     .of(context)
                     .copyWith(color: context.colorScheme.error),

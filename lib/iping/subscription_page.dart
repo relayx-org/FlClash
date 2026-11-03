@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../common/common.dart';
+import '../l10n/l10n.dart';
 import '../ui/icons/icons.dart';
 import '../ui/ui.dart';
 import 'subscription_export.dart';
@@ -30,7 +30,7 @@ class IpingSubscriptionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     final scheme = context.colorScheme;
     final source = manualSubscription
         ? l.ipingManualSubscriptionShort

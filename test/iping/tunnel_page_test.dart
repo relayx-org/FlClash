@@ -484,7 +484,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Your session is no longer valid. Please sign in again.'),
+      find.text('Unable to get the subscription link. Please try again.'),
       findsOneWidget,
     );
 

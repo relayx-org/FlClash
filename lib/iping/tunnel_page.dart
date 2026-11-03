@@ -333,8 +333,15 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
     );
   }
 
-  Future<void> _exportSubscription(IpingTunnel tunnel) =>
-      showIpingTunnelSubscriptionExport(context, ref, tunnel: tunnel);
+  Future<void> _exportSubscription(IpingTunnel tunnel) {
+    final api = ref.read(ipingAuthenticatedApiProvider);
+    return showIpingSubscriptionExport(
+      context,
+      hint: context.appLocalizations.ipingTunnelSubscriptionHint(tunnel.name),
+      loadUrl: () async =>
+          api.subscriptionUrl(await api.tunnelSubscriptionToken(tunnel.id)),
+    );
+  }
 
   Future<void> _copy(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
@@ -1379,8 +1386,15 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
     if (confirmed == true && mounted) await _apply(renew: true);
   }
 
-  Future<void> _exportSubscription() =>
-      showIpingTunnelSubscriptionExport(context, ref, tunnel: _tunnel);
+  Future<void> _exportSubscription() {
+    final api = ref.read(ipingAuthenticatedApiProvider);
+    return showIpingSubscriptionExport(
+      context,
+      hint: context.appLocalizations.ipingTunnelSubscriptionHint(_tunnel.name),
+      loadUrl: () async =>
+          api.subscriptionUrl(await api.tunnelSubscriptionToken(_tunnel.id)),
+    );
+  }
 
   Future<void> _openEdit() async {
     await showInSheet<void>(
