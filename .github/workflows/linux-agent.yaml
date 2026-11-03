@@ -160,7 +160,18 @@ jobs:
 
       - name: Build shared Flutter interface
         if: ${{ !inputs.reuse_web }}
-        run: bash openwrt/build_ui.sh
+        run: |
+          for attempt in 1 2; do
+            if bash openwrt/build_ui.sh; then
+              exit 0
+            fi
+            rm -rf services/helper/target plugins/rust_api/rust/target \
+              .dart_tool/flutter_build openwrt/ui/build
+            if [ "$attempt" -ge 2 ]; then
+              exit 1
+            fi
+            sleep 10
+          done
 
       - name: Reuse the validated Web build from MinIO
         if: inputs.reuse_web

@@ -365,16 +365,26 @@ Future<int> _package(
 Future<Directory> _prepareAppImageDistributor(String rootDir) async {
   final directory = await Directory.systemTemp.createTemp('iping-distributor-');
   try {
-    await _runSetupCommand('git', [
-      'clone',
-      '--quiet',
-      '--depth',
-      '1',
-      '--branch',
-      _distributorRef,
-      _distributorRepository,
-      directory.path,
-    ]);
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await _runSetupCommand('git', [
+          'clone',
+          '--quiet',
+          '--depth',
+          '1',
+          '--branch',
+          _distributorRef,
+          _distributorRepository,
+          directory.path,
+        ]);
+        break;
+      } catch (_) {
+        if (attempt >= 3) rethrow;
+        await directory.delete(recursive: true);
+        await directory.create(recursive: true);
+        await Future<void>.delayed(Duration(seconds: attempt * 5));
+      }
+    }
     await _runSetupCommand('git', [
       'apply',
       '--unidiff-zero',

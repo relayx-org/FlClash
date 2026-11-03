@@ -1,8 +1,65 @@
 diff --git a/packages/flutter_app_packager/lib/src/makers/appimage/app_package_maker_appimage.dart b/packages/flutter_app_packager/lib/src/makers/appimage/app_package_maker_appimage.dart
-index 08cdb18..1d989cc 100644
+index 08cdb18..93455a9 100644
 --- a/packages/flutter_app_packager/lib/src/makers/appimage/app_package_maker_appimage.dart
 +++ b/packages/flutter_app_packager/lib/src/makers/appimage/app_package_maker_appimage.dart
-@@ -222,27 +222,2 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+@@ -26,7 +26,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+   Future<Set<String>> _getSharedDependencies(String so) {
+     return $('ldd', ['-d', so]).then((value) {
+       if (value.exitCode != 0) {
+-        throw MakeError(value.stderr as String);
++        throw MakeError('${value.stderr ?? value.stdout}');
+       }
+       return value.stdout as String;
+     }).then(
+@@ -74,7 +74,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+         ),
+       ]).then((value) {
+         if (value.exitCode != 0) {
+-          throw MakeError(value.stderr as String);
++          throw MakeError('${value.stderr ?? value.stdout}');
+         }
+       });
+       await normalizeLinuxPermissions(
+@@ -106,7 +106,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+ 
+       await $('chmod', ['+x', appRunFile.path]).then((value) {
+         if (value.exitCode != 0) {
+-          throw MakeError(value.stderr as String);
++          throw MakeError('${value.stderr ?? value.stdout}');
+         }
+       });
+ 
+@@ -138,7 +138,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+         icon256x256,
+       ]).then((value) {
+         if (value.exitCode != 0) {
+-          throw MakeError(value.stderr as String);
++          throw MakeError('${value.stderr ?? value.stdout}');
+         }
+       });
+ 
+@@ -166,7 +166,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+           metainfoDir,
+         ]).then((value) {
+           if (value.exitCode != 0) {
+-            throw MakeError(value.stderr as String);
++            throw MakeError('${value.stderr ?? value.stdout}');
+           }
+         });
+         final metainfoPath =
+@@ -208,7 +208,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+         ),
+       ]).then((value) {
+         if (value.exitCode != 0) {
+-          throw MakeError(value.stderr as String);
++          throw MakeError('${value.stderr ?? value.stdout}');
+         }
+       });
+ 
+@@ -219,40 +219,39 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+         ),
+       );
+ 
 -      await Future.wait(
 -        appSOLibs.map((so) async {
 -          final referencedSharedLibs =
@@ -32,7 +89,7 @@ index 08cdb18..1d989cc 100644
 -        }),
 +      final dependencySets = await Future.wait(
 +        appSOLibs.map((so) => _getSharedDependencies(so.path)),
-@@ -249,0 +225,24 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+       );
 +      final referencedSharedLibs = dependencySets
 +          .fold<Set<String>>(
 +            <String>{},
@@ -53,7 +110,26 @@ index 08cdb18..1d989cc 100644
 +          ],
 +        ).then((value) {
 +          if (value.exitCode != 0) {
-+            throw MakeError(value.stderr as String);
++            throw MakeError('${value.stderr ?? value.stdout}');
 +          }
 +        });
 +      }
+ 
+       await Future.wait(
+         makeConfig.include.map((so) async {
+           final file = await $('locate', [so]).then((value) {
+             if (value.exitCode != 0) {
+-              throw MakeError(value.stderr as String);
++              throw MakeError('${value.stderr ?? value.stdout}');
+             }
+             return value.stdout as String;
+           }).then((out) {
+@@ -294,7 +293,7 @@ class AppPackageMakerAppImage extends AppPackageMaker {
+         },
+       ).then((value) {
+         if (value.exitCode != 0) {
+-          throw MakeError(value.stderr as String);
++          throw MakeError('${value.stderr ?? value.stdout}');
+         }
+       });
+ 

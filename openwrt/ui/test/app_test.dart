@@ -64,7 +64,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(IpingSubscriptionPage), findsOneWidget);
       expect(find.text(l.ipingManualSubscription), findsOneWidget);
-      expect(find.text(l.ipingConsole), findsOneWidget);
+      expect(find.text(l.ipingConsole), findsNothing);
       await tester.tap(find.text(l.ipingImportSubscription));
       await tester.pumpAndSettle();
       await tester.enterText(

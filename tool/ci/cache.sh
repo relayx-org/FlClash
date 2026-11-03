@@ -3,9 +3,14 @@ set -euo pipefail
 : "${GITHUB_ENV:?}"
 test -f pubspec.yaml && test -d core
 
+# Cached outputs are only compatible with the exact toolchain that made them.
+cache_schema=2
+flutter_version="${FLUTTER_VERSION:-unknown}"
+rust_channel="$(sed -n 's/^channel = "\(.*\)"$/\1/p' plugins/rust_api/rust/rust-toolchain.toml 2>/dev/null || true)"
+rust_channel="${rust_channel:-unknown}"
 base="${RUNNER_TOOL_CACHE:?}/iping"
 workspace_key="$(pwd -P | git hash-object --stdin)"
-target="$base/build/${1:?}/$workspace_key"
+target="$base/build/${1:?}-$flutter_version-$rust_channel-$cache_schema/$workspace_key"
 mkdir -p "$target" "$base/pub" "$base/gradle" "$base/npm"
 for path in build libclash .dart_tool/flutter_build .dart_tool/setup_build_cache .dart_tool/ios_core .dart_tool/hooks_runner services/helper/target plugins/rust_api/rust/target; do
   mkdir -p "$target/$path" "$(dirname "$path")"
