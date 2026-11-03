@@ -407,8 +407,8 @@ jobs:
         run: ${{ runner.os == 'Windows' && 'python' || 'python3' }} tool/ci/storage.py put --group "$GROUP" --path dist
 
   linux-agent:
-    if: ${{ !cancelled() && needs.release.result == 'success' && needs.plan.result == 'success' }}
-    needs: [release, plan]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    needs: [release, plan, build]
     uses: ./.github/workflows/linux-agent.yaml
     with:
       ref: ${{ needs.release.outputs.sha }}
