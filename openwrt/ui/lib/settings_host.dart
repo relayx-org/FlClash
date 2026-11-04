@@ -4,12 +4,10 @@ import 'package:fl_clash/enum/page_label.dart';
 import 'package:fl_clash/features/logs/controller.dart';
 import 'package:fl_clash/iping/about_widgets.dart';
 import 'package:fl_clash/iping/backend.dart';
-import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/pages/settings_page.dart';
 import 'package:fl_clash/iping/settings_host.dart';
 import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:fl_clash/iping/subscription_url.dart';
-import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
 import 'package:fl_clash/ui/appearance_defaults.dart';
@@ -62,7 +60,7 @@ class RouterSettingsRoute extends StatelessWidget {
               pageBuilder: (_) => const RouterConnections(),
               forceFull: true,
             ),
-          if (context.isMobileView || !app.preferences.openLogs)
+          if (app.preferences.openLogs)
             IpingSettingsLink(
               glyph: PageLabel.logs.glyph,
               title: PageLabel.logs.labelOf(l),
@@ -74,16 +72,6 @@ class RouterSettingsRoute extends StatelessWidget {
         onLocaleChanged: app.updateLocale,
         themeBuilder: (_) => const RouterAppearance(),
         platformSettings: [
-          IpingSettingsLink(
-            glyph: AppGlyphs.link,
-            title: l.ipingNativeIp,
-            pageBuilder: (_) => const IpingNativeIpPage(),
-          ),
-          IpingSettingsLink(
-            glyph: PageLabel.tunnels.glyph,
-            title: PageLabel.tunnels.labelOf(l),
-            pageBuilder: (_) => const IpingTunnelsPage(),
-          ),
           IpingSettingsLink(
             glyph: AppGlyphs.settings,
             title: l.general,
