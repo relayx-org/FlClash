@@ -489,22 +489,25 @@ class _RouterDashboardRouteState extends State<RouterDashboardRoute> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final controller = RouterScope.of(context, aspect: RouterAspect.status);
-    final preferences = RouterAppState.of(context).preferences;
+    final app = RouterAppState.of(context);
+    final preferences = app.preferences;
     if (!identical(controller, _controller)) {
       _host?.dispose();
       _controller = controller;
-      _host = _createHost(controller, preferences);
+      _host = _createHost(controller, app);
     }
     _host!.updatePreferences(preferences);
   }
 
   RouterDashboardHost _createHost(
     RouterController controller,
-    RouterPreferences preferences,
+    RouterAppState app,
   ) => RouterDashboardHost(
     controller,
-    preferences: preferences,
+    preferences: app.preferences,
     describeError: (context, error) => routerError(context, error.toString()),
+    persistDashboardCards: (ids) =>
+        app.updatePreferences((settings) => settings.dashboardCards = ids),
     openSubscription: (context) => _sheet(context, const RouterSubscription()),
     openProxies: (context) => _sheet(context, const RouterProxiesRoute()),
     openConnections: (context) => _sheet(context, const RouterConnections()),

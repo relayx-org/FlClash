@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:fl_clash/common/datetime.dart';
 import 'package:fl_clash/features/ip_quality/labels.dart';
 import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/dashboard_defaults.dart';
 import 'package:fl_clash/iping/widgets/dashboard_card_editor.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -36,6 +37,47 @@ List<ServiceTarget> _serviceTargets(IpingDashboardPreferences preferences) =>
       orderServiceTargets(preferences.serviceOrder),
       preferences.disabledServices,
     );
+
+IpingDashboardDesktopCard? _desktopPlacementOf(
+  List<IpingDashboardCard> cards,
+  IpingDashboardDesktopArea area, {
+  String? cardId,
+}) {
+  for (final card in cards) {
+    if (cardId != null && card.id != cardId) continue;
+    for (final placement in card.desktop) {
+      if (placement.area == area) return placement;
+    }
+  }
+  return null;
+}
+
+List<(int, Widget)> _desktopSlotsOf(
+  BuildContext context,
+  List<IpingDashboardCard> cards,
+  IpingDashboardDesktopArea area,
+) => [
+  for (final card in cards)
+    for (final placement in card.desktop)
+      if (placement.area == area) (placement.span, placement.builder(context)),
+];
+
+Widget _desktopTablesOf(
+  BuildContext context,
+  List<IpingDashboardCard> cards, {
+  required double gap,
+}) => Row(
+  crossAxisAlignment: CrossAxisAlignment.stretch,
+  spacing: gap,
+  children: [
+    for (final (span, widget) in _desktopSlotsOf(
+      context,
+      cards,
+      IpingDashboardDesktopArea.table,
+    ))
+      Expanded(flex: span, child: widget),
+  ],
+);
 
 class IpingDashboardPage extends StatefulWidget {
   const IpingDashboardPage({super.key});
@@ -160,12 +202,22 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final host = IpingDashboardScope.of(context);
-    final editor = host.dashboardEditor;
+    final hostEditor = host.dashboardEditor;
+    final savedCards = host.dashboardCards;
+    final defaultEditor = hostEditor == null
+        ? IpingDashboardDefaultEditor(
+            all: _defaultCards(context, host: host, l: l),
+            defaultIds: _defaultCardIds,
+            saved: savedCards ?? const [],
+            onSave: savedCards == null ? null : host.saveDashboardCards,
+          )
+        : null;
+    final editor = hostEditor ?? defaultEditor!;
+    final canEdit = hostEditor != null || savedCards != null;
     final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
     return LayoutBuilder(
       builder: (context, page) {
-        final editable =
-            editor != null && dashboardIsMobileOf(page.maxWidth / scale);
+        final editable = canEdit && dashboardIsMobileOf(page.maxWidth / scale);
         if (!editable) _editing = false;
         final editing = _editing;
         return CommonScaffold(
@@ -173,7 +225,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
           title: editing ? l.editDashboard : l.dashboard,
           backAction: editing ? _stopEditing : null,
           actions: [
-            if (editor == null)
+            if (hostEditor == null)
               FilledButton.icon(
                 style: ElasticPress.buttonStyle,
                 onPressed: host.busy ? null : () => _restart(context),
@@ -207,7 +259,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
               IconButtonData(
                 glyph: AppGlyphs.reset,
                 tooltip: l.reset,
-                onPressed: editor?.reset,
+                onPressed: editor.reset,
               ),
           ],
           body: Builder(
@@ -220,38 +272,35 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
                     ? (MediaQuery.sizeOf(context).width <= 840 ? 12.0 : 16.0)
                     : 8.0;
                 final bottomInset = BottomInsetScope.of(context);
-                if (editor != null) {
-                  return DashboardDensityScope(
-                    density: density,
-                    scale: scale,
-                    child: density.isDesktop
-                        ? _buildHostDesktop(
-                            context,
-                            editor,
-                            constraints,
-                            density: density,
-                            gap: gap,
-                            scale: scale,
-                          )
-                        : _buildHostMobile(
-                            context,
-                            editor,
-                            constraints,
-                            gap: gap,
-                            bottomInset: bottomInset,
-                            editing: editing,
-                          ),
-                  );
-                }
-                return _buildDefaultDashboard(
-                  context,
-                  host: host,
-                  l: l,
+                return DashboardDensityScope(
                   density: density,
-                  gap: gap,
                   scale: scale,
-                  bottomInset: bottomInset,
-                  constraints: constraints,
+                  child: density.isDesktop
+                      ? (hostEditor == null
+                            ? _buildDefaultDesktop(
+                                context,
+                                defaultEditor!,
+                                constraints,
+                                density: density,
+                                gap: gap,
+                                scale: scale,
+                              )
+                            : _buildHostDesktop(
+                                context,
+                                hostEditor,
+                                constraints,
+                                density: density,
+                                gap: gap,
+                                scale: scale,
+                              ))
+                      : _buildHostMobile(
+                          context,
+                          editor,
+                          constraints,
+                          gap: gap,
+                          bottomInset: bottomInset,
+                          editing: editing,
+                        ),
                 );
               },
             ),
@@ -321,62 +370,122 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     required double scale,
   }) {
     final cards = editor.desktopCards;
-
-    Widget? slot(IpingDashboardDesktopArea area) {
-      for (final card in cards) {
-        for (final placement in card.desktop) {
-          if (placement.area == area) return placement.builder(context);
-        }
-      }
-      return null;
-    }
-
-    List<(int, Widget)> slots(IpingDashboardDesktopArea area) => [
-      for (final card in cards)
-        for (final placement in card.desktop)
-          if (placement.area == area)
-            (placement.span, placement.builder(context)),
-    ];
-
-    final tables = slots(IpingDashboardDesktopArea.table);
+    final tables = _desktopSlotsOf(
+      context,
+      cards,
+      IpingDashboardDesktopArea.table,
+    );
     return DashboardDesktopLayout(
       columns: dashboardColumnsOf(constraints.maxWidth / scale),
       gap: gap,
       outbound:
-          slot(IpingDashboardDesktopArea.outbound) ?? const SizedBox.shrink(),
-      upload: slot(IpingDashboardDesktopArea.upload) ?? const SizedBox.shrink(),
+          _desktopPlacementOf(
+            cards,
+            IpingDashboardDesktopArea.outbound,
+          )?.builder(context) ??
+          const SizedBox.shrink(),
+      upload:
+          _desktopPlacementOf(
+            cards,
+            IpingDashboardDesktopArea.upload,
+          )?.builder(context) ??
+          const SizedBox.shrink(),
       download:
-          slot(IpingDashboardDesktopArea.download) ?? const SizedBox.shrink(),
-      mode: slot(IpingDashboardDesktopArea.mode) ?? const SizedBox.shrink(),
-      controls: slots(IpingDashboardDesktopArea.control),
-      middle: slots(IpingDashboardDesktopArea.middle),
+          _desktopPlacementOf(
+            cards,
+            IpingDashboardDesktopArea.download,
+          )?.builder(context) ??
+          const SizedBox.shrink(),
+      mode:
+          _desktopPlacementOf(
+            cards,
+            IpingDashboardDesktopArea.mode,
+          )?.builder(context) ??
+          const SizedBox.shrink(),
+      controls: _desktopSlotsOf(
+        context,
+        cards,
+        IpingDashboardDesktopArea.control,
+      ),
+      middle: _desktopSlotsOf(context, cards, IpingDashboardDesktopArea.middle),
       summaries: [
-        for (final (_, widget) in slots(IpingDashboardDesktopArea.summary))
+        for (final (_, widget) in _desktopSlotsOf(
+          context,
+          cards,
+          IpingDashboardDesktopArea.summary,
+        ))
           widget,
       ],
       tables: tables.isEmpty
           ? null
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: gap,
-              children: [
-                for (final (span, widget) in tables)
-                  Expanded(flex: span, child: widget),
-              ],
-            ),
+          : _desktopTablesOf(context, cards, gap: gap),
       tablesMinHeight: connectionsTableMinHeight(density, scale),
     );
   }
 
-  Widget _buildDefaultDashboard(
-    BuildContext context, {
-    required IpingDashboardHost host,
-    required AppLocalizations l,
+  Widget _buildDefaultDesktop(
+    BuildContext context,
+    IpingDashboardEditor editor,
+    BoxConstraints constraints, {
     required DashboardDensity density,
     required double gap,
     required double scale,
-    required double bottomInset,
-    required BoxConstraints constraints,
+  }) {
+    final cards = editor.desktopCards;
+    Widget slot(IpingDashboardDesktopArea area, {String? id}) =>
+        _desktopPlacementOf(cards, area, cardId: id)?.builder(context) ??
+        const SizedBox.shrink();
+    final tables = _desktopSlotsOf(
+      context,
+      cards,
+      IpingDashboardDesktopArea.table,
+    );
+    return DashboardPanelLayout(
+      columns: dashboardColumnsOf(constraints.maxWidth / scale),
+      gap: gap,
+      outbound: slot(IpingDashboardDesktopArea.outbound),
+      upload: slot(IpingDashboardDesktopArea.upload),
+      download: slot(IpingDashboardDesktopArea.download),
+      mode: slot(IpingDashboardDesktopArea.mode),
+      controls: _desktopSlotsOf(
+        context,
+        cards,
+        IpingDashboardDesktopArea.control,
+      ),
+      intranet: slot(IpingDashboardDesktopArea.middle, id: 'intranet'),
+      profile: slot(IpingDashboardDesktopArea.middle, id: 'profile'),
+      services: slot(IpingDashboardDesktopArea.middle, id: 'services'),
+      memory: slot(IpingDashboardDesktopArea.middle, id: 'memory'),
+      summaries: [
+        for (final (_, widget) in _desktopSlotsOf(
+          context,
+          cards,
+          IpingDashboardDesktopArea.summary,
+        ))
+          widget,
+      ],
+      tablesMinHeight: connectionsTableMinHeight(density, scale),
+      tables: tables.isEmpty
+          ? const SizedBox.shrink()
+          : _desktopTablesOf(context, cards, gap: gap),
+    );
+  }
+
+  static const _defaultCardIds = [
+    'currentOutbound',
+    'networkSpeed',
+    'outboundMode',
+    'profile',
+    'intranet',
+    'services',
+    'connections',
+    'memory',
+  ];
+
+  List<IpingDashboardCard> _defaultCards(
+    BuildContext context, {
+    required IpingDashboardHost host,
+    required AppLocalizations l,
   }) {
     final status = _ConnectionCard(host: host, snapshot: _snapshot);
     final upload = _SpeedCard(host: host, upload: true);
@@ -421,7 +530,9 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
       onOpen: () => host.openProxies(context),
       itemBuilder: (context, index) {
         final item = _groups[index];
-        final iconSize = density.isCompact ? 34.0 : 40.0;
+        final iconSize = DashboardDensityScope.of(context).isCompact
+            ? 34.0
+            : 40.0;
         return DashboardProxyGroupTile(
           name: item.name,
           icon: DashboardGroupIcon(
@@ -448,99 +559,215 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         value: '',
         content: DashboardMemorySummary(
           coreBytes: host.telemetry.memory,
-          density: density,
+          density: DashboardDensityScope.of(context),
         ),
       ),
     );
-    final summaries = [
-      ListenableBuilder(
-        listenable: host.telemetryUpdates,
-        builder: (context, _) => _MetricCard(
-          glyph: AppGlyphs.connections,
-          title: l.connections,
-          value: host.connected ? host.telemetry.connections.toString() : '—',
-          onTap: () => host.openConnections(context),
-        ),
+    final connections = ListenableBuilder(
+      listenable: host.telemetryUpdates,
+      builder: (context, _) => _MetricCard(
+        glyph: AppGlyphs.connections,
+        title: l.connections,
+        value: host.connected ? host.telemetry.connections.toString() : '—',
+        onTap: () => host.openConnections(context),
       ),
-      _MetricCard(
-        glyph: AppGlyphs.proxies,
-        title: l.proxies,
-        value: host.connected ? '${_groups.length}' : '—',
-        onTap: () => host.openProxies(context),
+    );
+    final groups = _MetricCard(
+      glyph: AppGlyphs.proxies,
+      title: l.proxies,
+      value: host.connected ? '${_groups.length}' : '—',
+      onTap: () => host.openProxies(context),
+    );
+    final feed = _FeedCard.connections(
+      host: host,
+      connectionItems: host.connected ? _connections : [],
+      count: host.connected ? host.telemetry.connections : 0,
+    );
+    final network = _ControlCard(
+      glyph: AppGlyphs.settings,
+      label: l.network,
+      onTap: () => host.openNetwork(context),
+    );
+    final sync = _ControlCard(
+      glyph: AppGlyphs.refresh,
+      label: l.sync,
+      onTap: host.busy ? null : host.synchronize,
+    );
+    Widget fixed(double height, Widget child) => Builder(
+      builder: (context) => SizedBox(
+        height: height * DashboardDensityScope.scaleOf(context),
+        child: child,
+      ),
+    );
+    IpingDashboardCard card({
+      required String id,
+      required String label,
+      required WidgetBuilder builder,
+      required Glyph glyph,
+      bool removable = true,
+      String? description,
+      List<IpingDashboardDesktopCard> desktop = const [],
+    }) => IpingDashboardCard(
+      id: id,
+      label: (_) => label,
+      description: description == null ? null : (_) => description,
+      glyph: glyph,
+      removable: removable,
+      builder: builder,
+      desktop: desktop,
+    );
+    return [
+      card(
+        id: 'currentOutbound',
+        label: l.status,
+        description: l.currentOutboundDesc,
+        glyph: AppGlyphs.status,
+        removable: false,
+        builder: (_) => fixed(220, status),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.outbound,
+            builder: (_) => status,
+          ),
+        ],
+      ),
+      card(
+        id: 'networkSpeed',
+        label: l.networkSpeed,
+        glyph: AppGlyphs.speed,
+        builder: (_) => _NetworkSpeedCard(host: host),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.upload,
+            builder: (_) => upload,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.download,
+            builder: (_) => download,
+          ),
+        ],
+      ),
+      card(
+        id: 'outboundMode',
+        label: l.outboundMode,
+        glyph: AppGlyphs.split,
+        builder: (_) => fixed(64, mode),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.mode,
+            builder: (_) => mode,
+          ),
+        ],
+      ),
+      card(
+        id: 'profile',
+        label: l.profile,
+        glyph: AppGlyphs.profiles,
+        builder: (_) => subscription,
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: (_) => subscription,
+          ),
+        ],
+      ),
+      card(
+        id: 'intranet',
+        label: l.intranetIP,
+        glyph: AppGlyphs.devices,
+        builder: (_) => intranet,
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: (_) => intranet,
+          ),
+        ],
+      ),
+      card(
+        id: 'services',
+        label: l.serviceStatus,
+        glyph: AppGlyphs.verified,
+        builder: (_) => services,
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: (_) => services,
+          ),
+        ],
+      ),
+      card(
+        id: 'connections',
+        label: l.connectionStats,
+        description: l.connectionStatsDesc,
+        glyph: AppGlyphs.connections,
+        builder: (_) => fixed(152, connections),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.summary,
+            builder: (_) => connections,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.table,
+            builder: (_) => feed,
+            span: 3,
+          ),
+        ],
+      ),
+      card(
+        id: 'memory',
+        label: l.memoryInfo,
+        description: l.memoryInfoDesc,
+        glyph: AppGlyphs.memory,
+        builder: (_) => fixed(152, memory),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: (_) => memory,
+          ),
+        ],
+      ),
+      card(
+        id: 'proxyGroups',
+        label: l.proxyGroup,
+        glyph: AppGlyphs.layers,
+        builder: (_) => fixed(300, proxies),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.summary,
+            builder: (_) => groups,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.table,
+            builder: (_) => proxies,
+            span: 2,
+          ),
+        ],
+      ),
+      card(
+        id: 'network',
+        label: l.network,
+        glyph: AppGlyphs.settings,
+        builder: (_) => fixed(64, network),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.control,
+            builder: (_) => network,
+          ),
+        ],
+      ),
+      card(
+        id: 'sync',
+        label: l.sync,
+        glyph: AppGlyphs.refresh,
+        builder: (_) => fixed(64, sync),
+        desktop: [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.control,
+            builder: (_) => sync,
+          ),
+        ],
       ),
     ];
-    return DashboardDensityScope(
-      density: density,
-      scale: scale,
-      child: density.isDesktop
-          ? DashboardPanelLayout(
-              columns: dashboardColumnsOf(constraints.maxWidth / scale),
-              gap: gap,
-              outbound: status,
-              upload: upload,
-              download: download,
-              mode: mode,
-              controls: [
-                (
-                  1,
-                  _ControlCard(
-                    glyph: AppGlyphs.settings,
-                    label: l.network,
-                    onTap: () => host.openNetwork(context),
-                  ),
-                ),
-                (
-                  1,
-                  _ControlCard(
-                    glyph: AppGlyphs.refresh,
-                    label: l.sync,
-                    onTap: host.busy ? null : host.synchronize,
-                  ),
-                ),
-              ],
-              intranet: intranet,
-              profile: subscription,
-              services: services,
-              memory: memory,
-              summaries: summaries,
-              tablesMinHeight: connectionsTableMinHeight(density, scale),
-              tables: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: gap,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: _FeedCard.connections(
-                      host: host,
-                      connectionItems: host.connected ? _connections : [],
-                      count: host.connected ? host.telemetry.connections : 0,
-                    ),
-                  ),
-                  Expanded(flex: 2, child: proxies),
-                ],
-              ),
-            )
-          : ListView.separated(
-              padding: EdgeInsets.fromLTRB(
-                dashboardMobileSideOf(constraints.maxWidth),
-                MediaQuery.paddingOf(context).top,
-                dashboardMobileSideOf(constraints.maxWidth),
-                bottomInset + 24,
-              ),
-              itemCount: 8,
-              separatorBuilder: (_, _) => SizedBox(height: gap),
-              itemBuilder: (context, index) => [
-                SizedBox(height: 220 * scale, child: status),
-                _NetworkSpeedCard(host: host),
-                SizedBox(height: 64 * scale, child: mode),
-                subscription,
-                intranet,
-                services,
-                SizedBox(height: 152 * scale, child: summaries.first),
-                SizedBox(height: 152 * scale, child: memory),
-              ][index],
-            ),
-    );
   }
 
   Future<void> _saveSettings(Map<String, Object?> changes) async {

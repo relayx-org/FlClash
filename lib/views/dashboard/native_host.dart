@@ -529,6 +529,10 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   final NativeDashboardTelemetry telemetryUpdates;
   @override
   final IpingDashboardEditor dashboardEditor;
+  @override
+  List<String>? get dashboardCards => null;
+  @override
+  void saveDashboardCards(List<String> ids) {}
   int _revision = 0;
 
   int get revision => _revision;

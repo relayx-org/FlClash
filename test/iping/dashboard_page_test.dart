@@ -32,7 +32,17 @@ class _OutboundProbe implements IpingDashboardOutboundProbe {
   void unwatch(String target) {}
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  RoutedProbeState<String, IpInfo> get state =>
+      const RoutedProbeState<String, IpInfo>();
+
+  @override
+  IpQuality? qualityOf(String ip) => null;
+
+  @override
+  bool isQualityLoading(String ip) => false;
+
+  @override
+  void refreshOutbound() {}
 }
 
 class _ServiceProbe implements IpingDashboardServiceProbe {
@@ -46,7 +56,8 @@ class _ServiceProbe implements IpingDashboardServiceProbe {
   void refresh(Iterable<ServiceTarget> targets) {}
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  RoutedProbeState<ServiceTarget, ServiceCheck> get state =>
+      const RoutedProbeState<ServiceTarget, ServiceCheck>();
 }
 
 class _Probes extends ChangeNotifier implements IpingDashboardProbes {
@@ -129,6 +140,58 @@ class _Host extends ChangeNotifier implements IpingDashboardHost {
 
   @override
   bool get hasSubscription => false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _DefaultHost extends ChangeNotifier implements IpingDashboardHost {
+  final _probes = _Probes();
+  @override
+  final telemetryUpdates = ChangeNotifier();
+  List<String> saved = [];
+
+  @override
+  IpingDashboardEditor? get dashboardEditor => null;
+
+  @override
+  List<String>? get dashboardCards => saved;
+
+  @override
+  void saveDashboardCards(List<String> ids) {
+    saved = [...ids];
+    notifyListeners();
+  }
+
+  @override
+  IpingDashboardPreferences get preferences => _Preferences();
+
+  @override
+  IpingDashboardProbes get probes => _probes;
+
+  @override
+  IpingTelemetry get telemetry => const IpingTelemetry();
+
+  @override
+  IpingTrafficSnapshot get traffic => const IpingTrafficSnapshot.empty();
+
+  @override
+  bool get visible => false;
+
+  @override
+  bool get busy => false;
+
+  @override
+  bool get connected => false;
+
+  @override
+  bool get hasSubscription => false;
+
+  @override
+  bool get suspended => false;
+
+  @override
+  int get nodes => 0;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -248,6 +311,54 @@ void main() {
 
     expect(find.byType(IpingDashboardCardEditor), findsNothing);
     expect(find.byTooltip('Edit dashboard'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await teardown(tester);
+  });
+
+  testWidgets('edits and persists the page cards when the host has none', (
+    tester,
+  ) async {
+    final host = _DefaultHost();
+    await pumpPage(tester, host, size: const Size(412, 2400));
+
+    expect(find.byTooltip('Edit dashboard'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Edit dashboard'));
+    await settle(tester);
+
+    expect(find.byType(IpingDashboardCardEditor), findsOneWidget);
+    expect(find.byTooltip('Remove Status'), findsNothing);
+
+    await tester.tap(find.byTooltip('Remove Memory info'));
+    await settle(tester);
+
+    expect(host.saved, isNot(contains('memory')));
+    expect(find.byTooltip('Add Memory info'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Add Memory info'));
+    await settle(tester);
+
+    expect(host.saved.last, 'memory');
+
+    await tester.tap(find.byTooltip('Reset'));
+    await settle(tester);
+
+    expect(host.saved, [
+      'currentOutbound',
+      'networkSpeed',
+      'outboundMode',
+      'profile',
+      'intranet',
+      'services',
+      'connections',
+      'memory',
+    ]);
+
+    await tester.tap(find.byTooltip('Done'));
+    await settle(tester);
+
+    expect(find.byType(IpingDashboardCardEditor), findsNothing);
     expect(tester.takeException(), isNull);
 
     await teardown(tester);

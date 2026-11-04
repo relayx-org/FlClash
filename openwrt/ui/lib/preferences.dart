@@ -32,6 +32,7 @@ class RouterPreferences implements IpingDashboardPreferences {
   List<String> serviceOrder = [];
   @override
   List<String> disabledServices = [];
+  List<String> dashboardCards = [];
 
   factory RouterPreferences.fromJson(Map<String, Object?> json) {
     final value = RouterPreferences();
@@ -113,6 +114,8 @@ class RouterPreferences implements IpingDashboardPreferences {
         (json['serviceOrder'] as List?)?.whereType<String>().toList() ?? [];
     value.disabledServices =
         (json['disabledServices'] as List?)?.whereType<String>().toList() ?? [];
+    value.dashboardCards =
+        (json['dashboardCards'] as List?)?.whereType<String>().toList() ?? [];
     return value;
   }
 
@@ -135,6 +138,7 @@ class RouterPreferences implements IpingDashboardPreferences {
     'hideIp': hideIp,
     'serviceOrder': serviceOrder,
     'disabledServices': disabledServices,
+    'dashboardCards': dashboardCards,
     'proxies': {
       'type': proxies.type.name,
       'layout': proxies.layout.name,

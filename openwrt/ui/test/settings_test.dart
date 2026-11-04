@@ -402,9 +402,20 @@ void main() {
       ..fontFamily = 'packages/fl_clash/JetBrainsMono'
       ..testUrl = 'https://example.com/test'
       ..openLogs = true
-      ..closeConnections = false;
+      ..closeConnections = false
+      ..dashboardCards = ['currentOutbound', 'memory'];
     final restored = RouterPreferences.fromJson(preferences.toJson());
     expect(restored.toJson(), preferences.toJson());
+    expect(restored.dashboardCards, ['currentOutbound', 'memory']);
+    expect(
+      RouterPreferences.fromJson({
+        'textScale': 100,
+        'primaryColors': ['invalid'],
+        'testUrl': 'file:///tmp',
+        'dashboardCards': ['memory', 1],
+      }).dashboardCards,
+      ['memory'],
+    );
     expect(
       RouterPreferences.fromJson({
         'textScale': 100,

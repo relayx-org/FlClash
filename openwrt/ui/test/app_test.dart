@@ -12,6 +12,7 @@ import 'package:fl_clash/views/dashboard/widgets/profile_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/service_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/service_detail.dart';
 import 'package:fl_clash/features/ip_quality/detail.dart';
+import 'package:fl_clash/iping/widgets/dashboard_card_editor.dart';
 import 'package:iping_openwrt/client.dart';
 import 'package:fl_clash/views/dashboard/widgets/card.dart';
 import 'package:fl_clash/views/dashboard/widgets/outbound_frame.dart';
@@ -374,6 +375,45 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('mobile dashboard edits persist in router preferences', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final client = FakeRouterClient();
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: _DependencyAssets(),
+        child: RouterApp(client: client),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.current;
+    await tester.tap(find.byTooltip(l.editDashboard));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(IpingDashboardCardEditor), findsOneWidget);
+
+    await tester.tap(find.byTooltip('${l.remove} ${l.networkSpeed}'));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(
+      client.preferences['dashboardCards'],
+      isNot(contains('networkSpeed')),
+    );
+
+    await tester.tap(find.byTooltip(l.reset));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(client.preferences['dashboardCards'], contains('networkSpeed'));
+
+    await tester.tap(find.byTooltip(l.done));
+    await tester.pumpAndSettle();
+    expect(find.byType(IpingDashboardCardEditor), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'mobile polling updates traffic without rebuilding static cards',
     (tester) async {
@@ -407,7 +447,10 @@ void main() {
       expect(builds[NavigationDock] ?? 0, 0);
       expect(builds[DashboardNetworkSpeedCard], greaterThan(0));
       debugOnRebuildDirtyWidget = previous;
-      await tester.drag(find.byType(ListView).first, const Offset(0, -900));
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -900),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(DashboardServiceCard), findsOneWidget);
       expect(tester.takeException(), isNull);

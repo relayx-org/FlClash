@@ -112,7 +112,15 @@ abstract interface class IpingDashboardHost implements Listenable {
   IpingDashboardPreferences get preferences;
   IpingDashboardProbes get probes;
 
+  /// Cards the host builds itself; null builds the page's own card set.
   IpingDashboardEditor? get dashboardEditor;
+
+  /// The saved order and visibility of the page's own cards, or null when the
+  /// host leaves that set fixed and uneditable.
+  List<String>? get dashboardCards;
+
+  void saveDashboardCards(List<String> ids);
+
   Future<IpingDashboardSnapshot> readDashboard();
   Future<void> synchronize();
   Future<void> setConnected(bool value);

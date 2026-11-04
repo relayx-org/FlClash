@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'controller.dart';
+import 'preferences.dart';
 
 class RouterDashboardProbes extends ChangeNotifier
     implements IpingDashboardProbes {
@@ -106,7 +107,7 @@ class RouterDashboardTelemetry extends ChangeNotifier {
 class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   RouterDashboardHost(
     this.controller, {
-    required IpingDashboardPreferences preferences,
+    required RouterPreferences preferences,
     required String Function(BuildContext context, Object error) describeError,
     required void Function(BuildContext context) openSubscription,
     required void Function(BuildContext context) openProxies,
@@ -114,10 +115,12 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
     required void Function(BuildContext context) openServices,
     required void Function(BuildContext context) openNetwork,
     required void Function(BuildContext context, String ip) openIpQuality,
+    required void Function(List<String> ids) persistDashboardCards,
   }) : _preferences = preferences,
        _hideIp = preferences.hideIp,
        _serviceOrder = List.of(preferences.serviceOrder),
        _disabledServices = List.of(preferences.disabledServices),
+       _dashboardCards = List.of(preferences.dashboardCards),
        _describeError = describeError,
        _openSubscription = openSubscription,
        _openProxies = openProxies,
@@ -125,6 +128,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
        _openServices = openServices,
        _openNetwork = openNetwork,
        _openIpQuality = openIpQuality,
+       _persistDashboardCards = persistDashboardCards,
        probes = RouterDashboardProbes(controller.probes),
        telemetryUpdates = RouterDashboardTelemetry(controller),
        _status = _statusOf(controller) {
@@ -136,6 +140,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   bool _hideIp;
   List<String> _serviceOrder;
   List<String> _disabledServices;
+  List<String> _dashboardCards;
   final String Function(BuildContext context, Object error) _describeError;
   final void Function(BuildContext context) _openSubscription;
   final void Function(BuildContext context) _openProxies;
@@ -143,6 +148,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   final void Function(BuildContext context) _openServices;
   final void Function(BuildContext context) _openNetwork;
   final void Function(BuildContext context, String ip) _openIpQuality;
+  final void Function(List<String> ids) _persistDashboardCards;
 
   @override
   final RouterDashboardProbes probes;
@@ -172,27 +178,43 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
     notifyListeners();
   }
 
-  void updatePreferences(IpingDashboardPreferences value) {
+  void updatePreferences(RouterPreferences value) {
     _preferences = value;
     final serviceOrder = List.of(value.serviceOrder);
     final disabledServices = List.of(value.disabledServices);
+    final dashboardCards = List.of(value.dashboardCards);
     if (value.hideIp == _hideIp &&
         listEquals(serviceOrder, _serviceOrder) &&
-        listEquals(disabledServices, _disabledServices)) {
+        listEquals(disabledServices, _disabledServices) &&
+        listEquals(dashboardCards, _dashboardCards)) {
       return;
     }
     _hideIp = value.hideIp;
     _serviceOrder = serviceOrder;
     _disabledServices = disabledServices;
+    _dashboardCards = dashboardCards;
     notifyListeners();
   }
 
   @override
   IpingDashboardPreferences get preferences => _preferences;
 
-  /// The web UI keeps the shared page's fixed arrangement.
+  /// The page builds its own cards; [dashboardCards] stores their arrangement.
   @override
   IpingDashboardEditor? get dashboardEditor => null;
+
+  @override
+  List<String> get dashboardCards => _dashboardCards;
+
+  @override
+  void saveDashboardCards(List<String> ids) {
+    final next = List<String>.unmodifiable(ids);
+    if (listEquals(next, _dashboardCards)) return;
+    _dashboardCards = next;
+    _persistDashboardCards(next);
+    notifyListeners();
+  }
+
   @override
   IpingBackend get backend => controller.backend;
   @override
@@ -201,7 +223,6 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   bool get connected => controller.connected;
   @override
   bool get busy => controller.busy;
-  @override
   @override
   bool get suspended => false;
 
