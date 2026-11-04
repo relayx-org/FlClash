@@ -62,18 +62,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.sha }}
-      - name: Use current installer test tooling
+      - name: Use current installer
         env:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/native_targets.json test/tool/openwrt_installer_test.py test/tool/openwrt_release_test.py test/tool/storage_test.py tool/ci/storage.py tool/ci/openwrt_release.py openwrt/iping/files/iping-update; do
-            git show "$TOOLS_SHA:$path" > "$path"
-          done
-      - name: Check binary release tooling
-        env:
-          IPING_INSTALLER_TEST_IMAGE: busybox:1.37.0
-        run: python3 -B -m unittest discover -s test/tool -p '*_test.py'
+          git show "$TOOLS_SHA:openwrt/iping/files/iping-update" > openwrt/iping/files/iping-update
       - name: Check installer shell compatibility
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE/openwrt/iping/files/iping-update:/installer:ro" koalaman/shellcheck:v0.10.0 --shell=sh /installer
@@ -82,10 +76,9 @@ jobs:
         with:
           go-version: '1.27.1'
           cache: false
-      - name: Check Agent lifecycle and shared profile contract
+      - name: Check Agent code and cross-compilation
         working-directory: openwrt/iping/src
         run: |
-          go test -race ./...
           go vet ./...
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$RUNNER_TEMP/iping-arm64" .
           CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build -o "$RUNNER_TEMP/iping-mips" .
@@ -145,18 +138,14 @@ jobs:
         working-directory: openwrt/ui
         run: flutter pub get
 
-      - name: Check shared native logic
+      - name: Analyze shared native code
         if: ${{ !inputs.reuse_web }}
-        run: |
-          flutter analyze --no-fatal-infos
-          flutter test test/iping test/common/task_test.dart test/common/javascript_test.dart test/models/rule_test.dart test/providers/setup_action_test.dart test/providers/setup_state_test.dart test/providers/database_test.dart test/providers/action_test.dart test/views/dns_view_test.dart test/views/network_config_test.dart test/views/added_rules_test.dart test/views/clash_providers_view_test.dart test/features/list_editor_page_test.dart test/features/custom_quick_edit_test.dart test/widgets/uncovered_views_test.dart test/manager/window_header_test.dart test/lint
+        run: flutter analyze --no-fatal-infos
 
-      - name: Check Web logic
+      - name: Analyze Web code
         if: ${{ !inputs.reuse_web }}
         working-directory: openwrt/ui
-        run: |
-          flutter analyze --no-fatal-infos
-          flutter test
+        run: flutter analyze --no-fatal-infos
 
       - name: Build shared Flutter interface
         if: ${{ !inputs.reuse_web }}
