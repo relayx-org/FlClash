@@ -221,6 +221,8 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
       if (mounted) {
         context.showNotifier('$error', level: MessageLevel.error);
       }
+    } finally {
+      if (mounted) setState(() {});
     }
   }
 
