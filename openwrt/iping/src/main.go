@@ -64,6 +64,9 @@ type app struct {
 	core              *coreRuntime
 	dashboardCache    dashboardProfileCache
 	probeRouteCache   probeRouteCache
+	requestMu         sync.Mutex
+	requestLog        []requestEntry
+	requestActive     map[string]bool
 }
 
 var methods = map[string]map[string]any{
@@ -88,6 +91,7 @@ var methods = map[string]map[string]any{
 	"delay_proxy":         {"name": "", "url": ""},
 	"telemetry":           {}, "connections": {"query": "", "offset": 0}, "logs": {},
 	"close_connection": {"id": ""}, "set_mode": {"mode": ""},
+	"requests": {},
 	"api_call": {"method": "", "path": "", "params": map[string]any{}, "body": nil},
 }
 
@@ -211,6 +215,8 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.delayProxy(ctx, args.Name, args.URL)
 	case "api_call":
 		return a.apiCall(ctx, args)
+	case "requests":
+		return a.requests(ctx)
 	}
 	lock, err := a.lock()
 	if err != nil {

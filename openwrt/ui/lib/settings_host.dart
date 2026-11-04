@@ -24,6 +24,7 @@ import 'package:material_ui/material_ui.dart';
 import 'app.dart';
 import 'client.dart';
 import 'connections.dart';
+import 'requests_page.dart';
 import 'settings.dart';
 
 class RouterSettingsRoute extends StatelessWidget {
@@ -48,6 +49,12 @@ class RouterSettingsRoute extends StatelessWidget {
               )
             : null,
         more: [
+          IpingSettingsLink(
+            glyph: PageLabel.requests.glyph,
+            title: PageLabel.requests.labelOf(l),
+            pageBuilder: (_) => const RouterRequests(),
+            forceFull: true,
+          ),
           if (context.isMobileView)
             IpingSettingsLink(
               glyph: PageLabel.connections.glyph,
