@@ -2,21 +2,14 @@ import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/proxies_host.dart';
 import 'package:fl_clash/ui/proxy_style.dart';
 
+import 'app.dart';
 import 'controller.dart';
 
 class RouterProxiesHost implements IpingProxiesHost {
-  RouterProxiesHost(
-    this.controller,
-    this.preferences, {
-    required this.testUrl,
-    required this.closeConnections,
-    required void Function(ProxyViewPreferences) updatePreferences,
-  }) : _updatePreferences = updatePreferences;
+  RouterProxiesHost(this.controller, this._app);
 
   final RouterController controller;
-  @override
-  final ProxyViewPreferences preferences;
-  final void Function(ProxyViewPreferences) _updatePreferences;
+  final RouterAppState _app;
 
   @override
   IpingBackend get backend => controller.backend;
@@ -31,13 +24,15 @@ class RouterProxiesHost implements IpingProxiesHost {
   @override
   int get picksVersion => controller.probes.outbound.route.picksVersion;
   @override
-  final String testUrl;
+  ProxyViewPreferences get preferences => _app.preferences.proxies;
   @override
-  final bool closeConnections;
+  String get testUrl => _app.preferences.testUrl;
+  @override
+  bool get closeConnections => _app.preferences.closeConnections;
 
   @override
   void updatePreferences(ProxyViewPreferences value) =>
-      _updatePreferences(value);
+      _app.updatePreferences((settings) => settings.proxies = value);
 
   @override
   Future<void> selectProxy(

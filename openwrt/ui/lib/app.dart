@@ -544,27 +544,27 @@ class _RouterDashboardRouteState extends State<RouterDashboardRoute> {
   }
 }
 
-class RouterProxiesRoute extends StatelessWidget {
+class RouterProxiesRoute extends StatefulWidget {
   const RouterProxiesRoute({super.key, this.initialGroup});
 
   final String? initialGroup;
+
+  @override
+  State<RouterProxiesRoute> createState() => _RouterProxiesRouteState();
+}
+
+class _RouterProxiesRouteState extends State<RouterProxiesRoute> {
+  RouterProxiesHost? _host;
 
   @override
   Widget build(BuildContext context) {
     final controller = RouterScope.of(context, aspect: RouterAspect.proxies);
     RouterScope.of(context, aspect: RouterAspect.status);
     final app = RouterAppState.of(context);
-    final preferences = app.preferences;
+    final host = _host ??= RouterProxiesHost(controller, app);
     return IpingProxiesScope(
-      host: RouterProxiesHost(
-        controller,
-        preferences.proxies,
-        testUrl: preferences.testUrl,
-        closeConnections: preferences.closeConnections,
-        updatePreferences: (value) =>
-            app.updatePreferences((settings) => settings.proxies = value),
-      ),
-      child: IpingProxiesPage(initialGroup: initialGroup),
+      host: host,
+      child: IpingProxiesPage(initialGroup: widget.initialGroup),
     );
   }
 }
