@@ -18,6 +18,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:fl_clash/enum/navigation_item_mode.dart';
 import 'package:fl_clash/iping/client_providers.dart';
+import 'package:fl_clash/iping/dashboard_host.dart';
+import 'package:fl_clash/iping/pages/dashboard_page.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/pages/proxies_page.dart';
 import 'package:fl_clash/iping/proxies_host.dart';
@@ -27,9 +29,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'client.dart';
 import 'controller.dart';
+import 'dashboard_host.dart';
 import 'iping_client.dart';
-import 'proxies_host.dart';
 import 'pages.dart';
+import 'probes.dart';
+import 'proxies_host.dart';
+import 'settings.dart';
 
 enum RouterAspect { session, status, telemetry, probes, proxies }
 
@@ -391,7 +396,7 @@ class _RouterHomeState extends State<RouterHome> {
     final mobile = context.isMobileView;
     final preferences = RouterAppState.of(context).preferences;
     final pages = <PageLabel, Widget>{
-      PageLabel.dashboard: const RouterDashboard(),
+      PageLabel.dashboard: const RouterDashboardRoute(),
       PageLabel.proxies: const RouterProxiesRoute(),
       PageLabel.connections: const RouterConnections(),
       PageLabel.logs: const RouterLogs(),
@@ -483,6 +488,62 @@ class _RouterHomeState extends State<RouterHome> {
         ),
       ),
     );
+  }
+}
+
+class RouterDashboardRoute extends StatefulWidget {
+  const RouterDashboardRoute({super.key});
+
+  @override
+  State<RouterDashboardRoute> createState() => _RouterDashboardRouteState();
+}
+
+class _RouterDashboardRouteState extends State<RouterDashboardRoute> {
+  RouterController? _controller;
+  RouterDashboardHost? _host;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final controller = RouterScope.of(context, aspect: RouterAspect.status);
+    final preferences = RouterAppState.of(context).preferences;
+    if (!identical(controller, _controller)) {
+      _host?.dispose();
+      _controller = controller;
+      _host = _createHost(controller, preferences);
+    }
+    _host!.updatePreferences(preferences);
+  }
+
+  RouterDashboardHost _createHost(
+    RouterController controller,
+    RouterPreferences preferences,
+  ) => RouterDashboardHost(
+    controller,
+    preferences: preferences,
+    describeError: (context, error) => routerError(context, error.toString()),
+    openSubscription: (context) => _sheet(context, const RouterSubscription()),
+    openProxies: (context) => _sheet(context, const RouterProxiesRoute()),
+    openConnections: (context) => _sheet(context, const RouterConnections()),
+    openServices: (context) => _sheet(context, const RouterServiceStatus()),
+    openNetwork: (context) => _sheet(
+      context,
+      const RouterCoreSettings(kind: RouterSettingsKind.network),
+    ),
+    openIpQuality: (context, ip) => _sheet(context, RouterIpQuality(ip: ip)),
+  );
+
+  void _sheet(BuildContext context, Widget child) =>
+      unawaited(showSheet<void>(context: context, builder: (_) => child));
+
+  @override
+  Widget build(BuildContext context) =>
+      IpingDashboardScope(host: _host!, child: const IpingDashboardPage());
+
+  @override
+  void dispose() {
+    _host?.dispose();
+    super.dispose();
   }
 }
 

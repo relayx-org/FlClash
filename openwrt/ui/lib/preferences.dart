@@ -1,3 +1,4 @@
+import 'package:fl_clash/iping/dashboard_host.dart';
 import 'package:fl_clash/ui/appearance.dart';
 import 'package:fl_clash/ui/appearance_defaults.dart';
 import 'package:fl_clash/ui/color.dart';
@@ -7,7 +8,7 @@ import 'package:material_ui/material_ui.dart';
 T _enum<T extends Enum>(Iterable<T> values, Object? name, T fallback) =>
     values.where((value) => value.name == name).firstOrNull ?? fallback;
 
-class RouterPreferences {
+class RouterPreferences implements IpingDashboardPreferences {
   RouterPreferences();
   ThemeMode themeMode = ThemeMode.system;
   String? locale;
@@ -25,8 +26,11 @@ class RouterPreferences {
   String testUrl = 'https://www.gstatic.com/generate_204';
   bool closeConnections = true;
   bool openLogs = false;
+  @override
   bool hideIp = false;
+  @override
   List<String> serviceOrder = [];
+  @override
   List<String> disabledServices = [];
 
   factory RouterPreferences.fromJson(Map<String, Object?> json) {

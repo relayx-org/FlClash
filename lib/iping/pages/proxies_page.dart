@@ -13,14 +13,14 @@ import 'package:material_ui/material_ui.dart';
 import '../proxies_host.dart';
 
 class _RemoteGroup {
-  _RemoteGroup(this.name)
+  _RemoteGroup(this.name, this.scroll)
     : metadata = IpingProxyGroup(name: name, type: '', count: 0);
   final String name;
   IpingProxyGroup metadata;
   final items = <int, IpingProxyNode>{};
   final loading = <int>{};
   final errors = <int, String>{};
-  final scroll = ScrollController();
+  final ScrollController scroll;
   int count = 0;
   int selectedIndex = -1;
   int revision = 0;
@@ -107,7 +107,10 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
       final names = <String>[];
       for (final metadata in data.groups) {
         final name = metadata.name;
-        final group = _groups.putIfAbsent(name, () => _RemoteGroup(name));
+        final group = _groups.putIfAbsent(
+          name,
+          () => _RemoteGroup(name, sheetScrollController(context)),
+        );
         group.metadata = metadata;
         group.count = metadata.count;
         group.selectedIndex = metadata.selectedIndex;
