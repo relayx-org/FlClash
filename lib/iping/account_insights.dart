@@ -95,12 +95,27 @@ class IpingReferralSection extends StatelessWidget {
   }
 
   Future<void> _copy(BuildContext context) async {
-    await Clipboard.setData(ClipboardData(text: stats.link));
-    if (!context.mounted) return;
-    context.showNotifier(
-      AppLocalizations.of(context).copySuccess,
-      level: MessageLevel.success,
-    );
+    final l = AppLocalizations.of(context);
+    try {
+      await Clipboard.setData(ClipboardData(text: stats.link));
+      if (!context.mounted) return;
+      context.showNotifier(l.copySuccess, level: MessageLevel.success);
+    } catch (_) {
+      if (!context.mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l.ipingReferralLink),
+          content: SelectableText(stats.link),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l.close),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _value(BuildContext context, String title, String value) => ListItem(
@@ -123,11 +138,7 @@ class IpingReferralSection extends StatelessWidget {
         ListItem(
           leading: const GlyphIcon(AppGlyphs.link),
           title: Text(l.ipingReferralLink),
-          subtitle: Text(
-            stats.link,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          subtitle: SelectableText(stats.link, maxLines: 1),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
