@@ -6,6 +6,7 @@ import 'package:fl_clash/common/system_dns.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/iping/account.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/pages/navigation_spec.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -168,12 +169,7 @@ class _Sidebar extends ConsumerWidget {
           SidebarDestination(
             glyph: item.glyph,
             label: item.label.label,
-            group:
-                item.label == PageLabel.account ||
-                    item.label == PageLabel.nativeIp ||
-                    item.label == PageLabel.tunnels
-                ? 1
-                : 0,
+            group: navigationGroupFor(item.label),
           ),
       ],
       selectedIndex: currentIndex,

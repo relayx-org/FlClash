@@ -57,3 +57,8 @@ List<NavigationItemMode> navigationModesFor(
     ],
   };
 }
+
+int navigationGroupFor(PageLabel label) => switch (label) {
+  PageLabel.account || PageLabel.nativeIp || PageLabel.tunnels => 1,
+  _ => 0,
+};

@@ -443,12 +443,7 @@ class _RouterHomeState extends State<RouterHome> {
               SidebarDestination(
                 glyph: entry.$1.glyph,
                 label: entry.$1.labelOf(l),
-                group:
-                    entry.$1 == PageLabel.account ||
-                        entry.$1 == PageLabel.nativeIp ||
-                        entry.$1 == PageLabel.tunnels
-                    ? 1
-                    : 0,
+                group: navigationGroupFor(entry.$1),
               ),
           ],
           selectedIndex: index,
