@@ -262,52 +262,54 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
     }
   }
 
-  Widget _node(BuildContext context, _RemoteGroup group, int index) {
-    final item = group.items[index];
-    if (item == null) {
-      unawaited(_page(group, index));
-      return ProxyNodePending(
-        error:
-            group.errors[index ~/ ipingBackendPageSize * ipingBackendPageSize],
-        onRetry: () => _page(group, index, retry: true),
+  Widget _node(BuildContext context, _RemoteGroup group, int index) => Builder(
+    builder: (context) {
+      final item = group.items[index];
+      if (item == null) {
+        unawaited(_page(group, index));
+        return ProxyNodePending(
+          error: group
+              .errors[index ~/ ipingBackendPageSize * ipingBackendPageSize],
+          onRetry: () => _page(group, index, retry: true),
+        );
+      }
+      final host = IpingProxiesScope.of(context);
+      final l = AppLocalizations.of(context);
+      final name = item.name;
+      final testUrl = host.testUrl;
+      final delay = host.delayFor(name, testUrl) ?? item.delay;
+      final type = item.type;
+      final actual = item.selected;
+      return ProxyNodeCard(
+        name: name,
+        description:
+            _preferences.card == ProxyCardType.loose &&
+                actual.isNotEmpty &&
+                actual != name
+            ? '$type($actual)'
+            : type,
+        compact: _preferences.card == ProxyCardType.compact,
+        loose: _preferences.card == ProxyCardType.loose,
+        inUse: group.metadata.selected == name,
+        pinned: group.metadata.pinned == name,
+        latency: ProxyLatency(
+          delay: delay,
+          phase: host.isTestingDelay(name, testUrl)
+              ? (host.isRunningDelay(name, testUrl)
+                    ? ProxyLatencyPhase.running
+                    : ProxyLatencyPhase.queued)
+              : null,
+          alignment: _preferences.card == ProxyCardType.loose
+              ? Alignment.centerLeft
+              : Alignment.centerRight,
+          tooltip: l.delayTest,
+          failureText: delay == -1 ? l.timeout : l.delayFailed,
+          onPressed: () => _testDelay(host, name),
+        ),
+        onPressed: host.busy ? null : () => _select(group, name),
       );
-    }
-    final host = IpingProxiesScope.read(context);
-    final l = AppLocalizations.of(context);
-    final name = item.name;
-    final testUrl = host.testUrl;
-    final delay = host.delayFor(name, testUrl) ?? item.delay;
-    final type = item.type;
-    final actual = item.selected;
-    return ProxyNodeCard(
-      name: name,
-      description:
-          _preferences.card == ProxyCardType.loose &&
-              actual.isNotEmpty &&
-              actual != name
-          ? '$type($actual)'
-          : type,
-      compact: _preferences.card == ProxyCardType.compact,
-      loose: _preferences.card == ProxyCardType.loose,
-      inUse: group.metadata.selected == name,
-      pinned: group.metadata.pinned == name,
-      latency: ProxyLatency(
-        delay: delay,
-        phase: host.isTestingDelay(name, testUrl)
-            ? (host.isRunningDelay(name, testUrl)
-                  ? ProxyLatencyPhase.running
-                  : ProxyLatencyPhase.queued)
-            : null,
-        alignment: _preferences.card == ProxyCardType.loose
-            ? Alignment.centerLeft
-            : Alignment.centerRight,
-        tooltip: l.delayTest,
-        failureText: delay == -1 ? l.timeout : l.delayFailed,
-        onPressed: () => _testDelay(host, name),
-      ),
-      onPressed: host.busy ? null : () => _select(group, name),
-    );
-  }
+    },
+  );
 
   double _height(BuildContext context) => proxyCardHeight(
     MeasureScope.of(context),

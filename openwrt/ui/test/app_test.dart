@@ -243,7 +243,7 @@ void main() {
       tester.view.physicalSize = const Size(1200, 900);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
-      final client = FakeRouterClient();
+      final client = _DelayClient();
       await tester.pumpWidget(
         DefaultAssetBundle(
           bundle: _DependencyAssets(),
@@ -289,12 +289,51 @@ void main() {
       await tester.tap(find.text('Node B'));
       await tester.pumpAndSettle();
       expect(client.selected, 'Node B');
+      client.delay = Completer<int>();
       await tester.tap(find.text('30 ms').first);
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(client.calls, contains('delay_proxy'));
+      expect(
+        tester.widgetList<ProxyLatency>(find.byType(ProxyLatency)).first.phase,
+        ProxyLatencyPhase.running,
+      );
+      client.delay!.complete(42);
+      await tester.pumpAndSettle();
+      expect(find.text('42 ms'), findsOneWidget);
+
+      client.delay = Completer<int>();
+      await tester.tap(find.byTooltip(l.delayTest));
+      await tester.pump();
+      expect(
+        tester
+            .widgetList<ProxyLatency>(find.byType(ProxyLatency))
+            .every((latency) => latency.phase == ProxyLatencyPhase.running),
+        isTrue,
+      );
+      client.delay!.complete(-1);
+      await tester.pumpAndSettle();
+      expect(find.text(l.timeout), findsNWidgets(2));
+
+      client.fail = true;
+      await tester.tap(find.text(l.timeout).first);
+      await tester.pumpAndSettle();
+      expect(find.text(l.timeout), findsNWidgets(2));
+      expect(
+        tester
+            .widgetList<ProxyLatency>(find.byType(ProxyLatency))
+            .every((latency) => latency.phase == null),
+        isTrue,
+      );
+
+      client.fail = false;
+      client.delay = Completer<int>();
+      await tester.tap(find.text(l.timeout).first);
+      await tester.pump();
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
+      client.delay!.complete(99);
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     },
   );
 
@@ -623,5 +662,18 @@ class _ServiceFailureClient extends FakeRouterClient {
       throw const RouterException('network_error');
     }
     return super.call(method, args);
+  }
+}
+
+class _DelayClient extends FakeRouterClient {
+  Completer<int>? delay;
+
+  @override
+  Future<Object?> call(
+    String method, [
+    Map<String, Object?> args = const {},
+  ]) async {
+    final result = await super.call(method, args);
+    return method == 'delay_proxy' ? {'delay': await delay!.future} : result;
   }
 }
