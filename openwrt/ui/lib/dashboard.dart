@@ -209,7 +209,7 @@ class _RouterDashboardState extends State<RouterDashboard>
               ),
               onOpen: () => showSheet<void>(
                 context: context,
-                builder: (_) => const RouterProxies(),
+                builder: (_) => const RouterProxiesRoute(),
               ),
               itemBuilder: (context, index) {
                 final item = _groups[index];
@@ -230,7 +230,7 @@ class _RouterDashboardState extends State<RouterDashboard>
                   ),
                   onTap: () => showSheet<void>(
                     context: context,
-                    builder: (_) => const RouterProxies(),
+                    builder: (_) => const RouterProxiesRoute(),
                   ),
                 );
               },
@@ -278,7 +278,7 @@ class _RouterDashboardState extends State<RouterDashboard>
                 value: router.connected ? '${_groups.length}' : '—',
                 onTap: () => showSheet<void>(
                   context: context,
-                  builder: (_) => const RouterProxies(),
+                  builder: (_) => const RouterProxiesRoute(),
                 ),
               ),
             ];

@@ -19,6 +19,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:fl_clash/enum/navigation_item_mode.dart';
 import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
+import 'package:fl_clash/iping/pages/proxies_page.dart';
+import 'package:fl_clash/iping/proxies_host.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/pages/navigation_spec.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +28,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'client.dart';
 import 'controller.dart';
 import 'iping_client.dart';
+import 'proxies_host.dart';
 import 'pages.dart';
 
 enum RouterAspect { session, status, telemetry, probes, proxies }
@@ -389,7 +392,7 @@ class _RouterHomeState extends State<RouterHome> {
     final preferences = RouterAppState.of(context).preferences;
     final pages = <PageLabel, Widget>{
       PageLabel.dashboard: const RouterDashboard(),
-      PageLabel.proxies: const RouterProxies(),
+      PageLabel.proxies: const RouterProxiesRoute(),
       PageLabel.connections: const RouterConnections(),
       PageLabel.logs: const RouterLogs(),
       PageLabel.tools: const RouterTools(),
@@ -479,6 +482,29 @@ class _RouterHomeState extends State<RouterHome> {
           child: body,
         ),
       ),
+    );
+  }
+}
+
+class RouterProxiesRoute extends StatelessWidget {
+  const RouterProxiesRoute({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = RouterScope.of(context, aspect: RouterAspect.proxies);
+    RouterScope.of(context, aspect: RouterAspect.status);
+    final app = RouterAppState.of(context);
+    final preferences = app.preferences;
+    return IpingProxiesScope(
+      host: RouterProxiesHost(
+        controller,
+        preferences.proxies,
+        testUrl: preferences.testUrl,
+        closeConnections: preferences.closeConnections,
+        updatePreferences: (value) =>
+            app.updatePreferences((settings) => settings.proxies = value),
+      ),
+      child: const IpingProxiesPage(),
     );
   }
 }

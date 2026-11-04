@@ -10,7 +10,7 @@ import 'package:fl_clash/views/proxies/list_presentation.dart';
 import 'package:fl_clash/views/proxies/page_presentation.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'app.dart';
+import '../proxies_host.dart';
 
 class _RemoteGroup {
   _RemoteGroup(this.name)
@@ -28,13 +28,13 @@ class _RemoteGroup {
   bool expanded = true;
 }
 
-class RouterProxies extends StatefulWidget {
-  const RouterProxies({super.key});
+class IpingProxiesPage extends StatefulWidget {
+  const IpingProxiesPage({super.key});
   @override
-  State<RouterProxies> createState() => _RouterProxiesState();
+  State<IpingProxiesPage> createState() => _IpingProxiesPageState();
 }
 
-class _RouterProxiesState extends State<RouterProxies>
+class _IpingProxiesPageState extends State<IpingProxiesPage>
     with TickerProviderStateMixin {
   final _groups = <String, _RemoteGroup>{};
   TabController? _tabs;
@@ -52,25 +52,20 @@ class _RouterProxiesState extends State<RouterProxies>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final router = RouterScope.of(context, aspect: RouterAspect.proxies);
-    RouterScope.of(context, aspect: RouterAspect.status);
+    final host = IpingProxiesScope.of(context);
     if (!_preferencesLoaded) {
       _preferencesLoaded = true;
-      _preferences = RouterAppState.of(context).preferences.proxies;
+      _preferences = host.preferences;
     }
-    final revision = (
-      router.revision,
-      router.probes.outbound.route.coreEpoch,
-      router.probes.outbound.route.picksVersion,
-    );
-    if (router.connected &&
+    final revision = (host.revision, host.routeEpoch, host.picksVersion);
+    if (host.connected &&
         (!_wasConnected ||
             (_seenRevision != revision &&
                 PageActivityScope.isActiveOf(context)))) {
       _seenRevision = revision;
       unawaited(_load());
     }
-    _wasConnected = router.connected;
+    _wasConnected = host.connected;
   }
 
   IpingProxyQuery _args(String group, int offset) => IpingProxyQuery(
@@ -96,14 +91,14 @@ class _RouterProxiesState extends State<RouterProxies>
       _resetPending = true;
     }
     if (_loading || !mounted) return;
-    final router = RouterScope.read(context);
-    if (!router.connected || router.busy) return;
+    final host = IpingProxiesScope.read(context);
+    if (!host.connected || host.busy) return;
     _loading = true;
     final generation = _generation;
     final resetting = _resetPending;
     _resetPending = false;
     try {
-      final data = await router.backend.readProxies(_args('', 0));
+      final data = await host.backend.readProxies(_args('', 0));
       if (!mounted || generation != _generation) return;
       final previous = _groups.keys.toList();
       final selectedName = previous.isEmpty
@@ -150,9 +145,9 @@ class _RouterProxiesState extends State<RouterProxies>
       setState(() {});
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(routerError(context, error.toString()))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } finally {
       _loading = false;
@@ -173,7 +168,7 @@ class _RouterProxiesState extends State<RouterProxies>
     final generation = _generation;
     group.loading.add(offset);
     try {
-      final page = await RouterScope.of(
+      final page = await IpingProxiesScope.of(
         context,
       ).backend.readProxies(_args(group.name, offset));
       if (!mounted || generation != _generation) return;
@@ -194,7 +189,7 @@ class _RouterProxiesState extends State<RouterProxies>
   }
 
   Future<void> _select(_RemoteGroup group, String name) async {
-    final router = RouterScope.read(context);
+    final host = IpingProxiesScope.read(context);
     final selection = group.metadata.selectionFor(name);
     if (selection == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -202,18 +197,18 @@ class _RouterProxiesState extends State<RouterProxies>
       );
       return;
     }
-    await router.selectProxy(
+    await host.selectProxy(
       group.name,
       selection,
-      closeConnections: RouterAppState.of(context).preferences.closeConnections,
+      closeConnections: host.closeConnections,
     );
     if (mounted) await _load();
   }
 
   Future<void> _test(_RemoteGroup group) async {
     if (_testingGroup != null) return;
-    final router = RouterScope.read(context);
-    final testUrl = RouterAppState.of(context).preferences.testUrl;
+    final host = IpingProxiesScope.read(context);
+    final testUrl = host.testUrl;
     setState(() => _testingGroup = group.name);
     try {
       for (
@@ -233,7 +228,7 @@ class _RouterProxiesState extends State<RouterProxies>
           )
             if (group.items[index]?.name case final String name) name,
         ];
-        if (!await router.testDelays(names, url: testUrl)) {
+        if (!await host.testDelays(names, url: testUrl)) {
           break;
         }
       }
@@ -252,11 +247,11 @@ class _RouterProxiesState extends State<RouterProxies>
         onRetry: () => _page(group, index, retry: true),
       );
     }
-    final router = RouterScope.read(context);
+    final host = IpingProxiesScope.read(context);
     final l = AppLocalizations.of(context);
     final name = item.name;
-    final testUrl = RouterAppState.of(context).preferences.testUrl;
-    final delay = router.delayFor(name, testUrl) ?? item.delay;
+    final testUrl = host.testUrl;
+    final delay = host.delayFor(name, testUrl) ?? item.delay;
     final type = item.type;
     final actual = item.selected;
     return ProxyNodeCard(
@@ -273,8 +268,8 @@ class _RouterProxiesState extends State<RouterProxies>
       pinned: group.metadata.pinned == name,
       latency: ProxyLatency(
         delay: delay,
-        phase: router.isTestingDelay(name, testUrl)
-            ? (router.isRunningDelay(name, testUrl)
+        phase: host.isTestingDelay(name, testUrl)
+            ? (host.isRunningDelay(name, testUrl)
                   ? ProxyLatencyPhase.running
                   : ProxyLatencyPhase.queued)
             : null,
@@ -283,12 +278,9 @@ class _RouterProxiesState extends State<RouterProxies>
             : Alignment.centerRight,
         tooltip: l.delayTest,
         failureText: delay == -1 ? l.timeout : l.delayFailed,
-        onPressed: () => router.testDelay(
-          name,
-          url: RouterAppState.of(context).preferences.testUrl,
-        ),
+        onPressed: () => host.testDelay(name, url: host.testUrl),
       ),
-      onPressed: router.busy ? null : () => _select(group, name),
+      onPressed: host.busy ? null : () => _select(group, name),
     );
   }
 
@@ -299,6 +291,7 @@ class _RouterProxiesState extends State<RouterProxies>
   );
 
   void _settings() {
+    final host = IpingProxiesScope.read(context);
     showSheet<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -308,9 +301,7 @@ class _RouterProxiesState extends State<RouterProxies>
             value: _preferences,
             onChanged: (value) {
               setState(() => _preferences = value);
-              RouterAppState.of(
-                this.context,
-              ).updatePreferences((settings) => settings.proxies = value);
+              host.updatePreferences(value);
               update(() {});
               unawaited(_load(reset: true));
             },
@@ -322,10 +313,8 @@ class _RouterProxiesState extends State<RouterProxies>
 
   @override
   Widget build(BuildContext context) {
-    final router = RouterScope.read(context);
-    final groups = router.connected
-        ? _groups.values.toList()
-        : <_RemoteGroup>[];
+    final host = IpingProxiesScope.read(context);
+    final groups = host.connected ? _groups.values.toList() : <_RemoteGroup>[];
     final current = groups.isEmpty
         ? null
         : groups[_tabs?.index.clamp(0, groups.length - 1) ?? 0];
