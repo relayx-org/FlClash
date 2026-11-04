@@ -11,7 +11,6 @@ import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/iping/topup_form.dart';
 import 'package:fl_clash/iping/topup_history.dart';
-import 'package:fl_clash/iping/tunnel_digest.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -140,7 +139,11 @@ class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
                 shortfall: shortfall,
                 onTopUp: user.status == 'active' ? _topUp : null,
               ),
-            if (referrals != null) IpingReferralSection(stats: referrals),
+            if (referrals != null)
+              IpingReferralSection(
+                stats: referrals,
+                onShare: () => shareText(referrals.link),
+              ),
           ],
         ],
         loading: info.isLoading,

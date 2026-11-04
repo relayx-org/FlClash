@@ -1,11 +1,13 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/common/num.dart';
+import 'package:fl_clash/enum/message_level.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'account_statistics.dart';
+import 'notify.dart';
 import 'topup.dart';
 
 class IpingRenewalWarning extends StatelessWidget {
@@ -24,7 +26,7 @@ class IpingRenewalWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     final scheme = context.colorScheme;
     final foreground = scheme.onWarningContainer;
     return DecoratedBox(
@@ -79,17 +81,24 @@ class IpingRenewalWarning extends StatelessWidget {
 }
 
 class IpingReferralSection extends StatelessWidget {
-  const IpingReferralSection({super.key, required this.stats});
+  const IpingReferralSection({super.key, required this.stats, this.onShare});
 
   final IpingReferralStats stats;
 
-  Future<void> _share() => shareText(stats.link);
+  /// Opens the platform share sheet; a browser falls back to copying the link.
+  final Future<void> Function()? onShare;
+
+  Future<void> _share(BuildContext context) async {
+    final share = onShare;
+    if (share != null) return share();
+    await _copy(context);
+  }
 
   Future<void> _copy(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: stats.link));
     if (!context.mounted) return;
     context.showNotifier(
-      context.appLocalizations.copySuccess,
+      AppLocalizations.of(context).copySuccess,
       level: MessageLevel.success,
     );
   }
@@ -106,7 +115,7 @@ class IpingReferralSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     return generateSection(
       title: l.ipingReferralInformation,
       footer: l.ipingReferralHint,
@@ -124,7 +133,7 @@ class IpingReferralSection extends StatelessWidget {
             children: [
               IconButton(
                 tooltip: l.share,
-                onPressed: _share,
+                onPressed: () => _share(context),
                 icon: const GlyphIcon(AppGlyphs.upload),
               ),
               IconButton(

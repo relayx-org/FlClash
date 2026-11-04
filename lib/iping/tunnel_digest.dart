@@ -1,7 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'api.dart';
-import 'providers.dart';
 import 'tunnel.dart';
 import 'tunnel_constants.dart';
 
@@ -103,16 +100,3 @@ extension TunnelDigestApi on IpingApi {
     return IpingTunnelDigest.of(tunnels, proxies: proxies);
   }
 }
-
-final ipingUserProxiesProvider =
-    FutureProvider.autoDispose<List<IpingUserProxy>>(
-      (ref) => ref.watch(ipingAuthenticatedApiProvider).userProxies(),
-      retry: (_, _) => null,
-    );
-
-final ipingTunnelDigestProvider =
-    FutureProvider.autoDispose<IpingTunnelDigest?>((ref) async {
-      final account = ref.watch(ipingSessionProvider.select((s) => s.account));
-      if (account?.apiKey == null) return null;
-      return ref.watch(ipingAuthenticatedApiProvider).tunnelDigest();
-    }, retry: (_, _) => null);

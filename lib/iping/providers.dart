@@ -20,6 +20,7 @@ import 'session.dart';
 import 'site_config.dart';
 import 'native_ip.dart';
 import 'tunnel.dart';
+import 'tunnel_digest.dart';
 import 'user_info.dart';
 
 final ipingApiProvider = Provider<IpingApi>((ref) => IpingApi());
@@ -92,6 +93,13 @@ final ipingReferralStatsProvider = FutureProvider.autoDispose
         throw const IpingException(IpingFailure.session);
       }
       return stats;
+    }, retry: (_, _) => null);
+
+final ipingTunnelDigestProvider =
+    FutureProvider.autoDispose<IpingTunnelDigest?>((ref) async {
+      final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+      if (account?.apiKey == null) return null;
+      return ref.watch(ipingAuthenticatedApiProvider).tunnelDigest();
     }, retry: (_, _) => null);
 
 final ipingDnsProvider = FutureProvider.autoDispose<bool>((ref) async {
