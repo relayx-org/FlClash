@@ -16,8 +16,13 @@ import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/ui/record.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:fl_clash/iping/client_providers.dart';
+import 'package:fl_clash/iping/tunnel_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'client.dart';
 import 'controller.dart';
+import 'iping_client.dart';
 import 'pages.dart';
 
 enum RouterAspect { session, status, telemetry, probes, proxies }
@@ -103,6 +108,17 @@ class RouterApp extends StatefulWidget {
 
 class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
   late final RouterController _controller = RouterController(widget.client);
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  late final _ipingClient = createRouterIpingClient(
+    widget.client,
+    _controller.site,
+  );
+  void _navigate(PageLabel label) {
+    final navigator = _navigatorKey.currentState;
+    if (label != PageLabel.tunnels || navigator == null) return;
+    navigator.push(MaterialPageRoute(builder: (_) => const IpingTunnelsPage()));
+  }
+
   late final preferences = RouterPreferences.fromJson(
     widget.client.readPreferences(),
   );
@@ -183,58 +199,70 @@ class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
       revision: _revision,
       child: RouterScope(
         controller: _controller,
-        child: MaterialApp(
-          title: 'iPing',
-          debugShowCheckedModeBanner: false,
-          theme: themeFor(Brightness.light),
-          darkTheme: themeFor(Brightness.dark),
-          themeMode: themeMode,
-          locale: locale,
-          supportedLocales: AppLocalizations.delegate.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            AppUiLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates,
+        child: ProviderScope(
+          overrides: [
+            ipingClientProvider.overrideWithValue(_ipingClient),
+            ipingNavigateProvider.overrideWithValue(_navigate),
           ],
-          scrollBehavior: const BaseScrollBehavior(),
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(
-                preferences.customTextScale
-                    ? preferences.textScale
-                    : WidgetsBinding.instance.platformDispatcher.textScaleFactor
-                          .clamp(minTextScale, maxTextScale)
-                          .toDouble(),
+          child: MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: 'iPing',
+            debugShowCheckedModeBanner: false,
+            theme: themeFor(Brightness.light),
+            darkTheme: themeFor(Brightness.dark),
+            themeMode: themeMode,
+            locale: locale,
+            supportedLocales: AppLocalizations.delegate.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              AppUiLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            scrollBehavior: const BaseScrollBehavior(),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(
+                  preferences.customTextScale
+                      ? preferences.textScale
+                      : WidgetsBinding
+                            .instance
+                            .platformDispatcher
+                            .textScaleFactor
+                            .clamp(minTextScale, maxTextScale)
+                            .toDouble(),
+                ),
               ),
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) => ViewScope(
-                size: constraints.biggest,
-                isMobile: constraints.maxWidth <= 600,
-                child: MeasureScope(
-                  measure: Measure.of(
-                    context,
-                    MediaQuery.textScalerOf(context).scale(1),
-                  ),
-                  child: SurfaceScope(
-                    level: SurfaceLevel.page,
-                    child: LiquidGlassScope(
-                      enabled: glass,
-                      quality: glassMode == LiquidGlassMode.ultra
-                          ? LiquidGlassQuality.ultra
-                          : LiquidGlassQuality.standard,
-                      child: LiquidGlassHost(
+              child: LayoutBuilder(
+                builder: (context, constraints) => ViewScope(
+                  size: constraints.biggest,
+                  isMobile: constraints.maxWidth <= 600,
+                  child: MeasureScope(
+                    measure: Measure.of(
+                      context,
+                      MediaQuery.textScalerOf(context).scale(1),
+                    ),
+                    child: SurfaceScope(
+                      level: SurfaceLevel.page,
+                      child: LiquidGlassScope(
                         enabled: glass,
-                        child: RecordPresentationScope(
-                          onCopied: (context) =>
-                              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(context).copySuccess,
+                        quality: glassMode == LiquidGlassMode.ultra
+                            ? LiquidGlassQuality.ultra
+                            : LiquidGlassQuality.standard,
+                        child: LiquidGlassHost(
+                          enabled: glass,
+                          child: RecordPresentationScope(
+                            onCopied: (context) =>
+                                ScaffoldMessenger.maybeOf(
+                                  context,
+                                )?.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      AppLocalizations.of(context).copySuccess,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          child: KeyboardInsetHold(child: child!),
+                            child: KeyboardInsetHold(child: child!),
+                          ),
                         ),
                       ),
                     ),
@@ -242,8 +270,8 @@ class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
                 ),
               ),
             ),
+            home: const _Gate(),
           ),
-          home: const _Gate(),
         ),
       ),
     );

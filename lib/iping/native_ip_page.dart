@@ -1,22 +1,20 @@
 import 'package:collection/collection.dart';
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/error_banner.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
-import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'api.dart';
+import 'notify.dart';
 import 'country_continent.dart';
 import 'native_ip.dart';
 import 'native_ip_form.dart';
 import 'native_ip_owned.dart';
-import 'providers.dart';
+import 'client_providers.dart';
 import 'store_widgets.dart';
 import 'topup.dart';
-import 'tunnel_digest.dart';
 
 const _lowStock = 10;
 
@@ -125,7 +123,7 @@ class _IpingNativeIpPageState extends ConsumerState<IpingNativeIpPage> {
         : offer.line == NativeIpLine.b
         ? l.ipingNativeIpPurchasedWithTunnel
         : l.ipingNativeIpPurchasedTunnelLater;
-    dialogs.showNotifier(message);
+    context.showNotifier(message);
   }
 
   bool _shows(

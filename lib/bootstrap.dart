@@ -16,6 +16,7 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/navigation.dart';
+import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
@@ -127,7 +128,13 @@ class Bootstrap {
     final appStateOverrides = buildAppStateOverrides(appState);
     final configOverrides = buildConfigOverrides(config);
     final container = ProviderContainer(
-      overrides: [...appStateOverrides, ...configOverrides],
+      overrides: [
+        ...appStateOverrides,
+        ...configOverrides,
+        ipingClientProvider.overrideWith(
+          (ref) => ref.watch(ipingAuthenticatedApiProvider),
+        ),
+      ],
     );
     globalState.container = container;
     container

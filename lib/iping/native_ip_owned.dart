@@ -1,18 +1,19 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/enum/message_level.dart';
+import 'package:fl_clash/enum/page_label.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
-import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../common/datetime.dart';
 import 'api.dart';
+import 'notify.dart';
 import 'country_continent.dart';
+import 'client_providers.dart';
 import 'store_widgets.dart';
 import 'tunnel.dart';
-import 'tunnel_digest.dart';
+import 'tunnel_constants.dart';
 
 String ipingProxyUrl(IpingUserProxy proxy) {
   final auth = proxy.username.isEmpty && proxy.password.isEmpty
@@ -109,9 +110,8 @@ class IpingOwnedNativeIps extends ConsumerWidget {
               CommonPopupMenuItem(
                 label: l.ipingNativeIpOpenTunnels,
                 glyph: AppGlyphs.split,
-                onPressed: () => ref
-                    .read(currentPageLabelProvider.notifier)
-                    .toPage(PageLabel.tunnels),
+                onPressed: () =>
+                    ref.read(ipingNavigateProvider)(PageLabel.tunnels),
               ),
             ],
             child: _OwnedIpCard(

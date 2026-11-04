@@ -42,6 +42,10 @@ type arguments struct {
 	Names            []string         `json:"names"`
 	URLs             []string         `json:"urls"`
 	ProxyName        string           `json:"proxy_name"`
+	Method           string           `json:"method"`
+	Path             string           `json:"path"`
+	Params           map[string]any   `json:"params"`
+	Body             any              `json:"body"`
 }
 
 type app struct {
@@ -84,6 +88,7 @@ var methods = map[string]map[string]any{
 	"delay_proxy":         {"name": "", "url": ""},
 	"telemetry":           {}, "connections": {"query": "", "offset": 0}, "logs": {},
 	"close_connection": {"id": ""}, "set_mode": {"mode": ""},
+	"api_call": {"method": "", "path": "", "params": map[string]any{}, "body": nil},
 }
 
 func newApp() (*app, error) {
@@ -204,6 +209,8 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.logs()
 	case "delay_proxy":
 		return a.delayProxy(ctx, args.Name, args.URL)
+	case "api_call":
+		return a.apiCall(ctx, args)
 	}
 	lock, err := a.lock()
 	if err != nil {

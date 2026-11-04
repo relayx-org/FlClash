@@ -1,4 +1,5 @@
 import 'package:fl_clash/iping/api.dart';
+import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/ui/context_menu.dart';
@@ -119,6 +120,7 @@ void main() {
       overrides: [
         ipingApiProvider.overrideWithValue(api),
         ipingAuthenticatedApiProvider.overrideWithValue(api),
+        ipingClientProvider.overrideWithValue(api),
       ],
     );
   });

@@ -1,4 +1,7 @@
+import 'message_level.dart';
+
 export 'ip_quality.dart';
+export 'message_level.dart';
 export 'rule_target.dart';
 export 'rule_payload_error.dart';
 export 'proxy_field.dart';
@@ -122,8 +125,6 @@ extension GroupTypeExtension on GroupType {
 enum DelayTestPhase { queued, running }
 
 enum ViewMode { mobile, laptop, desktop }
-
-enum MessageLevel { info, success, warning, error }
 
 extension MessageLevelExt on MessageLevel {
   Glyph? get glyph {

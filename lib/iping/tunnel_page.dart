@@ -1,5 +1,5 @@
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/common/datetime.dart';
+import 'package:fl_clash/enum/message_level.dart';
 import 'package:fl_clash/features/form/form_page.dart';
 import 'package:fl_clash/features/form/form_row.dart';
 import 'package:fl_clash/l10n/l10n.dart';
@@ -12,7 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'api.dart';
-import 'providers.dart';
+import 'notify.dart';
+import 'client_providers.dart';
 import 'store_widgets.dart';
 import 'subscription_export.dart';
 import 'topup.dart';
@@ -143,9 +144,7 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
       });
     }
     try {
-      final page = await ref
-          .read(ipingAuthenticatedApiProvider)
-          .tunnels(_request());
+      final page = await ref.read(ipingClientProvider).tunnels(_request());
       if (!mounted || token != _token) return;
       setState(() {
         _data = page;
@@ -170,7 +169,7 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
     setState(() => _loadingMore = true);
     try {
       final page = await ref
-          .read(ipingAuthenticatedApiProvider)
+          .read(ipingClientProvider)
           .tunnels(_request(page: _loadedPages + 1));
       if (!mounted || token != _token) return;
       setState(() {
@@ -334,7 +333,7 @@ class _IpingTunnelsPageState extends ConsumerState<IpingTunnelsPage> {
   }
 
   Future<void> _exportSubscription(IpingTunnel tunnel) {
-    final api = ref.read(ipingAuthenticatedApiProvider);
+    final api = ref.read(ipingClientProvider);
     return showIpingSubscriptionExport(
       context,
       hint: context.appLocalizations.ipingTunnelSubscriptionHint(tunnel.name),
@@ -1330,7 +1329,7 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
     setState(() => _busy = true);
     final l = context.appLocalizations;
     try {
-      final api = ref.read(ipingAuthenticatedApiProvider);
+      final api = ref.read(ipingClientProvider);
       if (renew) {
         await api.renewTunnel(_tunnel.id);
       } else {
@@ -1387,7 +1386,7 @@ class _IpingTunnelDetailPageState extends ConsumerState<IpingTunnelDetailPage> {
   }
 
   Future<void> _exportSubscription() {
-    final api = ref.read(ipingAuthenticatedApiProvider);
+    final api = ref.read(ipingClientProvider);
     return showIpingSubscriptionExport(
       context,
       hint: context.appLocalizations.ipingTunnelSubscriptionHint(_tunnel.name),
@@ -1749,7 +1748,7 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
     final l = context.appLocalizations;
     try {
       final port = await ref
-          .read(ipingAuthenticatedApiProvider)
+          .read(ipingClientProvider)
           .switchPort(widget.tunnel.id);
       if (!mounted) return;
       setState(() => _listenPort = port);
@@ -1775,7 +1774,7 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
     setState(() => _busy = true);
     final l = context.appLocalizations;
     try {
-      await ref.read(ipingAuthenticatedApiProvider).switchIp(widget.tunnel.id);
+      await ref.read(ipingClientProvider).switchIp(widget.tunnel.id);
       if (!mounted) return;
       context.showNotifier(
         l.ipingTunnelSwitchIpSuccess,
@@ -1873,7 +1872,7 @@ class _IpingTunnelEditPageState extends ConsumerState<IpingTunnelEditPage> {
       _invalid = null;
     });
     try {
-      final api = ref.read(ipingAuthenticatedApiProvider);
+      final api = ref.read(ipingClientProvider);
       if (widget.tunnel.poolExit) {
         final country = _poolCountryController.text.trim();
         final interval = int.tryParse(_poolIntervalController.text.trim()) ?? 0;
@@ -2201,7 +2200,7 @@ class _UserProxyPickerSheetState extends ConsumerState<_UserProxyPickerSheet> {
       _error = null;
     });
     try {
-      final list = await ref.read(ipingAuthenticatedApiProvider).userProxies();
+      final list = await ref.read(ipingClientProvider).userProxies();
       if (!mounted) return;
       setState(() {
         _proxies = list;
@@ -2514,7 +2513,7 @@ class _BatchRenewSheetState extends ConsumerState<_BatchRenewSheet> {
     });
     final l = context.appLocalizations;
     try {
-      await ref.read(ipingAuthenticatedApiProvider).batchRenewTunnels(ids);
+      await ref.read(ipingClientProvider).batchRenewTunnels(ids);
       ref.invalidate(ipingUserInfoProvider);
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -2668,7 +2667,7 @@ class _BatchUpdateSheetState extends ConsumerState<_BatchUpdateSheet> {
       _error = null;
     });
     try {
-      final api = ref.read(ipingAuthenticatedApiProvider);
+      final api = ref.read(ipingClientProvider);
       if (fillItems.isNotEmpty) {
         await api.batchFillTunnels(fillItems);
       }

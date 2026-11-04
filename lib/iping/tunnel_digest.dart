@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'api.dart';
 import 'providers.dart';
 import 'tunnel.dart';
-
-const ipingExpiryNotice = Duration(days: 3);
-const ipingRenewalWindow = Duration(days: 7);
-const ipingTrafficNotice = 0.9;
+import 'tunnel_constants.dart';
 
 class IpingTunnelDigest {
   const IpingTunnelDigest({

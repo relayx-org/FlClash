@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yaml/yaml.dart';
 
+import 'http_client.dart';
 import 'site_config.dart';
 import 'account_statistics.dart';
 import 'topup.dart';
@@ -102,11 +101,6 @@ bool ipingSubscriptionEnablesIpv6(Uint8List bytes) {
   }
 }
 
-class _SecureHttpOverrides extends HttpOverrides {
-  HttpClient createClient() =>
-      super.createHttpClient(SecurityContext.defaultContext);
-}
-
 class IpingApi {
   IpingApi({Dio? dio, this.site = ipingSite, String? Function()? apiKey})
     : _apiKey = apiKey,
@@ -120,11 +114,7 @@ class IpingApi {
               followRedirects: false,
             ),
           ) {
-    if (dio == null) {
-      _dio.httpClientAdapter = IOHttpClientAdapter(
-        createHttpClient: () => _SecureHttpOverrides().createClient(),
-      );
-    }
+    if (dio == null) configureIpingHttpClient(_dio);
   }
   final Dio _dio;
   final String? Function()? _apiKey;

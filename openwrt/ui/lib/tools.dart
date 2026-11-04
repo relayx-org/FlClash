@@ -10,7 +10,9 @@ import 'package:fl_clash/enum/page_label.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
 import 'package:fl_clash/views/page_destination.dart';
 import 'package:fl_clash/views/settings_page.dart';
+import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/subscription_page.dart';
+import 'package:fl_clash/iping/tunnel_page.dart';
 import 'dart:async';
 
 import 'package:fl_clash/l10n/l10n.dart';
@@ -59,6 +61,16 @@ class RouterTools extends StatelessWidget {
       onLocaleChanged: app.updateLocale,
       themeBuilder: (_) => const RouterAppearance(),
       platformSettings: [
+        SettingsRouteLink(
+          glyph: AppGlyphs.link,
+          title: AppLocalizations.of(context).ipingNativeIp,
+          pageBuilder: (_) => const IpingNativeIpPage(),
+        ),
+        SettingsRouteLink(
+          glyph: PageLabel.tunnels.glyph,
+          title: PageLabel.tunnels.labelOf(AppLocalizations.of(context)),
+          pageBuilder: (_) => const IpingTunnelsPage(),
+        ),
         SettingsRouteLink(
           glyph: AppGlyphs.settings,
           title: AppLocalizations.of(context).general,

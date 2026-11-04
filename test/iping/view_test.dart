@@ -8,6 +8,7 @@ import 'package:fl_clash/iping/about.dart';
 import 'package:fl_clash/iping/brand.dart';
 import 'package:fl_clash/iping/browser.dart';
 import 'package:fl_clash/iping/profile.dart';
+import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/site_config.dart';
 import 'package:fl_clash/iping/session.dart';
@@ -72,6 +73,7 @@ void main() {
       overrides: [
         ipingApiProvider.overrideWithValue(api),
         ipingAuthenticatedApiProvider.overrideWithValue(api),
+        ipingClientProvider.overrideWithValue(api),
         ipingBrowserProvider.overrideWithValue(browser),
         ipingStorageProvider.overrideWithValue(storage),
         ipingProfilesProvider.overrideWithValue(profiles),

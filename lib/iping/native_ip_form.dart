@@ -1,17 +1,16 @@
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/features/form/form_page.dart';
 import 'package:fl_clash/features/form/form_row.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/ui.dart';
-import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'api.dart';
+import 'notify.dart';
 import 'country_continent.dart';
 import 'native_ip.dart';
-import 'providers.dart';
+import 'client_providers.dart';
 import 'topup.dart';
 
 const _months = [1, 3, 6, 12];
@@ -102,7 +101,7 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
     setState(() => _saving = true);
     try {
       final order = await ref
-          .read(ipingAuthenticatedApiProvider)
+          .read(ipingClientProvider)
           .buyNativeIp(
             NativeIpPurchase(
               offer: widget.offer,
