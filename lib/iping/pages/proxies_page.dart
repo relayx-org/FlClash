@@ -341,99 +341,103 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
     final current = groups.isEmpty
         ? null
         : groups[_tabs?.index.clamp(0, groups.length - 1) ?? 0];
-    return ProxiesPage(
-      loading: _loading,
-      tabMode: _preferences.type == ProxiesType.tab,
-      testing: _testingGroup != null,
-      onSearch: (query) {
-        _searchTimer?.cancel();
-        _searchTimer = Timer(const Duration(milliseconds: 250), () {
-          _query = query;
-          unawaited(_load(reset: true));
-        });
-      },
-      onTest: current == null ? null : () => _test(current),
-      onLocate: current == null
-          ? null
-          : () {
-              final index = current.selectedIndex;
-              if (index < 0) return;
-              final columns = proxyColumns(
-                math.max(current.paneWidth - 32, 0),
-                _preferences.layout,
-              );
-              animateProxyScrollTo(
-                current.scroll,
-                index ~/ columns * (_height(context) + 8),
-              );
-            },
-      onSettings: _settings,
-      body: _preferences.type == ProxiesType.list
-          ? ProxyGroupsList(
-              itemHeight: _height(context),
-              layout: _preferences.layout,
-              iconStyle: _preferences.icon,
-              searching: _query.isNotEmpty,
-              gap: context.isMobileView
-                  ? 8
-                  : MediaQuery.sizeOf(context).width <= 840
-                  ? 12
-                  : 16,
-              groups: [
-                for (final group in groups)
-                  if (group.count > 0)
-                    ProxyGroupPresentation(
-                      name: group.name,
-                      type: group.metadata.type,
-                      count: group.count,
-                      identity: (group.name, group.revision),
-                      expanded: group.expanded,
-                      selectedName: group.metadata.selected,
-                      testing: _testingGroup == group.name,
-                      selectedIndex: () =>
-                          group.selectedIndex < 0 ? null : group.selectedIndex,
-                      itemBuilder: (context, index) =>
-                          _node(context, group, index),
-                      iconBuilder: (_) => group.metadata.icon.isNotEmpty
-                          ? Image.network(
-                              group.metadata.icon,
-                              width: 24,
-                              height: 24,
-                              errorBuilder: (_, error, stack) =>
-                                  GroupMonogram(group.name),
-                            )
-                          : GroupMonogram(group.name),
-                      onToggle: () =>
-                          setState(() => group.expanded = !group.expanded),
-                      onTest: () => _test(group),
-                    ),
-              ],
-            )
-          : _tabs == null
-          ? const SizedBox.shrink()
-          : ProxyTabsLayout(
-              controller: _tabs!,
-              groups: [for (final group in groups) group.name],
-              pages: [
-                for (final group in groups)
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      group.paneWidth = constraints.maxWidth;
-                      return ProxyCardsGrid(
-                        controller: group.scroll,
-                        columns: proxyColumns(
-                          math.max(constraints.maxWidth - 32, 0),
-                          _preferences.layout,
-                        ),
-                        itemHeight: _height(context),
+    return ListenableBuilder(
+      listenable: host,
+      builder: (context, _) => ProxiesPage(
+        loading: _loading,
+        tabMode: _preferences.type == ProxiesType.tab,
+        testing: _testingGroup != null,
+        onSearch: (query) {
+          _searchTimer?.cancel();
+          _searchTimer = Timer(const Duration(milliseconds: 250), () {
+            _query = query;
+            unawaited(_load(reset: true));
+          });
+        },
+        onTest: current == null ? null : () => _test(current),
+        onLocate: current == null
+            ? null
+            : () {
+                final index = current.selectedIndex;
+                if (index < 0) return;
+                final columns = proxyColumns(
+                  math.max(current.paneWidth - 32, 0),
+                  _preferences.layout,
+                );
+                animateProxyScrollTo(
+                  current.scroll,
+                  index ~/ columns * (_height(context) + 8),
+                );
+              },
+        onSettings: _settings,
+        body: _preferences.type == ProxiesType.list
+            ? ProxyGroupsList(
+                itemHeight: _height(context),
+                layout: _preferences.layout,
+                iconStyle: _preferences.icon,
+                searching: _query.isNotEmpty,
+                gap: context.isMobileView
+                    ? 8
+                    : MediaQuery.sizeOf(context).width <= 840
+                    ? 12
+                    : 16,
+                groups: [
+                  for (final group in groups)
+                    if (group.count > 0)
+                      ProxyGroupPresentation(
+                        name: group.name,
+                        type: group.metadata.type,
                         count: group.count,
+                        identity: (group.name, group.revision),
+                        expanded: group.expanded,
+                        selectedName: group.metadata.selected,
+                        testing: _testingGroup == group.name,
+                        selectedIndex: () => group.selectedIndex < 0
+                            ? null
+                            : group.selectedIndex,
                         itemBuilder: (context, index) =>
                             _node(context, group, index),
-                      );
-                    },
-                  ),
-              ],
-            ),
+                        iconBuilder: (_) => group.metadata.icon.isNotEmpty
+                            ? Image.network(
+                                group.metadata.icon,
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (_, error, stack) =>
+                                    GroupMonogram(group.name),
+                              )
+                            : GroupMonogram(group.name),
+                        onToggle: () =>
+                            setState(() => group.expanded = !group.expanded),
+                        onTest: () => _test(group),
+                      ),
+                ],
+              )
+            : _tabs == null
+            ? const SizedBox.shrink()
+            : ProxyTabsLayout(
+                controller: _tabs!,
+                groups: [for (final group in groups) group.name],
+                pages: [
+                  for (final group in groups)
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        group.paneWidth = constraints.maxWidth;
+                        return ProxyCardsGrid(
+                          controller: group.scroll,
+                          columns: proxyColumns(
+                            math.max(constraints.maxWidth - 32, 0),
+                            _preferences.layout,
+                          ),
+                          itemHeight: _height(context),
+                          count: group.count,
+                          itemBuilder: (context, index) =>
+                              _node(context, group, index),
+                        );
+                      },
+                    ),
+                ],
+              ),
+      ),
     );
   }
 
