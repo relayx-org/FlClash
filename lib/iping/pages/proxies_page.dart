@@ -10,6 +10,8 @@ import 'package:fl_clash/views/proxies/list_presentation.dart';
 import 'package:fl_clash/views/proxies/page_presentation.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../enum/message_level.dart';
+import '../notify.dart';
 import '../proxies_host.dart';
 
 class _RemoteGroup {
@@ -212,6 +214,16 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
     if (mounted) await _load();
   }
 
+  Future<void> _testDelay(IpingProxiesHost host, String name) async {
+    try {
+      await host.testDelay(name, url: host.testUrl);
+    } catch (error) {
+      if (mounted) {
+        context.showNotifier('$error', level: MessageLevel.error);
+      }
+    }
+  }
+
   Future<void> _test(_RemoteGroup group) async {
     if (_testingGroup != null) return;
     final host = IpingProxiesScope.read(context);
@@ -238,6 +250,10 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
         if (!await host.testDelays(names, url: testUrl)) {
           break;
         }
+      }
+    } catch (error) {
+      if (mounted) {
+        context.showNotifier('$error', level: MessageLevel.error);
       }
     } finally {
       if (mounted) setState(() => _testingGroup = null);
@@ -285,7 +301,7 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
             : Alignment.centerRight,
         tooltip: l.delayTest,
         failureText: delay == -1 ? l.timeout : l.delayFailed,
-        onPressed: () => host.testDelay(name, url: host.testUrl),
+        onPressed: () => _testDelay(host, name),
       ),
       onPressed: host.busy ? null : () => _select(group, name),
     );
