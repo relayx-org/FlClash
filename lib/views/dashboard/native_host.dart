@@ -570,6 +570,8 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   @override
   final NativeNetworkTakeover networkTakeover;
   @override
+  IpingDashboardProxyStatus? get proxyStatus => null;
+  @override
   final IpingDashboardEditor dashboardEditor;
   @override
   List<String>? get dashboardCards => null;
@@ -648,12 +650,16 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   );
 
   @override
-  void openProxies(BuildContext context) =>
-      unawaited(showProxiesSheet(context));
+  void openProxies(BuildContext context, {String? group}) =>
+      unawaited(showProxiesSheet(context, groupName: group));
 
   @override
   void openConnections(BuildContext context) =>
       openDashboardFeed(context, DashboardFeed.connections);
+
+  @override
+  void openRequests(BuildContext context) =>
+      openDashboardFeed(context, DashboardFeed.requests);
 
   @override
   void openServices(BuildContext context) =>

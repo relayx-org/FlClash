@@ -1,4 +1,5 @@
 import 'package:fl_clash/iping/profile_resources_page.dart';
+import 'package:fl_clash/iping/settings_host.dart';
 import 'package:fl_clash/iping/script_form.dart';
 import 'package:fl_clash/features/form/rule_form.dart';
 import 'package:fl_clash/features/form/selection_sheet_view.dart';
@@ -8,13 +9,16 @@ import 'package:fl_clash/features/form/form_row.dart';
 import 'package:fl_clash/iping/rule_provider_form.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/features/form/form_page.dart';
+import 'package:fl_clash/iping/dns_queries_page.dart';
 import 'package:fl_clash/iping/filters_page.dart';
+import 'package:fl_clash/iping/managed_resources_page.dart';
 import 'package:fl_clash/ui/config_value.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/views/config/general_page.dart';
 import 'package:fl_clash/views/config/port_form.dart';
 import 'package:fl_clash/views/settings_page.dart';
 import 'package:fl_clash/widgets/appearance_controls.dart';
+import 'package:fl_clash/widgets/user_agents.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iping_openwrt/app.dart';
@@ -310,9 +314,22 @@ void main() {
       await _openSettings(tester, client);
       final l = AppLocalizations.current;
       expect(find.byType(SettingsPage), findsOneWidget);
+      final page = tester.widget<SettingsPage>(find.byType(SettingsPage));
+      expect(page.storageKey, ipingSettingsStoreKey);
+      expect(page.settingsFooter, contains(l.advancedConfigDesc));
+      expect(page.settingsFooter, contains(l.customProfileResourcesDesc));
       expect(find.text(l.general), findsOneWidget);
       expect(find.text(l.advancedConfig), findsOneWidget);
       expect(find.text(l.customProfileResources), findsOneWidget);
+      expect(
+        [for (final link in page.platformSettings) link.title],
+        [l.advancedConfig, l.customProfileResources, l.general],
+      );
+      final moreTitles = [for (final link in page.more) link.title];
+      expect(moreTitles, contains(l.dnsQueries));
+      expect(moreTitles, contains(l.resources));
+      expect(moreTitles, isNot(contains(l.ipingNativeIp)));
+      expect(moreTitles, isNot(contains(l.ipingTunnels)));
       await tester.tap(find.text(l.theme));
       await tester.pumpAndSettle();
       expect(find.byType(AppearanceSettingsPage), findsOneWidget);
@@ -320,6 +337,17 @@ void main() {
         find.byType(AppearanceSettingsPage),
       );
       expect(appearance.primaryColor, isA<AppearancePaletteControl>());
+      expect(
+        (appearance.primaryColor! as AppearancePaletteControl).systemColor,
+        isNull,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics && widget.properties.label == l.followSystem,
+        ),
+        findsNothing,
+      );
       expect(appearance.textScale, isA<TextScaleControl>());
       expect(appearance.navigationBar, isA<NavigationBarChoice>());
       expect(appearance.tabAnimationControl, isA<TabAnimationChoice>());
@@ -327,6 +355,96 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets('the logs link follows the logcat preference', (tester) async {
+    final client = FakeRouterClient();
+    await _openSettings(tester, client);
+    final l = AppLocalizations.current;
+    var page = tester.widget<SettingsPage>(find.byType(SettingsPage));
+    expect([for (final link in page.more) link.title], isNot(contains(l.logs)));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    client.preferences['openLogs'] = true;
+    await _openSettings(tester, client);
+    page = tester.widget<SettingsPage>(find.byType(SettingsPage));
+    expect([for (final link in page.more) link.title], contains(l.logs));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('the user agent library edits and selects values on the router', (
+    tester,
+  ) async {
+    final client = FakeRouterClient();
+    await _openSettings(tester, client);
+    final l = AppLocalizations.current;
+    await tester.tap(find.text(l.general));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(l.userAgent));
+    await tester.tap(find.text(l.userAgent));
+    await tester.pumpAndSettle();
+    expect(find.byType(UserAgentsPage), findsOneWidget);
+
+    await tester.tap(find.byTooltip(l.add));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Custom UA');
+    await tester.tap(find.widgetWithText(TextButton, l.submit));
+    await tester.pumpAndSettle();
+    expect(
+      (client.preferences['userAgents'] as List).cast<String>(),
+      contains('Custom UA'),
+    );
+
+    await tester.tap(find.text('Custom UA'));
+    await tester.pumpAndSettle();
+    expect(client.settings['global-ua'], 'Custom UA');
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('sidebar expansion persists in the browser preferences', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 1000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final client = FakeRouterClient();
+    Future<void> pumpApp() async {
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _Assets(),
+          child: RouterApp(client: client),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpApp();
+    expect(
+      tester.widget<NavigationSidebar>(find.byType(NavigationSidebar)).expanded,
+      isTrue,
+    );
+    tester
+        .widget<NavigationSidebar>(find.byType(NavigationSidebar))
+        .onToggle!();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<NavigationSidebar>(find.byType(NavigationSidebar)).expanded,
+      isFalse,
+    );
+    expect(client.preferences['sidebarExpanded'], isFalse);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await pumpApp();
+    expect(
+      tester.widget<NavigationSidebar>(find.byType(NavigationSidebar)).expanded,
+      isFalse,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
 
   testWidgets(
     'general edits wait for the router and keep the old value on failure',
@@ -403,10 +521,24 @@ void main() {
       ..testUrl = 'https://example.com/test'
       ..openLogs = true
       ..closeConnections = false
+      ..sidebarExpanded = false
+      ..userAgents = ['Custom UA']
       ..dashboardCards = ['currentOutbound', 'memory'];
     final restored = RouterPreferences.fromJson(preferences.toJson());
     expect(restored.toJson(), preferences.toJson());
     expect(restored.dashboardCards, ['currentOutbound', 'memory']);
+    expect(restored.sidebarExpanded, isFalse);
+    expect(restored.userAgents, ['Custom UA']);
+    expect(
+      RouterPreferences.fromJson({'primaryColor': null}).primaryColor,
+      0xFF146B65,
+    );
+    expect(
+      RouterPreferences.fromJson({
+        'userAgents': ['', 'Allowed', 1, 'x' * 2049],
+      }).userAgents,
+      ['Allowed'],
+    );
     expect(
       RouterPreferences.fromJson({
         'textScale': 100,
@@ -483,6 +615,29 @@ void main() {
     expect(tester.widget<ConfigToggleValue>(row).value, isTrue);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('settings More opens DNS queries and managed resources', (
+    tester,
+  ) async {
+    final client = FakeRouterClient();
+    await _openSettings(tester, client);
+    final l = AppLocalizations.current;
+    await tester.tap(find.text(l.dnsQueries));
+    await tester.pumpAndSettle();
+    expect(find.byType(IpingDnsQueriesPage), findsOneWidget);
+    expect(find.text('www.example.com'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.resources));
+    await tester.pumpAndSettle();
+    expect(find.byType(IpingManagedResourcesPage), findsOneWidget);
+    expect(find.text('GeoIP.dat'), findsOneWidget);
+    expect(client.calls, contains('dns_queries'));
+    expect(client.calls, contains('resources'));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
   });
 }
 

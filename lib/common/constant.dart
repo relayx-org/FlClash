@@ -56,8 +56,6 @@ const delayTestTimeoutDuration = Duration(seconds: 8);
 
 const delayTestGuardDuration = Duration(seconds: 30);
 
-const delayTimedOutValue = -1;
-
 const probeTimeoutDuration = Duration(seconds: 10);
 
 const downloadTimeoutDuration = Duration(seconds: 20);
@@ -129,7 +127,6 @@ const stringAndStringMapEntryListEquality =
 const keyboardModifierListEquality = SetEquality<KeyboardModifier>();
 
 const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
-const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
 const trafficSampleLength = 30;

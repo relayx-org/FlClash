@@ -390,6 +390,21 @@ class RouterBackend implements IpingBackend {
   }
 
   @override
+  Future<IpingRequestPage> readRequests({
+    int limit = ipingBackendPageSize,
+  }) async {
+    final data = await client.call('requests');
+    final items = [
+      for (final raw in data as List? ?? const [])
+        if (raw is Map) IpingRequest.fromJson(_object(raw)),
+    ];
+    return IpingRequestPage(
+      items: items.take(limit).toList(),
+      total: items.length,
+    );
+  }
+
+  @override
   Future<int> readConnectionCount() async {
     final data = _object(await client.call('telemetry'));
     return (data['connections'] as num?)?.toInt() ?? 0;

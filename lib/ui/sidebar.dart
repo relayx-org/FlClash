@@ -43,6 +43,24 @@ class SidebarDestination {
   final int group;
 }
 
+/// Moves to another destination without dropping the keyboard focus a
+/// sidebar row had when the user activated it.
+void selectSidebarDestination(VoidCallback select) {
+  final focusNode = FocusManager.instance.primaryFocus;
+  final preserveNavigationFocus =
+      focusNode?.context?.findAncestorWidgetOfExactType<NavigationSidebar>() !=
+      null;
+  select();
+  if (!preserveNavigationFocus || focusNode == null) {
+    return;
+  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (focusNode.context != null && focusNode.canRequestFocus) {
+      focusNode.requestFocus();
+    }
+  });
+}
+
 class SidebarToggleScope extends InheritedWidget {
   const SidebarToggleScope({
     super.key,

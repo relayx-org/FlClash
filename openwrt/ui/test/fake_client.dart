@@ -194,6 +194,36 @@ class FakeRouterClient implements RouterClient {
         'status': 'active',
       },
       'api_call' => _apiCall(args),
+      'dns_queries' => {
+        'items': [
+          {
+            'domain': 'www.example.com',
+            'type': 'A',
+            'initiator': 'other',
+            'upstream': '127.0.0.1:1054',
+            'answers': ['203.0.113.7'],
+            'rcode': 'NOERROR',
+            'delay': 12,
+            'time': '2026-01-01T00:00:00Z',
+            'client': '192.168.1.2:5353',
+            'protocol': 'udp',
+          },
+        ],
+        'limit': 200,
+        'total': 1,
+      },
+      'resources' => {
+        'items': [
+          {
+            'id': 'geo/GeoIP.dat',
+            'category': 'geo',
+            'name': 'GeoIP.dat',
+            'path': 'GeoIP.dat',
+            'size': 1024,
+            'modified': '2026-01-01T00:00:00Z',
+          },
+        ],
+      },
       'proxies' => {
         'groups': [
           {'name': 'PROXY', 'type': 'Selector', 'now': selected},

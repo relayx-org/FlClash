@@ -408,6 +408,21 @@ class _NativeIpingBackend implements IpingBackend {
   }
 
   @override
+  Future<IpingRequestPage> readRequests({
+    int limit = ipingBackendPageSize,
+  }) async {
+    final requests = ref.read(requestsProvider).list;
+    final now = DateTime.now();
+    return IpingRequestPage(
+      items: [
+        for (final info in requests.reversed.take(limit))
+          IpingRequest.fromTracker(info, now: now),
+      ],
+      total: requests.length,
+    );
+  }
+
+  @override
   Future<int> readConnectionCount() =>
       ref.read(coreHandlerProvider).getConnectionCount();
 

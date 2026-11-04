@@ -210,20 +210,9 @@ class AppSidebarContainer extends ConsumerWidget {
   }
 
   void _handleToPage(WidgetRef ref, PageLabel pageLabel) {
-    final focusNode = FocusManager.instance.primaryFocus;
-    final focusContext = focusNode?.context;
-    final preserveNavigationFocus =
-        focusContext?.findAncestorWidgetOfExactType<NavigationSidebar>() !=
-        null;
-    ref.read(currentPageLabelProvider.notifier).toPage(pageLabel);
-    if (!preserveNavigationFocus || focusNode == null) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (focusNode.context != null && focusNode.canRequestFocus) {
-        focusNode.requestFocus();
-      }
-    });
+    selectSidebarDestination(
+      () => ref.read(currentPageLabelProvider.notifier).toPage(pageLabel),
+    );
   }
 
   @override

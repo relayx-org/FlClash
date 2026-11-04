@@ -356,16 +356,16 @@ void main() {
     expect(find.byType(IpingDashboardCardEditor), findsOneWidget);
     expect(find.byTooltip('Remove Status'), findsNothing);
 
-    await tester.tap(find.byTooltip('Remove Memory info'));
+    await tester.tap(find.byTooltip('Remove Service status'));
     await settle(tester);
 
-    expect(host.saved, isNot(contains('memory')));
-    expect(find.byTooltip('Add Memory info'), findsOneWidget);
+    expect(host.saved, isNot(contains('services')));
+    expect(find.byTooltip('Add Service status'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Add Memory info'));
+    await tester.tap(find.byTooltip('Add Service status'));
     await settle(tester);
 
-    expect(host.saved.last, 'memory');
+    expect(host.saved.last, 'services');
 
     await tester.tap(find.byTooltip('Reset'));
     await settle(tester);
@@ -375,11 +375,11 @@ void main() {
       'networkSpeed',
       'outboundMode',
       'networkTakeover',
-      'profile',
       'intranet',
       'services',
+      'profile',
+      'proxyGroups',
       'connections',
-      'memory',
     ]);
 
     await tester.tap(find.byTooltip('Done'));

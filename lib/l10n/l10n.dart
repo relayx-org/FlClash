@@ -4040,6 +4040,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Are you sure you want to stop the core?`
+  String get stopCoreTip {
+    return Intl.message(
+      'Are you sure you want to stop the core?',
+      name: 'stopCoreTip',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Are you sure you want to force restart the core?`
   String get forceRestartCoreTip {
     return Intl.message(
@@ -7778,6 +7788,36 @@ class AppLocalizations {
     );
   }
 
+  /// `Core memory only`
+  String get memoryCoreOnlyDesc {
+    return Intl.message(
+      'Core memory only',
+      name: 'memoryCoreOnlyDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `App memory is unavailable here.`
+  String get memoryAppUnavailable {
+    return Intl.message(
+      'App memory is unavailable here.',
+      name: 'memoryAppUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Core resident memory`
+  String get memoryCoreResident {
+    return Intl.message(
+      'Core resident memory',
+      name: 'memoryCoreResident',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Edit dashboard`
   String get editDashboard {
     return Intl.message(
@@ -7807,7 +7847,8 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one:
+          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -8541,6 +8582,56 @@ class AppLocalizations {
     return Intl.message(
       'Earn a commission when someone you refer tops up their account.',
       name: 'ipingReferralHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Share poster`
+  String get ipingSharePoster {
+    return Intl.message(
+      'Share poster',
+      name: 'ipingSharePoster',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Share image`
+  String get ipingShareImage {
+    return Intl.message(
+      'Share image',
+      name: 'ipingShareImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save image`
+  String get ipingSaveImage {
+    return Intl.message(
+      'Save image',
+      name: 'ipingSaveImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to share the image. Try again.`
+  String get ipingShareImageFailed {
+    return Intl.message(
+      'Unable to share the image. Try again.',
+      name: 'ipingShareImageFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to save the image. Try again.`
+  String get ipingSaveImageFailed {
+    return Intl.message(
+      'Unable to save the image. Try again.',
+      name: 'ipingSaveImageFailed',
       desc: '',
       args: [],
     );

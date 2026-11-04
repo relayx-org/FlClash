@@ -1,5 +1,6 @@
+import 'package:fl_clash/common/datetime.dart';
+import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/l10n/l10n.dart';
-import 'package:fl_clash/models/tracker.dart';
 import 'package:fl_clash/features/connection/connection.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/ui/record_table.dart';
@@ -332,6 +333,74 @@ List<RecordColumn<TrackerInfo>> dashboardConnectionColumns(
           muted: true,
         ),
         sortKey: (info) => -info.start.microsecondsSinceEpoch,
+        descendingFirst: true,
+      ),
+  ];
+}
+
+List<RecordColumn<IpingRequest>> dashboardRequestColumns(
+  BuildContext context,
+  double width,
+) {
+  final appLocalizations = AppLocalizations.of(context);
+  final mid = width >= _midTableWidth;
+  final wide = width >= _wideTableWidth;
+  String ruleOf(IpingRequest request) =>
+      '${request.rule} ${request.rulePayload}'.trim();
+  String exitOf(IpingRequest request) => request.chains.firstOrNull ?? '';
+  return [
+    RecordColumn(
+      TableColumn('time', appLocalizations.time, width: 76),
+      cell: (_, request) =>
+          DashboardNumber(request.time.showTime.trim(), muted: true),
+      sortKey: (request) => request.time,
+      descendingFirst: true,
+    ),
+    RecordColumn(
+      TableColumn('source', appLocalizations.source, width: 140),
+      cell: (_, request) => DashboardSource(request.source),
+      sortKey: (request) => request.source.toLowerCase(),
+    ),
+    RecordColumn(
+      TableColumn('target', appLocalizations.target, flex: 1.2),
+      cell: (_, request) => EmojiText(
+        request.title.isEmpty ? '—' : request.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyle.footnote.of(context, emphasized: true),
+      ),
+      sortKey: (request) => request.title.toLowerCase(),
+    ),
+    if (mid)
+      RecordColumn(
+        TableColumn('rule', appLocalizations.rule, flex: 1),
+        cell: (_, request) => DashboardMuted(ruleOf(request)),
+        sortKey: (request) => ruleOf(request).toLowerCase(),
+      ),
+    RecordColumn(
+      TableColumn('exit', appLocalizations.outboundExit, width: 100),
+      cell: (_, request) =>
+          DashboardMuted(exitOf(request).isEmpty ? '—' : exitOf(request)),
+      sortKey: (request) => exitOf(request).toLowerCase(),
+    ),
+    RecordColumn(
+      TableColumn('traffic', appLocalizations.traffic, width: 80, end: true),
+      cell: (_, request) =>
+          DashboardNumber(dashboardTraffic(request.upload + request.download)),
+      sortKey: (request) => request.upload + request.download,
+      descendingFirst: true,
+    ),
+    if (mid)
+      RecordColumn(
+        TableColumn(
+          'duration',
+          appLocalizations.duration,
+          width: wide ? 72 : 64,
+          end: true,
+        ),
+        cell: (_, request) =>
+            DashboardNumber(trackerDurationText(request.duration), muted: true),
+        sortKey: (request) => request.duration,
         descendingFirst: true,
       ),
   ];

@@ -10,7 +10,6 @@ import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:fl_clash/iping/subscription_url.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
-import 'package:fl_clash/ui/appearance_defaults.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/views/logs_page.dart';
@@ -22,7 +21,9 @@ import 'package:material_ui/material_ui.dart';
 import 'app.dart';
 import 'client.dart';
 import 'connections.dart';
+import 'dns_queries.dart';
 import 'requests_page.dart';
+import 'resources.dart';
 import 'settings.dart';
 
 class RouterSettingsRoute extends StatelessWidget {
@@ -35,6 +36,7 @@ class RouterSettingsRoute extends StatelessWidget {
     final app = RouterAppState.of(context);
     return IpingSettingsPage(
       host: _RouterSettingsHost(
+        storageKey: ipingSettingsStoreKey,
         accountSummary: context.isMobileView && router.status.hasSubscription
             ? IpingAccountSummaryData(
                 label: router.signedIn
@@ -60,6 +62,18 @@ class RouterSettingsRoute extends StatelessWidget {
               pageBuilder: (_) => const RouterConnections(),
               forceFull: true,
             ),
+          IpingSettingsLink(
+            glyph: PageLabel.dns.glyph,
+            title: PageLabel.dns.labelOf(l),
+            pageBuilder: (_) => const RouterDnsQueries(),
+            forceFull: true,
+          ),
+          IpingSettingsLink(
+            glyph: PageLabel.resources.glyph,
+            title: PageLabel.resources.labelOf(l),
+            pageBuilder: (_) => const RouterResources(),
+            forceFull: true,
+          ),
           if (app.preferences.openLogs)
             IpingSettingsLink(
               glyph: PageLabel.logs.glyph,
@@ -73,12 +87,6 @@ class RouterSettingsRoute extends StatelessWidget {
         themeBuilder: (_) => const RouterAppearance(),
         platformSettings: [
           IpingSettingsLink(
-            glyph: AppGlyphs.settings,
-            title: l.general,
-            pageBuilder: (_) =>
-                const RouterCoreSettings(kind: RouterSettingsKind.general),
-          ),
-          IpingSettingsLink(
             glyph: AppGlyphs.code,
             title: l.advancedConfig,
             pageBuilder: (_) => const RouterAdvanced(),
@@ -88,6 +96,12 @@ class RouterSettingsRoute extends StatelessWidget {
             title: l.customProfileResources,
             pageBuilder: (_) => const RouterCustomResources(),
           ),
+          IpingSettingsLink(
+            glyph: AppGlyphs.settings,
+            title: l.general,
+            pageBuilder: (_) =>
+                const RouterCoreSettings(kind: RouterSettingsKind.general),
+          ),
         ],
         about: IpingAboutVersionSummary(
           site: router.siteConfig,
@@ -96,6 +110,10 @@ class RouterSettingsRoute extends StatelessWidget {
           onPrivacy: () =>
               router.client.open('${router.site}/privacy-policy.html'),
         ),
+        settingsFooter: [
+          l.advancedConfigDesc,
+          l.customProfileResourcesDesc,
+        ].join('\n'),
       ),
     );
   }
@@ -103,6 +121,7 @@ class RouterSettingsRoute extends StatelessWidget {
 
 class _RouterSettingsHost implements IpingSettingsHost {
   const _RouterSettingsHost({
+    required this.storageKey,
     required this.accountSummary,
     required this.more,
     required this.locale,
@@ -110,10 +129,11 @@ class _RouterSettingsHost implements IpingSettingsHost {
     required this.themeBuilder,
     required this.platformSettings,
     required this.about,
+    required this.settingsFooter,
   });
 
   @override
-  Key? get storageKey => null;
+  final Key? storageKey;
   @override
   final IpingAccountSummaryData? accountSummary;
   @override
@@ -127,9 +147,10 @@ class _RouterSettingsHost implements IpingSettingsHost {
   @override
   final List<IpingSettingsLink> platformSettings;
   @override
-  String? get settingsFooter => null;
+  final String settingsFooter;
   @override
   final Widget? about;
+
   @override
   List<IpingSettingsLink> get other => const [];
 }
@@ -166,7 +187,7 @@ class RouterAppearance extends StatelessWidget {
           primaryColors: app.preferences.primaryColors,
           colorStyle: app.preferences.colorStyle,
         ),
-        systemColor: const Color(defaultPrimaryColor),
+        systemColor: null,
         floatingBar: app.preferences.floatingBar,
         liquidGlass: app.glass,
         pureBlack: app.preferences.pureBlack,

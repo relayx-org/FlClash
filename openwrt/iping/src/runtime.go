@@ -121,6 +121,16 @@ func (r *coreRuntime) start(ctx context.Context) error {
 	if err := writePrivate(a.runProfile, data); err != nil {
 		return err
 	}
+	dnsReady := false
+	defer func() {
+		if !dnsReady {
+			a.stopDNSProxy()
+		}
+	}()
+	if err := a.startRuntimeDNSProxy(); err != nil {
+		return err
+	}
+	dnsReady = true
 	child := &coreChild{cmd: exec.Command(a.coreBinary, "-d", a.dataDir, "-f", a.runProfile), started: time.Now(), done: make(chan struct{}), lease: lease}
 	child.cmd.Stdout = &coreLog{path: filepath.Join(a.runDir, "core.log")}
 	child.cmd.Stderr = child.cmd.Stdout
@@ -193,6 +203,7 @@ func (r *coreRuntime) stop(ctx context.Context) error {
 	if child == nil {
 		return nil
 	}
+	r.app.stopDNSProxy()
 	child.ready.Store(false)
 	select {
 	case <-child.done:

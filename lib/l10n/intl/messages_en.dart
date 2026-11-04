@@ -1020,10 +1020,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -1424,9 +1423,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Safe mode: proxy and exit checks are unavailable.",
     ),
+    "ipingSaveImage": MessageLookupByLibrary.simpleMessage("Save image"),
+    "ipingSaveImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to save the image. Try again.",
+    ),
     "ipingSessionExpired": MessageLookupByLibrary.simpleMessage(
       "Your session is no longer valid. Please sign in again.",
     ),
+    "ipingShareImage": MessageLookupByLibrary.simpleMessage("Share image"),
+    "ipingShareImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Unable to share the image. Try again.",
+    ),
+    "ipingSharePoster": MessageLookupByLibrary.simpleMessage("Share poster"),
     "ipingSignIn": MessageLookupByLibrary.simpleMessage("Sign in"),
     "ipingSignOut": MessageLookupByLibrary.simpleMessage("Sign out"),
     "ipingStartToCheck": MessageLookupByLibrary.simpleMessage(
@@ -1846,10 +1854,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Resident memory",
     ),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("App & shared"),
+    "memoryAppUnavailable": MessageLookupByLibrary.simpleMessage(
+      "App memory is unavailable here.",
+    ),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("Heap idle"),
     "memoryCoreHeapInuse": MessageLookupByLibrary.simpleMessage("Heap in use"),
     "memoryCoreNotRunning": MessageLookupByLibrary.simpleMessage(
       "Core is not running",
+    ),
+    "memoryCoreOnlyDesc": MessageLookupByLibrary.simpleMessage(
+      "Core memory only",
+    ),
+    "memoryCoreResident": MessageLookupByLibrary.simpleMessage(
+      "Core resident memory",
     ),
     "memoryCoreRuntime": MessageLookupByLibrary.simpleMessage(
       "Runtime overhead",
@@ -2483,6 +2500,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "With DNS off, the system DNS is used.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Stop"),
+    "stopCoreTip": MessageLookupByLibrary.simpleMessage(
+      "Are you sure you want to stop the core?",
+    ),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Stopping VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Strategy"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("Strict route"),

@@ -35,6 +35,7 @@ type arguments struct {
 	ID               string           `json:"id"`
 	Mode             string           `json:"mode"`
 	Sort             string           `json:"sort"`
+	Action           string           `json:"action"`
 	HideTimeout      bool             `json:"hide_timeout"`
 	Proxies          []map[string]any `json:"proxies"`
 	Scripts          []string         `json:"scripts"`
@@ -67,6 +68,9 @@ type app struct {
 	requestMu         sync.Mutex
 	requestLog        []requestEntry
 	requestActive     map[string]bool
+	dnsMu             sync.Mutex
+	dnsQueryLog       []dnsQueryEntry
+	dnsProxy          *dnsProxy
 }
 
 var methods = map[string]map[string]any{
@@ -90,6 +94,7 @@ var methods = map[string]map[string]any{
 	"select_proxy":        {"group": "", "name": "", "close_connections": false},
 	"delay_proxy":         {"name": "", "url": ""},
 	"telemetry":           {}, "connections": {"query": "", "offset": 0}, "logs": {},
+	"dns_queries": {}, "resources": {"action": ""},
 	"close_connection": {"id": ""}, "set_mode": {"mode": ""},
 	"requests": {},
 	"api_call": {"method": "", "path": "", "params": map[string]any{}, "body": nil},
@@ -211,6 +216,10 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.connections(ctx, args)
 	case "logs":
 		return a.logs()
+	case "dns_queries":
+		return a.dnsQueries()
+	case "resources":
+		return a.resources(ctx, args)
 	case "delay_proxy":
 		return a.delayProxy(ctx, args.Name, args.URL)
 	case "api_call":

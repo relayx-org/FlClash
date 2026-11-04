@@ -1203,9 +1203,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "セーフモードではプロキシと出口を確認できません。",
     ),
+    "ipingSaveImage": MessageLookupByLibrary.simpleMessage("画像を保存"),
+    "ipingSaveImageFailed": MessageLookupByLibrary.simpleMessage(
+      "画像を保存できませんでした。もう一度お試しください。",
+    ),
     "ipingSessionExpired": MessageLookupByLibrary.simpleMessage(
       "セッションが無効です。もう一度ログインしてください。",
     ),
+    "ipingShareImage": MessageLookupByLibrary.simpleMessage("画像を共有"),
+    "ipingShareImageFailed": MessageLookupByLibrary.simpleMessage(
+      "画像を共有できませんでした。もう一度お試しください。",
+    ),
+    "ipingSharePoster": MessageLookupByLibrary.simpleMessage("ポスターを共有"),
     "ipingSignIn": MessageLookupByLibrary.simpleMessage("ログイン"),
     "ipingSignOut": MessageLookupByLibrary.simpleMessage("ログアウト"),
     "ipingStartToCheck": MessageLookupByLibrary.simpleMessage(
@@ -1563,11 +1572,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "maximize": MessageLookupByLibrary.simpleMessage("最大化"),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage("常駐メモリ"),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("アプリと共有"),
+    "memoryAppUnavailable": MessageLookupByLibrary.simpleMessage(
+      "ここではアプリのメモリを取得できません。",
+    ),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("未使用のヒープ"),
     "memoryCoreHeapInuse": MessageLookupByLibrary.simpleMessage("使用中のヒープ"),
     "memoryCoreNotRunning": MessageLookupByLibrary.simpleMessage(
       "コアは実行されていません",
     ),
+    "memoryCoreOnlyDesc": MessageLookupByLibrary.simpleMessage("コアのみのメモリ"),
+    "memoryCoreResident": MessageLookupByLibrary.simpleMessage("コア常駐メモリ"),
     "memoryCoreRuntime": MessageLookupByLibrary.simpleMessage("ランタイムのオーバーヘッド"),
     "memoryCoreStack": MessageLookupByLibrary.simpleMessage("ゴルーチンスタック"),
     "memoryEstimateDesc": MessageLookupByLibrary.simpleMessage(
@@ -2114,6 +2128,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "DNS を無効にすると、システム DNS を使用します。",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("停止"),
+    "stopCoreTip": MessageLookupByLibrary.simpleMessage("コアを停止してもよろしいですか？"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPNを停止しています…"),
     "strategy": MessageLookupByLibrary.simpleMessage("戦略"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("厳格なルーティング"),

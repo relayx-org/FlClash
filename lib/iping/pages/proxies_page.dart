@@ -29,7 +29,11 @@ class _RemoteGroup {
 }
 
 class IpingProxiesPage extends StatefulWidget {
-  const IpingProxiesPage({super.key});
+  const IpingProxiesPage({super.key, this.initialGroup});
+
+  /// Opens on this group once the first page names the available groups.
+  final String? initialGroup;
+
   @override
   State<IpingProxiesPage> createState() => _IpingProxiesPageState();
 }
@@ -101,9 +105,6 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
       final data = await host.backend.readProxies(_args('', 0));
       if (!mounted || generation != _generation) return;
       final previous = _groups.keys.toList();
-      final selectedName = previous.isEmpty
-          ? null
-          : previous[_tabs?.index.clamp(0, previous.length - 1) ?? 0];
       final names = <String>[];
       for (final metadata in data.groups) {
         final name = metadata.name;
@@ -124,6 +125,9 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
       }
       final first = _groups[data.group];
       if (first != null) _applyPage(first, data);
+      final selectedName = previous.isEmpty
+          ? widget.initialGroup
+          : previous[_tabs?.index.clamp(0, previous.length - 1) ?? 0];
       final oldNames =
           _tabs?.length == names.length &&
           previous.join('\u0000') == names.join('\u0000');

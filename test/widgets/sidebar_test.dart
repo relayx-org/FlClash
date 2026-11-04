@@ -449,4 +449,24 @@ void main() {
       expect(find.text('Proxies'), findsOneWidget);
     });
   });
+
+  testWidgets('selecting a destination restores sidebar focus', (tester) async {
+    final node = FocusNode();
+    addTearDown(node.dispose);
+    await tester.pumpWidget(
+      _sidebar(
+        footer: Focus(focusNode: node, child: const SizedBox(height: 20)),
+      ),
+    );
+    node.requestFocus();
+    await tester.pump();
+    expect(node.hasFocus, isTrue);
+
+    var selected = 0;
+    selectSidebarDestination(() => selected = 1);
+    await tester.pump();
+
+    expect(selected, 1);
+    expect(node.hasFocus, isTrue);
+  });
 }

@@ -58,7 +58,9 @@ class AppearancePaletteControl extends StatelessWidget {
     required this.onChanged,
   });
   final AppearancePalette value;
-  final Color systemColor;
+
+  /// Null when the platform cannot report an accent color, as on the Web.
+  final Color? systemColor;
   final bool floatingBar;
   final bool liquidGlass;
   final bool pureBlack;
@@ -130,7 +132,9 @@ class AppearancePaletteControl extends StatelessWidget {
     final primaryColor = value.primaryColor;
     _showColorSheet(
       context,
-      primaryColor != null ? Color(primaryColor) : systemColor,
+      primaryColor != null
+          ? Color(primaryColor)
+          : systemColor ?? const Color(defaultPrimaryColor),
       (color) => _update(
         (state) => state.copyWith(
           primaryColors: state.primaryColors.contains(color)
@@ -194,7 +198,10 @@ class AppearancePaletteControl extends StatelessWidget {
             spacing: 8,
             children: [
               _ColorSwatches(
-                colors: [null, ...themeColors.primaryColors],
+                colors: [
+                  if (systemColor != null) null,
+                  ...themeColors.primaryColors,
+                ],
                 systemColor: systemColor,
                 selected: themeColors.primaryColor,
                 onSelect: (color) =>
@@ -241,7 +248,7 @@ class _ColorSwatches extends StatelessWidget {
   static const double _inset = 16 - (_ColorSwatch.size - _ColorSwatch.dot) / 2;
 
   final List<int?> colors;
-  final Color systemColor;
+  final Color? systemColor;
   final int? selected;
   final ValueChanged<int?> onSelect;
   final ValueChanged<int> onEdit;
@@ -328,9 +335,9 @@ class _ColorSwatch extends StatefulWidget {
 
   static const double _badge = 20;
 
-  /// Null follows the system's accent color, [systemColor].
+  /// Null follows the platform accent color, [systemColor].
   final Color? color;
-  final Color systemColor;
+  final Color? systemColor;
   final bool isSelected;
   final String label;
   final VoidCallback onPressed;
@@ -346,7 +353,8 @@ class _ColorSwatchState extends State<_ColorSwatch> {
   @override
   Widget build(BuildContext context) {
     final color = widget.color;
-    final fill = color ?? widget.systemColor;
+    final fill =
+        color ?? widget.systemColor ?? const Color(defaultPrimaryColor);
     final selected = widget.isSelected;
     final check = ThemeData.estimateBrightnessForColor(fill) == Brightness.dark
         ? Colors.white

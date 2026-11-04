@@ -33,6 +33,7 @@ import 'iping_client.dart';
 import 'pages.dart';
 import 'probes.dart';
 import 'proxies_host.dart';
+import 'requests_page.dart';
 import 'settings.dart';
 
 enum RouterAspect { session, status, telemetry, probes, proxies }
@@ -369,7 +370,6 @@ class RouterHome extends StatefulWidget {
 
 class _RouterHomeState extends State<RouterHome> {
   PageLabel _page = PageLabel.dashboard;
-  bool _expanded = true;
   String? _shownError;
 
   @override
@@ -377,7 +377,9 @@ class _RouterHomeState extends State<RouterHome> {
     final controller = RouterScope.of(context, aspect: RouterAspect.status);
     final l = AppLocalizations.of(context);
     final mobile = context.isMobileView;
-    final preferences = RouterAppState.of(context).preferences;
+    final app = RouterAppState.of(context);
+    final preferences = app.preferences;
+    final canExpand = MediaQuery.sizeOf(context).width > 840;
     final pages = <PageLabel, Widget>{
       PageLabel.dashboard: const RouterDashboardRoute(),
       PageLabel.proxies: const RouterProxiesRoute(),
@@ -408,6 +410,12 @@ class _RouterHomeState extends State<RouterHome> {
     final selected = entries.indexWhere((entry) => entry.$1 == _page);
     final index = selected == -1 ? 0 : selected;
     final labels = [for (final entry in entries) entry.$1];
+    void selectPage(int selectedIndex) {
+      selectSidebarDestination(
+        () => setState(() => _page = entries[selectedIndex].$1),
+      );
+    }
+
     if (entries.isNotEmpty) _page = entries[index].$1;
     final error = controller.error;
     if (error == null) _shownError = null;
@@ -447,12 +455,13 @@ class _RouterHomeState extends State<RouterHome> {
               ),
           ],
           selectedIndex: index,
-          expanded: MediaQuery.sizeOf(context).width > 840 && _expanded,
-          onToggle: MediaQuery.sizeOf(context).width > 840
-              ? () => setState(() => _expanded = !_expanded)
+          expanded: canExpand && preferences.sidebarExpanded,
+          onToggle: canExpand
+              ? () => app.updatePreferences(
+                  (value) => value.sidebarExpanded = !value.sidebarExpanded,
+                )
               : null,
-          onSelected: (selectedIndex) =>
-              setState(() => _page = entries[selectedIndex].$1),
+          onSelected: selectPage,
           footer: const _AccountButton(),
         ),
         child: HomeNavigationBody(
@@ -466,8 +475,7 @@ class _RouterHomeState extends State<RouterHome> {
               ),
           ],
           selectedIndex: index,
-          onSelected: (selectedIndex) =>
-              setState(() => _page = entries[selectedIndex].$1),
+          onSelected: selectPage,
           child: body,
         ),
       ),
@@ -510,8 +518,10 @@ class _RouterDashboardRouteState extends State<RouterDashboardRoute> {
     persistDashboardCards: (ids) =>
         app.updatePreferences((settings) => settings.dashboardCards = ids),
     openSubscription: (context) => _sheet(context, const RouterSubscription()),
-    openProxies: (context) => _sheet(context, const RouterProxiesRoute()),
+    openProxies: (context, {group}) =>
+        _sheet(context, RouterProxiesRoute(initialGroup: group)),
     openConnections: (context) => _sheet(context, const RouterConnections()),
+    openRequests: (context) => _sheet(context, const RouterRequests()),
     openServices: (context) => _sheet(context, const RouterServiceStatus()),
     openNetwork: (context) => _sheet(
       context,
@@ -535,7 +545,9 @@ class _RouterDashboardRouteState extends State<RouterDashboardRoute> {
 }
 
 class RouterProxiesRoute extends StatelessWidget {
-  const RouterProxiesRoute({super.key});
+  const RouterProxiesRoute({super.key, this.initialGroup});
+
+  final String? initialGroup;
 
   @override
   Widget build(BuildContext context) {
@@ -552,7 +564,7 @@ class RouterProxiesRoute extends StatelessWidget {
         updatePreferences: (value) =>
             app.updatePreferences((settings) => settings.proxies = value),
       ),
-      child: const IpingProxiesPage(),
+      child: IpingProxiesPage(initialGroup: initialGroup),
     );
   }
 }

@@ -323,6 +323,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(AppLocalizations.current.ipingAccount), findsWidgets);
     expect(find.byType(SettingsPage), findsOneWidget);
+    await tester.ensureVisible(find.text(AppLocalizations.current.theme));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(AppLocalizations.current.theme));
     await tester.pumpAndSettle();
     expect(find.byType(AppearanceSettingsPage), findsOneWidget);
@@ -442,7 +444,8 @@ void main() {
       expect(client.calls, contains('telemetry'));
       expect(client.calls, contains('dashboard'));
       expect(client.calls, isNot(contains('connections')));
-      expect(client.calls, isNot(contains('proxies')));
+      expect(client.calls, contains('proxies'));
+      expect(client.calls, contains('requests'));
       expect(builds[DashboardOutboundCard] ?? 0, 0);
       expect(builds[NavigationDock] ?? 0, 0);
       expect(builds[DashboardNetworkSpeedCard], greaterThan(0));

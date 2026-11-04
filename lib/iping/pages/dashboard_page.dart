@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:fl_clash/common/datetime.dart';
+import 'package:fl_clash/common/delay.dart';
 import 'package:fl_clash/features/ip_quality/labels.dart';
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/dashboard_defaults.dart';
 import 'package:fl_clash/iping/widgets/dashboard_card_editor.dart';
+import 'package:fl_clash/iping/widgets/dashboard_diagnostics.dart';
+import 'package:fl_clash/iping/widgets/memory_detail.dart';
 import 'package:fl_clash/iping/widgets/network_takeover.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -93,6 +96,8 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
   bool _loading = false;
   List<TrackerInfo> _connections = [];
   List<IpingProxyGroup> _groups = [];
+  List<IpingRequest> _requests = [];
+  int _requestCount = 0;
   IpingDashboardSnapshot? _snapshot;
   IpingDashboardProbes? _probes;
   Set<ServiceTarget> _watchedServices = {};
@@ -152,19 +157,32 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     _loading = true;
     final tables = !context.isMobileView;
     try {
-      final (snapshot, connections, proxies) = await (
+      final (snapshot, connections, proxies, requests) = await (
         host.readDashboard(),
         tables && host.connected
             ? host.backend.readConnections()
             : Future.value(const IpingConnectionPage()),
-        tables && host.connected
+        host.connected
             ? host.backend.readProxies()
             : Future.value(const IpingProxyPage()),
+        host.connected
+            ? host.backend.readRequests()
+            : Future.value(const IpingRequestPage()),
       ).wait;
       if (!mounted) return;
       updateWhenRouteSettled(() {
         if (!mounted) return;
         final previous = _snapshot;
+        final groupsChanged = !listEquals(
+          [for (final group in _groups) (group.name, group.selected)],
+          [for (final group in proxies.groups) (group.name, group.selected)],
+        );
+        final requestsChanged =
+            _requestCount != requests.total ||
+            _requests.length != requests.items.length ||
+            (_requests.isNotEmpty &&
+                requests.items.isNotEmpty &&
+                _requests.first.id != requests.items.first.id);
         if (tables ||
             previous == null ||
             previous.localIp != snapshot.localIp ||
@@ -172,19 +190,28 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
             previous.groups != snapshot.groups ||
             previous.proxies != snapshot.proxies ||
             previous.rules != snapshot.rules ||
+            groupsChanged ||
+            requestsChanged ||
             !mapEquals(previous.settings.values, snapshot.settings.values)) {
           setState(() {
             _snapshot = snapshot;
             _connections = connections.items;
             _groups = proxies.groups;
+            _requests = requests.items;
+            _requestCount = requests.total;
           });
         }
       });
     } catch (_) {
-      if (mounted && (_connections.isNotEmpty || _groups.isNotEmpty)) {
+      if (mounted &&
+          (_connections.isNotEmpty ||
+              _groups.isNotEmpty ||
+              _requests.isNotEmpty)) {
         setState(() {
           _connections = [];
           _groups = [];
+          _requests = [];
+          _requestCount = 0;
         });
       }
     } finally {
@@ -205,10 +232,11 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     final host = IpingDashboardScope.of(context);
     final hostEditor = host.dashboardEditor;
     final savedCards = host.dashboardCards;
+    final defaultIds = _defaultCardIds(host);
     final defaultEditor = hostEditor == null
         ? IpingDashboardDefaultEditor(
             all: _defaultCards(context, host: host, l: l),
-            defaultIds: _defaultCardIds,
+            defaultIds: defaultIds,
             saved: savedCards ?? const [],
             onSave: savedCards == null ? null : host.saveDashboardCards,
           )
@@ -229,7 +257,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
             if (hostEditor == null)
               FilledButton.icon(
                 style: ElasticPress.buttonStyle,
-                onPressed: host.busy ? null : () => _restart(context),
+                onPressed: host.busy ? null : () => _toggleConnection(context),
                 icon: host.busy
                     ? const SizedBox.square(
                         dimension: 16,
@@ -472,16 +500,21 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     );
   }
 
-  static const _defaultCardIds = [
+  /// Matches the app's default dashboard, without the cards this page cannot
+  /// render on the host's platform (the phone VPN button, or a takeover switch
+  /// the host does not own).
+  List<String> _defaultCardIds(IpingDashboardHost host) => [
     'currentOutbound',
     'networkSpeed',
     'outboundMode',
-    'networkTakeover',
-    'profile',
+    if (host.networkTakeover.supportsSystemProxy ||
+        host.networkTakeover.supportsTun)
+      'networkTakeover',
     'intranet',
     'services',
+    'profile',
+    'proxyGroups',
     'connections',
-    'memory',
   ];
 
   List<IpingDashboardCard> _defaultCards(
@@ -494,6 +527,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     final download = _SpeedCard(host: host, upload: false);
     final mode = _ModeCard(host: host);
     final systemProxy = host.networkTakeover.supportsSystemProxy;
+    final takeover = systemProxy || host.networkTakeover.supportsTun;
     final subscription = DashboardProfileCard(
       name: 'iPing',
       source: l.remote,
@@ -527,15 +561,35 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
           : (value) => _saveSettings({'allow-lan': value}),
     );
     final services = _ServicesCard(host: host);
+    final proxyStatus = host.proxyStatus;
+    final timedOut = proxyStatus == null
+        ? 0
+        : _groups
+              .where((group) => (proxyStatus.delayOf(group.name) ?? 0) < 0)
+              .length;
+    void openProxies([String? group]) =>
+        host.openProxies(context, group: group);
     final proxies = DashboardProxyGroupsFrame(
       count: host.connected ? _groups.length : 0,
+      header: DashboardProxyGroupsHeader(
+        count: host.connected ? _groups.length : 0,
+        onOpen: openProxies,
+        leading: [
+          if (timedOut > 0)
+            DashboardChip(
+              label: l.groupTimeoutCount(timedOut),
+              tone: DashboardChipTone.warn,
+            ),
+        ],
+      ),
       empty: Center(child: Text(l.noData, style: DashboardText.label(context))),
-      onOpen: () => host.openProxies(context),
+      onOpen: openProxies,
       itemBuilder: (context, index) {
         final item = _groups[index];
         final iconSize = DashboardDensityScope.of(context).isCompact
             ? 34.0
             : 40.0;
+        final delay = host.connected ? proxyStatus?.delayOf(item.name) : null;
         return DashboardProxyGroupTile(
           name: item.name,
           icon: DashboardGroupIcon(
@@ -550,7 +604,8 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
             overflow: TextOverflow.ellipsis,
             style: DashboardText.rowTitle(context),
           ),
-          onTap: () => host.openProxies(context),
+          delay: delay == null ? null : _DelayText(delay),
+          onTap: () => openProxies(item.name),
         );
       },
     );
@@ -560,6 +615,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         glyph: AppGlyphs.memory,
         title: l.memoryInfo,
         value: '',
+        onTap: () => showIpingMemoryDetail(context, host: host),
         content: DashboardMemorySummary(
           coreBytes: host.telemetry.memory,
           density: DashboardDensityScope.of(context),
@@ -568,12 +624,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     );
     final connections = ListenableBuilder(
       listenable: host.telemetryUpdates,
-      builder: (context, _) => _MetricCard(
-        glyph: AppGlyphs.connections,
-        title: l.connections,
-        value: host.connected ? host.telemetry.connections.toString() : '—',
-        onTap: () => host.openConnections(context),
-      ),
+      builder: (context, _) => _FeedsCard(host: host, requests: _requestCount),
     );
     final groups = _MetricCard(
       glyph: AppGlyphs.proxies,
@@ -581,10 +632,12 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
       value: host.connected ? '${_groups.length}' : '—',
       onTap: () => host.openProxies(context),
     );
-    final feed = _FeedCard.connections(
+    final feed = _FeedCard(
       host: host,
       connectionItems: host.connected ? _connections : [],
-      count: host.connected ? host.telemetry.connections : 0,
+      requestItems: host.connected ? _requests : [],
+      connectionCount: host.connected ? host.telemetry.connections : 0,
+      requestCount: host.connected ? _requestCount : 0,
     );
     final network = _ControlCard(
       glyph: AppGlyphs.settings,
@@ -662,27 +715,28 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
           ),
         ],
       ),
-      card(
-        id: 'networkTakeover',
-        label: l.networkTakeover,
-        glyph: AppGlyphs.shuffle,
-        builder: (_) => const IpingNetworkTakeoverCard(),
-        desktop: [
-          if (host.networkTakeover.supportsSystemProxy)
-            IpingDashboardDesktopCard(
-              area: IpingDashboardDesktopArea.control,
-              builder: (_) => const IpingNetworkTakeoverTile(
-                IpingTakeoverSwitch.systemProxy,
+      if (takeover)
+        card(
+          id: 'networkTakeover',
+          label: l.networkTakeover,
+          glyph: AppGlyphs.shuffle,
+          builder: (_) => const IpingNetworkTakeoverCard(),
+          desktop: [
+            if (host.networkTakeover.supportsSystemProxy)
+              IpingDashboardDesktopCard(
+                area: IpingDashboardDesktopArea.control,
+                builder: (_) => const IpingNetworkTakeoverTile(
+                  IpingTakeoverSwitch.systemProxy,
+                ),
               ),
-            ),
-          if (host.networkTakeover.supportsTun)
-            IpingDashboardDesktopCard(
-              area: IpingDashboardDesktopArea.control,
-              builder: (_) =>
-                  const IpingNetworkTakeoverTile(IpingTakeoverSwitch.tun),
-            ),
-        ],
-      ),
+            if (host.networkTakeover.supportsTun)
+              IpingDashboardDesktopCard(
+                area: IpingDashboardDesktopArea.control,
+                builder: (_) =>
+                    const IpingNetworkTakeoverTile(IpingTakeoverSwitch.tun),
+              ),
+          ],
+        ),
       card(
         id: 'profile',
         label: l.profile,
@@ -740,7 +794,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
       card(
         id: 'memory',
         label: l.memoryInfo,
-        description: l.memoryInfoDesc,
+        description: l.memoryCoreOnlyDesc,
         glyph: AppGlyphs.memory,
         builder: (_) => fixed(152, memory),
         desktop: [
@@ -804,27 +858,39 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     }
   }
 
-  Future<void> _restart(BuildContext context) async {
-    final l = AppLocalizations.of(context);
+  Future<void> _toggleConnection(BuildContext context) async {
     final host = IpingDashboardScope.read(context);
-    final result = await showFloatingDialog<bool>(
-      context: context,
-      child: CommonDialog(
-        title: l.restart,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.confirm),
-          ),
-        ],
-        child: Text(l.restartCoreTip),
-      ),
-    );
-    if (result == true) await host.setConnected(true);
+    final l = AppLocalizations.of(context);
+    try {
+      if (!host.connected) {
+        await host.setConnected(true);
+        return;
+      }
+      final result = await showFloatingDialog<bool>(
+        context: context,
+        child: CommonDialog(
+          title: l.stop,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.confirm),
+            ),
+          ],
+          child: Text(l.stopCoreTip),
+        ),
+      );
+      if (result == true) await host.setConnected(false);
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(host.errorText(context, error))));
+      await _load();
+    }
   }
 
   @override
@@ -904,9 +970,9 @@ class _ConnectionCard extends StatelessWidget {
         ],
       ),
       action: DashboardIconButton(
-        glyph: AppGlyphs.settings,
-        tooltip: l.network,
-        onPressed: () => host.openNetwork(context),
+        glyph: AppGlyphs.search,
+        tooltip: l.ipingDiagnostics,
+        onPressed: () => showDashboardDiagnostics(context, host: host),
       ),
     );
   }
@@ -1001,60 +1067,224 @@ class _ControlCard extends StatelessWidget {
   );
 }
 
-class _FeedCard extends StatelessWidget {
-  const _FeedCard.connections({
+enum _DashboardFeed { connections, requests }
+
+class _FeedCard extends StatefulWidget {
+  const _FeedCard({
     required this.host,
     required this.connectionItems,
-    required this.count,
+    required this.requestItems,
+    required this.connectionCount,
+    required this.requestCount,
   });
+
   final IpingDashboardHost host;
   final List<TrackerInfo> connectionItems;
-  final int count;
+  final List<IpingRequest> requestItems;
+  final int connectionCount;
+  final int requestCount;
+
+  @override
+  State<_FeedCard> createState() => _FeedCardState();
+}
+
+class _FeedCardState extends State<_FeedCard> {
+  var _feed = _DashboardFeed.connections;
+
+  String _labelOf(AppLocalizations l, _DashboardFeed feed) => switch (feed) {
+    _DashboardFeed.connections => l.liveConnections,
+    _DashboardFeed.requests => l.requests,
+  };
+
+  int _countOf(_DashboardFeed feed) => switch (feed) {
+    _DashboardFeed.connections => widget.connectionCount,
+    _DashboardFeed.requests => widget.requestCount,
+  };
+
+  void _open(_DashboardFeed feed) {
+    switch (feed) {
+      case _DashboardFeed.connections:
+        widget.host.openConnections(context);
+      case _DashboardFeed.requests:
+        widget.host.openRequests(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final density = DashboardDensityScope.of(context);
     final scale = DashboardDensityScope.scaleOf(context);
     final height = dashboardTableTabHeight(density) * scale;
-    void open() => host.openConnections(context);
+    Widget segment(_DashboardFeed feed) => DashboardConnectedButton(
+      selected: _feed == feed,
+      first: feed == _DashboardFeed.connections,
+      last: feed == _DashboardFeed.requests,
+      outer: height / 2,
+      inner: 8,
+      background: DashboardColors.of(context).tone,
+      semanticLabel: _labelOf(l, feed),
+      onTap: () {
+        if (_feed != feed) setState(() => _feed = feed);
+      },
+      builder: (foreground) => DashboardFeedSegment(
+        label: _labelOf(l, feed),
+        count: DashboardFeedCount(_countOf(feed)),
+        height: height,
+        foreground: foreground,
+      ),
+    );
+    final table = switch (_feed) {
+      _DashboardFeed.connections => DashboardRecordTable<TrackerInfo>(
+        key: const ValueKey('dashboard.connections'),
+        tableId: 'dashboard.connections',
+        items: widget.connectionItems,
+        rowHeight: dashboardTableRowHeight(density) * scale,
+        columnsOf: (width) => dashboardConnectionColumns(context, width),
+      ),
+      _DashboardFeed.requests => DashboardRecordTable<IpingRequest>(
+        key: const ValueKey('dashboard.requests'),
+        tableId: 'dashboard.requests',
+        items: widget.requestItems,
+        rowHeight: dashboardTableRowHeight(density) * scale,
+        columnsOf: (width) => dashboardRequestColumns(context, width),
+      ),
+    };
     return DashboardRecordCard(
       header: DashboardCappedRow(
         start: FittedBox(
           fit: BoxFit.scaleDown,
           alignment: AlignmentDirectional.centerStart,
           child: DashboardConnectedGroup(
-            children: [
-              DashboardConnectedButton(
-                selected: true,
-                first: true,
-                last: true,
-                outer: height / 2,
-                inner: 8,
-                background: DashboardColors.of(context).tone,
-                semanticLabel: l.liveConnections,
-                onTap: open,
-                builder: (foreground) => DashboardFeedSegment(
-                  label: l.liveConnections,
-                  count: DashboardFeedCount(count),
-                  height: height,
-                  foreground: foreground,
-                ),
-              ),
-            ],
+            children: [for (final feed in _DashboardFeed.values) segment(feed)],
           ),
         ),
         end: DashboardIconButton(
           glyph: AppGlyphs.chevronForward,
-          tooltip: l.liveConnections,
-          onPressed: open,
+          tooltip: _labelOf(l, _feed),
+          onPressed: () => _open(_feed),
         ),
       ),
-      child: DashboardRecordTable<TrackerInfo>(
-        tableId: 'dashboard.connections',
-        items: connectionItems,
-        rowHeight: dashboardTableRowHeight(density) * scale,
-        columnsOf: (width) => dashboardConnectionColumns(context, width),
+      child: table,
+    );
+  }
+}
+
+class _FeedsCard extends StatelessWidget {
+  const _FeedsCard({required this.host, required this.requests});
+
+  final IpingDashboardHost host;
+  final int requests;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return DashboardCard(
+      semanticLabel: l.connectionStats,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DashboardCardHeader(
+            glyph: AppGlyphs.connections,
+            title: l.connectionStats,
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _FeedStat(
+                    label: l.liveConnections,
+                    count: host.connected ? host.telemetry.connections : 0,
+                    onTap: () => host.openConnections(context),
+                  ),
+                ),
+                Expanded(
+                  child: _FeedStat(
+                    label: l.requests,
+                    count: host.connected ? requests : 0,
+                    onTap: () => host.openRequests(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _FeedStat extends StatelessWidget {
+  const _FeedStat({
+    required this.label,
+    required this.count,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        customBorder: AppShape.all(DashboardCorner.block),
+        hoverColor: DashboardColors.of(context).tone,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 2,
+                children: [
+                  Text(
+                    dashboardCount(count),
+                    maxLines: 1,
+                    style: DashboardText.figure(
+                      context,
+                      AppTextStyle.title2,
+                    ).copyWith(letterSpacing: 0),
+                  ),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: DashboardText.label(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DelayText extends StatelessWidget {
+  const _DelayText(this.delay);
+
+  final int delay;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Text(
+      delay > 0 ? '$delay ms' : delayFailureText(delay, l),
+      maxLines: 1,
+      style: AppTextStyle.caption1
+          .of(context, emphasized: true)
+          .toTabular
+          .copyWith(
+            color: context.colorScheme.delayColor(delay > 0 ? delay : -1),
+          ),
     );
   }
 }

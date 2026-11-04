@@ -26,6 +26,8 @@ class RouterPreferences implements IpingDashboardPreferences {
   String testUrl = 'https://www.gstatic.com/generate_204';
   bool closeConnections = true;
   bool openLogs = false;
+  bool sidebarExpanded = true;
+  List<String> userAgents = [];
   @override
   bool hideIp = false;
   @override
@@ -44,9 +46,11 @@ class RouterPreferences implements IpingDashboardPreferences {
     value.locale = json['locale'] is String ? json['locale'] as String : null;
     value.glass = _enum(LiquidGlassMode.values, json['glass'], value.glass);
     if (json.containsKey('primaryColor')) {
+      // The browser cannot report a platform accent, so "follow system"
+      // resolves to the app's default instead of a made-up system color.
       value.primaryColor = json['primaryColor'] is int
           ? json['primaryColor'] as int
-          : null;
+          : defaultPrimaryColor;
     }
     if (json['primaryColors'] case final List colors) {
       final valid = colors
@@ -109,6 +113,14 @@ class RouterPreferences implements IpingDashboardPreferences {
     }
     value.closeConnections = json['closeConnections'] != false;
     value.openLogs = json['openLogs'] == true;
+    value.sidebarExpanded = json['sidebarExpanded'] != false;
+    value.userAgents =
+        (json['userAgents'] as List?)
+            ?.whereType<String>()
+            .where((value) => value.isNotEmpty && value.length <= 2048)
+            .take(64)
+            .toList() ??
+        [];
     value.hideIp = json['hideIp'] == true;
     value.serviceOrder =
         (json['serviceOrder'] as List?)?.whereType<String>().toList() ?? [];
@@ -135,6 +147,8 @@ class RouterPreferences implements IpingDashboardPreferences {
     'testUrl': testUrl,
     'closeConnections': closeConnections,
     'openLogs': openLogs,
+    'sidebarExpanded': sidebarExpanded,
+    'userAgents': userAgents,
     'hideIp': hideIp,
     'serviceOrder': serviceOrder,
     'disabledServices': disabledServices,

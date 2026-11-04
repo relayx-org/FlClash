@@ -66,13 +66,20 @@ func (a *app) buildProfile(source []byte, settings map[string]any) ([]byte, erro
 	if yaml.Unmarshal(data, &config) != nil || config == nil {
 		return nil, failure("invalid_request")
 	}
-	for _, key := range []string{"tun.enable", "tun.device", "dns.enable", "dns.listen"} {
+	for _, key := range []string{"tun.enable", "tun.device", "dns.enable"} {
 		value := settingsSpec[key].Default
 		if saved, ok := settings[key]; ok {
 			value = saved
 		}
 		setYAMLSetting(config, key, value)
 	}
+	clientDNSListen := fmt.Sprint(settingsSpec["dns.listen"].Default)
+	if saved, ok := settings["dns.listen"]; ok && saved != nil {
+		clientDNSListen = fmt.Sprint(saved)
+	}
+	// The Agent owns the client-facing address; Mihomo listens on loopback so
+	// the Agent can record queries before forwarding them.
+	setYAMLSetting(config, "dns.listen", mihomoDNSListen)
 	device, _ := yamlSetting(config, "tun.device").(string)
 	if !tunName.MatchString(device) {
 		return nil, failure("invalid_request")
@@ -136,9 +143,15 @@ func (a *app) buildProfile(source []byte, settings map[string]any) ([]byte, erro
 		ports[number] = number != 0
 	}
 	if yamlSetting(config, "dns.enable") == true {
-		_, dnsPort, err := net.SplitHostPort(fmt.Sprint(yamlSetting(config, "dns.listen")))
+		_, dnsPort, err := net.SplitHostPort(mihomoDNSListen)
 		number, parseErr := strconv.Atoi(dnsPort)
 		if err != nil || parseErr != nil || number < 1024 || number > 65535 || ports[number] {
+			return nil, failure("invalid_request")
+		}
+		_, clientPort, err := net.SplitHostPort(clientDNSListen)
+		clientNumber, parseErr := strconv.Atoi(clientPort)
+		if err != nil || parseErr != nil || clientNumber < 1024 || clientNumber > 65535 ||
+			clientNumber == number || ports[clientNumber] {
 			return nil, failure("invalid_request")
 		}
 	}

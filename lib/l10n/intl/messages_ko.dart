@@ -1177,9 +1177,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "안전 모드에서는 프록시와 출구를 확인할 수 없습니다.",
     ),
+    "ipingSaveImage": MessageLookupByLibrary.simpleMessage("이미지 저장"),
+    "ipingSaveImageFailed": MessageLookupByLibrary.simpleMessage(
+      "이미지를 저장하지 못했습니다. 다시 시도해 주세요.",
+    ),
     "ipingSessionExpired": MessageLookupByLibrary.simpleMessage(
       "로그인이 만료되었습니다. 다시 로그인하세요.",
     ),
+    "ipingShareImage": MessageLookupByLibrary.simpleMessage("이미지 공유"),
+    "ipingShareImageFailed": MessageLookupByLibrary.simpleMessage(
+      "이미지를 공유하지 못했습니다. 다시 시도해 주세요.",
+    ),
+    "ipingSharePoster": MessageLookupByLibrary.simpleMessage("포스터 공유"),
     "ipingSignIn": MessageLookupByLibrary.simpleMessage("로그인"),
     "ipingSignOut": MessageLookupByLibrary.simpleMessage("로그아웃"),
     "ipingStartToCheck": MessageLookupByLibrary.simpleMessage(
@@ -1535,11 +1544,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "maximize": MessageLookupByLibrary.simpleMessage("최대화"),
     "memoryAppResident": MessageLookupByLibrary.simpleMessage("상주 메모리"),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("앱 및 공유"),
+    "memoryAppUnavailable": MessageLookupByLibrary.simpleMessage(
+      "여기에서는 앱 메모리를 읽을 수 없습니다.",
+    ),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("유휴 힙"),
     "memoryCoreHeapInuse": MessageLookupByLibrary.simpleMessage("사용 중인 힙"),
     "memoryCoreNotRunning": MessageLookupByLibrary.simpleMessage(
       "코어가 실행 중이 아닙니다",
     ),
+    "memoryCoreOnlyDesc": MessageLookupByLibrary.simpleMessage("코어 메모리만"),
+    "memoryCoreResident": MessageLookupByLibrary.simpleMessage("코어 상주 메모리"),
     "memoryCoreRuntime": MessageLookupByLibrary.simpleMessage("런타임 오버헤드"),
     "memoryCoreStack": MessageLookupByLibrary.simpleMessage("고루틴 스택"),
     "memoryEstimateDesc": MessageLookupByLibrary.simpleMessage(
@@ -2072,6 +2086,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "DNS를 끄면 시스템 DNS를 사용합니다.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("중지"),
+    "stopCoreTip": MessageLookupByLibrary.simpleMessage("코어를 중지하시겠습니까?"),
     "stopVpn": MessageLookupByLibrary.simpleMessage("VPN 중지 중…"),
     "strategy": MessageLookupByLibrary.simpleMessage("전략"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("엄격한 라우팅"),

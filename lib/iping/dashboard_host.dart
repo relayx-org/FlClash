@@ -106,6 +106,11 @@ abstract interface class IpingNetworkTakeover {
   Future<void> setTun(bool value);
 }
 
+/// Delays a host already knows for its proxy groups, when it has them.
+abstract interface class IpingDashboardProxyStatus {
+  int? delayOf(String group);
+}
+
 /// The shared dashboard host contract.
 abstract interface class IpingDashboardHost implements Listenable {
   IpingBackend get backend;
@@ -124,6 +129,9 @@ abstract interface class IpingDashboardHost implements Listenable {
   IpingDashboardProbes get probes;
   IpingNetworkTakeover get networkTakeover;
 
+  /// Proxy group delays, or null when the host cannot measure them.
+  IpingDashboardProxyStatus? get proxyStatus;
+
   /// Cards the host builds itself; null builds the page's own card set.
   IpingDashboardEditor? get dashboardEditor;
 
@@ -140,8 +148,9 @@ abstract interface class IpingDashboardHost implements Listenable {
   Future<void> saveSettings(Map<String, Object?> changes);
   String errorText(BuildContext context, Object error);
   void openSubscription(BuildContext context);
-  void openProxies(BuildContext context);
+  void openProxies(BuildContext context, {String? group});
   void openConnections(BuildContext context);
+  void openRequests(BuildContext context);
   void openServices(BuildContext context);
   void openNetwork(BuildContext context);
   void openIpQuality(BuildContext context, String ip);

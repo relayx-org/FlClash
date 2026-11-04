@@ -5,6 +5,9 @@ import '../ui/ui.dart';
 import 'account_widgets.dart';
 import 'site_config.dart';
 
+/// Keeps the settings list's scroll position on every host that shows it.
+const ipingSettingsStoreKey = PageStorageKey<String>('tools');
+
 class IpingSettingsLink {
   const IpingSettingsLink({
     required this.glyph,

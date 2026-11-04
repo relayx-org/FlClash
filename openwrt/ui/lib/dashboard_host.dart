@@ -172,19 +172,31 @@ class RouterNetworkTakeover implements IpingNetworkTakeover {
   }
 }
 
+class RouterDashboardProxyStatus implements IpingDashboardProxyStatus {
+  RouterDashboardProxyStatus(this._controller, this._testUrl);
+
+  final RouterController _controller;
+  final String Function() _testUrl;
+
+  @override
+  int? delayOf(String group) => _controller.delayFor(group, _testUrl());
+}
+
 class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   RouterDashboardHost(
     this.controller, {
     required RouterPreferences preferences,
     required String Function(BuildContext context, Object error) describeError,
     required void Function(BuildContext context) openSubscription,
-    required void Function(BuildContext context) openProxies,
+    required void Function(BuildContext context, {String? group}) openProxies,
     required void Function(BuildContext context) openConnections,
+    required void Function(BuildContext context) openRequests,
     required void Function(BuildContext context) openServices,
     required void Function(BuildContext context) openNetwork,
     required void Function(BuildContext context, String ip) openIpQuality,
     required void Function(List<String> ids) persistDashboardCards,
   }) : _preferences = preferences,
+       _routerPreferences = preferences,
        _hideIp = preferences.hideIp,
        _serviceOrder = List.of(preferences.serviceOrder),
        _disabledServices = List.of(preferences.disabledServices),
@@ -193,6 +205,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
        _openSubscription = openSubscription,
        _openProxies = openProxies,
        _openConnections = openConnections,
+       _openRequests = openRequests,
        _openServices = openServices,
        _openNetwork = openNetwork,
        _openIpQuality = openIpQuality,
@@ -201,19 +214,25 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
        telemetryUpdates = RouterDashboardTelemetry(controller),
        _status = _statusOf(controller) {
     _networkTakeover = RouterNetworkTakeover(controller, notifyListeners);
+    _proxyStatus = RouterDashboardProxyStatus(
+      controller,
+      () => _routerPreferences.testUrl,
+    );
     controller.addListener(_controllerChanged);
   }
 
   final RouterController controller;
   IpingDashboardPreferences _preferences;
+  RouterPreferences _routerPreferences;
   bool _hideIp;
   List<String> _serviceOrder;
   List<String> _disabledServices;
   List<String> _dashboardCards;
   final String Function(BuildContext context, Object error) _describeError;
   final void Function(BuildContext context) _openSubscription;
-  final void Function(BuildContext context) _openProxies;
+  final void Function(BuildContext context, {String? group}) _openProxies;
   final void Function(BuildContext context) _openConnections;
+  final void Function(BuildContext context) _openRequests;
   final void Function(BuildContext context) _openServices;
   final void Function(BuildContext context) _openNetwork;
   final void Function(BuildContext context, String ip) _openIpQuality;
@@ -224,10 +243,14 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   @override
   final RouterDashboardTelemetry telemetryUpdates;
   late final RouterNetworkTakeover _networkTakeover;
+  late final RouterDashboardProxyStatus _proxyStatus;
   Object _status;
 
   @override
   IpingNetworkTakeover get networkTakeover => _networkTakeover;
+
+  @override
+  IpingDashboardProxyStatus get proxyStatus => _proxyStatus;
 
   static Object _statusOf(RouterController controller) => (
     controller.signedIn,
@@ -241,6 +264,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
     controller.error,
     controller.telemetry.mode,
     controller.revision,
+    controller.delayRevision,
     controller.siteConfig,
   );
 
@@ -252,6 +276,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   }
 
   void updatePreferences(RouterPreferences value) {
+    _routerPreferences = value;
     _preferences = value;
     final serviceOrder = List.of(value.serviceOrder);
     final disabledServices = List.of(value.disabledServices);
@@ -332,9 +357,12 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   @override
   void openSubscription(BuildContext context) => _openSubscription(context);
   @override
-  void openProxies(BuildContext context) => _openProxies(context);
+  void openProxies(BuildContext context, {String? group}) =>
+      _openProxies(context, group: group);
   @override
   void openConnections(BuildContext context) => _openConnections(context);
+  @override
+  void openRequests(BuildContext context) => _openRequests(context);
   @override
   void openServices(BuildContext context) => _openServices(context);
   @override

@@ -8,6 +8,7 @@ import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/pages/account_page.dart';
 import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/referral_poster.dart';
 import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/iping/topup_form.dart';
 import 'package:fl_clash/iping/topup_history.dart';
@@ -142,7 +143,8 @@ class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
             if (referrals != null)
               IpingReferralSection(
                 stats: referrals,
-                onShare: () => shareText(referrals.link),
+                onShare: () =>
+                    showIpingReferralShare(context, link: referrals.link),
               ),
           ],
         ],

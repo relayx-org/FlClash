@@ -1056,10 +1056,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -1464,8 +1463,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "В безопасном режиме проверка прокси и выхода недоступна.",
     ),
+    "ipingSaveImage": MessageLookupByLibrary.simpleMessage(
+      "Сохранить изображение",
+    ),
+    "ipingSaveImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось сохранить изображение. Повторите попытку.",
+    ),
     "ipingSessionExpired": MessageLookupByLibrary.simpleMessage(
       "Сеанс недействителен. Войдите снова.",
+    ),
+    "ipingShareImage": MessageLookupByLibrary.simpleMessage(
+      "Поделиться изображением",
+    ),
+    "ipingShareImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось поделиться изображением. Повторите попытку.",
+    ),
+    "ipingSharePoster": MessageLookupByLibrary.simpleMessage(
+      "Поделиться постером",
     ),
     "ipingSignIn": MessageLookupByLibrary.simpleMessage("Войти"),
     "ipingSignOut": MessageLookupByLibrary.simpleMessage("Выйти"),
@@ -1912,6 +1926,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "memoryAppShared": MessageLookupByLibrary.simpleMessage(
       "Приложение и общая",
     ),
+    "memoryAppUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Память приложения здесь недоступна.",
+    ),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage(
       "Свободная куча",
     ),
@@ -1920,6 +1937,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "memoryCoreNotRunning": MessageLookupByLibrary.simpleMessage(
       "Ядро не запущено",
+    ),
+    "memoryCoreOnlyDesc": MessageLookupByLibrary.simpleMessage(
+      "Только память ядра",
+    ),
+    "memoryCoreResident": MessageLookupByLibrary.simpleMessage(
+      "Резидентная память ядра",
     ),
     "memoryCoreRuntime": MessageLookupByLibrary.simpleMessage(
       "Накладные расходы среды",
@@ -2581,6 +2604,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "При отключённом DNS используется системный DNS.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Стоп"),
+    "stopCoreTip": MessageLookupByLibrary.simpleMessage(
+      "Вы уверены, что хотите остановить ядро?",
+    ),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Остановка VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Стратегия"),
     "strictRoute": MessageLookupByLibrary.simpleMessage(

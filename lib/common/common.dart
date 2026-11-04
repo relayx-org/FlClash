@@ -8,6 +8,7 @@ export 'constant.dart';
 export 'context.dart';
 export 'converter.dart';
 export 'datetime.dart';
+export 'delay.dart';
 export 'dialog.dart';
 export 'exception.dart';
 export 'feature.dart';

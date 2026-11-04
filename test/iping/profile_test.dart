@@ -143,20 +143,9 @@ void main() {
     expect(find.text('¥29.90'), findsOneWidget);
     expect(find.text('10%'), findsOneWidget);
 
-    const shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
-    final shared = <MethodCall>[];
-    final messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(shareChannel, (call) async {
-      shared.add(call);
-      return 'dev.fluttercommunity.plus/share/success';
-    });
-    addTearDown(() => messenger.setMockMethodCallHandler(shareChannel, null));
     await tester.tap(find.byTooltip('Share'));
-    await tester.pumpAndSettle();
-    expect(shared, hasLength(1));
-    expect(shared.single.method, 'share');
-    expect(shared.single.arguments['text'], contains('?ref=7'));
+    await tester.pump();
+    expect(find.text('Share poster'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

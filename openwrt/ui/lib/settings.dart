@@ -23,6 +23,7 @@ import 'package:fl_clash/views/config/custom_resources_page.dart';
 import 'package:fl_clash/views/config/general_page.dart';
 import 'package:fl_clash/views/config/port_form.dart';
 import 'package:fl_clash/widgets/input.dart';
+import 'package:fl_clash/widgets/user_agents.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app.dart';
@@ -217,46 +218,6 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
           onChanged: (value) => _change(key, value),
         ),
       );
-  Widget _input(
-    String key,
-    String title, {
-    int? min,
-    int? max,
-    int length = TextInputLimits.domain,
-  }) {
-    final l = AppLocalizations.of(context);
-    return _overrideRow(
-      key,
-      ConfigTextValue(
-        key: ValueKey(key),
-        title: title,
-        value: _text(key),
-        maxLength: length,
-        keyboardType: min == null ? TextInputType.text : TextInputType.number,
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) return l.emptyTip(title);
-          if (min != null) {
-            final number = int.tryParse(value);
-            if (number == null || number < min || number > max!) {
-              return l.numberTip(title);
-            }
-          }
-          try {
-            _values!.validate({key: min == null ? value : int.parse(value)});
-            return null;
-          } on IpingSettingsException catch (error) {
-            return _errorMessage(error);
-          }
-        },
-        onChanged: (value) {
-          if (value != null) {
-            unawaited(_change(key, min == null ? value : int.parse(value)));
-          }
-        },
-      ),
-    );
-  }
-
   Widget _listRow(
     String key,
     String title, {
@@ -311,6 +272,7 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
   Widget _general(BuildContext context) {
     final l = AppLocalizations.of(context);
     final app = RouterAppState.of(context);
+    final selected = _text('global-ua');
     int port(String key) => (_values?[key] as num?)?.toInt() ?? 0;
     return GeneralSettingsPage(
       notices: [ErrorBanner(message: _error)],
@@ -337,7 +299,20 @@ class _RouterCoreSettingsState extends State<RouterCoreSettings> {
             }
           },
         ),
-        _input('global-ua', l.userAgent, length: TextInputLimits.url),
+        _overrideRow(
+          'global-ua',
+          ListItem.open(
+            title: Text(l.userAgent),
+            subtitle: Text(selected.isEmpty ? l.defaultText : selected),
+            widget: UserAgentsPage(
+              entries: app.preferences.userAgents,
+              selected: selected.isEmpty ? null : selected,
+              onChanged: (values) =>
+                  app.updatePreferences((prefs) => prefs.userAgents = values),
+              onSelected: (value) => unawaited(_change('global-ua', value)),
+            ),
+          ),
+        ),
       ],
       inbound: [
         ListItem(

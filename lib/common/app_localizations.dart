@@ -1,4 +1,3 @@
-import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/common/exception.dart';
 import 'package:fl_clash/common/network_error.dart';
 import 'package:fl_clash/core/desktop/launch_policy.dart';
@@ -7,6 +6,7 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/iping/settings_error.dart';
 import 'package:flutter/widgets.dart';
 
+export 'package:fl_clash/common/delay.dart';
 export 'package:fl_clash/l10n/ui_localizations.dart';
 
 final currentAppLocalizations = AppLocalizations.current;
@@ -42,12 +42,6 @@ String userFacingErrorMessage(Object error, AppLocalizations appLocalizations) {
         CoreMethodException(:final message) => message,
         _ => error.toString(),
       };
-}
-
-String delayFailureText(int delay, AppLocalizations appLocalizations) {
-  return delay == delayTimedOutValue
-      ? appLocalizations.timeout
-      : appLocalizations.delayFailed;
 }
 
 Locale? getLocaleForString(String? localString) {

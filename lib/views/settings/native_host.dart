@@ -30,7 +30,7 @@ class NativeSettingsRoute extends ConsumerWidget {
     final site = ref.watch(ipingSiteConfigProvider);
     return IpingSettingsPage(
       host: _NativeSettingsHost(
-        storageKey: toolsStoreKey,
+        storageKey: ipingSettingsStoreKey,
         accountSummary: context.isMobileView && session.hasSubscription
             ? IpingAccountSummaryData(
                 label: session.signedIn

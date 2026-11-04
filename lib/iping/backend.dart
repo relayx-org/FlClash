@@ -7,6 +7,7 @@ import 'backend_resources.dart';
 import 'site_config.dart';
 import 'profile_resources.dart';
 import 'backend_dashboard.dart';
+import 'backend_requests.dart';
 import 'user_info.dart';
 import '../common/routed_probe.dart';
 import '../common/service_probe_data.dart';
@@ -18,6 +19,7 @@ export 'backend_telemetry.dart';
 export 'backend_resources.dart';
 export 'profile_resources.dart';
 export 'backend_dashboard.dart';
+export 'backend_requests.dart';
 export 'user_info.dart';
 export '../common/routed_probe.dart';
 export '../common/service_probe_data.dart';
@@ -96,6 +98,7 @@ abstract interface class IpingBackend {
   Future<IpingConnectionPage> readConnections([
     IpingConnectionQuery query = const IpingConnectionQuery(),
   ]);
+  Future<IpingRequestPage> readRequests({int limit = ipingBackendPageSize});
   Future<int> readConnectionCount();
   Future<void> closeConnection(String id);
   Future<void> closeConnections();

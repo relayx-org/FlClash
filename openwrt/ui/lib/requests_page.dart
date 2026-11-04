@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fl_clash/enum/page_label.dart';
+import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
 import 'package:fl_clash/ui/error_banner.dart';
@@ -18,7 +19,7 @@ class RouterRequests extends StatefulWidget {
 
 class _RouterRequestsState extends State<RouterRequests> {
   Timer? _timer;
-  List<Map<String, Object?>> _items = const [];
+  List<IpingRequest> _items = const [];
   String? _error;
   bool _loading = true;
 
@@ -31,13 +32,10 @@ class _RouterRequestsState extends State<RouterRequests> {
 
   Future<void> _load() async {
     try {
-      final result = await RouterScope.read(context).client.call('requests');
+      final result = await RouterScope.read(context).backend.readRequests();
       if (!mounted) return;
       setState(() {
-        _items = [
-          for (final item in (result as List? ?? const []))
-            if (item is Map) Map<String, Object?>.from(item),
-        ];
+        _items = result.items;
         _error = null;
         _loading = false;
       });
@@ -88,25 +86,23 @@ class _RouterRequestsState extends State<RouterRequests> {
 class _RequestTile extends StatelessWidget {
   const _RequestTile({required this.item});
 
-  final Map<String, Object?> item;
+  final IpingRequest item;
 
   @override
   Widget build(BuildContext context) {
-    final host = (item['host'] as String?)?.trim();
-    final destination = item['destination'] as String? ?? '';
-    final source = item['source'] as String? ?? '';
-    final rule = item['rule'] as String? ?? '';
-    final chains = (item['chains'] as List? ?? const []).join(' → ');
-    final traffic =
-        '${_size(item['download'] as num? ?? 0)} ↓ / ${_size(item['upload'] as num? ?? 0)} ↑';
-    final seconds = item['duration'] as num? ?? 0;
+    final host = item.host.trim();
+    final destination = item.destination;
+    final source = item.source;
+    final rule = '${item.rule} ${item.rulePayload}'.trim();
+    final chains = item.chains.join(' → ');
+    final traffic = '${_size(item.download)} ↓ / ${_size(item.upload)} ↑';
     final detail = [
       if (source.isNotEmpty) source,
       if (rule.isNotEmpty) rule,
       if (chains.isNotEmpty) chains,
       traffic,
-      '${seconds.toInt()}s',
-      if (item['closed'] == true) 'closed',
+      '${item.duration.inSeconds}s',
+      if (item.closed) 'closed',
     ].join(' · ');
     return CommonCard(
       child: Padding(
@@ -115,7 +111,7 @@ class _RequestTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              host == null || host.isEmpty ? destination : host,
+              host.isEmpty ? destination : host,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyle.body

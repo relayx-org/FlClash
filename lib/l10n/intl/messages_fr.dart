@@ -1087,10 +1087,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Saisissez le contenu de la règle",
     ),
-    "installedAppsPermissionDeniedMessage":
-        MessageLookupByLibrary.simpleMessage(
-          "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
-        ),
+    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
+      "L’autorisation de la liste des apps a été refusée ; les apps installées ne peuvent donc pas être listées. Veuillez l’accorder manuellement dans les réglages du système.",
+    ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Ce système masque la liste des apps installées tant que l’autorisation n’est pas accordée. Accordez-la pour configurer le proxy par app.",
     ),
@@ -1503,8 +1502,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Vérifications du proxy et de la sortie indisponibles en mode sans échec.",
     ),
+    "ipingSaveImage": MessageLookupByLibrary.simpleMessage(
+      "Enregistrer l’image",
+    ),
+    "ipingSaveImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible d’enregistrer l’image. Réessayez.",
+    ),
     "ipingSessionExpired": MessageLookupByLibrary.simpleMessage(
       "Votre session a expiré. Reconnectez-vous.",
+    ),
+    "ipingShareImage": MessageLookupByLibrary.simpleMessage("Partager l’image"),
+    "ipingShareImageFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible de partager l’image. Réessayez.",
+    ),
+    "ipingSharePoster": MessageLookupByLibrary.simpleMessage(
+      "Partager l’affiche",
     ),
     "ipingSignIn": MessageLookupByLibrary.simpleMessage("Se connecter"),
     "ipingSignOut": MessageLookupByLibrary.simpleMessage("Se déconnecter"),
@@ -1963,10 +1975,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Mémoire résidente",
     ),
     "memoryAppShared": MessageLookupByLibrary.simpleMessage("App et partagée"),
+    "memoryAppUnavailable": MessageLookupByLibrary.simpleMessage(
+      "La mémoire de l’application n’est pas disponible ici.",
+    ),
     "memoryCoreHeapIdle": MessageLookupByLibrary.simpleMessage("Tas inactif"),
     "memoryCoreHeapInuse": MessageLookupByLibrary.simpleMessage("Tas utilisé"),
     "memoryCoreNotRunning": MessageLookupByLibrary.simpleMessage(
       "Le cœur n’est pas en cours d’exécution",
+    ),
+    "memoryCoreOnlyDesc": MessageLookupByLibrary.simpleMessage(
+      "Mémoire du cœur uniquement",
+    ),
+    "memoryCoreResident": MessageLookupByLibrary.simpleMessage(
+      "Mémoire résidente du cœur",
     ),
     "memoryCoreRuntime": MessageLookupByLibrary.simpleMessage(
       "Surcharge du runtime",
@@ -2652,6 +2673,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Si DNS est désactivé, le DNS du système est utilisé.",
     ),
     "stop": MessageLookupByLibrary.simpleMessage("Arrêter"),
+    "stopCoreTip": MessageLookupByLibrary.simpleMessage(
+      "Voulez-vous vraiment arrêter le cœur ?",
+    ),
     "stopVpn": MessageLookupByLibrary.simpleMessage("Arrêt du VPN…"),
     "strategy": MessageLookupByLibrary.simpleMessage("Stratégie"),
     "strictRoute": MessageLookupByLibrary.simpleMessage("Route stricte"),
