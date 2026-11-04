@@ -88,7 +88,7 @@ void main() {
     expect(find.text('¥128.50'), findsOneWidget);
     expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
     expect(find.byType(IpingSubscriptionSection), findsOneWidget);
-    expect(find.text('2 available nodes'), findsOneWidget);
+    expect(find.text('2 available nodes'), findsNothing);
     expect(find.text('Paid'), findsNothing);
     expect(
       find.descendant(

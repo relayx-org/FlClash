@@ -136,11 +136,6 @@ class IpingReferralSection extends StatelessWidget {
                 onPressed: () => _share(context),
                 icon: const GlyphIcon(AppGlyphs.upload),
               ),
-              IconButton(
-                tooltip: l.copyLink,
-                onPressed: () => _copy(context),
-                icon: const GlyphIcon(AppGlyphs.copy),
-              ),
             ],
           ),
           onTap: () => _copy(context),

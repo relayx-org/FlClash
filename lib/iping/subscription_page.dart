@@ -130,14 +130,7 @@ class IpingSubscriptionSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (nodes > 0)
-                      Text(
-                        l.ipingNodeCount(nodes),
-                        style: AppTextStyle.title3
-                            .of(context, emphasized: true)
-                            .toTabular,
-                      )
-                    else
+                    if (nodes == 0)
                       Text(
                         manualSubscription
                             ? l.ipingManualNoNodes
@@ -147,7 +140,7 @@ class IpingSubscriptionSection extends StatelessWidget {
                             .copyWith(color: scheme.onSurfaceVariant),
                       ),
                     if (updatedText case final text?) ...[
-                      const SizedBox(height: 4),
+                      if (nodes == 0) const SizedBox(height: 4),
                       Text(text, style: context.listCaptionStyle),
                     ],
                   ],
