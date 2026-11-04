@@ -16,9 +16,11 @@ import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/ui/record.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:fl_clash/enum/navigation_item_mode.dart';
 import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
+import 'package:fl_clash/pages/navigation_spec.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'client.dart';
@@ -375,7 +377,7 @@ class RouterHome extends StatefulWidget {
 }
 
 class _RouterHomeState extends State<RouterHome> {
-  int _page = 0;
+  PageLabel _page = PageLabel.dashboard;
   bool _expanded = true;
   String? _shownError;
 
@@ -385,23 +387,37 @@ class _RouterHomeState extends State<RouterHome> {
     final l = AppLocalizations.of(context);
     final mobile = context.isMobileView;
     final preferences = RouterAppState.of(context).preferences;
-    final items = [
-      (PageLabel.dashboard.glyph, PageLabel.dashboard.labelOf(l), 0),
-      (PageLabel.proxies.glyph, PageLabel.proxies.labelOf(l), 1),
-      if (!mobile) (PageLabel.nativeIp.glyph, PageLabel.nativeIp.labelOf(l), 5),
-      if (!mobile) (PageLabel.tunnels.glyph, PageLabel.tunnels.labelOf(l), 6),
-      if (!mobile)
-        (PageLabel.connections.glyph, PageLabel.connections.labelOf(l), 2),
-      if (!mobile && preferences.openLogs)
-        (PageLabel.logs.glyph, PageLabel.logs.labelOf(l), 4),
-      (PageLabel.tools.glyph, PageLabel.tools.labelOf(l), 3),
+    final pages = <PageLabel, Widget>{
+      PageLabel.dashboard: const RouterDashboard(),
+      PageLabel.proxies: const RouterProxies(),
+      PageLabel.connections: const RouterConnections(),
+      PageLabel.logs: const RouterLogs(),
+      PageLabel.tools: const RouterTools(),
+      PageLabel.nativeIp: const IpingNativeIpPage(),
+      PageLabel.tunnels: const IpingTunnelsPage(),
+      PageLabel.account: const RouterSubscription(),
+    };
+    final mode = mobile
+        ? NavigationItemMode.mobile
+        : NavigationItemMode.desktop;
+    final entries = [
+      for (final label in appNavigationOrder)
+        if (pages[label] case final page?)
+          for (final modes in [
+            navigationModesFor(
+              label,
+              openLogs: preferences.openLogs,
+              hasProxies: true,
+              signedIn: controller.signedIn,
+              hasSubscription: controller.status.hasSubscription,
+            ),
+          ])
+            if (modes.contains(mode)) (label, page),
     ];
-    final page = mobile && (_page == 2 || _page == 4)
-        ? 3
-        : _page == 4 && !preferences.openLogs
-        ? 0
-        : _page;
-    final selected = items.indexWhere((item) => item.$3 == page);
+    final selected = entries.indexWhere((entry) => entry.$1 == _page);
+    final index = selected == -1 ? 0 : selected;
+    final labels = [for (final entry in entries) entry.$1];
+    if (entries.isNotEmpty) _page = entries[index].$1;
     final error = controller.error;
     if (error == null) _shownError = null;
     if (error != null && error != _shownError) {
@@ -414,35 +430,17 @@ class _RouterHomeState extends State<RouterHome> {
         }
       });
     }
-    final pages = [
-      const RouterDashboard(),
-      const RouterProxies(),
-      const RouterConnections(),
-      const RouterTools(),
-      const RouterLogs(),
-      const IpingNativeIpPage(),
-      const IpingTunnelsPage(),
-    ];
-    final labels = [
-      PageLabel.dashboard,
-      PageLabel.proxies,
-      if (!mobile) PageLabel.connections,
-      if (!mobile && preferences.openLogs) PageLabel.logs,
-      PageLabel.tools,
-      if (!mobile) PageLabel.nativeIp,
-      if (!mobile) PageLabel.tunnels,
-    ];
     final body = AppPagesView(
       labels: labels,
-      selectedPage: labels[selected],
+      selectedPage: labels[index],
       mobile: mobile,
       animation: preferences.animation,
-      pageBuilder: (_, index) => AppNavigationPage(
-        key: ValueKey(labels[index]),
-        id: labels[index],
+      pageBuilder: (_, pageIndex) => AppNavigationPage(
+        key: ValueKey(labels[pageIndex]),
+        id: labels[pageIndex],
         mobile: mobile,
-        active: index == selected,
-        child: pages[items[index].$3],
+        active: pageIndex == index,
+        child: entries[pageIndex].$2,
       ),
     );
     return Scaffold(
@@ -450,26 +448,34 @@ class _RouterHomeState extends State<RouterHome> {
         hasSidebar: !mobile,
         sidebar: NavigationSidebar(
           destinations: [
-            for (final item in items)
-              SidebarDestination(glyph: item.$1, label: item.$2),
+            for (final entry in entries)
+              SidebarDestination(
+                glyph: entry.$1.glyph,
+                label: entry.$1.labelOf(l),
+              ),
           ],
-          selectedIndex: selected,
+          selectedIndex: index,
           expanded: MediaQuery.sizeOf(context).width > 840 && _expanded,
           onToggle: MediaQuery.sizeOf(context).width > 840
               ? () => setState(() => _expanded = !_expanded)
               : null,
-          onSelected: (index) => setState(() => _page = items[index].$3),
+          onSelected: (selectedIndex) =>
+              setState(() => _page = entries[selectedIndex].$1),
           footer: const _AccountButton(),
         ),
         child: HomeNavigationBody(
           mobile: mobile,
           floating: preferences.floatingBar,
           destinations: [
-            for (final item in items)
-              NavigationDockDestination(glyph: item.$1, label: item.$2),
+            for (final entry in entries)
+              NavigationDockDestination(
+                glyph: entry.$1.glyph,
+                label: entry.$1.labelOf(l),
+              ),
           ],
-          selectedIndex: selected,
-          onSelected: (index) => setState(() => _page = items[index].$3),
+          selectedIndex: index,
+          onSelected: (selectedIndex) =>
+              setState(() => _page = entries[selectedIndex].$1),
           child: body,
         ),
       ),

@@ -2,6 +2,7 @@ import 'message_level.dart';
 
 export 'ip_quality.dart';
 export 'message_level.dart';
+export 'navigation_item_mode.dart';
 export 'rule_target.dart';
 export 'rule_payload_error.dart';
 export 'proxy_field.dart';
@@ -170,8 +171,6 @@ extension MessageLevelExt on MessageLevel {
     };
   }
 }
-
-enum NavigationItemMode { mobile, desktop, more, moreFull }
 
 enum TunStack { gvisor, system, mixed, mips }
 
