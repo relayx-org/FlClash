@@ -75,7 +75,7 @@ func (a *app) apiCall(ctx context.Context, args arguments) (any, error) {
 	if body != nil {
 		request.Header.Set("Content-Type", "application/json")
 	}
-	response, err := a.client.Do(request)
+	response, err := a.outboundClient(ctx).Do(request)
 	if err != nil {
 		return nil, failure("network_error")
 	}

@@ -136,6 +136,24 @@ func (a *app) request(ctx context.Context, method, path string, body []byte, key
 	return a.requestURL(ctx, method, a.site+path, body, key, limit, false)
 }
 
+func (a *app) outboundClient(ctx context.Context) *http.Client {
+	if a.core == nil || !a.running(ctx) {
+		return a.client
+	}
+	proxy, err := a.probeProxy(ctx, false)
+	if err != nil {
+		return a.client
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if base, ok := a.client.Transport.(*http.Transport); ok {
+		transport = base.Clone()
+	}
+	transport.Proxy = http.ProxyURL(proxy)
+	client := *a.client
+	client.Transport = transport
+	return &client
+}
+
 func (a *app) requestURL(ctx context.Context, method, target string, body []byte, key string, limit int64, redirects bool) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, method, target, bytes.NewReader(body))
 	if err != nil {
