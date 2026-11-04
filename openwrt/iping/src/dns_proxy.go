@@ -520,6 +520,9 @@ func dnsRcodeName(value int) string {
 }
 
 func (a *app) syncDNSMasq(enable bool) {
+	if a.command == nil {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 	const entry = "127.0.0.1#1053"
