@@ -1,4 +1,5 @@
 export 'access.dart';
+export 'account/native_host.dart';
 export 'backup_and_restore.dart';
 export 'connection/connections.dart';
 export 'connection/requests.dart';
@@ -10,4 +11,4 @@ export 'logs.dart';
 export 'profiles/profiles.dart';
 export 'proxies/proxies.dart';
 export 'resources.dart';
-export 'tools.dart';
+export 'settings/native_host.dart';

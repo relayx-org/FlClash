@@ -2,42 +2,11 @@ import 'package:material_ui/material_ui.dart';
 
 import '../l10n/l10n.dart';
 import '../enum/appearance.dart';
+import '../iping/settings_host.dart';
 import '../widgets/appearance_options.dart';
 import '../ui/appearance_preview.dart';
 import '../ui/icons/icons.dart';
 import '../ui/ui.dart';
-
-class SettingsRouteLink {
-  const SettingsRouteLink({
-    required this.glyph,
-    required this.title,
-    this.pageBuilder,
-    this.onTap,
-    this.forceFull = true,
-  });
-  final Glyph glyph;
-  final String title;
-  final WidgetBuilder? pageBuilder;
-  final VoidCallback? onTap;
-  final bool forceFull;
-
-  Widget build(BuildContext context) {
-    final builder = pageBuilder;
-    return builder == null
-        ? ListItem(
-            leading: GlyphIcon(glyph),
-            title: Text(title),
-            onTap: onTap,
-            trailing: const GlyphIcon(AppGlyphs.openExternal, size: 18),
-          )
-        : ListItem.open(
-            leading: GlyphIcon(glyph),
-            title: Text(title),
-            widget: builder(context),
-            forceFull: forceFull,
-          );
-  }
-}
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({
@@ -55,14 +24,14 @@ class SettingsPage extends StatelessWidget {
   });
   final Key? storageKey;
   final Widget? account;
-  final List<SettingsRouteLink> more;
+  final List<IpingSettingsLink> more;
   final Locale? locale;
   final ValueChanged<Locale?> onLocaleChanged;
   final WidgetBuilder themeBuilder;
-  final List<SettingsRouteLink> platformSettings;
+  final List<IpingSettingsLink> platformSettings;
   final String? settingsFooter;
   final Widget? about;
-  final List<SettingsRouteLink> other;
+  final List<IpingSettingsLink> other;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +47,7 @@ class SettingsPage extends StatelessWidget {
         title: l.settings,
         items: [
           SettingsLocaleItem(value: locale, onChanged: onLocaleChanged),
-          SettingsRouteLink(
+          IpingSettingsLink(
             glyph: AppGlyphs.paintbrush,
             title: l.theme,
             pageBuilder: themeBuilder,

@@ -9,7 +9,6 @@ import 'package:fl_clash/views/page_destination.dart';
 import 'dart:async';
 
 import 'package:fl_clash/iping/login_page.dart';
-import 'package:fl_clash/iping/subscription_url.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/l10n/ui_localizations.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -70,6 +69,7 @@ class _RouterState extends InheritedModel<RouterAspect> {
         ),
         RouterAspect.status: (
           controller.signedIn,
+          controller.account,
           controller.status.manualSubscription,
           controller.connected,
           controller.busy,
@@ -360,23 +360,6 @@ class _Login extends StatelessWidget {
   }
 }
 
-Future<void> importRouterSubscription(BuildContext context) async {
-  final controller = RouterScope.read(context);
-  if (controller.busy) return;
-  final l = AppLocalizations.of(context);
-  final url = await showFloatingDialog<String>(
-    context: context,
-    child: InputDialog(
-      title: l.ipingImportSubscription,
-      value: '',
-      labelText: l.url,
-      validator: (value) =>
-          isIpingSubscriptionUrl(value?.trim() ?? '') ? null : l.urlTip(l.url),
-    ),
-  );
-  if (url != null && context.mounted) await controller.importSubscription(url);
-}
-
 class RouterHome extends StatefulWidget {
   const RouterHome({super.key});
 
@@ -400,10 +383,10 @@ class _RouterHomeState extends State<RouterHome> {
       PageLabel.proxies: const RouterProxiesRoute(),
       PageLabel.connections: const RouterConnections(),
       PageLabel.logs: const RouterLogs(),
-      PageLabel.tools: const RouterTools(),
+      PageLabel.tools: const RouterSettingsRoute(),
       PageLabel.nativeIp: const IpingNativeIpPage(),
       PageLabel.tunnels: const IpingTunnelsPage(),
-      PageLabel.account: const RouterSubscription(),
+      PageLabel.account: const RouterAccountRoute(),
     };
     final mode = mobile
         ? NavigationItemMode.mobile
@@ -595,19 +578,4 @@ class _AccountButton extends StatelessWidget {
       ),
     );
   }
-}
-
-String routerError(BuildContext context, String error) {
-  final l = AppLocalizations.of(context);
-  return switch (error) {
-    'not_logged_in' ||
-    'login_required' ||
-    'login_expired' => l.ipingSessionExpired,
-    'no_nodes' => l.ipingManualNoNodes,
-    'invalid_subscription' => l.ipingSubscriptionError,
-    'storage_error' => l.ipingStorageError,
-    'controller_unavailable' => l.memoryCoreNotRunning,
-    'busy' => l.routerBusy,
-    _ => error,
-  };
 }

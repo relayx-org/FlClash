@@ -7,7 +7,7 @@ import 'package:fl_clash/iping/account.dart';
 import 'package:fl_clash/iping/about.dart';
 import 'package:fl_clash/iping/brand.dart';
 import 'package:fl_clash/iping/browser.dart';
-import 'package:fl_clash/iping/profile.dart';
+import 'package:fl_clash/views/account/native_host.dart';
 import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/site_config.dart';
@@ -18,7 +18,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/widgets/icon.dart';
-import 'package:fl_clash/views/tools.dart';
+import 'package:fl_clash/views/settings/native_host.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -462,7 +462,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await pump(tester, const IpingGate(child: IpingProfile()));
+      await pump(tester, const IpingGate(child: NativeAccountRoute()));
       final clip = tester.widget<ClipPath>(
         find.descendant(
           of: find.byType(IpingLogo),
@@ -496,7 +496,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     storage.value = await api.authenticate();
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
     await tester.tap(find.byGlyph(AppGlyphs.more));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open iPing console'));
@@ -525,7 +525,7 @@ void main() {
     storage.stored = const IpingStoredSession(
       manualUrl: 'https://example.com/subscription',
     );
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
     expect(api.userInfoRequests, 0);
 
     await tester.tap(find.byGlyph(AppGlyphs.more));
@@ -692,7 +692,7 @@ void main() {
           .controller
           .initialize();
       await container.read(ipingSessionProvider.notifier).controller.signIn();
-      await pump(tester, const ToolsView());
+      await pump(tester, const NativeSettingsRoute());
 
       expect(find.text('Sign out'), findsNothing);
       await tester.scrollUntilVisible(find.byType(IpingAboutSection), 400);
@@ -711,7 +711,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     storage.value = await api.authenticate();
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
 
     expect(find.text('Network Purchase'), findsOneWidget);
     expect(find.text('Tunnel Management'), findsOneWidget);
@@ -728,7 +728,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     container.read(viewSizeProvider.notifier).value = const Size(1400, 1000);
     storage.value = await api.authenticate();
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
 
     expect(find.text('Network Purchase'), findsNothing);
     expect(find.text('Tunnel Management'), findsNothing);

@@ -2,22 +2,24 @@ import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/iping/account_host.dart';
+import 'package:fl_clash/iping/account_insights.dart';
+import 'package:fl_clash/iping/api.dart';
+import 'package:fl_clash/iping/backend_native.dart';
+import 'package:fl_clash/iping/native_ip_page.dart';
+import 'package:fl_clash/iping/pages/account_page.dart';
+import 'package:fl_clash/iping/profile_widgets.dart';
+import 'package:fl_clash/iping/providers.dart';
+import 'package:fl_clash/iping/topup.dart';
+import 'package:fl_clash/iping/topup_form.dart';
+import 'package:fl_clash/iping/tunnel_digest.dart';
+import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
+import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'account_insights.dart';
-import 'api.dart';
-import 'backend_native.dart';
-import 'native_ip_page.dart';
-import 'profile_widgets.dart';
-import 'providers.dart';
-import 'topup.dart';
-import 'topup_form.dart';
-import 'tunnel_digest.dart';
-import 'tunnel_page.dart';
 
 Future<void> _payTopup(IpingTopupOrder order) async {
   final url = Uri.tryParse(order.payUrl ?? '');
@@ -43,14 +45,14 @@ Future<bool> _cancelTopup(WidgetRef ref, IpingTopupOrder order) async {
   }
 }
 
-class IpingProfile extends ConsumerStatefulWidget {
-  const IpingProfile({super.key});
+class NativeAccountRoute extends ConsumerStatefulWidget {
+  const NativeAccountRoute({super.key});
 
   @override
-  ConsumerState<IpingProfile> createState() => _IpingProfileState();
+  ConsumerState<NativeAccountRoute> createState() => _NativeAccountRouteState();
 }
 
-class _IpingProfileState extends ConsumerState<IpingProfile> {
+class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
   late final AppLifecycleListener _lifecycle;
 
   @override
@@ -78,6 +80,69 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
   Future<void> _openHistory() =>
       showInSheet<void>(context, builder: (_) => const IpingTopupHistory());
 
+  @override
+  Widget build(BuildContext context) {
+    final l = context.appLocalizations;
+    final authorized = ref.watch(
+      ipingSessionProvider.select((s) => s.account?.apiKey != null),
+    );
+    final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+    final session = ref.watch(ipingBackendStateProvider);
+    final info = ref.watch(ipingUserInfoProvider);
+    final digest = ref.watch(ipingTunnelDigestProvider).value;
+    final referrals = account == null
+        ? null
+        : ref.watch(ipingReferralStatsProvider(account)).value;
+    final user = info.value;
+    final shortfall = user == null ? null : digest?.shortfall(user.balance);
+    return IpingAccountPage(
+      host: _NativeAccountHost(
+        profile: user == null
+            ? null
+            : IpingAccountProfile(
+                info: user,
+                onTopUp: user.status == 'active' ? _topUp : null,
+                onHistory: _openHistory,
+              ),
+        sections: [
+          if (user != null) ...[
+            if (context.isMobileView)
+              generateSection(
+                title: l.services,
+                items: [
+                  ListItem.open(
+                    leading: const GlyphIcon(AppGlyphs.locate),
+                    title: Text(l.ipingNativeIp),
+                    widget: const IpingNativeIpPage(),
+                  ),
+                  ListItem.open(
+                    leading: const GlyphIcon(AppGlyphs.swap),
+                    title: Text(l.ipingTunnels),
+                    widget: const IpingTunnelsPage(),
+                  ),
+                ],
+              ),
+            if (digest != null && shortfall != null)
+              IpingRenewalWarning(
+                count: digest.renewalCount,
+                cost: digest.renewalCost,
+                shortfall: shortfall,
+                onTopUp: user.status == 'active' ? _topUp : null,
+              ),
+            if (referrals != null) IpingReferralSection(stats: referrals),
+          ],
+        ],
+        loading: info.isLoading,
+        empty: _nullStatus(info, authorized),
+        busy: session.busy,
+        hasAccountActions: context.isMobileView && session.hasSubscription,
+        onRefresh: authorized ? _refresh : null,
+        onConsole: () => dialogs.openUrl('$ipingSite/home'),
+        onSignOut: ref.read(ipingClientControllerProvider).signOut,
+      ),
+    );
+  }
+
   NullStatus _nullStatus(AsyncValue<Object?> info, bool authorized) {
     final l = context.appLocalizations;
     if (!authorized) {
@@ -99,106 +164,42 @@ class _IpingProfileState extends ConsumerState<IpingProfile> {
       action: TextButton(onPressed: _refresh, child: Text(l.retry)),
     );
   }
+}
+
+class _NativeAccountHost implements IpingAccountHost {
+  const _NativeAccountHost({
+    required this.profile,
+    required this.sections,
+    required this.loading,
+    required this.empty,
+    required this.busy,
+    required this.hasAccountActions,
+    required this.onRefresh,
+    required this.onConsole,
+    required this.onSignOut,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    final l = context.appLocalizations;
-    final authorized = ref.watch(
-      ipingSessionProvider.select((s) => s.account?.apiKey != null),
-    );
-    final account = ref.watch(ipingSessionProvider.select((s) => s.account));
-    final session = ref.watch(ipingBackendStateProvider);
-    final info = ref.watch(ipingUserInfoProvider);
-    final digest = ref.watch(ipingTunnelDigestProvider).value;
-    final referrals = account == null
-        ? null
-        : ref.watch(ipingReferralStatsProvider(account)).value;
-    final user = info.value;
-    final shortfall = user == null ? null : digest?.shortfall(user.balance);
-    final onTopUp = user?.status == 'active' ? _topUp : null;
-    final busy = info.isLoading;
-    return CommonScaffold(
-      title: l.ipingProfileCenter,
-      primaryAction: authorized
-          ? IconButtonData(
-              glyph: AppGlyphs.refresh,
-              tooltip: l.ipingRefreshAccount,
-              isLoading: busy,
-              onPressed: busy ? null : _refresh,
-            )
-          : null,
-      menuItems: [
-        if (context.isMobileView && session.hasSubscription) ...[
-          CommonPopupMenuItem(
-            glyph: AppGlyphs.openExternal,
-            label: l.ipingConsole,
-            onPressed: () => dialogs.openUrl('$ipingSite/home'),
-          ),
-          CommonPopupMenuItem(
-            glyph: AppGlyphs.arrowBack,
-            label: l.ipingSignOut,
-            danger: true,
-            onPressed: session.busy
-                ? null
-                : () => ref.read(ipingClientControllerProvider).signOut(),
-          ),
-        ],
-      ],
-      body: Builder(
-        builder: (context) => NullStatusSwitcher(
-          isLoading: info.isLoading && user == null,
-          isEmpty: user == null,
-          nullStatus: _nullStatus(info, authorized),
-          child: user == null
-              ? const SizedBox.shrink()
-              : ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    context.appBarInset,
-                    16,
-                    24 + BottomInsetScope.of(context),
-                  ),
-                  children: [
-                    IpingProfileHeader(
-                      info: user,
-                      onTopUp: onTopUp,
-                      onHistory: _openHistory,
-                    ),
-                    if (context.isMobileView)
-                      generateSection(
-                        title: l.services,
-                        items: [
-                          ListItem.open(
-                            leading: const GlyphIcon(AppGlyphs.locate),
-                            title: Text(l.ipingNativeIp),
-                            widget: const IpingNativeIpPage(),
-                          ),
-                          ListItem.open(
-                            leading: const GlyphIcon(AppGlyphs.swap),
-                            title: Text(l.ipingTunnels),
-                            widget: const IpingTunnelsPage(),
-                          ),
-                        ],
-                      ),
-                    if (digest != null && shortfall != null) ...[
-                      const SizedBox(height: 12),
-                      IpingRenewalWarning(
-                        count: digest.renewalCount,
-                        cost: digest.renewalCost,
-                        shortfall: shortfall,
-                        onTopUp: onTopUp,
-                      ),
-                    ],
-                    if (referrals != null) ...[
-                      const SizedBox(height: 12),
-                      IpingReferralSection(stats: referrals),
-                    ],
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
+  final IpingAccountProfile? profile;
+  @override
+  final List<Widget> sections;
+  @override
+  final bool loading;
+  @override
+  final NullStatus? empty;
+  @override
+  final bool busy;
+  @override
+  final bool hasAccountActions;
+  @override
+  final VoidCallback? onRefresh;
+  @override
+  final VoidCallback? onConsole;
+  @override
+  final VoidCallback? onSignOut;
+
+  @override
+  IpingAccountSubscription? get subscription => null;
 }
 
 class IpingTopupHistory extends ConsumerStatefulWidget {

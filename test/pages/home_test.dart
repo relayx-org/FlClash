@@ -11,7 +11,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/config/general.dart';
-import 'package:fl_clash/views/tools.dart';
+import 'package:fl_clash/views/settings/native_host.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:fl_clash/views/navigation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -376,7 +376,7 @@ void main() {
                 NavigationItem(
                   glyph: AppGlyphs.dashboard,
                   label: PageLabel.dashboard,
-                  builder: (_) => const ToolsView(
+                  builder: (_) => const NativeSettingsRoute(
                     key: GlobalObjectKey(PageLabel.dashboard),
                   ),
                 ),
@@ -450,8 +450,9 @@ void main() {
                 NavigationItem(
                   glyph: AppGlyphs.tools,
                   label: PageLabel.tools,
-                  builder: (_) =>
-                      const ToolsView(key: GlobalObjectKey(PageLabel.tools)),
+                  builder: (_) => const NativeSettingsRoute(
+                    key: GlobalObjectKey(PageLabel.tools),
+                  ),
                 ),
               ],
             ),
@@ -470,7 +471,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(ToolsView), findsOneWidget);
+      expect(find.byType(NativeSettingsRoute), findsOneWidget);
       expect(find.byType(FloatingNavigationBar), findsOneWidget);
 
       for (var width = 520.0; width <= 1200; width += 20) {
@@ -481,7 +482,7 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 301));
       expect(tester.takeException(), isNull);
-      expect(find.byType(ToolsView), findsOneWidget);
+      expect(find.byType(NativeSettingsRoute), findsOneWidget);
       expect(find.byType(NavigationSidebar), findsOneWidget);
       expect(container.read(currentPageLabelProvider), PageLabel.tools);
 
@@ -493,7 +494,7 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 301));
       expect(tester.takeException(), isNull);
-      expect(find.byType(ToolsView), findsOneWidget);
+      expect(find.byType(NativeSettingsRoute), findsOneWidget);
       expect(container.read(currentPageLabelProvider), PageLabel.tools);
     },
   );

@@ -1,4 +1,5 @@
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract interface class RouterClient {
   Future<Object?> call(String method, [Map<String, Object?> args = const {}]);
@@ -42,3 +43,18 @@ String routerErrorMessage(String code, AppLocalizations l) => switch (code) {
   'already_logged_in' => l.routerOperationFailed,
   _ => code,
 };
+
+String routerError(BuildContext context, String error) {
+  final l = AppLocalizations.of(context);
+  return switch (error) {
+    'not_logged_in' ||
+    'login_required' ||
+    'login_expired' => l.ipingSessionExpired,
+    'no_nodes' => l.ipingManualNoNodes,
+    'invalid_subscription' => l.ipingSubscriptionError,
+    'storage_error' => l.ipingStorageError,
+    'controller_unavailable' => l.memoryCoreNotRunning,
+    'busy' => l.routerBusy,
+    _ => error,
+  };
+}

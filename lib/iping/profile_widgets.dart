@@ -12,11 +12,13 @@ class IpingProfileHeader extends StatelessWidget {
     super.key,
     required this.info,
     required this.onTopUp,
-    required this.onHistory,
+    this.onHistory,
+    this.showTopUp = true,
   });
   final IpingUserInfo info;
   final VoidCallback? onTopUp;
-  final VoidCallback onHistory;
+  final VoidCallback? onHistory;
+  final bool showTopUp;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -101,24 +103,25 @@ class IpingProfileHeader extends StatelessWidget {
                       style: secondary,
                     ),
                   ),
-                  TextButton(
-                    onPressed: onHistory,
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.onSurfaceVariant,
-                      textStyle: AppTextStyle.footnote.of(context),
-                      minimumSize: const Size(0, 32),
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  if (onHistory case final onHistory?)
+                    TextButton(
+                      onPressed: onHistory,
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.onSurfaceVariant,
+                        textStyle: AppTextStyle.footnote.of(context),
+                        minimumSize: const Size(0, 32),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(l.ipingTopupHistory),
+                          const SizedBox(width: 2),
+                          const GlyphIcon(AppGlyphs.chevronForward, size: 12),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(l.ipingTopupHistory),
-                        const SizedBox(width: 2),
-                        const GlyphIcon(AppGlyphs.chevronForward, size: 12),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 2),
@@ -139,12 +142,14 @@ class IpingProfileHeader extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  FilledButton.icon(
-                    onPressed: onTopUp,
-                    icon: const GlyphIcon(AppGlyphs.add, fill: 1),
-                    label: Text(l.ipingTopUp),
-                  ),
+                  if (showTopUp) ...[
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: onTopUp,
+                      icon: const GlyphIcon(AppGlyphs.add, fill: 1),
+                      label: Text(l.ipingTopUp),
+                    ),
+                  ],
                 ],
               ),
             ],

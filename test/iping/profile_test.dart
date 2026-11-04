@@ -1,5 +1,5 @@
 import 'package:fl_clash/iping/api.dart';
-import 'package:fl_clash/iping/profile.dart';
+import 'package:fl_clash/views/account/native_host.dart';
 import 'package:fl_clash/iping/profile_widgets.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/topup.dart';
@@ -81,7 +81,7 @@ void main() {
       _order(2, IpingTopupStatus.pending),
       _order(1, IpingTopupStatus.success),
     ];
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
     expect(find.text('user@example.com'), findsOneWidget);
     expect(find.text('¥128.50'), findsOneWidget);
     expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
@@ -122,7 +122,7 @@ void main() {
         'tunnel_price': {'name': 'Standard', 'price': 12},
       },
     ];
-    await pump(tester, const IpingProfile());
+    await pump(tester, const NativeAccountRoute());
 
     expect(find.text('Balance may not cover auto-renewals'), findsOneWidget);
     expect(

@@ -1,103 +1,143 @@
-import 'settings.dart';
-import 'package:fl_clash/features/logs/controller.dart';
-import 'package:fl_clash/iping/backend.dart';
-import 'package:fl_clash/widgets/appearance_controls.dart';
-import 'package:fl_clash/ui/appearance_defaults.dart';
-import 'package:fl_clash/views/logs_page.dart';
-import 'package:fl_clash/iping/account_widgets.dart';
-import 'package:fl_clash/iping/about_widgets.dart';
-import 'package:fl_clash/enum/page_label.dart';
-import 'package:fl_clash/l10n/page_labels.dart';
-import 'package:fl_clash/views/page_destination.dart';
-import 'package:fl_clash/views/settings_page.dart';
-import 'package:fl_clash/iping/native_ip_page.dart';
-import 'package:fl_clash/iping/subscription_page.dart';
-import 'package:fl_clash/iping/tunnel_page.dart';
 import 'dart:async';
 
+import 'package:fl_clash/enum/page_label.dart';
+import 'package:fl_clash/features/logs/controller.dart';
+import 'package:fl_clash/iping/about_widgets.dart';
+import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/native_ip_page.dart';
+import 'package:fl_clash/iping/pages/settings_page.dart';
+import 'package:fl_clash/iping/settings_host.dart';
+import 'package:fl_clash/iping/subscription_page.dart';
+import 'package:fl_clash/iping/subscription_url.dart';
+import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/l10n/page_labels.dart';
+import 'package:fl_clash/ui/appearance_defaults.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
+import 'package:fl_clash/views/logs_page.dart';
+import 'package:fl_clash/views/page_destination.dart';
+import 'package:fl_clash/views/settings_page.dart';
+import 'package:fl_clash/widgets/appearance_controls.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app.dart';
-import 'pages.dart';
+import 'client.dart';
+import 'connections.dart';
+import 'settings.dart';
 
-class RouterTools extends StatelessWidget {
-  const RouterTools({super.key});
+class RouterSettingsRoute extends StatelessWidget {
+  const RouterSettingsRoute({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final router = RouterScope.of(context, aspect: RouterAspect.status);
     final app = RouterAppState.of(context);
-    return SettingsPage(
-      account: context.isMobileView && router.status.hasSubscription
-          ? IpingAccountSummary(
-              label: router.signedIn
-                  ? router.email
-                  : AppLocalizations.of(context).ipingManualSubscription,
-              site: router.siteConfig,
-              busy: router.busy,
-              onConsole: () => router.client.open('${router.site}/home'),
-              onSignOut: () => router.signOut(),
-            )
-          : null,
-      more: [
-        if (context.isMobileView)
-          SettingsRouteLink(
-            glyph: PageLabel.connections.glyph,
-            title: PageLabel.connections.labelOf(AppLocalizations.of(context)),
-            pageBuilder: (_) => const RouterConnections(),
-            forceFull: true,
+    return IpingSettingsPage(
+      host: _RouterSettingsHost(
+        accountSummary: context.isMobileView && router.status.hasSubscription
+            ? IpingAccountSummaryData(
+                label: router.signedIn
+                    ? router.email
+                    : l.ipingManualSubscription,
+                site: router.siteConfig,
+                busy: router.busy,
+                onConsole: () => router.client.open('${router.site}/home'),
+                onSignOut: router.signOut,
+              )
+            : null,
+        more: [
+          if (context.isMobileView)
+            IpingSettingsLink(
+              glyph: PageLabel.connections.glyph,
+              title: PageLabel.connections.labelOf(l),
+              pageBuilder: (_) => const RouterConnections(),
+              forceFull: true,
+            ),
+          if (context.isMobileView || !app.preferences.openLogs)
+            IpingSettingsLink(
+              glyph: PageLabel.logs.glyph,
+              title: PageLabel.logs.labelOf(l),
+              pageBuilder: (_) => const RouterLogs(),
+              forceFull: true,
+            ),
+        ],
+        locale: app.locale,
+        onLocaleChanged: app.updateLocale,
+        themeBuilder: (_) => const RouterAppearance(),
+        platformSettings: [
+          IpingSettingsLink(
+            glyph: AppGlyphs.link,
+            title: l.ipingNativeIp,
+            pageBuilder: (_) => const IpingNativeIpPage(),
           ),
-        if (context.isMobileView || !app.preferences.openLogs)
-          SettingsRouteLink(
-            glyph: PageLabel.logs.glyph,
-            title: PageLabel.logs.labelOf(AppLocalizations.of(context)),
-            pageBuilder: (_) => const RouterLogs(),
-            forceFull: true,
+          IpingSettingsLink(
+            glyph: PageLabel.tunnels.glyph,
+            title: PageLabel.tunnels.labelOf(l),
+            pageBuilder: (_) => const IpingTunnelsPage(),
           ),
-      ],
-      locale: app.locale,
-      onLocaleChanged: app.updateLocale,
-      themeBuilder: (_) => const RouterAppearance(),
-      platformSettings: [
-        SettingsRouteLink(
-          glyph: AppGlyphs.link,
-          title: AppLocalizations.of(context).ipingNativeIp,
-          pageBuilder: (_) => const IpingNativeIpPage(),
+          IpingSettingsLink(
+            glyph: AppGlyphs.settings,
+            title: l.general,
+            pageBuilder: (_) =>
+                const RouterCoreSettings(kind: RouterSettingsKind.general),
+          ),
+          IpingSettingsLink(
+            glyph: AppGlyphs.code,
+            title: l.advancedConfig,
+            pageBuilder: (_) => const RouterAdvanced(),
+          ),
+          IpingSettingsLink(
+            glyph: AppGlyphs.resources,
+            title: l.customProfileResources,
+            pageBuilder: (_) => const RouterCustomResources(),
+          ),
+        ],
+        about: IpingAboutSummary(
+          site: router.siteConfig,
+          version: '0.1.0-r3',
+          onTerms: () =>
+              router.client.open('${router.site}/terms-of-service.html'),
+          onPrivacy: () =>
+              router.client.open('${router.site}/privacy-policy.html'),
         ),
-        SettingsRouteLink(
-          glyph: PageLabel.tunnels.glyph,
-          title: PageLabel.tunnels.labelOf(AppLocalizations.of(context)),
-          pageBuilder: (_) => const IpingTunnelsPage(),
-        ),
-        SettingsRouteLink(
-          glyph: AppGlyphs.settings,
-          title: AppLocalizations.of(context).general,
-          pageBuilder: (_) =>
-              const RouterCoreSettings(kind: RouterSettingsKind.general),
-        ),
-        SettingsRouteLink(
-          glyph: AppGlyphs.code,
-          title: AppLocalizations.of(context).advancedConfig,
-          pageBuilder: (_) => const RouterAdvanced(),
-        ),
-        SettingsRouteLink(
-          glyph: AppGlyphs.resources,
-          title: AppLocalizations.of(context).customProfileResources,
-          pageBuilder: (_) => const RouterCustomResources(),
-        ),
-      ],
-      about: IpingAboutSummary(
-        site: router.siteConfig,
-        version: '0.1.0-r3',
-        onTerms: () =>
-            router.client.open('${router.site}/terms-of-service.html'),
-        onPrivacy: () =>
-            router.client.open('${router.site}/privacy-policy.html'),
       ),
     );
   }
+}
+
+class _RouterSettingsHost implements IpingSettingsHost {
+  const _RouterSettingsHost({
+    required this.accountSummary,
+    required this.more,
+    required this.locale,
+    required this.onLocaleChanged,
+    required this.themeBuilder,
+    required this.platformSettings,
+    required this.about,
+  });
+
+  @override
+  Key? get storageKey => null;
+  @override
+  final IpingAccountSummaryData? accountSummary;
+  @override
+  final List<IpingSettingsLink> more;
+  @override
+  final Locale? locale;
+  @override
+  final ValueChanged<Locale?> onLocaleChanged;
+  @override
+  final WidgetBuilder themeBuilder;
+  @override
+  final List<IpingSettingsLink> platformSettings;
+  @override
+  String? get settingsFooter => null;
+  @override
+  final Widget? about;
+  @override
+  List<IpingSettingsLink> get other => const [];
 }
 
 class RouterAppearance extends StatelessWidget {
@@ -200,12 +240,29 @@ class RouterSubscription extends StatelessWidget {
           ? null
           : l.profileUpdatedAt(updated.toLocal().toString()),
       exportUrl: router.status.subscriptionUrl,
-      onSync: () => router.synchronize(),
+      onSync: router.synchronize,
       manualSubscription: router.status.manualSubscription,
       onImport: () => importRouterSubscription(context),
       onSignIn: router.signedIn ? null : () => router.signIn(),
     );
   }
+}
+
+Future<void> importRouterSubscription(BuildContext context) async {
+  final controller = RouterScope.read(context);
+  if (controller.busy) return;
+  final l = AppLocalizations.of(context);
+  final url = await showFloatingDialog<String>(
+    context: context,
+    child: InputDialog(
+      title: l.ipingImportSubscription,
+      value: '',
+      labelText: l.url,
+      validator: (value) =>
+          isIpingSubscriptionUrl(value?.trim() ?? '') ? null : l.urlTip(l.url),
+    ),
+  );
+  if (url != null && context.mounted) await controller.importSubscription(url);
 }
 
 class RouterLogs extends StatefulWidget {

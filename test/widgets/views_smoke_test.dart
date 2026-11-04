@@ -52,7 +52,7 @@ void main() {
     'dns queries': const DnsQueriesView(),
     'resources': const ResourcesView(),
     'logs': const LogsView(),
-    'tools': const ToolsView(),
+    'tools': const NativeSettingsRoute(),
     'general settings': const GeneralView(),
     'dns config': const DnsView(),
     'ntp config': NtpView(1),
@@ -156,7 +156,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const TestApp(child: ToolsView()),
+          child: const TestApp(child: NativeSettingsRoute()),
         ),
       );
       await tester.pump();

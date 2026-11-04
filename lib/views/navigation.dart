@@ -2,7 +2,6 @@ import 'package:fl_clash/common/app_ports.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
-import 'package:fl_clash/iping/profile.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/views/page_destination.dart';
 
@@ -39,13 +38,13 @@ class Navigation implements NavigationPort {
       PageLabel.logs: (_) =>
           const LogsView(key: GlobalObjectKey(PageLabel.logs)),
       PageLabel.tools: (_) =>
-          const ToolsView(key: GlobalObjectKey(PageLabel.tools)),
+          const NativeSettingsRoute(key: GlobalObjectKey(PageLabel.tools)),
       PageLabel.nativeIp: (_) =>
           const IpingNativeIpPage(key: GlobalObjectKey(PageLabel.nativeIp)),
       PageLabel.tunnels: (_) =>
           const IpingTunnelsPage(key: GlobalObjectKey(PageLabel.tunnels)),
       PageLabel.account: (_) =>
-          const IpingProfile(key: GlobalObjectKey(PageLabel.account)),
+          const NativeAccountRoute(key: GlobalObjectKey(PageLabel.account)),
     };
     return [
       for (final label in appNavigationOrder)
