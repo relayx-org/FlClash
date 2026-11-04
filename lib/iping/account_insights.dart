@@ -138,7 +138,11 @@ class IpingReferralSection extends StatelessWidget {
         ListItem(
           leading: const GlyphIcon(AppGlyphs.link),
           title: Text(l.ipingReferralLink),
-          subtitle: SelectableText(stats.link, maxLines: 1),
+          subtitle: Text(
+            stats.link,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
