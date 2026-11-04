@@ -8,6 +8,8 @@ import 'package:fl_clash/views/page_destination.dart';
 
 import '../pages/navigation_spec.dart';
 import 'package:fl_clash/views/views.dart';
+
+import 'proxies/native_host.dart';
 import 'package:material_ui/material_ui.dart';
 
 class Navigation implements NavigationPort {
@@ -24,7 +26,7 @@ class Navigation implements NavigationPort {
       PageLabel.dashboard: (_) =>
           const DashboardView(key: GlobalObjectKey(PageLabel.dashboard)),
       PageLabel.proxies: (_) =>
-          const ProxiesView(key: GlobalObjectKey(PageLabel.proxies)),
+          const NativeProxiesRoute(key: GlobalObjectKey(PageLabel.proxies)),
       PageLabel.requests: (_) =>
           const RequestsView(key: GlobalObjectKey(PageLabel.requests)),
       PageLabel.connections: (_) =>
