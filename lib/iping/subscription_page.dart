@@ -90,9 +90,6 @@ class IpingSubscriptionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final scheme = context.colorScheme;
-    final source = manualSubscription
-        ? l.ipingManualSubscriptionShort
-        : l.ipingAccountSubscription;
     final actions = <Widget>[
       if (onImport != null)
         ListItem(
@@ -121,36 +118,28 @@ class IpingSubscriptionSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CommonCard(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (nodes == 0)
-                      Text(
-                        manualSubscription
-                            ? l.ipingManualNoNodes
-                            : l.ipingNoNodes,
-                        style: AppTextStyle.body
-                            .of(context)
-                            .copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                    if (updatedText case final text?) ...[
-                      if (nodes == 0) const SizedBox(height: 4),
-                      Text(text, style: context.listCaptionStyle),
-                    ],
-                  ],
+        if (nodes == 0 || manualSubscription)
+          CommonCard(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: nodes == 0
+                      ? Text(
+                          manualSubscription
+                              ? l.ipingManualNoNodes
+                              : l.ipingNoNodes,
+                          style: AppTextStyle.body
+                              .of(context)
+                              .copyWith(color: scheme.onSurfaceVariant),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-              ),
-              const SizedBox(width: 12),
-              MetaChip(label: source),
-            ],
+                if (manualSubscription)
+                  MetaChip(label: l.ipingManualSubscriptionShort),
+              ],
+            ),
           ),
-        ),
         if (manualSubscription) ...[
           const SizedBox(height: 8),
           Padding(
