@@ -102,23 +102,32 @@ bool ipingSubscriptionEnablesIpv6(Uint8List bytes) {
 }
 
 class IpingApi {
-  IpingApi({Dio? dio, this.site = ipingSite, String? Function()? apiKey})
-    : _apiKey = apiKey,
-      _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 15),
-              receiveTimeout: const Duration(seconds: 30),
-              sendTimeout: const Duration(seconds: 15),
-              followRedirects: false,
-            ),
-          ) {
+  IpingApi({
+    Dio? dio,
+    String site = ipingSite,
+    String Function()? siteResolver,
+    String? Function()? apiKey,
+  }) : _site = site,
+       _siteResolver = siteResolver,
+       _apiKey = apiKey,
+       _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 15),
+               receiveTimeout: const Duration(seconds: 30),
+               sendTimeout: const Duration(seconds: 15),
+               followRedirects: false,
+             ),
+           ) {
     if (dio == null) configureIpingHttpClient(_dio);
   }
   final Dio _dio;
   final String? Function()? _apiKey;
-  final String site;
+  final String _site;
+  final String Function()? _siteResolver;
+
+  String get site => _siteResolver?.call() ?? _site;
 
   IpingApi withApiKey(String? Function() apiKey) =>
       IpingApi(dio: _dio, site: site, apiKey: apiKey);

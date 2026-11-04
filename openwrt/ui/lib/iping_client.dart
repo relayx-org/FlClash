@@ -8,7 +8,7 @@ import 'client.dart';
 
 const _proxyKey = '00000000-0000-0000-0000-000000000000';
 
-IpingApi createRouterIpingClient(RouterClient client, String site) {
+IpingApi createRouterIpingClient(RouterClient client, String Function() site) {
   final dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 15),
@@ -17,7 +17,12 @@ IpingApi createRouterIpingClient(RouterClient client, String site) {
       followRedirects: false,
     ),
   )..httpClientAdapter = _RouterApiAdapter(client);
-  return IpingApi(dio: dio, site: site, apiKey: () => _proxyKey);
+  return IpingApi(
+    dio: dio,
+    site: site(),
+    siteResolver: site,
+    apiKey: () => _proxyKey,
+  );
 }
 
 class _RouterApiAdapter implements HttpClientAdapter {

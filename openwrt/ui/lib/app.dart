@@ -111,7 +111,7 @@ class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
   late final _ipingClient = createRouterIpingClient(
     widget.client,
-    _controller.site,
+    () => _controller.site,
   );
   void _navigate(PageLabel label) {
     final navigator = _navigatorKey.currentState;
