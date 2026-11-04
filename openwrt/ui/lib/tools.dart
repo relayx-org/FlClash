@@ -187,6 +187,7 @@ class RouterSubscription extends StatelessWidget {
       updatedText: updated == null
           ? null
           : l.profileUpdatedAt(updated.toLocal().toString()),
+      exportUrl: router.status.subscriptionUrl,
       onSync: () => router.synchronize(),
       manualSubscription: router.status.manualSubscription,
       onImport: () => importRouterSubscription(context),

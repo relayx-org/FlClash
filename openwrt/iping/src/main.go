@@ -326,12 +326,16 @@ func (a *app) status(ctx context.Context) (any, error) {
 	session, sessionErr := a.session()
 	var profile profileInfo
 	readJSON(filepath.Join(a.dataDir, "profile.json"), &profile)
-	return map[string]any{
+	status := map[string]any{
 		"logged_in": accountErr == nil, "email": account.Email, "site": a.site,
 		"manual_subscription": sessionErr == nil && session.ManualURL != "",
 		"nodes":               profile.Nodes, "synced": profile.Synced, "busy": busy || a.core.working.Load() > 0, "job": job,
 		"running": a.running(ctx),
-	}, nil
+	}
+	if target, err := a.subscriptionURL(); err == nil {
+		status["subscription_url"] = target
+	}
+	return status, nil
 }
 
 func configurationCLI(args []string) error {

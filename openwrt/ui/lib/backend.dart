@@ -217,6 +217,7 @@ class RouterBackend implements IpingBackend {
       nodes: (status['nodes'] as num?)?.toInt() ?? 0,
       email: status['email'] as String? ?? '',
       site: status['site'] as String? ?? 'https://iping.my',
+      subscriptionUrl: status['subscription_url'] as String?,
       updated: synced == null || synced <= 0
           ? null
           : DateTime.fromMillisecondsSinceEpoch(synced * 1000),

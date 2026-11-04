@@ -58,7 +58,7 @@ func TestManualSubscriptionWithoutAccount(t *testing.T) {
 		t.Fatalf("subscription link not saved: %q %v", value, err)
 	}
 	status, _ := a.status(context.Background())
-	if value := status.(map[string]any); value["logged_in"] != false || value["manual_subscription"] != true || value["nodes"] != 1 {
+	if value := status.(map[string]any); value["logged_in"] != false || value["manual_subscription"] != true || value["nodes"] != 1 || value["subscription_url"] != target {
 		t.Fatalf("unexpected manual status: %+v", value)
 	}
 	id, err := a.resourceProfileID()

@@ -36,6 +36,7 @@ class IpingBackendState {
     this.nodes = 0,
     this.email = '',
     this.site = 'https://iping.my',
+    this.subscriptionUrl,
     this.updated,
   });
 
@@ -48,6 +49,7 @@ class IpingBackendState {
   final int nodes;
   final String email;
   final String site;
+  final String? subscriptionUrl;
   final DateTime? updated;
 }
 
