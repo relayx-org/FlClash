@@ -426,11 +426,11 @@ class _RouterHomeState extends State<RouterHome> {
     final labels = [
       PageLabel.dashboard,
       PageLabel.proxies,
-      if (!mobile) PageLabel.nativeIp,
-      if (!mobile) PageLabel.tunnels,
       if (!mobile) PageLabel.connections,
       if (!mobile && preferences.openLogs) PageLabel.logs,
       PageLabel.tools,
+      if (!mobile) PageLabel.nativeIp,
+      if (!mobile) PageLabel.tunnels,
     ];
     final body = AppPagesView(
       labels: labels,
