@@ -17,6 +17,7 @@ import 'package:fl_clash/ui/record.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:fl_clash/iping/client_providers.dart';
+import 'package:fl_clash/iping/native_ip_page.dart';
 import 'package:fl_clash/iping/tunnel_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -387,6 +388,8 @@ class _RouterHomeState extends State<RouterHome> {
     final items = [
       (PageLabel.dashboard.glyph, PageLabel.dashboard.labelOf(l), 0),
       (PageLabel.proxies.glyph, PageLabel.proxies.labelOf(l), 1),
+      if (!mobile) (PageLabel.nativeIp.glyph, PageLabel.nativeIp.labelOf(l), 5),
+      if (!mobile) (PageLabel.tunnels.glyph, PageLabel.tunnels.labelOf(l), 6),
       if (!mobile)
         (PageLabel.connections.glyph, PageLabel.connections.labelOf(l), 2),
       if (!mobile && preferences.openLogs)
@@ -417,10 +420,14 @@ class _RouterHomeState extends State<RouterHome> {
       const RouterConnections(),
       const RouterTools(),
       const RouterLogs(),
+      const IpingNativeIpPage(),
+      const IpingTunnelsPage(),
     ];
     final labels = [
       PageLabel.dashboard,
       PageLabel.proxies,
+      if (!mobile) PageLabel.nativeIp,
+      if (!mobile) PageLabel.tunnels,
       if (!mobile) PageLabel.connections,
       if (!mobile && preferences.openLogs) PageLabel.logs,
       PageLabel.tools,
