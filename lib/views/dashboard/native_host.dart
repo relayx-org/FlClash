@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fl_clash/common/app_localizations.dart';
 import 'package:fl_clash/common/service_probe.dart';
+import 'package:fl_clash/common/system.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/ip_quality/ip_quality_sheet.dart';
 import 'package:fl_clash/iping/backend.dart';
@@ -9,6 +10,7 @@ import 'package:fl_clash/iping/backend_native.dart';
 import 'package:fl_clash/iping/dashboard_host.dart';
 import 'package:fl_clash/iping/pages/dashboard_page.dart';
 import 'package:fl_clash/iping/subscription.dart';
+import 'package:fl_clash/iping/widgets/network_takeover.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/ip_quality.dart';
@@ -36,6 +38,38 @@ class NativeDashboardPreferences implements IpingDashboardPreferences {
   @override
   List<String> get disabledServices =>
       _ref.read(appSettingProvider).disabledServices;
+}
+
+class NativeNetworkTakeover implements IpingNetworkTakeover {
+  NativeNetworkTakeover(this._ref);
+
+  final Ref _ref;
+
+  @override
+  bool get supportsSystemProxy => system.isDesktop;
+
+  @override
+  bool get supportsTun => system.isDesktop;
+
+  @override
+  bool get systemProxy => _ref.read(networkSettingProvider).systemProxy;
+
+  @override
+  bool get tun => _ref.read(patchClashConfigProvider).tun.enable;
+
+  @override
+  Future<void> setSystemProxy(bool value) async {
+    _ref
+        .read(networkSettingProvider.notifier)
+        .update((state) => state.copyWith(systemProxy: value));
+  }
+
+  @override
+  Future<void> setTun(bool value) async {
+    _ref
+        .read(patchClashConfigProvider.notifier)
+        .update((state) => state.copyWith.tun(enable: value));
+  }
 }
 
 class NativeDashboardOutboundProbe implements IpingDashboardOutboundProbe {
@@ -379,7 +413,9 @@ class _NativeDashboardEditor implements IpingDashboardEditor {
     description: (context) => widget.description(context),
     glyph: widget.glyph,
     removable: widget.removable,
-    builder: (_) => widget.card,
+    builder: widget == DashboardWidget.networkTakeover
+        ? (_) => const IpingNetworkTakeoverCard()
+        : (_) => widget.card,
     desktop: _desktopOf(widget),
   );
 
@@ -486,10 +522,10 @@ class _NativeDashboardEditor implements IpingDashboardEditor {
   static Widget _vpnTile(BuildContext context) => const VpnTile();
 
   static Widget _systemProxyTile(BuildContext context) =>
-      const NetworkTakeoverTile(TakeoverSwitch.systemProxy);
+      const IpingNetworkTakeoverTile(IpingTakeoverSwitch.systemProxy);
 
   static Widget _tunTile(BuildContext context) =>
-      const NetworkTakeoverTile(TakeoverSwitch.tun);
+      const IpingNetworkTakeoverTile(IpingTakeoverSwitch.tun);
 
   static Widget _connectionStatsCard(BuildContext context) =>
       const ConnectionStatsCard();
@@ -518,7 +554,11 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
     : preferences = NativeDashboardPreferences(_ref),
       probes = NativeDashboardProbes(_ref),
       telemetryUpdates = NativeDashboardTelemetry(_ref),
-      dashboardEditor = _NativeDashboardEditor(_ref);
+      networkTakeover = NativeNetworkTakeover(_ref),
+      dashboardEditor = _NativeDashboardEditor(_ref) {
+    _ref.listen(networkSettingProvider, (_, _) => refresh());
+    _ref.listen(patchClashConfigProvider, (_, _) => refresh());
+  }
 
   final Ref _ref;
   @override
@@ -527,6 +567,8 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   final NativeDashboardProbes probes;
   @override
   final NativeDashboardTelemetry telemetryUpdates;
+  @override
+  final NativeNetworkTakeover networkTakeover;
   @override
   final IpingDashboardEditor dashboardEditor;
   @override

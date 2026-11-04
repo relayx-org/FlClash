@@ -95,6 +95,17 @@ abstract interface class IpingDashboardProbes implements Listenable {
   Object? get error;
 }
 
+/// What a host can take over, and the switches it currently holds.
+abstract interface class IpingNetworkTakeover {
+  bool get supportsSystemProxy;
+  bool get supportsTun;
+  bool get systemProxy;
+  bool get tun;
+
+  Future<void> setSystemProxy(bool value);
+  Future<void> setTun(bool value);
+}
+
 /// The shared dashboard host contract.
 abstract interface class IpingDashboardHost implements Listenable {
   IpingBackend get backend;
@@ -111,6 +122,7 @@ abstract interface class IpingDashboardHost implements Listenable {
   Listenable get telemetryUpdates;
   IpingDashboardPreferences get preferences;
   IpingDashboardProbes get probes;
+  IpingNetworkTakeover get networkTakeover;
 
   /// Cards the host builds itself; null builds the page's own card set.
   IpingDashboardEditor? get dashboardEditor;

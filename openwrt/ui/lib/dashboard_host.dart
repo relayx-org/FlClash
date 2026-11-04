@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/dashboard_host.dart';
 import 'package:fl_clash/iping/probes.dart';
@@ -104,6 +106,72 @@ class RouterDashboardTelemetry extends ChangeNotifier {
   }
 }
 
+class RouterNetworkTakeover implements IpingNetworkTakeover {
+  RouterNetworkTakeover(this._controller, this._changed) {
+    unawaited(_load());
+  }
+
+  final RouterController _controller;
+  final VoidCallback _changed;
+  bool _tun = false;
+  bool _loaded = false;
+  bool _disposed = false;
+
+  @override
+  bool get supportsSystemProxy => false;
+
+  @override
+  bool get supportsTun => true;
+
+  @override
+  bool get systemProxy => false;
+
+  @override
+  bool get tun => _tun;
+
+  Future<void> _load() async {
+    try {
+      final settings = await _controller.backend.readSettings();
+      if (_disposed) return;
+      final tun = settings.flag('tun.enable');
+      if (_loaded && tun == _tun) return;
+      _tun = tun;
+      _loaded = true;
+      _changed();
+    } catch (_) {
+      // A settings read that fails leaves the last known switch state.
+    }
+  }
+
+  @override
+  Future<void> setTun(bool value) async {
+    if (_disposed) return;
+    final previous = _tun;
+    _tun = value;
+    _changed();
+    try {
+      await _controller.saveSettings({'tun.enable': value});
+      if (_disposed) return;
+      await _load();
+    } catch (_) {
+      if (!_disposed) {
+        _tun = previous;
+        _changed();
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setSystemProxy(bool value) async {
+    throw UnsupportedError('system proxy is not available on the router');
+  }
+
+  void dispose() {
+    _disposed = true;
+  }
+}
+
 class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   RouterDashboardHost(
     this.controller, {
@@ -132,6 +200,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
        probes = RouterDashboardProbes(controller.probes),
        telemetryUpdates = RouterDashboardTelemetry(controller),
        _status = _statusOf(controller) {
+    _networkTakeover = RouterNetworkTakeover(controller, notifyListeners);
     controller.addListener(_controllerChanged);
   }
 
@@ -154,7 +223,11 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   final RouterDashboardProbes probes;
   @override
   final RouterDashboardTelemetry telemetryUpdates;
+  late final RouterNetworkTakeover _networkTakeover;
   Object _status;
+
+  @override
+  IpingNetworkTakeover get networkTakeover => _networkTakeover;
 
   static Object _statusOf(RouterController controller) => (
     controller.signedIn,
@@ -272,6 +345,7 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
 
   @override
   void dispose() {
+    _networkTakeover.dispose();
     controller.removeListener(_controllerChanged);
     probes.dispose();
     telemetryUpdates.dispose();

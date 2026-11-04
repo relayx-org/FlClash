@@ -114,11 +114,34 @@ class _Editor implements IpingDashboardEditor {
   }
 }
 
+class _Takeover implements IpingNetworkTakeover {
+  @override
+  bool get supportsSystemProxy => true;
+
+  @override
+  bool get supportsTun => true;
+
+  @override
+  bool get systemProxy => false;
+
+  @override
+  bool get tun => false;
+
+  @override
+  Future<void> setSystemProxy(bool value) async {}
+
+  @override
+  Future<void> setTun(bool value) async {}
+}
+
 class _Host extends ChangeNotifier implements IpingDashboardHost {
   _Host(this.editor);
 
   final IpingDashboardEditor? editor;
   final _probes = _Probes();
+
+  @override
+  IpingNetworkTakeover get networkTakeover => _Takeover();
 
   @override
   IpingDashboardEditor? get dashboardEditor => editor;
@@ -168,6 +191,9 @@ class _DefaultHost extends ChangeNotifier implements IpingDashboardHost {
 
   @override
   IpingDashboardProbes get probes => _probes;
+
+  @override
+  IpingNetworkTakeover get networkTakeover => _Takeover();
 
   @override
   IpingTelemetry get telemetry => const IpingTelemetry();
@@ -348,6 +374,7 @@ void main() {
       'currentOutbound',
       'networkSpeed',
       'outboundMode',
+      'networkTakeover',
       'profile',
       'intranet',
       'services',

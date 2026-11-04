@@ -6,6 +6,7 @@ import 'package:fl_clash/features/ip_quality/labels.dart';
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/dashboard_defaults.dart';
 import 'package:fl_clash/iping/widgets/dashboard_card_editor.dart';
+import 'package:fl_clash/iping/widgets/network_takeover.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -475,6 +476,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     'currentOutbound',
     'networkSpeed',
     'outboundMode',
+    'networkTakeover',
     'profile',
     'intranet',
     'services',
@@ -491,6 +493,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     final upload = _SpeedCard(host: host, upload: true);
     final download = _SpeedCard(host: host, upload: false);
     final mode = _ModeCard(host: host);
+    final systemProxy = host.networkTakeover.supportsSystemProxy;
     final subscription = DashboardProfileCard(
       name: 'iPing',
       source: l.remote,
@@ -660,6 +663,27 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         ],
       ),
       card(
+        id: 'networkTakeover',
+        label: l.networkTakeover,
+        glyph: AppGlyphs.shuffle,
+        builder: (_) => const IpingNetworkTakeoverCard(),
+        desktop: [
+          if (host.networkTakeover.supportsSystemProxy)
+            IpingDashboardDesktopCard(
+              area: IpingDashboardDesktopArea.control,
+              builder: (_) => const IpingNetworkTakeoverTile(
+                IpingTakeoverSwitch.systemProxy,
+              ),
+            ),
+          if (host.networkTakeover.supportsTun)
+            IpingDashboardDesktopCard(
+              area: IpingDashboardDesktopArea.control,
+              builder: (_) =>
+                  const IpingNetworkTakeoverTile(IpingTakeoverSwitch.tun),
+            ),
+        ],
+      ),
+      card(
         id: 'profile',
         label: l.profile,
         glyph: AppGlyphs.profiles,
@@ -748,11 +772,13 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         label: l.network,
         glyph: AppGlyphs.settings,
         builder: (_) => fixed(64, network),
+        // Two takeover tiles already fill the wide control row.
         desktop: [
-          IpingDashboardDesktopCard(
-            area: IpingDashboardDesktopArea.control,
-            builder: (_) => network,
-          ),
+          if (!systemProxy)
+            IpingDashboardDesktopCard(
+              area: IpingDashboardDesktopArea.control,
+              builder: (_) => network,
+            ),
         ],
       ),
       card(
@@ -760,12 +786,6 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         label: l.sync,
         glyph: AppGlyphs.refresh,
         builder: (_) => fixed(64, sync),
-        desktop: [
-          IpingDashboardDesktopCard(
-            area: IpingDashboardDesktopArea.control,
-            builder: (_) => sync,
-          ),
-        ],
       ),
     ];
   }
