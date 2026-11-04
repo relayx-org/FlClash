@@ -129,6 +129,7 @@ func (a *app) startDNSProxy(listen, upstream string) error {
 	a.dnsMu.Lock()
 	a.dnsProxy = proxy
 	a.dnsMu.Unlock()
+	a.syncDNSMasq(true)
 	return nil
 }
 
@@ -139,6 +140,7 @@ func (a *app) stopDNSProxy() {
 	a.dnsMu.Unlock()
 	if proxy != nil {
 		proxy.close()
+		a.syncDNSMasq(false)
 	}
 }
 
@@ -515,4 +517,26 @@ func dnsRcodeName(value int) string {
 		return name
 	}
 	return fmt.Sprintf("RCODE%d", value)
+}
+
+func (a *app) syncDNSMasq(enable bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	const entry = "127.0.0.1#1053"
+	out, _ := a.command(ctx, "/sbin/uci", "get", "dhcp.@dnsmasq[0].server")
+	has := strings.Contains(string(out), entry)
+	if enable == has {
+		return
+	}
+	action := "add_list"
+	if !enable {
+		action = "del_list"
+	}
+	if _, err := a.command(ctx, "/sbin/uci", action, "dhcp.@dnsmasq[0].server="+entry); err != nil {
+		return
+	}
+	if _, err := a.command(ctx, "/sbin/uci", "commit", "dhcp"); err != nil {
+		return
+	}
+	_, _ = a.command(ctx, "/etc/init.d/dnsmasq", "restart")
 }
