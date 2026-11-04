@@ -189,6 +189,10 @@ class RouterDashboardHost extends ChangeNotifier implements IpingDashboardHost {
 
   @override
   IpingDashboardPreferences get preferences => _preferences;
+
+  /// The web UI keeps the shared page's fixed arrangement.
+  @override
+  IpingDashboardEditor? get dashboardEditor => null;
   @override
   IpingBackend get backend => controller.backend;
   @override

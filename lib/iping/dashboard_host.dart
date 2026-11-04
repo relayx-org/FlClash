@@ -1,6 +1,71 @@
+import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'backend.dart';
+
+class IpingDashboardCard {
+  const IpingDashboardCard({
+    required this.id,
+    required this.label,
+    required this.builder,
+    this.description,
+    this.glyph,
+    this.removable = true,
+    this.desktop = const [],
+  });
+
+  final String id;
+  final String Function(BuildContext context) label;
+  final String? Function(BuildContext context)? description;
+  final WidgetBuilder builder;
+  final Glyph? glyph;
+  final bool removable;
+
+  final List<IpingDashboardDesktopCard> desktop;
+
+  @override
+  bool operator ==(Object other) =>
+      other is IpingDashboardCard && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+class IpingDashboardDesktopCard {
+  const IpingDashboardDesktopCard({
+    required this.area,
+    required this.builder,
+    this.span = 1,
+  });
+
+  final IpingDashboardDesktopArea area;
+  final WidgetBuilder builder;
+
+  final int span;
+}
+
+enum IpingDashboardDesktopArea {
+  outbound,
+  upload,
+  download,
+  mode,
+  control,
+  middle,
+  summary,
+  table,
+}
+
+abstract interface class IpingDashboardEditor {
+  List<IpingDashboardCard> get cards;
+
+  List<IpingDashboardCard> get available;
+
+  List<IpingDashboardCard> get desktopCards;
+
+  void save(List<String> ids);
+
+  void reset();
+}
 
 abstract interface class IpingDashboardPreferences {
   bool get hideIp;
@@ -46,6 +111,8 @@ abstract interface class IpingDashboardHost implements Listenable {
   Listenable get telemetryUpdates;
   IpingDashboardPreferences get preferences;
   IpingDashboardProbes get probes;
+
+  IpingDashboardEditor? get dashboardEditor;
   Future<IpingDashboardSnapshot> readDashboard();
   Future<void> synchronize();
   Future<void> setConnected(bool value);

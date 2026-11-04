@@ -1,7 +1,14 @@
+import 'dart:async';
+
 import 'package:fl_clash/iping/account_host.dart';
+import 'package:fl_clash/iping/api.dart';
+import 'package:fl_clash/iping/client_providers.dart';
 import 'package:fl_clash/iping/pages/account_page.dart';
+import 'package:fl_clash/iping/topup_form.dart';
+import 'package:fl_clash/iping/topup_history.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app.dart';
@@ -9,21 +16,44 @@ import 'client.dart';
 import 'controller.dart';
 import 'settings_host.dart';
 
-class RouterAccountRoute extends StatelessWidget {
+class RouterAccountRoute extends ConsumerWidget {
   const RouterAccountRoute({super.key});
 
+  Future<void> _topUp(
+    BuildContext context,
+    RouterController router,
+    IpingApi api,
+  ) async {
+    final opened = await showIpingTopup(context, api);
+    if (opened == true) await router.refreshAccount();
+  }
+
+  void _openHistory(BuildContext context, IpingApi api) {
+    unawaited(
+      showInSheet<void>(context, builder: (_) => IpingTopupHistory(api: api)),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final router = RouterScope.of(context, aspect: RouterAspect.status);
+    final api = ref.watch(ipingClientProvider);
+    final account = router.account;
     final error = router.error;
     final updated = router.status.updated;
     return IpingAccountPage(
       host: _RouterAccountHost(
         router: router,
-        profile: router.account == null
+        profile: account == null
             ? null
-            : IpingAccountProfile(info: router.account!, showTopUp: false),
+            : IpingAccountProfile(
+                info: account,
+                onTopUp: account.status == 'active'
+                    ? () => _topUp(context, router, api)
+                    : null,
+                onHistory: () => _openHistory(context, api),
+              ),
         subscription: IpingAccountSubscription(
           nodes: router.nodes,
           busy: router.busy,

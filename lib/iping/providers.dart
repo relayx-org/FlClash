@@ -20,7 +20,6 @@ import 'session.dart';
 import 'site_config.dart';
 import 'native_ip.dart';
 import 'tunnel.dart';
-import 'topup.dart';
 import 'user_info.dart';
 
 final ipingApiProvider = Provider<IpingApi>((ref) => IpingApi());
@@ -64,11 +63,6 @@ final ipingUserInfoProvider = FutureProvider.autoDispose<IpingUserInfo?>((
   }
   return info;
 }, retry: (_, _) => null);
-
-final ipingTopupOptionsProvider = FutureProvider.autoDispose<IpingTopupOptions>(
-  (ref) => ref.watch(ipingAuthenticatedApiProvider).topupOptions(),
-  retry: (_, _) => null,
-);
 
 final ipingNativeIpInventoryProvider =
     FutureProvider.autoDispose<List<NativeIpOffer>>(

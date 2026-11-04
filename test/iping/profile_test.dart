@@ -1,9 +1,11 @@
 import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/views/account/native_host.dart';
 import 'package:fl_clash/iping/profile_widgets.dart';
+import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/topup.dart';
 import 'package:fl_clash/iping/topup_form.dart';
+import 'package:fl_clash/iping/topup_history.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +87,8 @@ void main() {
     expect(find.text('user@example.com'), findsOneWidget);
     expect(find.text('¥128.50'), findsOneWidget);
     expect(find.text('Joined 2026-10-22 · Telegram Linked'), findsOneWidget);
+    expect(find.byType(IpingSubscriptionSection), findsOneWidget);
+    expect(find.text('2 available nodes'), findsOneWidget);
     expect(find.text('Paid'), findsNothing);
     expect(
       find.descendant(
@@ -160,7 +164,7 @@ void main() {
     api.topups = [
       for (var i = 45; i > 0; i--) _order(i, IpingTopupStatus.success),
     ];
-    await pump(tester, const IpingTopupHistory());
+    await pump(tester, IpingTopupHistory(api: api));
     final list = find.byType(Scrollable).first;
     for (var i = 0; i < 10; i++) {
       await tester.drag(list, const Offset(0, -3000));
@@ -171,7 +175,7 @@ void main() {
   });
 
   testWidgets('an empty history says so', (tester) async {
-    await pump(tester, const IpingTopupHistory());
+    await pump(tester, IpingTopupHistory(api: api));
     expect(find.text('No top-ups yet'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -179,7 +183,7 @@ void main() {
   testWidgets('top-up validates the minimum and shows the bonus', (
     tester,
   ) async {
-    await pump(tester, const IpingTopupForm());
+    await pump(tester, IpingTopupForm(api: api));
     expect(find.text('Alipay'), findsOneWidget);
     expect(find.text('3% fee'), findsOneWidget);
 
@@ -204,7 +208,7 @@ void main() {
   ) async {
     api.topupFailure = IpingFailure.unavailable;
     api.topupFailureStatus = 409;
-    await pump(tester, const IpingTopupForm());
+    await pump(tester, IpingTopupForm(api: api));
     await tester.tap(find.text('¥30'));
     await tester.tap(find.byTooltip('Pay'));
     await tester.pumpAndSettle();

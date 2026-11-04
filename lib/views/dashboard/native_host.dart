@@ -10,15 +10,15 @@ import 'package:fl_clash/iping/dashboard_host.dart';
 import 'package:fl_clash/iping/pages/dashboard_page.dart';
 import 'package:fl_clash/iping/subscription.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/ip_quality.dart';
 import 'package:fl_clash/providers/outbound_ip.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/providers/service_status.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:fl_clash/views/config/network.dart';
-import 'package:fl_clash/views/dashboard/widgets/connections_table.dart';
-import 'package:fl_clash/views/dashboard/widgets/proxy_groups.dart';
-import 'package:fl_clash/views/dashboard/widgets/service_status.dart';
+import 'package:fl_clash/views/dashboard/widgets/widgets.dart';
+import 'package:fl_clash/views/dashboard/widget_registry.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -273,11 +273,252 @@ class NativeDashboardTelemetry extends ChangeNotifier {
   }
 }
 
+class _NativeDashboardEditor implements IpingDashboardEditor {
+  _NativeDashboardEditor(this._ref);
+
+  final Ref _ref;
+
+  static const _desktopOrder = [
+    DashboardWidget.currentOutbound,
+    DashboardWidget.networkSpeed,
+    DashboardWidget.outboundMode,
+    DashboardWidget.vpnButton,
+    DashboardWidget.networkTakeover,
+    DashboardWidget.connectionStats,
+    DashboardWidget.proxyGroups,
+    DashboardWidget.intranetIp,
+    DashboardWidget.profiles,
+    DashboardWidget.serviceStatus,
+    DashboardWidget.memoryInfo,
+  ];
+
+  SupportPlatform get _platform => SupportPlatform.currentPlatform;
+
+  List<DashboardWidget> get _saved =>
+      _ref.read(appSettingProvider).dashboardWidgets;
+
+  @override
+  List<IpingDashboardCard> get cards => [
+    for (final widget in _saved)
+      if (widget.platforms.contains(_platform)) _cardOf(widget),
+  ];
+
+  @override
+  List<IpingDashboardCard> get available => [
+    for (final widget in DashboardWidget.values)
+      if (widget.platforms.contains(_platform) && !_saved.contains(widget))
+        _cardOf(widget),
+  ];
+
+  @override
+  List<IpingDashboardCard> get desktopCards => [
+    for (final widget in _desktopOrder)
+      if (widget.platforms.contains(_platform)) _cardOf(widget),
+    // A phone-sized platform has no takeover card, so the wide layout keeps
+    // the VPN switch where the old dashboard put it.
+    if (_platform == SupportPlatform.IOS) _vpnControl,
+  ];
+
+  static final _vpnControl = IpingDashboardCard(
+    id: 'vpnControl',
+    label: (_) => 'VPN',
+    builder: (_) => const VpnCard(),
+    desktop: const [
+      IpingDashboardDesktopCard(
+        area: IpingDashboardDesktopArea.control,
+        builder: _vpnTile,
+        span: 2,
+      ),
+    ],
+  );
+
+  @override
+  void save(List<String> ids) {
+    final byName = DashboardWidget.values.asNameMap();
+    final shown = [for (final id in ids) byName[id]].nonNulls.toList();
+    _ref
+        .read(appSettingProvider.notifier)
+        .update(
+          (state) => state.copyWith(
+            dashboardWidgets: _keepingOtherPlatforms(
+              state.dashboardWidgets,
+              shown,
+            ),
+          ),
+        );
+  }
+
+  @override
+  void reset() => _ref
+      .read(appSettingProvider.notifier)
+      .update(
+        (state) => state.copyWith(dashboardWidgets: defaultDashboardWidgets),
+      );
+
+  /// Cards this platform cannot show stay where they were among the rest.
+  List<DashboardWidget> _keepingOtherPlatforms(
+    List<DashboardWidget> saved,
+    List<DashboardWidget> shown,
+  ) {
+    final result = [...shown];
+    var at = 0;
+    for (final card in saved) {
+      if (card.platforms.contains(_platform)) {
+        final index = result.indexOf(card);
+        if (index != -1) at = index + 1;
+      } else {
+        result.insert(at++, card);
+      }
+    }
+    return result;
+  }
+
+  IpingDashboardCard _cardOf(DashboardWidget widget) => IpingDashboardCard(
+    id: widget.name,
+    label: (context) => widget.label(context),
+    description: (context) => widget.description(context),
+    glyph: widget.glyph,
+    removable: widget.removable,
+    builder: (_) => widget.card,
+    desktop: _desktopOf(widget),
+  );
+
+  List<IpingDashboardDesktopCard> _desktopOf(DashboardWidget widget) =>
+      switch (widget) {
+        DashboardWidget.currentOutbound => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.outbound,
+            builder: _currentOutbound,
+          ),
+        ],
+        DashboardWidget.networkSpeed => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.upload,
+            builder: _uploadSpeed,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.download,
+            builder: _downloadSpeed,
+          ),
+        ],
+        DashboardWidget.outboundMode => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.mode,
+            builder: _modeBar,
+          ),
+        ],
+        DashboardWidget.vpnButton => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.control,
+            builder: _vpnTile,
+            span: 2,
+          ),
+        ],
+        DashboardWidget.networkTakeover => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.control,
+            builder: _systemProxyTile,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.control,
+            builder: _tunTile,
+          ),
+        ],
+        DashboardWidget.connectionStats => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.summary,
+            builder: _connectionStatsCard,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.table,
+            builder: _connectionsTableCard,
+            span: 3,
+          ),
+        ],
+        DashboardWidget.proxyGroups => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.summary,
+            builder: _proxyGroupsSummary,
+          ),
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.table,
+            builder: _proxyGroupsCard,
+            span: 2,
+          ),
+        ],
+        DashboardWidget.intranetIp => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: _intranetCard,
+          ),
+        ],
+        DashboardWidget.profiles => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: _profilesCard,
+          ),
+        ],
+        DashboardWidget.serviceStatus => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: _serviceStatusCard,
+          ),
+        ],
+        DashboardWidget.memoryInfo => const [
+          IpingDashboardDesktopCard(
+            area: IpingDashboardDesktopArea.middle,
+            builder: _memoryCard,
+          ),
+        ],
+      };
+
+  static Widget _currentOutbound(BuildContext context) =>
+      const CurrentOutboundCard();
+
+  static Widget _uploadSpeed(BuildContext context) =>
+      const SpeedCard(direction: TrafficDirection.upload);
+
+  static Widget _downloadSpeed(BuildContext context) =>
+      const SpeedCard(direction: TrafficDirection.download);
+
+  static Widget _modeBar(BuildContext context) => const OutboundModeBar();
+
+  static Widget _vpnTile(BuildContext context) => const VpnTile();
+
+  static Widget _systemProxyTile(BuildContext context) =>
+      const NetworkTakeoverTile(TakeoverSwitch.systemProxy);
+
+  static Widget _tunTile(BuildContext context) =>
+      const NetworkTakeoverTile(TakeoverSwitch.tun);
+
+  static Widget _connectionStatsCard(BuildContext context) =>
+      const ConnectionStatsCard();
+
+  static Widget _connectionsTableCard(BuildContext context) =>
+      const ConnectionsTableCard();
+
+  static Widget _proxyGroupsSummary(BuildContext context) =>
+      const ProxyGroupsSummaryCard();
+
+  static Widget _proxyGroupsCard(BuildContext context) =>
+      const ProxyGroupsCard();
+
+  static Widget _intranetCard(BuildContext context) => const IntranetIpCard();
+
+  static Widget _profilesCard(BuildContext context) => const ProfilesCard();
+
+  static Widget _serviceStatusCard(BuildContext context) =>
+      const ServiceStatusCard();
+
+  static Widget _memoryCard(BuildContext context) => const MemoryInfo();
+}
+
 class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   NativeDashboardHost(this._ref)
     : preferences = NativeDashboardPreferences(_ref),
       probes = NativeDashboardProbes(_ref),
-      telemetryUpdates = NativeDashboardTelemetry(_ref);
+      telemetryUpdates = NativeDashboardTelemetry(_ref),
+      dashboardEditor = _NativeDashboardEditor(_ref);
 
   final Ref _ref;
   @override
@@ -286,6 +527,8 @@ class NativeDashboardHost extends ChangeNotifier implements IpingDashboardHost {
   final NativeDashboardProbes probes;
   @override
   final NativeDashboardTelemetry telemetryUpdates;
+  @override
+  final IpingDashboardEditor dashboardEditor;
   int _revision = 0;
 
   int get revision => _revision;

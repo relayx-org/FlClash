@@ -94,9 +94,8 @@ class RouterSettingsRoute extends StatelessWidget {
             pageBuilder: (_) => const RouterCustomResources(),
           ),
         ],
-        about: IpingAboutSummary(
+        about: IpingAboutVersionSummary(
           site: router.siteConfig,
-          version: '0.1.0-r3',
           onTerms: () =>
               router.client.open('${router.site}/terms-of-service.html'),
           onPrivacy: () =>

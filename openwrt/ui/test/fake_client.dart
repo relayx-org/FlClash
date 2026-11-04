@@ -193,6 +193,7 @@ class FakeRouterClient implements RouterClient {
         'balance': 128.5,
         'status': 'active',
       },
+      'api_call' => _apiCall(args),
       'proxies' => {
         'groups': [
           {'name': 'PROXY', 'type': 'Selector', 'now': selected},
@@ -219,6 +220,66 @@ class FakeRouterClient implements RouterClient {
       'logout' => _logout(),
       'delay_proxy' => {'delay': 42},
       _ => null,
+    };
+  }
+
+  Object? _apiCall(Map<String, Object?> args) {
+    final path = args['path'] as String;
+    final method = args['method'] as String;
+    if (path == 'topup' && method == 'GET') {
+      return {
+        'status': 200,
+        'body': {
+          'data': [
+            {
+              'id': 1,
+              'price': 50,
+              'bonus': 5,
+              'status': 'pending',
+              'payment': {'name': 'Alipay'},
+              'pay_url': 'https://pay.example.com/1',
+              'created_at': '2026-10-30T08:00:00Z',
+            },
+          ],
+          'total': 1,
+        },
+      };
+    }
+    if (path == 'topup' && method == 'POST') {
+      return {
+        'status': 200,
+        'body': {'pay_url': 'https://pay.example.com/order'},
+      };
+    }
+    if (path == 'pay') {
+      return {
+        'status': 200,
+        'body': [
+          {
+            'id': 3,
+            'name': 'Alipay',
+            'icon': '',
+            'percent_fee': 0.03,
+            'fixed_fee': 0,
+          },
+        ],
+      };
+    }
+    if (path == 'topup/activities') {
+      return {'status': 200, 'body': <Object?>[]};
+    }
+    if (path == 'system/config') {
+      final params = (args['params'] as Map?) ?? const {};
+      return {
+        'status': 200,
+        'body': {
+          if (params['name'] == 'MIN_TOPUP_AMOUNT') 'MIN_TOPUP_AMOUNT': 10,
+        },
+      };
+    }
+    return {
+      'status': 404,
+      'body': {'error': 'not_found'},
     };
   }
 

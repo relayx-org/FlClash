@@ -2,6 +2,20 @@
 set -eu
 
 openwrt_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+python3 - "$openwrt_dir" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1]).parent
+version = re.search(r'^version:\s*(\S+)', (root / 'pubspec.yaml').read_text(), re.M).group(1)
+web = Path(sys.argv[1]) / 'ui' / 'pubspec.yaml'
+text, count = re.subn(r'^version:.*$', 'version: ' + version, web.read_text(), count=1, flags=re.M)
+if count != 1:
+    raise RuntimeError('Expected one Web package version')
+web.write_text(text)
+PY
+
 cd "$openwrt_dir/ui"
 flutter pub get
 flutter build web --release --wasm --base-href / --no-web-resources-cdn

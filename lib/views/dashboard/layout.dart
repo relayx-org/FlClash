@@ -10,6 +10,9 @@ const _mobileMaxWidth = 560.0;
 
 int dashboardColumnsOf(double width) => width < _minFourColumnWidth ? 2 : 4;
 
+/// Whether the page shows the card column, whose cards the user can arrange.
+bool dashboardIsMobileOf(double width) => width < _minDesktopWidth;
+
 /// The mobile cards and their editor share one centered column.
 double dashboardMobileSideOf(double width) =>
     math.max(16, (width - _mobileMaxWidth) / 2);

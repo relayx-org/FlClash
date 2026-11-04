@@ -1,18 +1,16 @@
 import 'dart:async';
 
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/features/form/form_page.dart';
 import 'package:fl_clash/features/form/form_row.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'api.dart';
 import 'brand_image_native.dart'
     if (dart.library.js_interop) 'brand_image_web.dart';
-import 'providers.dart';
 import 'topup.dart';
 
 const _presets = [10.0, 30.0, 50.0, 100.0, 200.0, 500.0];
@@ -27,29 +25,50 @@ String _plain(double value) {
 String _shortCurrency(double value) => '¥${_plain(value)}';
 
 /// Completes with true once an order is created and its payment page opened.
-Future<bool?> showIpingTopup(BuildContext context) => showFormSheet<bool>(
+Future<bool?> showIpingTopup(
+  BuildContext context,
+  IpingApi api, {
+  VoidCallback? onOpened,
+}) => showFormSheet<bool>(
   context: context,
-  builder: (_) => const IpingTopupForm(),
+  builder: (_) => IpingTopupForm(api: api, onOpened: onOpened),
 );
 
-class IpingTopupForm extends ConsumerStatefulWidget {
-  const IpingTopupForm({super.key});
+class IpingTopupForm extends StatefulWidget {
+  const IpingTopupForm({super.key, required this.api, this.onOpened});
+
+  final IpingApi api;
+
+  /// Called once the payment page opens; hosts that cannot show a snackbar
+  /// pass their own notice.
+  final VoidCallback? onOpened;
 
   @override
-  ConsumerState<IpingTopupForm> createState() => _IpingTopupFormState();
+  State<IpingTopupForm> createState() => _IpingTopupFormState();
 }
 
-class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
+class _IpingTopupFormState extends State<IpingTopupForm> {
   final _amount = TextEditingController();
+  late Future<IpingTopupOptions> _options;
   int? _paymentId;
   var _attempted = false;
   var _saving = false;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _options = widget.api.topupOptions();
+  }
+
+  @override
   void dispose() {
     _amount.dispose();
     super.dispose();
+  }
+
+  void _reloadOptions() {
+    setState(() => _options = widget.api.topupOptions());
   }
 
   double? get _price => double.tryParse(_amount.text.trim());
@@ -64,7 +83,7 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
       options.payments.firstOrNull;
 
   String? _issue(IpingTopupOptions options) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     if (_amountInvalid(options)) {
       return l.ipingTopupBelowMinimum(_shortCurrency(options.minAmount));
     }
@@ -81,7 +100,7 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
 
   Future<void> _submit(IpingTopupOptions options) async {
     if (_saving) return;
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     setState(() {
       _attempted = true;
       _error = null;
@@ -91,11 +110,18 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _saving = true);
     try {
-      final url = await ref
-          .read(ipingAuthenticatedApiProvider)
-          .createTopup(price: _price!, paymentId: payment.id);
+      final url = await widget.api.createTopup(
+        price: _price!,
+        paymentId: payment.id,
+      );
       unawaited(launchUrl(url, mode: LaunchMode.externalApplication));
-      dialogs.showNotifier(l.ipingTopupOpened);
+      if (widget.onOpened case final onOpened?) {
+        onOpened();
+      } else if (mounted) {
+        ScaffoldMessenger.maybeOf(
+          context,
+        )?.showSnackBar(SnackBar(content: Text(l.ipingTopupOpened)));
+      }
       if (mounted) Navigator.of(context).pop(true);
     } on IpingException catch (error) {
       if (mounted) {
@@ -109,7 +135,7 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
   }
 
   String? _activities(IpingTopupOptions options) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     if (options.activities.isEmpty) return null;
     return [
       for (final activity in options.activities)
@@ -132,11 +158,11 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
     ];
     return parts.isEmpty
         ? null
-        : context.appLocalizations.ipingPaymentFee(parts.join(' + '));
+        : AppLocalizations.of(context).ipingPaymentFee(parts.join(' + '));
   }
 
   List<Widget> _fields(IpingTopupOptions options) {
-    final l = context.appLocalizations;
+    final l = AppLocalizations.of(context);
     final price = _price;
     final bonus = price == null ? 0.0 : options.bonusFor(price);
     final payment = _payment(options);
@@ -212,32 +238,35 @@ class _IpingTopupFormState extends ConsumerState<IpingTopupForm> {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.appLocalizations;
-    final options = ref.watch(ipingTopupOptionsProvider);
-    final value = options.value;
-    final failed = value == null && options.hasError;
-    return FormPage(
-      title: l.ipingTopUp,
-      saveLabel: l.ipingTopupPay,
-      saving: _saving || value == null && options.isLoading,
-      error: failed
-          ? l.ipingTopupOptionsFailed
-          : _attempted && value != null
-          ? _issue(value) ?? _error
-          : _error,
-      onSave: () => value == null
-          ? ref.invalidate(ipingTopupOptionsProvider)
-          : _submit(value),
-      children: [
-        if (value != null)
-          AbsorbPointer(
-            absorbing: _saving,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: _fields(value),
-            ),
-          ),
-      ],
+    final l = AppLocalizations.of(context);
+    return FutureBuilder<IpingTopupOptions>(
+      future: _options,
+      builder: (context, snapshot) {
+        final options = snapshot.data;
+        final loading = snapshot.connectionState == ConnectionState.waiting;
+        final failed = options == null && snapshot.hasError;
+        return FormPage(
+          title: l.ipingTopUp,
+          saveLabel: l.ipingTopupPay,
+          saving: _saving || options == null && loading,
+          error: failed
+              ? l.ipingTopupOptionsFailed
+              : _attempted && options != null
+              ? _issue(options) ?? _error
+              : _error,
+          onSave: options == null ? _reloadOptions : () => _submit(options),
+          children: [
+            if (options != null)
+              AbsorbPointer(
+                absorbing: _saving,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: _fields(options),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -323,9 +352,9 @@ class _AmountTile extends StatelessWidget {
             if (bonus != null)
               Text(
                 bonus > 0
-                    ? context.appLocalizations.ipingTopupBonus(
-                        _shortCurrency(bonus),
-                      )
+                    ? AppLocalizations.of(
+                        context,
+                      ).ipingTopupBonus(_shortCurrency(bonus))
                     : ' ',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

@@ -10,6 +10,7 @@ final _reorderableList = RegExp(
 
 const _allowed = {
   'lib/ui/super_reorderable_list.dart',
+  'lib/iping/widgets/dashboard_card_editor.dart',
   'lib/views/dashboard/edit.dart',
 };
 

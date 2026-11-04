@@ -4,9 +4,11 @@ import 'dart:math' as math;
 import 'package:fl_clash/common/datetime.dart';
 import 'package:fl_clash/features/ip_quality/labels.dart';
 import 'package:fl_clash/iping/backend.dart';
+import 'package:fl_clash/iping/widgets/dashboard_card_editor.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
+import 'package:fl_clash/views/dashboard/desktop_layout.dart';
 import 'package:fl_clash/views/dashboard/layout.dart';
 import 'package:fl_clash/views/dashboard/panel_layout.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
@@ -23,6 +25,7 @@ import 'package:fl_clash/views/dashboard/widgets/record_table.dart';
 import 'package:fl_clash/views/dashboard/widgets/service_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/traffic_frame.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -50,11 +53,23 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
   IpingDashboardSnapshot? _snapshot;
   IpingDashboardProbes? _probes;
   Set<ServiceTarget> _watchedServices = {};
+  final _cardKeys = <String, GlobalKey>{};
+  bool _editing = false;
+
+  GlobalKey _cardKeyOf(String id) => _cardKeys.putIfAbsent(id, GlobalKey.new);
+
+  void _startEditing() => setState(() => _editing = true);
+
+  void _stopEditing() {
+    if (_editing) setState(() => _editing = false);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final host = IpingDashboardScope.of(context);
+    // A host that brings its own cards owns their probes and data.
+    if (host.dashboardEditor != null) return;
     final probes = host.probes;
     if (!identical(probes, _probes)) {
       _probes?.outbound.unwatch('');
@@ -84,7 +99,11 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
 
   Future<void> _load() async {
     final host = IpingDashboardScope.read(context);
-    if (_loading || !host.hasSubscription || !host.visible || host.busy) {
+    if (host.dashboardEditor != null ||
+        _loading ||
+        !host.hasSubscription ||
+        !host.visible ||
+        host.busy) {
       return;
     }
     _loading = true;
@@ -130,217 +149,397 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     }
   }
 
+  bool get _dragsAtOnce => switch (defaultTargetPlatform) {
+    TargetPlatform.android ||
+    TargetPlatform.iOS ||
+    TargetPlatform.fuchsia => false,
+    _ => true,
+  };
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final host = IpingDashboardScope.of(context);
-    return CommonScaffold(
-      backgroundColor: DashboardColors.of(context).page,
-      title: l.dashboard,
-      actions: [
-        FilledButton.icon(
-          style: ElasticPress.buttonStyle,
-          onPressed: host.busy ? null : () => _restart(context),
-          icon: host.busy
-              ? const SizedBox.square(
-                  dimension: 16,
-                  child: CommonCircleLoading(size: 16),
+    final editor = host.dashboardEditor;
+    final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
+    return LayoutBuilder(
+      builder: (context, page) {
+        final editable =
+            editor != null && dashboardIsMobileOf(page.maxWidth / scale);
+        if (!editable) _editing = false;
+        final editing = _editing;
+        return CommonScaffold(
+          backgroundColor: DashboardColors.of(context).page,
+          title: editing ? l.editDashboard : l.dashboard,
+          backAction: editing ? _stopEditing : null,
+          actions: [
+            if (editor == null)
+              FilledButton.icon(
+                style: ElasticPress.buttonStyle,
+                onPressed: host.busy ? null : () => _restart(context),
+                icon: host.busy
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CommonCircleLoading(size: 16),
+                      )
+                    : GlyphIcon(
+                        host.connected ? AppGlyphs.check : AppGlyphs.close,
+                        fill: 1,
+                      ),
+                label: Text(host.connected ? l.running : l.notRunning),
+              ),
+          ],
+          confirmationAction: editing
+              ? IconButtonData(
+                  glyph: AppGlyphs.check,
+                  tooltip: l.done,
+                  onPressed: _stopEditing,
                 )
-              : GlyphIcon(
-                  host.connected ? AppGlyphs.check : AppGlyphs.close,
-                  fill: 1,
-                ),
-          label: Text(host.connected ? l.running : l.notRunning),
-        ),
-      ],
-      body: Builder(
-        builder: (context) => LayoutBuilder(
-          builder: (context, constraints) {
-            final scale = math.max(
-              1.0,
-              MediaQuery.textScalerOf(context).scale(1),
-            );
-            final density = DashboardDensity.of(constraints.biggest / scale);
-            final gap = density.isDesktop
-                ? (MediaQuery.sizeOf(context).width <= 840 ? 12.0 : 16.0)
-                : 8.0;
-            final status = _ConnectionCard(host: host, snapshot: _snapshot);
-            final upload = _SpeedCard(host: host, upload: true);
-            final download = _SpeedCard(host: host, upload: false);
-            final mode = _ModeCard(host: host);
-            final subscription = DashboardProfileCard(
-              name: 'iPing',
-              source: l.remote,
-              updatedAt: host.updated,
-              summary: DashboardConfigStats(
-                groups: _snapshot?.groups,
-                proxies: _snapshot?.proxies,
-                rules: _snapshot?.rules,
+              : null,
+          iconActions: [
+            if (editable && !editing)
+              IconButtonData(
+                glyph: AppGlyphs.edit,
+                tooltip: l.editDashboard,
+                onPressed: _startEditing,
               ),
-              sync: DashboardIconButton(
-                glyph: AppGlyphs.sync,
-                tooltip: l.update,
-                onPressed: host.busy ? null : host.synchronize,
+            if (editing)
+              IconButtonData(
+                glyph: AppGlyphs.reset,
+                tooltip: l.reset,
+                onPressed: editor?.reset,
               ),
-              onDetails: () => host.openSubscription(context),
-            );
-            final intranet = DashboardIntranetCard(
-              localIp: _snapshot?.localIp,
-              allowLan: _snapshot?.settings['allow-lan'] == true,
-              port: _snapshot?.settings['mixed-port'] as int? ?? 7890,
-              onCopy: (address) async {
-                await Clipboard.setData(ClipboardData(text: address));
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(l.copySuccess)));
+          ],
+          body: Builder(
+            builder: (context) => LayoutBuilder(
+              builder: (context, constraints) {
+                final density = DashboardDensity.of(
+                  constraints.biggest / scale,
+                );
+                final gap = density.isDesktop
+                    ? (MediaQuery.sizeOf(context).width <= 840 ? 12.0 : 16.0)
+                    : 8.0;
+                final bottomInset = BottomInsetScope.of(context);
+                if (editor != null) {
+                  return DashboardDensityScope(
+                    density: density,
+                    scale: scale,
+                    child: density.isDesktop
+                        ? _buildHostDesktop(
+                            context,
+                            editor,
+                            constraints,
+                            density: density,
+                            gap: gap,
+                            scale: scale,
+                          )
+                        : _buildHostMobile(
+                            context,
+                            editor,
+                            constraints,
+                            gap: gap,
+                            bottomInset: bottomInset,
+                            editing: editing,
+                          ),
+                  );
                 }
-              },
-              onChanged: host.busy || _snapshot == null
-                  ? null
-                  : (value) => _saveSettings({'allow-lan': value}),
-            );
-            final services = _ServicesCard(host: host);
-            final proxies = DashboardProxyGroupsFrame(
-              count: host.connected ? _groups.length : 0,
-              empty: Center(
-                child: Text(l.noData, style: DashboardText.label(context)),
-              ),
-              onOpen: () => host.openProxies(context),
-              itemBuilder: (context, index) {
-                final item = _groups[index];
-                final iconSize = density.isCompact ? 34.0 : 40.0;
-                return DashboardProxyGroupTile(
-                  name: item.name,
-                  icon: DashboardGroupIcon(
-                    name: item.name,
-                    src: item.icon,
-                    size: iconSize,
-                    radius: DashboardCorner.block - 10,
-                  ),
-                  selected: EmojiText(
-                    item.selected.isEmpty ? '—' : item.selected,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: DashboardText.rowTitle(context),
-                  ),
-                  onTap: () => host.openProxies(context),
+                return _buildDefaultDashboard(
+                  context,
+                  host: host,
+                  l: l,
+                  density: density,
+                  gap: gap,
+                  scale: scale,
+                  bottomInset: bottomInset,
+                  constraints: constraints,
                 );
               },
-            );
-            final memory = ListenableBuilder(
-              listenable: host.telemetryUpdates,
-              builder: (context, _) => _MetricCard(
-                glyph: AppGlyphs.memory,
-                title: l.memoryInfo,
-                value: '',
-                content: DashboardMemorySummary(
-                  coreBytes: host.telemetry.memory,
-                  density: density,
-                ),
-              ),
-            );
-            final summaries = [
-              ListenableBuilder(
-                listenable: host.telemetryUpdates,
-                builder: (context, _) => _MetricCard(
-                  glyph: AppGlyphs.connections,
-                  title: l.connections,
-                  value: host.connected
-                      ? host.telemetry.connections.toString()
-                      : '—',
-                  onTap: () => host.openConnections(context),
-                ),
-              ),
-              _MetricCard(
-                glyph: AppGlyphs.proxies,
-                title: l.proxies,
-                value: host.connected ? '${_groups.length}' : '—',
-                onTap: () => host.openProxies(context),
-              ),
-            ];
-            return DashboardDensityScope(
-              density: density,
-              scale: scale,
-              child: density.isDesktop
-                  ? DashboardPanelLayout(
-                      columns: dashboardColumnsOf(constraints.maxWidth / scale),
-                      gap: gap,
-                      outbound: status,
-                      upload: upload,
-                      download: download,
-                      mode: mode,
-                      controls: [
-                        (
-                          1,
-                          _ControlCard(
-                            glyph: AppGlyphs.settings,
-                            label: l.network,
-                            onTap: () => host.openNetwork(context),
-                          ),
-                        ),
-                        (
-                          1,
-                          _ControlCard(
-                            glyph: AppGlyphs.refresh,
-                            label: l.sync,
-                            onTap: host.busy ? null : host.synchronize,
-                          ),
-                        ),
-                      ],
-                      intranet: intranet,
-                      profile: subscription,
-                      services: services,
-                      memory: memory,
-                      summaries: summaries,
-                      tablesMinHeight: connectionsTableMinHeight(
-                        density,
-                        scale,
-                      ),
-                      tables: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: gap,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _FeedCard.connections(
-                              host: host,
-                              connectionItems: host.connected
-                                  ? _connections
-                                  : [],
-                              count: host.connected
-                                  ? host.telemetry.connections
-                                  : 0,
-                            ),
-                          ),
-                          Expanded(flex: 2, child: proxies),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: EdgeInsets.fromLTRB(
-                        dashboardMobileSideOf(constraints.maxWidth),
-                        MediaQuery.paddingOf(context).top,
-                        dashboardMobileSideOf(constraints.maxWidth),
-                        BottomInsetScope.of(context) + 24,
-                      ),
-                      itemCount: 8,
-                      separatorBuilder: (_, _) => SizedBox(height: gap),
-                      itemBuilder: (context, index) => [
-                        SizedBox(height: 220 * scale, child: status),
-                        _NetworkSpeedCard(host: host),
-                        SizedBox(height: 64 * scale, child: mode),
-                        subscription,
-                        intranet,
-                        services,
-                        SizedBox(height: 152 * scale, child: summaries.first),
-                        SizedBox(height: 152 * scale, child: memory),
-                      ][index],
-                    ),
-            );
-          },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHostMobile(
+    BuildContext context,
+    IpingDashboardEditor editor,
+    BoxConstraints constraints, {
+    required double gap,
+    required double bottomInset,
+    required bool editing,
+  }) {
+    final top = MediaQuery.paddingOf(context).top + 4;
+    final bottom = 16 + bottomInset;
+    final side = dashboardMobileSideOf(constraints.maxWidth);
+    if (editing) {
+      return CustomScrollView(
+        scrollCacheExtent: ScrollCacheExtent.viewport(
+          (editor.cards.length + editor.available.length).toDouble(),
+        ),
+        slivers: [
+          IpingDashboardCardEditor(
+            cards: editor.cards,
+            available: editor.available,
+            cardKeyOf: _cardKeyOf,
+            padding: EdgeInsets.fromLTRB(side, top, side, bottom),
+            gap: gap,
+            onDone: _stopEditing,
+            onSave: editor.save,
+            dragsAtOnce: _dragsAtOnce,
+          ),
+        ],
+      );
+    }
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(side, top, side, bottom),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              spacing: gap,
+              children: [
+                for (final card in editor.cards)
+                  RepaintBoundary(
+                    key: _cardKeyOf(card.id),
+                    child: card.builder(context),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHostDesktop(
+    BuildContext context,
+    IpingDashboardEditor editor,
+    BoxConstraints constraints, {
+    required DashboardDensity density,
+    required double gap,
+    required double scale,
+  }) {
+    final cards = editor.desktopCards;
+
+    Widget? slot(IpingDashboardDesktopArea area) {
+      for (final card in cards) {
+        for (final placement in card.desktop) {
+          if (placement.area == area) return placement.builder(context);
+        }
+      }
+      return null;
+    }
+
+    List<(int, Widget)> slots(IpingDashboardDesktopArea area) => [
+      for (final card in cards)
+        for (final placement in card.desktop)
+          if (placement.area == area)
+            (placement.span, placement.builder(context)),
+    ];
+
+    final tables = slots(IpingDashboardDesktopArea.table);
+    return DashboardDesktopLayout(
+      columns: dashboardColumnsOf(constraints.maxWidth / scale),
+      gap: gap,
+      outbound:
+          slot(IpingDashboardDesktopArea.outbound) ?? const SizedBox.shrink(),
+      upload: slot(IpingDashboardDesktopArea.upload) ?? const SizedBox.shrink(),
+      download:
+          slot(IpingDashboardDesktopArea.download) ?? const SizedBox.shrink(),
+      mode: slot(IpingDashboardDesktopArea.mode) ?? const SizedBox.shrink(),
+      controls: slots(IpingDashboardDesktopArea.control),
+      middle: slots(IpingDashboardDesktopArea.middle),
+      summaries: [
+        for (final (_, widget) in slots(IpingDashboardDesktopArea.summary))
+          widget,
+      ],
+      tables: tables.isEmpty
+          ? null
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: gap,
+              children: [
+                for (final (span, widget) in tables)
+                  Expanded(flex: span, child: widget),
+              ],
+            ),
+      tablesMinHeight: connectionsTableMinHeight(density, scale),
+    );
+  }
+
+  Widget _buildDefaultDashboard(
+    BuildContext context, {
+    required IpingDashboardHost host,
+    required AppLocalizations l,
+    required DashboardDensity density,
+    required double gap,
+    required double scale,
+    required double bottomInset,
+    required BoxConstraints constraints,
+  }) {
+    final status = _ConnectionCard(host: host, snapshot: _snapshot);
+    final upload = _SpeedCard(host: host, upload: true);
+    final download = _SpeedCard(host: host, upload: false);
+    final mode = _ModeCard(host: host);
+    final subscription = DashboardProfileCard(
+      name: 'iPing',
+      source: l.remote,
+      updatedAt: host.updated,
+      summary: DashboardConfigStats(
+        groups: _snapshot?.groups,
+        proxies: _snapshot?.proxies,
+        rules: _snapshot?.rules,
+      ),
+      sync: DashboardIconButton(
+        glyph: AppGlyphs.sync,
+        tooltip: l.update,
+        onPressed: host.busy ? null : host.synchronize,
+      ),
+      onDetails: () => host.openSubscription(context),
+    );
+    final intranet = DashboardIntranetCard(
+      localIp: _snapshot?.localIp,
+      allowLan: _snapshot?.settings['allow-lan'] == true,
+      port: _snapshot?.settings['mixed-port'] as int? ?? 7890,
+      onCopy: (address) async {
+        await Clipboard.setData(ClipboardData(text: address));
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.copySuccess)));
+        }
+      },
+      onChanged: host.busy || _snapshot == null
+          ? null
+          : (value) => _saveSettings({'allow-lan': value}),
+    );
+    final services = _ServicesCard(host: host);
+    final proxies = DashboardProxyGroupsFrame(
+      count: host.connected ? _groups.length : 0,
+      empty: Center(child: Text(l.noData, style: DashboardText.label(context))),
+      onOpen: () => host.openProxies(context),
+      itemBuilder: (context, index) {
+        final item = _groups[index];
+        final iconSize = density.isCompact ? 34.0 : 40.0;
+        return DashboardProxyGroupTile(
+          name: item.name,
+          icon: DashboardGroupIcon(
+            name: item.name,
+            src: item.icon,
+            size: iconSize,
+            radius: DashboardCorner.block - 10,
+          ),
+          selected: EmojiText(
+            item.selected.isEmpty ? '—' : item.selected,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: DashboardText.rowTitle(context),
+          ),
+          onTap: () => host.openProxies(context),
+        );
+      },
+    );
+    final memory = ListenableBuilder(
+      listenable: host.telemetryUpdates,
+      builder: (context, _) => _MetricCard(
+        glyph: AppGlyphs.memory,
+        title: l.memoryInfo,
+        value: '',
+        content: DashboardMemorySummary(
+          coreBytes: host.telemetry.memory,
+          density: density,
         ),
       ),
+    );
+    final summaries = [
+      ListenableBuilder(
+        listenable: host.telemetryUpdates,
+        builder: (context, _) => _MetricCard(
+          glyph: AppGlyphs.connections,
+          title: l.connections,
+          value: host.connected ? host.telemetry.connections.toString() : '—',
+          onTap: () => host.openConnections(context),
+        ),
+      ),
+      _MetricCard(
+        glyph: AppGlyphs.proxies,
+        title: l.proxies,
+        value: host.connected ? '${_groups.length}' : '—',
+        onTap: () => host.openProxies(context),
+      ),
+    ];
+    return DashboardDensityScope(
+      density: density,
+      scale: scale,
+      child: density.isDesktop
+          ? DashboardPanelLayout(
+              columns: dashboardColumnsOf(constraints.maxWidth / scale),
+              gap: gap,
+              outbound: status,
+              upload: upload,
+              download: download,
+              mode: mode,
+              controls: [
+                (
+                  1,
+                  _ControlCard(
+                    glyph: AppGlyphs.settings,
+                    label: l.network,
+                    onTap: () => host.openNetwork(context),
+                  ),
+                ),
+                (
+                  1,
+                  _ControlCard(
+                    glyph: AppGlyphs.refresh,
+                    label: l.sync,
+                    onTap: host.busy ? null : host.synchronize,
+                  ),
+                ),
+              ],
+              intranet: intranet,
+              profile: subscription,
+              services: services,
+              memory: memory,
+              summaries: summaries,
+              tablesMinHeight: connectionsTableMinHeight(density, scale),
+              tables: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: gap,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _FeedCard.connections(
+                      host: host,
+                      connectionItems: host.connected ? _connections : [],
+                      count: host.connected ? host.telemetry.connections : 0,
+                    ),
+                  ),
+                  Expanded(flex: 2, child: proxies),
+                ],
+              ),
+            )
+          : ListView.separated(
+              padding: EdgeInsets.fromLTRB(
+                dashboardMobileSideOf(constraints.maxWidth),
+                MediaQuery.paddingOf(context).top,
+                dashboardMobileSideOf(constraints.maxWidth),
+                bottomInset + 24,
+              ),
+              itemCount: 8,
+              separatorBuilder: (_, _) => SizedBox(height: gap),
+              itemBuilder: (context, index) => [
+                SizedBox(height: 220 * scale, child: status),
+                _NetworkSpeedCard(host: host),
+                SizedBox(height: 64 * scale, child: mode),
+                subscription,
+                intranet,
+                services,
+                SizedBox(height: 152 * scale, child: summaries.first),
+                SizedBox(height: 152 * scale, child: memory),
+              ][index],
+            ),
     );
   }
 
