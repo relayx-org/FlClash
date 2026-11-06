@@ -6,6 +6,7 @@ import 'package:fl_clash/iping/about_widgets.dart';
 import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/pages/settings_page.dart';
 import 'package:fl_clash/iping/settings_host.dart';
+import 'package:fl_clash/iping/support.dart';
 import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:fl_clash/iping/subscription_url.dart';
 import 'package:fl_clash/l10n/l10n.dart';
@@ -45,6 +46,7 @@ class RouterSettingsRoute extends StatelessWidget {
                 site: router.siteConfig,
                 busy: router.busy,
                 onConsole: () => router.client.open('${router.site}/home'),
+                onContact: () => showIpingSupport(context),
                 onSignOut: router.signOut,
               )
             : null,

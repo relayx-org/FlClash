@@ -977,6 +977,8 @@
   "ipingSync": "구독 새로고침",
   "ipingSyncing": "새로고침 중…",
   "ipingConsole": "iPing 콘솔 열기",
+  "ipingContactSupport": "고객센터 문의",
+  "ipingSupportQrFailed": "QR 코드를 불러오지 못했습니다. 네트워크를 확인한 후 다시 시도하세요.",
   "ipingCredentialsError": "이메일 또는 비밀번호가 올바르지 않습니다.",
   "ipingSessionExpired": "로그인이 만료되었습니다. 다시 로그인하세요.",
   "ipingNetworkError": "연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요. 이전 구독은 유지됩니다.",

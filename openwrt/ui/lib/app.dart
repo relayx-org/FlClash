@@ -3,6 +3,7 @@ import 'package:fl_clash/ui/appearance_defaults.dart';
 import 'package:fl_clash/pages/home_presentation.dart';
 import 'package:fl_clash/enum/appearance.dart';
 import 'package:fl_clash/iping/account_widgets.dart';
+import 'package:fl_clash/iping/support.dart';
 import 'package:fl_clash/enum/page_label.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
 import 'package:fl_clash/views/page_destination.dart';
@@ -583,12 +584,14 @@ class _AccountButton extends StatelessWidget {
       site: controller.siteConfig,
       busy: controller.busy,
       onConsole: () => controller.client.open('${controller.site}/home'),
+      onContact: () => showIpingSupport(context),
       onSignOut: () => controller.signOut(),
       menuBuilder: (_) => AnimatedBuilder(
         animation: controller,
         builder: (_, _) => IpingAccountActions(
           busy: controller.busy,
           onConsole: () => controller.client.open('${controller.site}/home'),
+          onContact: () => showIpingSupport(context),
           onSignOut: () => controller.signOut(),
         ),
       ),

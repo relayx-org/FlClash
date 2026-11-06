@@ -612,7 +612,7 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(find.text('Open iPing console'), findsOneWidget);
-          expect(find.text('Contact support'), findsNothing);
+          expect(find.text('Contact support'), findsOneWidget);
           await tester.tap(find.text('Sign out'));
           await tester.pumpAndSettle();
 

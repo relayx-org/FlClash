@@ -977,6 +977,8 @@
   "ipingSync": "Actualizar suscripción",
   "ipingSyncing": "Actualizando…",
   "ipingConsole": "Abrir la consola iPing",
+  "ipingContactSupport": "Contactar con soporte",
+  "ipingSupportQrFailed": "No se pudo cargar el código QR. Comprueba la red e inténtalo de nuevo.",
   "ipingCredentialsError": "El correo o la contraseña son incorrectos.",
   "ipingSessionExpired": "Tu sesión ya no es válida. Inicia sesión de nuevo.",
   "ipingNetworkError": "No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo. Se conserva tu última suscripción.",

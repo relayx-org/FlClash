@@ -926,6 +926,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "请在浏览器完成登录，然后返回 iPing。",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("打开 iping 控制台"),
+    "ipingContactSupport": MessageLookupByLibrary.simpleMessage("联系客服"),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage("复制订阅链接"),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage("邮箱或密码不正确。"),
     "ipingDevice": MessageLookupByLibrary.simpleMessage("您的设备"),
@@ -1115,6 +1116,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
       "订阅链接包含账户凭证，请勿分享给他人",
+    ),
+    "ipingSupportQrFailed": MessageLookupByLibrary.simpleMessage(
+      "无法加载二维码，请检查网络后重试。",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("刷新订阅"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("正在刷新…"),

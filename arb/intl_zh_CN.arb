@@ -977,6 +977,8 @@
   "ipingSync": "刷新订阅",
   "ipingSyncing": "正在刷新…",
   "ipingConsole": "打开 iping 控制台",
+  "ipingContactSupport": "联系客服",
+  "ipingSupportQrFailed": "无法加载二维码，请检查网络后重试。",
   "ipingCredentialsError": "邮箱或密码不正确。",
   "ipingSessionExpired": "登录状态已失效，请重新登录。",
   "ipingNetworkError": "无法连接，请检查网络后重试。已保留上次的订阅。",

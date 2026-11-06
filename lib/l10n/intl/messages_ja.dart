@@ -1009,6 +1009,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "ブラウザでログインを完了し、iPing に戻ってください。",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing コンソールを開く"),
+    "ipingContactSupport": MessageLookupByLibrary.simpleMessage("サポートに連絡"),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションリンクをコピー",
     ),
@@ -1238,6 +1239,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションリンクにはアカウントの認証情報が含まれています。他の人と共有しないでください。",
+    ),
+    "ipingSupportQrFailed": MessageLookupByLibrary.simpleMessage(
+      "QR コードを読み込めません。ネットワークを確認して再試行してください。",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("サブスクリプションを更新"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("更新中…"),

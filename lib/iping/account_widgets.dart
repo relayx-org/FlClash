@@ -13,6 +13,7 @@ class IpingAccountMenu extends StatelessWidget {
     required this.site,
     required this.busy,
     required this.onConsole,
+    required this.onContact,
     required this.onSignOut,
     this.menuBuilder,
   });
@@ -20,6 +21,7 @@ class IpingAccountMenu extends StatelessWidget {
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
+  final VoidCallback onContact;
   final VoidCallback onSignOut;
   final WidgetBuilder? menuBuilder;
   @override
@@ -91,6 +93,7 @@ class IpingAccountMenu extends StatelessWidget {
             (_) => IpingAccountActions(
               busy: busy,
               onConsole: onConsole,
+              onContact: onContact,
               onSignOut: onSignOut,
             ),
       ),
@@ -103,10 +106,12 @@ class IpingAccountActions extends StatelessWidget {
     super.key,
     required this.busy,
     required this.onConsole,
+    required this.onContact,
     required this.onSignOut,
   });
   final bool busy;
   final VoidCallback onConsole;
+  final VoidCallback onContact;
   final VoidCallback onSignOut;
   @override
   Widget build(BuildContext context) {
@@ -117,6 +122,11 @@ class IpingAccountActions extends StatelessWidget {
           label: l.ipingConsole,
           glyph: AppGlyphs.openExternal,
           onPressed: onConsole,
+        ),
+        CommonPopupMenuItem(
+          label: l.ipingContactSupport,
+          glyph: AppGlyphs.qrCode,
+          onPressed: onContact,
         ),
         CommonPopupMenuItem(
           label: l.ipingSignOut,
@@ -136,12 +146,14 @@ class IpingAccountSummary extends StatelessWidget {
     required this.site,
     required this.busy,
     required this.onConsole,
+    required this.onContact,
     required this.onSignOut,
   });
   final String label;
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
+  final VoidCallback onContact;
   final VoidCallback onSignOut;
   @override
   Widget build(BuildContext context) {
@@ -161,6 +173,11 @@ class IpingAccountSummary extends StatelessWidget {
           leading: const GlyphIcon(AppGlyphs.openExternal),
           title: Text(l.ipingConsole),
           onTap: onConsole,
+        ),
+        ListItem(
+          leading: const GlyphIcon(AppGlyphs.qrCode),
+          title: Text(l.ipingContactSupport),
+          onTap: onContact,
         ),
         ListItem(
           leading: GlyphIcon(AppGlyphs.arrowBack, color: signOutColor),

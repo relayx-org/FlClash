@@ -8102,6 +8102,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Contact support`
+  String get ipingContactSupport {
+    return Intl.message(
+      'Contact support',
+      name: 'ipingContactSupport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to load the QR code. Check your network and try again.`
+  String get ipingSupportQrFailed {
+    return Intl.message(
+      'Unable to load the QR code. Check your network and try again.',
+      name: 'ipingSupportQrFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `The email or password is incorrect.`
   String get ipingCredentialsError {
     return Intl.message(

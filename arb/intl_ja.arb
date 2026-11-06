@@ -977,6 +977,8 @@
   "ipingSync": "サブスクリプションを更新",
   "ipingSyncing": "更新中…",
   "ipingConsole": "iPing コンソールを開く",
+  "ipingContactSupport": "サポートに連絡",
+  "ipingSupportQrFailed": "QR コードを読み込めません。ネットワークを確認して再試行してください。",
   "ipingCredentialsError": "メールアドレスまたはパスワードが正しくありません。",
   "ipingSessionExpired": "セッションが無効です。もう一度ログインしてください。",
   "ipingNetworkError": "接続できません。ネットワークを確認して再試行してください。前回のサブスクリプションは保持されています。",

@@ -46,12 +46,14 @@ class IpingAccountSummaryData {
     required this.site,
     required this.busy,
     required this.onConsole,
+    required this.onContact,
     required this.onSignOut,
   });
   final String label;
   final IpingSiteConfig site;
   final bool busy;
   final VoidCallback onConsole;
+  final VoidCallback onContact;
   final VoidCallback onSignOut;
 
   Widget build(BuildContext context) => IpingAccountSummary(
@@ -59,6 +61,7 @@ class IpingAccountSummaryData {
     site: site,
     busy: busy,
     onConsole: onConsole,
+    onContact: onContact,
     onSignOut: onSignOut,
   );
 }

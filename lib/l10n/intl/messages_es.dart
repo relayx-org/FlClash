@@ -1252,6 +1252,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingConsole": MessageLookupByLibrary.simpleMessage(
       "Abrir la consola iPing",
     ),
+    "ipingContactSupport": MessageLookupByLibrary.simpleMessage(
+      "Contactar con soporte",
+    ),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "Copiar enlace de suscripción",
     ),
@@ -1539,6 +1542,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
       "El enlace de suscripción contiene tus credenciales de cuenta. No lo compartas.",
+    ),
+    "ipingSupportQrFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo cargar el código QR. Comprueba la red e inténtalo de nuevo.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("Actualizar suscripción"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("Actualizando…"),

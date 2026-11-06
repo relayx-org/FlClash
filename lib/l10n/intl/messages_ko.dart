@@ -991,6 +991,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "브라우저에서 로그인을 완료한 뒤 iPing으로 돌아오세요.",
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing 콘솔 열기"),
+    "ipingContactSupport": MessageLookupByLibrary.simpleMessage("고객센터 문의"),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "구독 링크 복사",
     ),
@@ -1212,6 +1213,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingSubscriptionSecretHint": MessageLookupByLibrary.simpleMessage(
       "구독 링크에는 계정 자격 증명이 포함되어 있습니다. 다른 사람과 공유하지 마세요.",
+    ),
+    "ipingSupportQrFailed": MessageLookupByLibrary.simpleMessage(
+      "QR 코드를 불러오지 못했습니다. 네트워크를 확인한 후 다시 시도하세요.",
     ),
     "ipingSync": MessageLookupByLibrary.simpleMessage("구독 새로고침"),
     "ipingSyncing": MessageLookupByLibrary.simpleMessage("새로고침 중…"),

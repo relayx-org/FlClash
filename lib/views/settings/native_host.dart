@@ -6,6 +6,7 @@ import 'package:fl_clash/iping/api.dart';
 import 'package:fl_clash/iping/pages/settings_page.dart';
 import 'package:fl_clash/iping/providers.dart';
 import 'package:fl_clash/iping/settings_host.dart';
+import 'package:fl_clash/iping/support.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
@@ -39,6 +40,7 @@ class NativeSettingsRoute extends ConsumerWidget {
                 site: site,
                 busy: session.busy,
                 onConsole: () => dialogs.openUrl('$ipingSite/home'),
+                onContact: () => showIpingSupport(context),
                 onSignOut: ref.read(ipingClientControllerProvider).signOut,
               )
             : null,

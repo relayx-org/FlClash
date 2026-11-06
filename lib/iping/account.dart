@@ -6,6 +6,7 @@ import 'account_widgets.dart';
 import 'api.dart';
 import 'backend_native.dart';
 import 'providers.dart';
+import 'support.dart';
 
 class IpingAccountButton extends ConsumerWidget {
   const IpingAccountButton({super.key});
@@ -22,6 +23,7 @@ class IpingAccountButton extends ConsumerWidget {
       site: ref.watch(ipingSiteConfigProvider),
       busy: session.busy,
       onConsole: () => dialogs.openUrl('$ipingSite/home'),
+      onContact: () => showIpingSupport(context),
       onSignOut: backend.signOut,
       menuBuilder: (_) => Consumer(
         builder: (_, ref, _) => IpingAccountActions(
@@ -29,6 +31,7 @@ class IpingAccountButton extends ConsumerWidget {
             ipingBackendStateProvider.select((state) => state.busy),
           ),
           onConsole: () => dialogs.openUrl('$ipingSite/home'),
+          onContact: () => showIpingSupport(context),
           onSignOut: backend.signOut,
         ),
       ),
