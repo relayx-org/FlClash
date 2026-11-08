@@ -105,7 +105,8 @@ Release attachments or Actions artifacts are uploaded. Signed iOS IPA and Linux
 Agent ZIPs are included alongside the desktop and Android packages. The Linux Agent
 builds once per CPU family and shares its Web interface between OpenWrt and ordinary
 Linux. The installer selects procd/UCI/cron on OpenWrt and systemd/JSON/timers on Linux.
-`install-linux.sh` is published at the stable download root. `publish_stable=false` publishes preview downloads under a run-specific prefix
+`install-linux.sh` and `uninstall-linux.sh` (the same script defaulting to `uninstall`) are published at the stable
+download root. `publish_stable=false` publishes preview downloads under a run-specific prefix
 without changing the stable installer or update manifest.
 
 Cross-job Web assets and packages use verified receipts under

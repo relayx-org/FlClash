@@ -32,6 +32,12 @@ const releaseDownloads = {
   'linux-agent-mips',
   'linux-agent-mipsel',
   'linux-agent-installer',
+  'linux-agent-uninstaller',
+};
+
+const _linuxScripts = {
+  'install-linux.sh': 'linux-agent-installer',
+  'uninstall-linux.sh': 'linux-agent-uninstaller',
 };
 
 String? updateArtifactTarget(String name, String version) {
@@ -94,8 +100,8 @@ Future<Map<String, Object>> buildUpdateManifest({
     final target = updateArtifactTarget(name, version);
     final update = target != null && updateTargets.contains(target);
     final download = downloadArtifactTarget(name, version);
-    final installer = name == 'install-linux.sh';
-    if (!update && download == null && !installer) continue;
+    final script = _linuxScripts[name];
+    if (!update && download == null && script == null) continue;
     if (!names.add(name)) throw StateError('Duplicate release artifact: $name');
     if (update && assets.containsKey(target)) {
       throw StateError('Duplicate update artifact: $target');
@@ -114,8 +120,8 @@ Future<Map<String, Object>> buildUpdateManifest({
     if (update) {
       assets[target] = metadata;
     } else {
-      downloads[download ?? 'linux-agent-installer'] = metadata;
-      if (installer) {
+      downloads[download ?? script!] = metadata;
+      if (script != null) {
         await destination.copy(p.join(output.path, name));
       }
     }

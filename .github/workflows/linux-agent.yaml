@@ -172,6 +172,9 @@ jobs:
           python3 tool/ci/storage.py put --group web --path openwrt/iping/src/webui/dist
           mkdir -p "$RUNNER_TEMP/iping-installer"
           install -m 755 openwrt/iping/files/iping-update "$RUNNER_TEMP/iping-installer/install-linux.sh"
+          sed '$s/^main "\$@"$/main uninstall "$@"/' openwrt/iping/files/iping-update > "$RUNNER_TEMP/iping-installer/uninstall-linux.sh"
+          [ "$(tail -n 1 "$RUNNER_TEMP/iping-installer/uninstall-linux.sh")" = 'main uninstall "$@"' ]
+          chmod 755 "$RUNNER_TEMP/iping-installer/uninstall-linux.sh"
           python3 tool/ci/storage.py put --group installer --path "$RUNNER_TEMP/iping-installer"
 
   binaries:

@@ -20,6 +20,7 @@ void main() {
         'iPing-1.2.3-linux-agent-mipsel.zip',
         'iPing-1.2.3-linux-agent-aarch64.zip',
         'install-linux.sh',
+        'uninstall-linux.sh',
       ]) {
         await File('${artifacts.path}/$name').writeAsBytes([1, 2, 3]);
       }
@@ -43,6 +44,7 @@ void main() {
           'linux-agent-mipsel',
           'linux-agent-aarch64',
           'linux-agent-installer',
+          'linux-agent-uninstaller',
         ]),
       );
       final router = downloads['linux-agent-mipsel'] as Map;
@@ -53,15 +55,14 @@ void main() {
       expect(router['sha256'], hasLength(64));
       expect(router['size'], 3);
       expect((manifest['assets']! as Map).keys, ['macos-arm64-zip']);
-      expect(await File('${output.path}/install-linux.sh').readAsBytes(), [
-        1,
-        2,
-        3,
-      ]);
-      expect(
-        await File('${output.path}/1.2.3+42/install-linux.sh').readAsBytes(),
-        [1, 2, 3],
-      );
+      for (final script in ['install-linux.sh', 'uninstall-linux.sh']) {
+        expect(await File('${output.path}/$script').readAsBytes(), [1, 2, 3]);
+        expect(await File('${output.path}/1.2.3+42/$script').readAsBytes(), [
+          1,
+          2,
+          3,
+        ]);
+      }
       expect(
         downloadArtifactTarget('iPing-1.2.3-ios-arm64.zip', '1.2.3'),
         isNull,
@@ -103,7 +104,9 @@ void main() {
       for (final name in names) {
         await File('${input.path}/iPing-1.0.0-$name').writeAsBytes([1]);
       }
-      await File('${input.path}/install-linux.sh').writeAsBytes([1]);
+      for (final script in ['install-linux.sh', 'uninstall-linux.sh']) {
+        await File('${input.path}/$script').writeAsBytes([1]);
+      }
       final manifest = await buildUpdateManifest(
         artifacts: input,
         output: Directory('${directory.path}/output'),

@@ -86,6 +86,16 @@ iping-update check       # Check for a newer stable build
 iping-update update      # Update now
 iping-update auto off    # Disable daily updates
 iping-update auto on     # Enable daily updates
+iping-update uninstall   # Remove iPing, keeping /etc/iping and /etc/config/iping
+iping-update uninstall --purge  # Also delete the account, subscription and settings
+```
+
+Uninstalling stops and disables the service, waits for the Agent and Core to exit, removes the update schedule,
+programs and service files, and keeps the runtime packages the installer added. On a version without the
+`uninstall` command, run the published uninstaller, which takes the same `--purge` option:
+
+```sh
+wget -qO /tmp/iping-uninstall.sh https://video.iping.my/releases/uninstall-linux.sh && sh /tmp/iping-uninstall.sh
 ```
 
 For installation without automatic updates, run `sh /tmp/iping-install.sh --no-auto-update`.

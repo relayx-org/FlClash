@@ -34,8 +34,10 @@ rclone_command() {
 rclone_command copy "$staging/$version" "$remote/$version" --immutable --checksum
 rclone_command check "$staging/$version" "$remote/$version" --one-way --download
 if [ "${IPING_PUBLISH_LATEST:-1}" = 1 ]; then
-    if [ -f "$staging/install-linux.sh" ]; then
-        rclone_command copyto "$staging/install-linux.sh" "$remote/install-linux.sh" --header-upload 'Cache-Control: no-cache, no-store, must-revalidate'
-    fi
+    for script in install-linux.sh uninstall-linux.sh; do
+        if [ -f "$staging/$script" ]; then
+            rclone_command copyto "$staging/$script" "$remote/$script" --header-upload 'Cache-Control: no-cache, no-store, must-revalidate'
+        fi
+    done
     rclone_command copyto "$staging/latest.json" "$remote/latest.json" --header-upload 'Cache-Control: no-cache, no-store, must-revalidate'
 fi

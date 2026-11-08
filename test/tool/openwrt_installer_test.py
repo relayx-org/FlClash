@@ -34,10 +34,11 @@ echo "download $url" >> /result/events
 case "$url" in */latest.json) cp /fixture/latest.json "$out" ;; *) cp /fixture/bundle.zip "$out" ;; esac
 ''')
         self.command('jsonfilter', '''while [ "$#" -gt 0 ]; do
- case "$1" in -e) shift; expression=$1 ;; esac
+ case "$1" in -e) shift; expression=$1 ;; -i) shift; input=$1 ;; esac
  shift
 done
 case "$expression" in
+ '@.include_hash') sed 's/.*"include_hash":"//; s/".*//' "$input" ;;
  '@.schemaVersion'|'.schemaVersion') cat /fixture/schema ;;
  '@.packageId'|'.packageId') echo my.iping.client ;;
  '@.version'|'.version') echo 1.2.3 ;;
@@ -78,6 +79,7 @@ case "$*" in
  'start iping.service') touch /result/running; echo 'service start' >> /result/events ;;
  'stop iping.service') rm -f /result/running; echo 'service stop' >> /result/events ;;
  'enable iping.service') echo 'service enable' >> /result/events ;;
+ 'disable --now iping.service') rm -f /result/running; echo 'service disable' >> /result/events ;;
  'disable --now iping-update.timer') if [ -L /etc/systemd/system/iping-update.timer ]; then rm /etc/systemd/system/iping-update.timer; fi ;;
  'enable --now iping-update.timer') test -f /etc/systemd/system/iping-update.timer ;;
 esac
@@ -85,6 +87,7 @@ esac
         self.command('uname', 'cat /fixture/arch\n')
         self.command('ip', "echo '1.1.1.1 via 192.168.1.1 dev eth0 src 192.168.1.2'\n")
         self.command('nft', 'exit 0\n')
+        self.command('fw4', 'echo "fw4 $*" >> /result/events\n')
         self.command('crontab', '[ ! -f /fixture/schedule-fails ] || exit 1\nexec /bin/busybox crontab -c /etc/crontabs "$@"\n')
         self.command('df', '''if [ -f /fixture/no-space ]; then
  echo 'Filesystem 1024-blocks Used Available Capacity Mounted on'
@@ -101,6 +104,7 @@ case "$1" in
  start) start_service ;;
  stop) echo 'service stop' >> /result/events; rm -f /result/running ;;
  enable) echo 'service enable' >> /result/events; touch /result/enabled ;;
+ disable) echo 'service disable' >> /result/events; rm -f /result/enabled ;;
 esac
 ''',
             'cron': 'echo "cron $1" >> /result/events\n',
@@ -330,6 +334,47 @@ flock -n 8
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('another iPing installation or update', result.stderr)
         self.assertEqual(self.events(), '')
+
+    def test_uninstall_keeps_data_unless_purged(self):
+        leftovers = 'ls /usr/libexec/iping /usr/share/iping /usr/bin/iping-update /etc/init.d/iping /lib/upgrade/keep.d/iping /etc/iping /etc/config/iping > /result/left 2>/dev/null'
+        for purge in [False, True]:
+            with self.subTest(purge=purge):
+                result = self.run_installer(
+                    'sh /installer && mkdir -p /etc/iping && echo session > /etc/iping/session.json && '
+                    f'sh /installer uninstall{" --purge" if purge else ""}; status=$?; {leftovers}; (exit $status)')
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                events = self.events()
+                self.assertLess(events.rindex('service start'), events.index('service stop'))
+                self.assertIn('service disable', events)
+                left = (self.result / 'left').read_text().split()
+                self.assertEqual(left, [] if purge else ['/etc/config/iping', '/etc/iping:', 'session.json'])
+                cron = (self.result / 'crontab').read_text()
+                self.assertIn('user-task', cron)
+                self.assertNotIn('iping-auto-update', cron)
+
+    def test_uninstall_removes_only_the_agents_own_firewall_include(self):
+        include = '/etc/nftables.d/0-mihomo-auto-redirect.nft'
+        for owned in [True, False]:
+            with self.subTest(owned=owned):
+                record = (f'hash=$(sha256sum {include} | cut -d " " -f 1)' if owned else 'hash=' + '0' * 64)
+                result = self.run_installer(
+                    f'sh /installer && mkdir -p /etc/nftables.d /etc/iping && echo rules > {include} && {record} && '
+                    'printf \'{"device":"iping0","include_hash":"%s"}\' "$hash" > /etc/iping/network.json && '
+                    f'sh /installer uninstall --purge; status=$?; ls /etc/nftables.d > /result/nft; (exit $status)')
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual((self.result / 'nft').read_text().strip(), '' if owned else '0-mihomo-auto-redirect.nft')
+                self.assertEqual('fw4 reload' in self.events(), owned)
+
+    def test_linux_uninstall_disables_units(self):
+        self.prepare('linux', 'x86_64')
+        result = self.run_installer('sh /installer && sh /installer uninstall; status=$?; '
+                                    'ls /etc/systemd/system > /result/units; (exit $status)')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        events = self.events()
+        self.assertIn('service disable', events)
+        self.assertIn('systemctl disable --now iping-update.timer', events)
+        self.assertEqual((self.result / 'units').read_text().strip(), '')
+        self.assertIn('remain in /etc/iping;', result.stdout)
 
     def test_schedule_does_not_require_the_optional_od_applet(self):
         self.command('od', "echo 'od is not installed' >&2; exit 127\n")

@@ -293,6 +293,73 @@ show_address() {
     echo 'Open the address and sign in with your iPing account.'
 }
 
+iping_process() {
+    for exe in /proc/[0-9]*/exe; do
+        case "$(readlink "$exe" 2>/dev/null || true)" in
+            /usr/libexec/iping/agent|/usr/libexec/iping/mihomo) return 0 ;;
+        esac
+    done
+    return 1
+}
+
+# A stopped Agent removes the include itself; one left by a crash or power loss
+# is removed only while its content still matches the Agent's record.
+release_firewall_include() {
+    include=/etc/nftables.d/0-mihomo-auto-redirect.nft
+    [ -f "$include" ] && [ -f /etc/iping/network.json ] || return 0
+    owned=$(jsonfilter -i /etc/iping/network.json -e '@.include_hash' 2>/dev/null || true)
+    [ -n "$owned" ] && [ "$(sha256sum "$include" | cut -d ' ' -f 1)" = "$owned" ] || return 0
+    rm -f "$include"
+    fw4 reload
+}
+
+uninstall() {
+    mkdir -p /var/lock
+    exec 9>/var/lock/iping-update.lock
+    flock -n 9 || fail 'another iPing installation or update is running'
+    if [ "$init_system" = procd ]; then
+        if [ -x /etc/init.d/iping ]; then
+            service_action stop
+            service_action disable
+        fi
+    else
+        for unit in iping.service iping-update.timer; do
+            if [ -f "/etc/systemd/system/$unit" ]; then systemctl disable --now "$unit"; fi
+        done
+    fi
+    waited=0
+    while iping_process; do
+        [ "$waited" -lt 50 ] || fail 'iPing did not stop; run the uninstaller again'
+        waited=$((waited + 1))
+        sleep 1
+    done
+    if [ "$init_system" = procd ]; then
+        release_firewall_include
+        if [ -f /etc/crontabs/root ] && grep -q '# iping-auto-update$' /etc/crontabs/root; then
+            cron=$(mktemp /tmp/iping-cron.XXXXXX)
+            sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
+            crontab "$cron"
+            rm -f "$cron"
+            if [ -x /etc/init.d/cron ] && /etc/init.d/cron running; then /etc/init.d/cron restart; fi
+        fi
+        rm -f /etc/init.d/iping /lib/upgrade/keep.d/iping
+    else
+        rm -f /etc/systemd/system/iping.service /etc/systemd/system/iping-update.service /etc/systemd/system/iping-update.timer
+        systemctl daemon-reload
+    fi
+    rm -rf /usr/libexec/iping /usr/share/iping /var/run/iping
+    rm -f /usr/bin/iping-update
+    data=/etc/iping
+    [ "$init_system" != procd ] || data='/etc/iping and /etc/config/iping'
+    if [ "$1" = 1 ]; then
+        rm -rf /etc/iping /etc/config/iping
+        echo "iPing was removed, including $data."
+    else
+        echo "iPing was removed. Account, subscription and settings data remain in $data;"
+        echo 'uninstall with --purge to delete them.'
+    fi
+}
+
 main() {
     [ "$(id -u)" = 0 ] || fail 'run this installer as root'
     case "${1:-}" in
@@ -303,6 +370,11 @@ main() {
             schedule_updates
             exit 0 ;;
         schedule) detect_platform; schedule_updates; exit 0 ;;
+        uninstall)
+            case "${2:-}" in '') purge=0 ;; --purge) purge=1 ;; *) fail 'usage: iping-update uninstall [--purge]' ;; esac
+            detect_platform
+            uninstall "$purge"
+            exit 0 ;;
     esac
     for argument in "$@"; do
         case "$argument" in
@@ -310,7 +382,7 @@ main() {
             --scheduled) mode=update; scheduled=1 ;;
             --no-auto-update) auto_update=0 ;;
             --auto-update) auto_update=1 ;;
-            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off] [--no-auto-update]'; exit 0 ;;
+            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off|uninstall [--purge]] [--no-auto-update]'; exit 0 ;;
             *) fail "unknown argument: $argument" ;;
         esac
     done
