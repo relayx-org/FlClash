@@ -1,7 +1,7 @@
 name: iping_openwrt
 description: iPing OpenWrt interface using the shared Flutter components.
 publish_to: none
-version: 0.1.8+2026110401
+version: 0.1.9+2026110801
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

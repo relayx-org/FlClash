@@ -2,6 +2,33 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.9",
+      "tag": "v0.1.9",
+      "date": "2026-11-08",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "feat",
+          "entries": [
+            {
+              "text": "个人中心新增客服二维码，支持保存图片"
+            },
+            {
+              "text": "手动导入的订阅链接改为隐藏显示，支持复制、更换和移除"
+            }
+          ]
+        },
+        {
+          "type": "fix",
+          "entries": [
+            {
+              "text": "修复 OpenWrt 安装完成后提示的访问地址多出网段后缀（如 /24）的问题"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.8",
       "tag": "v0.1.8",
       "date": "2026-11-04",
