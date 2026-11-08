@@ -27,9 +27,13 @@ void main() {
           child: IpingSubscriptionPage(
             nodes: manual ? 0 : 2,
             busy: false,
-            manualSubscription: manual,
+            manualUrl: manual
+                ? 'https://example.com/sub?token=manual-token'
+                : null,
             exportUrl: exportUrl,
             onSync: () {},
+            onImport: () {},
+            onRemove: () {},
           ),
         ),
       ),
@@ -62,6 +66,19 @@ void main() {
     await pump(tester, manual: true);
 
     expect(find.text('Export subscription'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a manual subscription masks its link and offers its actions', (
+    tester,
+  ) async {
+    await pump(tester, manual: true);
+
+    expect(find.text('example.com/••••••'), findsOneWidget);
+    expect(find.textContaining('manual-token'), findsNothing);
+    expect(find.text('Replace subscription link'), findsOneWidget);
+    expect(find.text('Copy subscription link'), findsOneWidget);
+    expect(find.text('Remove manual subscription'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

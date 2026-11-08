@@ -19,7 +19,9 @@ Future<void> importIpingSubscription(
   final url = await dialogs.showCommonDialog<String>(
     context: context,
     child: InputDialog(
-      title: l.ipingImportSubscription,
+      title: session.manualUrl == null
+          ? l.ipingImportSubscription
+          : l.ipingReplaceSubscription,
       value: session.manualUrl ?? '',
       labelText: l.url,
       validator: (value) =>
@@ -28,6 +30,28 @@ Future<void> importIpingSubscription(
   );
   if (url == null || !context.mounted) return;
   await ref.read(ipingClientControllerProvider).importSubscription(url);
+}
+
+Future<void> removeIpingManualSubscription(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final session = ref.read(ipingSessionProvider);
+  if (session.busy || session.manualUrl == null) return;
+  final l = context.appLocalizations;
+  final confirmed = await dialogs.showMessage(
+    context: context,
+    title: l.ipingRemoveManualSubscription,
+    message: TextSpan(
+      text: session.account != null
+          ? l.ipingRemoveManualSubscriptionAccountTip
+          : l.ipingRemoveManualSubscriptionTip,
+    ),
+    confirmText: l.remove,
+    destructive: true,
+  );
+  if (confirmed != true || !context.mounted) return;
+  await ref.read(ipingClientControllerProvider).removeManualSubscription();
 }
 
 class IpingSubscriptionDetails extends ConsumerWidget {
@@ -42,7 +66,10 @@ class IpingSubscriptionDetails extends ConsumerWidget {
       ipingSessionProvider.select((state) => state.failure),
     );
     final account = ref.watch(ipingSessionProvider.select((s) => s.account));
-    final exportUrl = !session.manualSubscription && account != null
+    final manualUrl = ref.watch(
+      ipingSessionProvider.select((s) => s.manualUrl),
+    );
+    final exportUrl = manualUrl == null && account != null
         ? ref.read(ipingApiProvider).subscriptionUrl(account.subscriptionToken)
         : null;
     return IpingSubscriptionPage(
@@ -53,9 +80,10 @@ class IpingSubscriptionDetails extends ConsumerWidget {
           : l.profileUpdatedAt(session.updated!.getLastUpdateTimeDesc(context)),
       failure: failure == null ? null : IpingFailureText(failure: failure),
       exportUrl: exportUrl,
-      manualSubscription: session.manualSubscription,
+      manualUrl: manualUrl,
       onSync: backend.synchronize,
       onImport: () => importIpingSubscription(context, ref),
+      onRemove: () => removeIpingManualSubscription(context, ref),
       onSignIn: session.signedIn ? null : backend.signIn,
     );
   }

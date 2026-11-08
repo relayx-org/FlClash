@@ -1255,6 +1255,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage(
       "Contactar con soporte",
     ),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage(
+      "Copiar enlace de suscripción",
+    ),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "Copiar enlace de suscripción",
     ),
@@ -1493,10 +1496,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "El registro está cerrado. Las cuentas existentes pueden iniciar sesión.",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Quitar suscripción manual",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip": MessageLookupByLibrary.simpleMessage(
+      "Se usará la suscripción de la cuenta en su lugar y se actualizará de inmediato.",
+    ),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "Se desconectará y se eliminará la suscripción descargada de este dispositivo.",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "Es posible que el saldo no cubra las renovaciones",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage(
+      "Reemplazar enlace de suscripción",
+    ),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Volver a comprobar",
     ),

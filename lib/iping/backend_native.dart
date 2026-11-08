@@ -317,6 +317,12 @@ class _NativeIpingBackend implements IpingBackend {
       .importSubscription(url);
 
   @override
+  Future<void> removeManualSubscription() => ref
+      .read(ipingSessionProvider.notifier)
+      .controller
+      .removeManualSubscription();
+
+  @override
   Future<bool> setConnected(bool connected) => ref
       .read(setupActionProvider.notifier)
       .setRunning(connected, initialize: connected && !ref.read(initProvider));

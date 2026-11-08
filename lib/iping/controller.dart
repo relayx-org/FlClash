@@ -263,6 +263,15 @@ class IpingController extends ChangeNotifier {
     return imported;
   });
 
+  Future<void> removeManualSubscription() async {
+    if (!signedIn) return signOut();
+    await _operate(() async {
+      await backend.removeManualSubscription();
+      revision++;
+      return true;
+    });
+  }
+
   Future<void> synchronize() {
     if (_synchronizing case final request?) return request;
     late final Future<void> request;

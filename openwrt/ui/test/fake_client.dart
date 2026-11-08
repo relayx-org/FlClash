@@ -167,6 +167,7 @@ class FakeRouterClient implements RouterClient {
       'status' => {
         'logged_in': signedIn,
         'manual_subscription': manualSubscription,
+        'subscription_url': ?subscriptionUrl,
         'running': running,
         'busy': false,
         'nodes': 2,

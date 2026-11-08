@@ -89,8 +89,9 @@ class IpingAccountPage extends StatelessWidget {
                   failure: subscription.failure,
                   exportUrl: subscription.exportUrl,
                   onImport: subscription.onImport,
+                  onRemove: subscription.onRemove,
                   onSignIn: subscription.onSignIn,
-                  manualSubscription: subscription.manualSubscription,
+                  manualUrl: subscription.manualUrl,
                 ),
               ],
               for (final section in host.sections) ...[

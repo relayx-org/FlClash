@@ -130,6 +130,28 @@ void main() {
   });
 
   test(
+    'removing a manual import returns to the account subscription',
+    () async {
+      await signIn();
+      await session.importSubscription(manualUrl);
+      await session.removeManualSubscription();
+      expect(session.state.account?.id, 7);
+      expect(session.state.manualUrl, isNull);
+      expect(storage.stored?.manualUrl, isNull);
+      expect(storage.stored?.account?.id, 7);
+      expect(api.subscriptionUrlRequested, api.subscriptionUrl('subscription'));
+      expect(session.state.canConnect, isTrue);
+    },
+  );
+
+  test('removal without an account leaves the manual import alone', () async {
+    await session.importSubscription(manualUrl);
+    await session.removeManualSubscription();
+    expect(session.state.manualUrl, manualUrl);
+    expect(storage.stored?.manualUrl, manualUrl);
+  });
+
+  test(
     'empty manual subscriptions remain refreshable without connecting',
     () async {
       api.nodes = 0;

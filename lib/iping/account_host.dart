@@ -25,8 +25,9 @@ class IpingAccountSubscription {
     this.failure,
     this.exportUrl,
     this.onImport,
+    this.onRemove,
     this.onSignIn,
-    this.manualSubscription = false,
+    this.manualUrl,
   });
   final int nodes;
   final bool busy;
@@ -35,8 +36,9 @@ class IpingAccountSubscription {
   final Widget? failure;
   final String? exportUrl;
   final VoidCallback? onImport;
+  final VoidCallback? onRemove;
   final VoidCallback? onSignIn;
-  final bool manualSubscription;
+  final String? manualUrl;
 }
 
 abstract interface class IpingAccountHost {

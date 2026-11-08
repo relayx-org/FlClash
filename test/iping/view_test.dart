@@ -202,11 +202,11 @@ void main() {
         manualUrl: 'https://example.com/old',
       );
       await pump(tester, const IpingSubscriptionDetails());
-      expect(find.text('Manually imported subscription'), findsOneWidget);
       expect(find.text('Manual subscription'), findsOneWidget);
+      expect(find.text('example.com/••••••'), findsOneWidget);
       expect(find.text('Sign in with browser'), findsOneWidget);
       expect(find.text('Open iPing console'), findsNothing);
-      await tester.tap(find.text('Import subscription link'));
+      await tester.tap(find.text('Replace subscription link'));
       await tester.pumpAndSettle();
       expect(
         tester

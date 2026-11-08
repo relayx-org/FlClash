@@ -992,6 +992,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing 콘솔 열기"),
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage("고객센터 문의"),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage("구독 링크 복사"),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "구독 링크 복사",
     ),
@@ -1170,10 +1171,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "현재 신규 가입이 중단되었습니다. 기존 계정으로 로그인할 수 있습니다.",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "수동 구독 제거",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip":
+        MessageLookupByLibrary.simpleMessage("제거하면 계정 구독으로 전환되며 즉시 새로고침됩니다."),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "제거하면 연결이 끊기고 이 기기에 다운로드된 구독이 삭제됩니다.",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "잔액이 자동 갱신에 부족할 수 있습니다",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage(
+      "구독 링크 변경",
+    ),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage("다시 확인"),
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "안전 모드에서는 프록시와 출구를 확인할 수 없습니다.",

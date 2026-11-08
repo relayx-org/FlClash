@@ -81,6 +81,7 @@ abstract interface class IpingBackend {
   void cancelSignIn();
   Future<void> synchronize();
   Future<bool> importSubscription(String url);
+  Future<void> removeManualSubscription();
   Future<bool> setConnected(bool connected);
   Future<void> setMode(Mode mode);
   Future<IpingTelemetry> readTelemetry();

@@ -261,6 +261,11 @@ class RouterBackend implements IpingBackend {
     return true;
   }
 
+  // The router service has no job for this; its UI never offers removal.
+  @override
+  Future<void> removeManualSubscription() =>
+      Future.error(const RouterException('invalid_request'));
+
   @override
   Future<bool> setConnected(bool connected) async {
     await _runJob(connected ? 'connect' : 'disconnect');

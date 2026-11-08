@@ -1182,6 +1182,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage(
       "Contact support",
     ),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage(
+      "Copy subscription link",
+    ),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "Copy subscription link",
     ),
@@ -1418,10 +1421,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "Registration is currently closed. Existing accounts can still sign in.",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Remove manual subscription",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip": MessageLookupByLibrary.simpleMessage(
+      "Your account subscription will be used instead and refreshed right away.",
+    ),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "This disconnects and deletes the downloaded subscription from this device.",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "Balance may not cover auto-renewals",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage(
+      "Replace subscription link",
+    ),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage("Check again"),
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Safe mode: proxy and exit checks are unavailable.",

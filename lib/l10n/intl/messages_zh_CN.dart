@@ -927,6 +927,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("打开 iping 控制台"),
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage("联系客服"),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage("复制订阅链接"),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage("复制订阅链接"),
     "ipingCredentialsError": MessageLookupByLibrary.simpleMessage("邮箱或密码不正确。"),
     "ipingDevice": MessageLookupByLibrary.simpleMessage("您的设备"),
@@ -1079,10 +1080,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "当前站点暂不开放注册，已有账号仍可登录。",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "移除手动订阅",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip":
+        MessageLookupByLibrary.simpleMessage("移除后将改用账户订阅，并立即刷新。"),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "移除后将断开连接，并删除本机已下载的订阅配置。",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "余额可能不足以自动续费",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage("更换订阅链接"),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage("重新检测"),
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "安全模式下无法检测代理和出口。",

@@ -71,6 +71,9 @@ class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
       ipingSessionProvider.select((s) => s.account?.apiKey != null),
     );
     final account = ref.watch(ipingSessionProvider.select((s) => s.account));
+    final manualUrl = ref.watch(
+      ipingSessionProvider.select((s) => s.manualUrl),
+    );
     final failure = ref.watch(
       ipingSessionProvider.select((state) => state.failure),
     );
@@ -83,7 +86,7 @@ class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
         : ref.watch(ipingReferralStatsProvider(account)).value;
     final user = info.value;
     final shortfall = user == null ? null : digest?.shortfall(user.balance);
-    final exportUrl = !session.manualSubscription && account != null
+    final exportUrl = manualUrl == null && account != null
         ? ref.read(ipingApiProvider).subscriptionUrl(account.subscriptionToken)
         : null;
     final subscription = user != null || !authorized && session.hasSubscription
@@ -101,8 +104,9 @@ class _NativeAccountRouteState extends ConsumerState<NativeAccountRoute> {
             exportUrl: exportUrl,
             onSync: backend.synchronize,
             onImport: () => importIpingSubscription(context, ref),
+            onRemove: () => removeIpingManualSubscription(context, ref),
             onSignIn: session.signedIn ? null : backend.signIn,
-            manualSubscription: session.manualSubscription,
+            manualUrl: manualUrl,
           )
         : null;
     return IpingAccountPage(

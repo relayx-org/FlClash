@@ -241,6 +241,26 @@ class IpingSession {
     return false;
   }
 
+  Future<void> removeManualSubscription() async {
+    final account = _session?.account;
+    if (state.busy || account == null || _session?.manualUrl == null) return;
+    final epoch = ++_epoch;
+    final session = IpingStoredSession(account: account);
+    _publish(busy: true, profile: (nodes: 0, updated: null));
+    try {
+      await _commit(epoch, () async {
+        await profiles.stop();
+        await profiles.clear();
+        await storage.write(session);
+      });
+      if (!_current(epoch)) return;
+      _session = session;
+      await _synchronize(epoch);
+    } catch (_) {
+      if (_current(epoch)) _publish(failure: IpingFailure.storage);
+    }
+  }
+
   Future<void> synchronize() {
     if (_session == null) return Future.value();
     if (_sync != null) return _sync!;

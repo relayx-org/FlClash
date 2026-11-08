@@ -64,6 +64,14 @@ void main() {
     },
   );
 
+  test('removing a manual subscription without an account signs out', () async {
+    state = const IpingBackendState(manualSubscription: true);
+    await controller.initialize();
+    await controller.removeManualSubscription();
+    verify(backend.signOut).called(1);
+    verifyNever(backend.removeManualSubscription);
+  });
+
   test(
     'manual subscriptions poll telemetry and keep delay tests alive',
     () async {

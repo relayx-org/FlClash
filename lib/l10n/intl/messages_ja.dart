@@ -1010,6 +1010,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingConsole": MessageLookupByLibrary.simpleMessage("iPing コンソールを開く"),
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage("サポートに連絡"),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクをコピー",
+    ),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "サブスクリプションリンクをコピー",
     ),
@@ -1196,10 +1199,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "現在、新規登録は受け付けていません。既存のアカウントでログインできます。",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "手動サブスクリプションを削除",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip":
+        MessageLookupByLibrary.simpleMessage(
+          "削除後はアカウントサブスクリプションに切り替え、すぐに更新します。",
+        ),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "削除すると接続が切断され、この端末にダウンロードしたサブスクリプションも削除されます。",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "残高が自動更新に足りない可能性があります",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage(
+      "サブスクリプションリンクを変更",
+    ),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage("再チェック"),
     "ipingSafeDiagnostics": MessageLookupByLibrary.simpleMessage(
       "セーフモードではプロキシと出口を確認できません。",

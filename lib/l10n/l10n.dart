@@ -8052,6 +8052,56 @@ class AppLocalizations {
     );
   }
 
+  /// `Replace subscription link`
+  String get ipingReplaceSubscription {
+    return Intl.message(
+      'Replace subscription link',
+      name: 'ipingReplaceSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy subscription link`
+  String get ipingCopySubscription {
+    return Intl.message(
+      'Copy subscription link',
+      name: 'ipingCopySubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove manual subscription`
+  String get ipingRemoveManualSubscription {
+    return Intl.message(
+      'Remove manual subscription',
+      name: 'ipingRemoveManualSubscription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your account subscription will be used instead and refreshed right away.`
+  String get ipingRemoveManualSubscriptionAccountTip {
+    return Intl.message(
+      'Your account subscription will be used instead and refreshed right away.',
+      name: 'ipingRemoveManualSubscriptionAccountTip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This disconnects and deletes the downloaded subscription from this device.`
+  String get ipingRemoveManualSubscriptionTip {
+    return Intl.message(
+      'This disconnects and deletes the downloaded subscription from this device.',
+      name: 'ipingRemoveManualSubscriptionTip',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No available nodes. Check your subscription link or refresh.`
   String get ipingManualNoNodes {
     return Intl.message(

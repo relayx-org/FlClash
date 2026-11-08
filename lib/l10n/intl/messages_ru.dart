@@ -1222,6 +1222,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingContactSupport": MessageLookupByLibrary.simpleMessage(
       "Связаться с поддержкой",
     ),
+    "ipingCopySubscription": MessageLookupByLibrary.simpleMessage(
+      "Скопировать ссылку на подписку",
+    ),
     "ipingCopySubscriptionLink": MessageLookupByLibrary.simpleMessage(
       "Скопировать ссылку подписки",
     ),
@@ -1456,10 +1459,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipingRegistrationClosed": MessageLookupByLibrary.simpleMessage(
       "Регистрация закрыта. Существующие пользователи могут войти.",
     ),
+    "ipingRemoveManualSubscription": MessageLookupByLibrary.simpleMessage(
+      "Удалить ручную подписку",
+    ),
+    "ipingRemoveManualSubscriptionAccountTip": MessageLookupByLibrary.simpleMessage(
+      "Вместо неё будет использоваться подписка аккаунта, она сразу обновится.",
+    ),
+    "ipingRemoveManualSubscriptionTip": MessageLookupByLibrary.simpleMessage(
+      "Подключение будет разорвано, а загруженная подписка удалена с этого устройства.",
+    ),
     "ipingRenewalShortfall": MessageLookupByLibrary.simpleMessage(
       "Баланса может не хватить на автопродление",
     ),
     "ipingRenewalShortfallDetail": m50,
+    "ipingReplaceSubscription": MessageLookupByLibrary.simpleMessage(
+      "Заменить ссылку на подписку",
+    ),
     "ipingRunDiagnostics": MessageLookupByLibrary.simpleMessage(
       "Проверить снова",
     ),

@@ -64,9 +64,11 @@ void main() {
       await tester.tap(find.byTooltip(l.details(l.profile)));
       await tester.pumpAndSettle();
       expect(find.byType(IpingSubscriptionPage), findsOneWidget);
-      expect(find.text(l.ipingManualSubscription), findsOneWidget);
+      expect(find.text(l.ipingManualSubscriptionShort), findsOneWidget);
+      expect(find.text('example.com/••••••'), findsOneWidget);
+      expect(find.text(l.ipingExportSubscription), findsNothing);
       expect(find.text(l.ipingConsole), findsNothing);
-      await tester.tap(find.text(l.ipingImportSubscription));
+      await tester.tap(find.text(l.ipingReplaceSubscription));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextFormField),
