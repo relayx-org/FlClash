@@ -230,6 +230,13 @@ exit "$status"
                 self.assertIn('user-task', cron)
                 self.assertEqual(cron.count('# iping-auto-update'), 1)
 
+    def test_ready_address_drops_the_lan_prefix_length(self):
+        self.prepare('24.10', 'aarch64_cortex-a53')
+        result = self.run_installer(
+            extra="echo '192.168.100.1/24 10.0.0.1/24' > /result/uci/network.lan.ipaddr")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('iPing is ready: http://192.168.100.1:19091/\n', result.stdout)
+
     def test_linux_systemd_uses_the_same_bundle_and_timer(self):
         self.prepare('linux', 'x86_64')
         result = self.run_installer()

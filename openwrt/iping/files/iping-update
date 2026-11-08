@@ -281,7 +281,11 @@ activate_binaries() {
 }
 
 show_address() {
-    if [ "$init_system" = procd ]; then address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
+    if [ "$init_system" = procd ]; then
+        # ipaddr may be a list of CIDR addresses, such as "192.168.1.1/24 10.0.0.1/24".
+        address=$(uci -q get network.lan.ipaddr || echo '<router-LAN-address>')
+        address=${address%% *}
+        address=${address%%/*}
     else address=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") {print $(i+1); exit}}'); fi
     address=${address:-127.0.0.1}
     listener=$(config_get web_listen || echo '0.0.0.0:19091')
