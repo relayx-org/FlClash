@@ -371,7 +371,7 @@ func TestConflictingNetworkIsNeverCleanedWithoutALease(t *testing.T) {
 	if deleted {
 		t.Fatal("foreign network resources were removed")
 	}
-	if _, err := os.Stat(filepath.Join(a.runDir, "network.json")); !os.IsNotExist(err) {
+	if _, err := os.Stat(a.leasePath()); !os.IsNotExist(err) {
 		t.Fatal("conflicting network was claimed")
 	}
 }
@@ -462,7 +462,7 @@ func TestStaleLeaseRefusesReplacedResources(t *testing.T) {
 		t.Run(strconv.FormatUint(table, 10), func(t *testing.T) {
 			f := testSetup(t, false)
 			a := f.a
-			path := filepath.Join(a.runDir, "network.json")
+			path := a.leasePath()
 			if err := writeJSON(path, networkLease{Device: "iping0", IfIndex: 4, TableHandle: table}); err != nil {
 				t.Fatal(err)
 			}
@@ -488,6 +488,68 @@ func TestStaleLeaseRefusesReplacedResources(t *testing.T) {
 			}
 			if _, err := os.Stat(path); err != nil {
 				t.Fatal("lease lost", err)
+			}
+		})
+	}
+}
+
+func TestLeaseFromAnEarlierBootCleansOnlyItsOwnFirewallInclude(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		content string
+		want    string
+	}{{"own", "owned", ""}, {"foreign", "foreign", "service_conflict"}} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := testSetup(t, false).a
+			dir := t.TempDir()
+			a.bootIDFile, a.firewallFile = filepath.Join(dir, "boot_id"), filepath.Join(dir, "include.nft")
+			os.WriteFile(a.bootIDFile, []byte("previous\n"), 0600)
+			os.WriteFile(a.firewallFile, []byte("owned"), 0600)
+			a.command = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+				if name == "nft" {
+					return []byte(`{"nftables":[{"table":{"family":"inet","name":"mihomo","handle":17}}]}`), nil
+				}
+				return []byte(`[{"ifname":"iping0","ifindex":4}]`), nil
+			}
+			owned, err := a.networkIdentity(context.Background(), "iping0")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := writeJSON(a.leasePath(), owned); err != nil {
+				t.Fatal(err)
+			}
+			os.WriteFile(a.bootIDFile, []byte("current\n"), 0600)
+			os.WriteFile(a.firewallFile, []byte(tc.content), 0600)
+			reloaded := false
+			a.command = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+				text := strings.Join(args, " ")
+				switch {
+				case name == "nft":
+					return []byte(`{"nftables":[]}`), nil
+				case name == "fw4":
+					reloaded = true
+					return nil, nil
+				case name == "ip" && strings.Contains(text, "route"):
+					return nil, nil
+				case name == "ip":
+					return []byte(`[]`), nil
+				}
+				return nil, errors.New("unexpected command")
+			}
+			err = a.acquireNetwork(a.ctx, "iping0")
+			if tc.want == "" && err != nil || tc.want != "" && (err == nil || err.Error() != tc.want) {
+				t.Fatalf("acquire = %v, want %q", err, tc.want)
+			}
+			_, statErr := os.Stat(a.firewallFile)
+			if cleaned := os.IsNotExist(statErr); cleaned != (tc.want == "") || reloaded != cleaned {
+				t.Fatalf("include cleaned = %v, firewall reloaded = %v", cleaned, reloaded)
+			}
+			var lease networkLease
+			if err := readJSON(a.leasePath(), &lease); err != nil {
+				t.Fatal(err)
+			}
+			if tc.want == "" && lease != (networkLease{Device: "iping0", Boot: "current"}) {
+				t.Fatalf("lease after acquire = %+v", lease)
 			}
 		})
 	}

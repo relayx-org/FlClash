@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -20,10 +21,30 @@ type networkLease struct {
 	IfIndex     int    `json:"ifindex,omitempty"`
 	TableHandle uint64 `json:"table_handle,omitempty"`
 	IncludeHash string `json:"include_hash,omitempty"`
+	Boot        string `json:"boot,omitempty"`
+}
+
+func (a *app) leasePath() string { return filepath.Join(a.dataDir, "network.json") }
+
+// The firewall include survives a reboot; the interface and table numbers do not.
+func (a *app) readLease() (networkLease, error) {
+	var lease networkLease
+	if err := readJSON(a.leasePath(), &lease); err != nil {
+		return lease, err
+	}
+	if lease.Boot != a.bootID() {
+		lease.IfIndex, lease.TableHandle = 0, 0
+	}
+	return lease, nil
+}
+
+func (a *app) bootID() string {
+	data, _ := os.ReadFile(a.bootIDFile)
+	return strings.TrimSpace(string(data))
 }
 
 func (a *app) networkIdentity(ctx context.Context, device string) (networkLease, error) {
-	identity := networkLease{Device: device}
+	identity := networkLease{Device: device, Boot: a.bootID()}
 	data, err := a.command(ctx, "nft", "-j", "-a", "list", "tables")
 	if err != nil {
 		return identity, failure("service_failed")
@@ -71,9 +92,8 @@ func (a *app) networkIdentity(ctx context.Context, device string) (networkLease,
 }
 
 func (a *app) networkReady(ctx context.Context) error {
-	path := filepath.Join(a.runDir, "network.json")
-	var lease networkLease
-	if err := readJSON(path, &lease); errors.Is(err, os.ErrNotExist) {
+	lease, err := a.readLease()
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	} else if err != nil {
 		return failure("service_failed")
@@ -85,8 +105,10 @@ func (a *app) networkReady(ctx context.Context) error {
 	if lease.IfIndex != 0 && identity.IfIndex != lease.IfIndex || lease.TableHandle != 0 && identity.TableHandle != lease.TableHandle {
 		return failure("service_conflict")
 	}
-	if err := writeJSON(path, identity); err != nil {
-		return failure("storage_error")
+	if identity != lease {
+		if err := writeJSON(a.leasePath(), identity); err != nil {
+			return failure("storage_error")
+		}
 	}
 	if identity.IfIndex == 0 || identity.TableHandle == 0 {
 		return failure("service_failed")
@@ -137,13 +159,12 @@ func (a *app) acquireNetwork(ctx context.Context, device string) error {
 			return failure("service_conflict")
 		}
 	}
-	return writeJSON(filepath.Join(a.runDir, "network.json"), networkLease{Device: device})
+	return writeJSON(a.leasePath(), networkLease{Device: device, Boot: a.bootID()})
 }
 
 func (a *app) cleanNetwork(ctx context.Context) error {
-	path := filepath.Join(a.runDir, "network.json")
-	var lease networkLease
-	if err := readJSON(path, &lease); errors.Is(err, os.ErrNotExist) {
+	lease, err := a.readLease()
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	} else if err != nil || !tunName.MatchString(lease.Device) {
 		return failure("service_failed")
@@ -189,7 +210,7 @@ func (a *app) cleanNetwork(ctx context.Context) error {
 	if remaining, err := a.networkIdentity(ctx, lease.Device); err != nil || remaining.TableHandle != 0 || remaining.IfIndex != 0 {
 		return failure("service_failed")
 	}
-	return os.Remove(path)
+	return os.Remove(a.leasePath())
 }
 
 func (a *app) lockService(ctx context.Context, wait bool) (*os.File, error) {

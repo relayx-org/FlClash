@@ -97,5 +97,5 @@ func (a *app) firewallPath() string {
 	if a.hostConfig != "" {
 		return ""
 	}
-	return firewallInclude
+	return a.firewallFile
 }

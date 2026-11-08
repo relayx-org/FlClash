@@ -59,6 +59,8 @@ type app struct {
 	command           func(context.Context, string, ...string) ([]byte, error)
 	runProfile        string
 	coreBinary        string
+	bootIDFile        string
+	firewallFile      string
 	controllerAddress string
 	ctx               context.Context
 	jobs              sync.WaitGroup
@@ -106,6 +108,8 @@ func newApp() (*app, error) {
 		site:              "https://iping.my",
 		runProfile:        "/var/run/iping/config.yaml",
 		coreBinary:        mihomoBinary,
+		bootIDFile:        "/proc/sys/kernel/random/boot_id",
+		firewallFile:      firewallInclude,
 		controllerAddress: "127.0.0.1:19090",
 		ctx:               context.Background(),
 		client: &http.Client{Timeout: 12 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
