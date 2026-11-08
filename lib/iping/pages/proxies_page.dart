@@ -114,6 +114,9 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
           name,
           () => _RemoteGroup(name, sheetScrollController(context)),
         );
+        final picked =
+            group.metadata.selected != metadata.selected ||
+            group.metadata.pinned != metadata.pinned;
         group.metadata = metadata;
         group.count = metadata.count;
         group.selectedIndex = metadata.selectedIndex;
@@ -121,8 +124,8 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
           group.items.clear();
           group.errors.clear();
           group.loading.clear();
-          group.revision++;
         }
+        if (resetting || picked) group.revision++;
         names.add(name);
       }
       final first = _groups[data.group];
