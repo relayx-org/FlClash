@@ -10,6 +10,8 @@ scheduled=0
 staged=''
 backup=''
 replaced=0
+install_dir=''
+stage_root=''
 
 fail() { echo "iPing: $*" >&2; exit 1; }
 
@@ -19,8 +21,10 @@ cleanup() {
     set +e
     if [ "$result" != 0 ] && [ "$replaced" = 1 ]; then
         service_action stop
-        rm -rf /usr/libexec/iping
-        if mv "$backup" /usr/libexec/iping; then
+        rm -rf "$bin_dir"
+        [ ! -L /usr/libexec/iping ] || rm /usr/libexec/iping
+        if mv "$backup" "$current_dir"; then
+            [ "$current_dir" = /usr/libexec/iping ] || ln -s "$current_dir" /usr/libexec/iping
             echo 'iPing: restored the previous binaries' >&2
         else echo "iPing: recovery files remain at $backup" >&2; fi
         backup=''
@@ -76,7 +80,7 @@ service_running() {
 update_repositories() {
     [ "$repositories_updated" = 0 ] || return 0
     case "$manager" in
-        opkg|apk) "$manager" update ;;
+        opkg|apk) "$manager" update || echo 'iPing: some package lists could not be updated; continuing with the others' >&2 ;;
         apt-get) apt-get update ;;
         dnf|yum) "$manager" makecache ;;
         *) fail 'install curl, jq, unzip, util-linux, iproute2 and nftables before running this installer' ;;
@@ -240,18 +244,114 @@ ensure_runtime() {
     if [ "$manager" = opkg ]; then opkg install "$@"; else apk add "$@"; fi
 }
 
+check_install_dir() {
+    install_dir=${install_dir%/}
+    case "$install_dir" in /?*) ;; *) fail '--dir needs an absolute path' ;; esac
+    case "$install_dir" in *[!A-Za-z0-9._/-]*) fail '--dir may contain only letters, digits and . _ - /' ;; esac
+    [ -d "$install_dir" ] || fail "$install_dir does not exist; mount the storage first"
+    probe=$install_dir/.iping-probe
+    rm -f "$probe"
+    ln -s / "$probe" 2>/dev/null || fail "$install_dir must be on a Linux filesystem such as ext4"
+    rm "$probe"
+    printf '#!/bin/sh\n' > "$probe" || fail "cannot write to $install_dir"
+    chmod 755 "$probe"
+    "$probe" 2>/dev/null || { rm -f "$probe"; fail "cannot run programs from $install_dir; remount it without noexec"; }
+    rm "$probe"
+    bin_dir=$install_dir/iping/bin
+}
+
+fits() { awk -v available="$1" -v reclaim="$2" -v required="$3" 'BEGIN { exit !(available + reclaim >= required + 8192) }'; }
+
+compress_binaries() {
+    memory=$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)
+    spare=$(df -Pk /tmp | awk 'END { print $4 }')
+    unpacked=$(du -sk "$work/payload/agent" "$work/payload/mihomo" | awk '{ total += $1 } END { print total }')
+    awk -v memory="$memory" -v spare="$spare" -v unpacked="$unpacked" 'BEGIN { exit !(memory >= unpacked * 2 + 131072 && spare >= unpacked + 32768) }' || fail "$no_space"
+    if ! xz -c < /dev/null > /dev/null 2>&1; then
+        [ "$scheduled" = 0 ] || fail 'xz is missing; rerun the installer'
+        update_repositories
+        if [ "$manager" = opkg ]; then opkg install xz; else apk add xz; fi
+        xz -c < /dev/null > /dev/null 2>&1 || fail 'xz cannot compress; install xz-utils and rerun the installer'
+    fi
+    echo 'iPing: flash storage is low; storing the programs compressed and running them from memory, which takes a few minutes'
+    for name in agent mihomo; do
+        xz -6 -c "$work/payload/$name" > "$work/payload/$name.xz"
+        chmod 644 "$work/payload/$name.xz"
+        write_launcher "$name" > "$work/payload/$name"
+        chmod 755 "$work/payload/$name"
+    done
+}
+
+# Both programs unpack together so the Agent's Core checks never wait on xz. exec keeps
+# the PID that procd and the Agent track.
+write_launcher() {
+    sed "s/@NAME@/$1/" <<'EOF'
+#!/bin/sh
+for name in agent mihomo; do
+    program=/tmp/iping-bin/$name
+    [ "$(cat "$program.version" 2>/dev/null)" != "$(cat /usr/libexec/iping/version)" ] || continue
+    mkdir -p -m 700 /tmp/iping-bin
+    xz -dc "/usr/libexec/iping/$name.xz" > "$program.$$" || { rm -f "$program.$$"; echo "iPing: cannot unpack $name into /tmp" >&2; exit 1; }
+    chmod 755 "$program.$$"
+    mv "$program.$$" "$program"
+    cp /usr/libexec/iping/version "$program.version"
+done
+exec /tmp/iping-bin/@NAME@ "$@"
+EOF
+}
+
+# Staging beside the programs makes activation a rename. When the storage holds only
+# one copy, the new programs wait in /tmp and the old ones move there as the backup.
+plan_storage() {
+    target=${bin_dir%/*}
+    mkdir -p "$target"
+    no_space='not enough storage for the new binaries; install to external storage with --dir <path>'
+    [ -z "$install_dir" ] || no_space="not enough storage in $install_dir"
+    available=$(df -Pk "$target" | awk 'END { print $4 }')
+    reclaim=0
+    if [ "$current_dir" = "$bin_dir" ] && [ -d "$bin_dir" ]; then reclaim=$(du -sk "$bin_dir" | awk '{ print $1 }'); fi
+    payload=$(du -sk "$work/payload" | awk '{ print $1 }')
+    if ! fits "$available" "$reclaim" "$payload"; then
+        if [ -n "$install_dir" ] || [ "$init_system" != procd ]; then fail "$no_space"; fi
+        # xz shrinks the programs to about 40%; skip the slow attempt when even a third cannot fit.
+        fits "$available" "$reclaim" "$((payload / 3))" || fail "$no_space"
+        compress_binaries
+        payload=$(du -sk "$work/payload" | awk '{ print $1 }')
+        fits "$available" "$reclaim" "$payload" || fail "$no_space"
+    fi
+    if fits "$available" 0 "$payload"; then stage_root=$target
+    else
+        fits "$(df -Pk /tmp | awk 'END { print $4 }')" 0 "$reclaim" || fail 'not enough temporary space for the previous binaries'
+        stage_root=$work
+    fi
+}
+
 stage_binaries() {
     mkdir -p /usr/libexec /usr/share/iping /usr/bin
-    available=$(df -Pk /usr/libexec | awk 'END { print $4 * 1024 }')
-    required=$(du -sk "$work/payload" | awk '{ print $1 * 1024 + 8388608 }')
-    awk -v available="$available" -v required="$required" 'BEGIN { exit !(available >= required) }' || fail 'not enough storage for the new binaries'
-    staged=$(mktemp -d /usr/libexec/iping-new.XXXXXX)
+    if [ "$stage_root" = "$work" ]; then
+        staged=$work/payload
+        chmod 700 "$staged"
+        return 0
+    fi
+    staged=$(mktemp -d "$stage_root/iping-new.XXXXXX")
     cp -p "$work/payload/"* "$staged/"
 }
 
+link_data() {
+    data=${bin_dir%/bin}/data
+    [ "$(readlink /etc/iping 2>/dev/null)" != "$data" ] || return 0
+    mkdir -p "$data"
+    chmod 700 "$data"
+    if [ -d /etc/iping ]; then cp -a /etc/iping/. "$data/"; fi
+    rm -rf /etc/iping
+    ln -s "$data" /etc/iping
+}
+
 activate_binaries() {
-    backup=$(mktemp -d /usr/libexec/iping-previous.XXXXXX)
-    previous=/usr/libexec/iping
+    backup_root=${current_dir%/*}
+    [ "$stage_root" != "$work" ] || backup_root=$work
+    backup=$(mktemp -d "$backup_root/iping-previous.XXXXXX")
+    previous=$current_dir
     [ -d "$previous" ] || previous=$backup
     for pair in 'iping.init:/etc/init.d/iping' 'version:/usr/share/iping/version' 'iping.upgrade:/lib/upgrade/keep.d/iping'; do
         name=${pair%%:*}
@@ -260,11 +360,15 @@ activate_binaries() {
     done
     if [ "$previous" != "$backup" ]; then
         rmdir "$backup"
-        mv /usr/libexec/iping "$backup"
+        mv "$current_dir" "$backup"
     fi
     replaced=1
-    mv "$staged" /usr/libexec/iping
+    [ ! -L /usr/libexec/iping ] || rm /usr/libexec/iping
+    mv "$staged" "$bin_dir"
     staged=''
+    [ "$bin_dir" = /usr/libexec/iping ] || ln -s "$bin_dir" /usr/libexec/iping
+    rm -rf /tmp/iping-bin
+    [ -z "$install_dir" ] || link_data
     ln -sf /usr/libexec/iping/version /usr/share/iping/version
     ln -sf /usr/libexec/iping/update /usr/bin/iping-update
     if [ "$init_system" = procd ]; then
@@ -296,7 +400,7 @@ show_address() {
 iping_process() {
     for exe in /proc/[0-9]*/exe; do
         case "$(readlink "$exe" 2>/dev/null || true)" in
-            /usr/libexec/iping/agent|/usr/libexec/iping/mihomo) return 0 ;;
+            "$binaries/agent"|"$binaries/mihomo"|/tmp/iping-bin/agent|/tmp/iping-bin/mihomo) return 0 ;;
         esac
     done
     return 1
@@ -317,6 +421,8 @@ uninstall() {
     mkdir -p /var/lock
     exec 9>/var/lock/iping-update.lock
     flock -n 9 || fail 'another iPing installation or update is running'
+    binaries=$(readlink -f /usr/libexec/iping || true)
+    [ -n "$binaries" ] || binaries=/usr/libexec/iping
     if [ "$init_system" = procd ]; then
         if [ -x /etc/init.d/iping ]; then
             service_action stop
@@ -347,12 +453,14 @@ uninstall() {
         rm -f /etc/systemd/system/iping.service /etc/systemd/system/iping-update.service /etc/systemd/system/iping-update.timer
         systemctl daemon-reload
     fi
-    rm -rf /usr/libexec/iping /usr/share/iping /var/run/iping
+    rm -rf "$binaries" /usr/libexec/iping /usr/share/iping /var/run/iping /tmp/iping-bin
     rm -f /usr/bin/iping-update
     data=/etc/iping
     [ "$init_system" != procd ] || data='/etc/iping and /etc/config/iping'
     if [ "$1" = 1 ]; then
+        if [ -L /etc/iping ]; then rm -rf "$(readlink /etc/iping)"; fi
         rm -rf /etc/iping /etc/config/iping
+        [ "$binaries" = /usr/libexec/iping ] || rmdir "${binaries%/bin}" 2>/dev/null || true
         echo "iPing was removed, including $data."
     else
         echo "iPing was removed. Account, subscription and settings data remain in $data;"
@@ -376,15 +484,17 @@ main() {
             uninstall "$purge"
             exit 0 ;;
     esac
-    for argument in "$@"; do
-        case "$argument" in
-            install|update|check) mode=$argument ;;
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            install|update|check) mode=$1 ;;
             --scheduled) mode=update; scheduled=1 ;;
             --no-auto-update) auto_update=0 ;;
             --auto-update) auto_update=1 ;;
-            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off|uninstall [--purge]] [--no-auto-update]'; exit 0 ;;
-            *) fail "unknown argument: $argument" ;;
+            --dir) [ "$#" -gt 1 ] || fail 'usage: --dir <path>'; install_dir=$2; shift ;;
+            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off|uninstall [--purge]] [--no-auto-update] [--dir <path>]'; exit 0 ;;
+            *) fail "unknown argument: $1" ;;
         esac
+        shift
     done
     detect_platform
     if [ "$scheduled" = 1 ] && [ "$(config_get auto_update || echo 1)" != 1 ]; then exit 0; fi
@@ -392,6 +502,14 @@ main() {
     mkdir -p /var/lock
     exec 9>/var/lock/iping-update.lock
     flock -n 9 || fail 'another iPing installation or update is running'
+    current_dir=/usr/libexec/iping
+    [ ! -L "$current_dir" ] || current_dir=$(readlink "$current_dir")
+    bin_dir=$current_dir
+    # A sysupgrade keeps the /etc/iping link to external storage but drops the programs.
+    if [ -z "$install_dir" ] && [ ! -d "$current_dir" ]; then
+        case "$(readlink /etc/iping 2>/dev/null || true)" in /?*/iping/data) install_dir=$(readlink /etc/iping); install_dir=${install_dir%/iping/data} ;; esac
+    fi
+    [ -z "$install_dir" ] || check_install_dir
     work=$(mktemp -d /tmp/iping-update.XXXXXX)
     trap cleanup 0
     trap 'exit 130' INT
@@ -418,7 +536,7 @@ main() {
     installed=$(cat /usr/share/iping/version 2>/dev/null || true)
     if [ -n "$installed" ]; then
         valid_version "$installed" || fail 'invalid installed version'
-        if ! newer "$target" "$installed"; then
+        if ! newer "$target" "$installed" && [ "$bin_dir" = "$current_dir" ]; then
             echo "iPing $installed is current; no update needed."
             if [ "$mode" = install ]; then
                 if [ -n "$auto_update" ]; then config_set auto_update "$auto_update"; fi
@@ -438,6 +556,7 @@ main() {
     [ "$(wc -c < "$work/bundle.zip" | tr -d ' ')" = "$size" ] || fail 'incomplete release download'
     printf '%s  %s\n' "$digest" "$work/bundle.zip" | sha256sum -c -
     unpack_binaries
+    plan_storage
     ensure_runtime
     stage_binaries
     was_running=0

@@ -62,10 +62,11 @@ esac
 ''')
         for manager in ['opkg', 'apk']:
             self.command(manager, """case "$1" in
- status) echo 'Status: install ok installed'; exit 0 ;;
- info) exit 0 ;;
+ status|info) [ "$2" != "$(cat /fixture/missing-package 2>/dev/null)" ] || exit 1
+  [ "$1" = info ] || echo 'Status: install ok installed'; exit 0 ;;
 esac
 echo "pm ${0##*/} $*" >> /result/events
+[ "$1" != update ] || [ ! -f /fixture/update-fails ]
 """)
         self.command('mv', """if [ -f /fixture/install-fails ] && [ "$2" = /usr/libexec/iping ] && [ ! -f /result/failed ]; then
  touch /result/failed
@@ -89,10 +90,13 @@ esac
         self.command('nft', 'exit 0\n')
         self.command('fw4', 'echo "fw4 $*" >> /result/events\n')
         self.command('crontab', '[ ! -f /fixture/schedule-fails ] || exit 1\nexec /bin/busybox crontab -c /etc/crontabs "$@"\n')
-        self.command('df', '''if [ -f /fixture/no-space ]; then
+        self.command('df', '''for path; do :; done
+if [ -f /fixture/no-space ] || { [ -f /fixture/flash-kb ] && [ "$path" != /tmp ]; }; then
  echo 'Filesystem 1024-blocks Used Available Capacity Mounted on'
- echo 'test 8 8 0 100% /tmp'
+ echo "test 8 8 $(cat /fixture/flash-kb 2>/dev/null || echo 0) 100% $path"
 else /bin/busybox df "$@"; fi
+''')
+        self.command('xz', '''case "$1" in -dc) exec gzip -dc "$2" ;; *) exec gzip "$@" ;; esac
 ''')
         for name, body in {
             'service': '''. /fixture/iping.init
@@ -120,7 +124,7 @@ esac
         path.write_text('#!/bin/sh\nset -eu\n' + body)
         path.chmod(0o755)
 
-    def prepare(self, branch='24.10', arch='x86_64', bad_archive=False, bad_package=False):
+    def prepare(self, branch='24.10', arch='x86_64', bad_archive=False, bad_package=False, padding=0):
         (self.fixture / 'arch').write_text(arch)
         (self.fixture / 'release').write_text(f"DISTRIB_RELEASE='{branch}.8'\nDISTRIB_ARCH='{arch}'\n")
         family = ('aarch64' if arch.startswith('aarch64') else 'mipsel' if arch.startswith('mipsel')
@@ -128,6 +132,10 @@ esac
         self.names = ['agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer', 'version', 'LICENSE']
         contents = {name: (name + '-new').encode() for name in self.names}
         contents['agent'] = b'#!/bin/sh\ncase "$1:$2" in config:get) cat "/result/uci/iping.config.$3" 2>/dev/null ;; config:set) printf "%s" "$4" > "/result/uci/iping.config.$3" ;; *) echo agent-new ;; esac\n'
+        contents['mihomo'] = b'#!/bin/sh\necho mihomo-new\n'
+        if padding:
+            for name in ['agent', 'mihomo']:
+                contents[name] += b'#' + b'a' * padding + b'\n'
         contents['version'] = b'1.2.3+42\n'
         contents['update'] = SCRIPT.read_bytes()
         contents['iping.init'] = (self.fixture / 'service').read_bytes()
@@ -375,6 +383,72 @@ flock -n 8
         self.assertIn('systemctl disable --now iping-update.timer', events)
         self.assertEqual((self.result / 'units').read_text().strip(), '')
         self.assertIn('remain in /etc/iping;', result.stdout)
+
+    def test_partial_package_list_failure_still_installs_missing_packages(self):
+        (self.fixture / 'update-fails').touch()
+        (self.fixture / 'missing-package').write_text('kmod-inet-diag')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('some package lists could not be updated', result.stderr)
+        self.assertIn('pm opkg install kmod-inet-diag', self.events())
+
+    def test_storage_is_checked_before_installing_packages(self):
+        (self.fixture / 'missing-package').write_text('kmod-inet-diag')
+        (self.fixture / 'flash-kb').write_text('0')
+        result = self.run_installer()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('install to external storage with --dir', result.stderr)
+        self.assertNotIn('pm ', self.events())
+
+    def test_small_flash_keeps_compressed_programs_and_runs_them_from_tmp(self):
+        self.prepare('24.10', 'aarch64_cortex-a53', padding=2 << 20)
+        (self.fixture / 'flash-kb').write_text(str(8192 + 2048))
+        check = ('/usr/libexec/iping/agent run > /result/ran && /usr/libexec/iping/mihomo -v >> /result/ran && '
+                 'ls /usr/libexec/iping /tmp/iping-bin > /result/files')
+        result = self.run_installer(f'sh /installer && {check}')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('storing the programs compressed', result.stdout)
+        self.assertEqual((self.result / 'ran').read_text().split(), ['agent-new', 'mihomo-new'])
+        files = (self.result / 'files').read_text().split()
+        self.assertIn('agent.xz', files)
+        self.assertIn('mihomo.version', files)
+        self.assertIn('xz -dc', (self.result / 'agent').read_text())
+        result = self.run_installer('sh /installer && echo 1.2.2+41 > /usr/libexec/iping/version && '
+                                    f'sh /installer --scheduled && {check}')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.result / 'version').read_text().strip(), '1.2.3+42')
+        self.assertEqual((self.result / 'ran').read_text().split(), ['agent-new', 'mihomo-new'])
+
+    def test_update_with_room_for_one_copy_keeps_the_previous_programs_in_tmp(self):
+        self.prepare(padding=1 << 20)
+        for fails in [False, True]:
+            with self.subTest(fails=fails):
+                result = self.run_installer(
+                    'sh /installer && echo old-agent > /usr/libexec/iping/agent && echo 1.2.2+41 > /usr/libexec/iping/version && '
+                    f'echo {8192 + 1536} > /fixture/flash-kb && {"touch /fixture/install-fails && " if fails else ""}'
+                    'sh /installer update', running=True)
+                self.assertEqual(result.returncode != 0, fails, result.stdout + result.stderr)
+                self.assertNotIn('storing the programs compressed', result.stdout)
+                self.assertEqual((self.result / 'version').read_text().strip(), '1.2.2+41' if fails else '1.2.3+42')
+                self.assertEqual((self.result / 'agent').read_text().startswith('old-agent'), fails)
+                self.assertTrue((self.result / 'running').exists())
+
+    def test_dir_option_moves_programs_and_data_to_external_storage(self):
+        layout = ('readlink /usr/libexec/iping > /result/links; readlink /etc/iping >> /result/links; cat /etc/iping/session.json >> /result/links; '
+                  'ls /usr/libexec > /result/libexec')
+        result = self.run_installer(
+            'mkdir -p /mnt/usb /etc/iping && echo session > /etc/iping/session.json && '
+            'sh /installer --dir /mnt/usb/ && echo 1.2.2+41 > /usr/libexec/iping/version && '
+            f'sh /installer update && {layout} && sh /installer uninstall --purge && ls -A /mnt/usb > /result/usb')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.result / 'links').read_text().split(),
+                         ['/mnt/usb/iping/bin', '/mnt/usb/iping/data', 'session'])
+        self.assertEqual((self.result / 'libexec').read_text().split(), ['iping'])
+        self.assertEqual((self.result / 'usb').read_text().strip(), '')
+        self.assertIn('1.2.2+41 -> 1.2.3+42', result.stdout)
+        result = self.run_installer('sh /installer --dir usb')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('absolute path', result.stderr)
 
     def test_schedule_does_not_require_the_optional_od_applet(self):
         self.command('od', "echo 'od is not installed' >&2; exit 127\n")

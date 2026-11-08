@@ -98,6 +98,16 @@ programs and service files, and keeps the runtime packages the installer added. 
 wget -qO /tmp/iping-uninstall.sh https://video.iping.my/releases/uninstall-linux.sh && sh /tmp/iping-uninstall.sh
 ```
 
+The installer checks storage before it installs any package, and continues when only some package lists fail to
+update. On OpenWrt flash too small for the programs (about 100 MB), the installer keeps them xz-compressed (about
+36 MB) when RAM allows and unpacks them into `/tmp` at the first start after each boot or update. Routers with less
+flash can install onto mounted ext4 or other Linux-filesystem storage; the programs and `/etc/iping` then link there,
+and later updates keep that location:
+
+```sh
+sh /tmp/iping-install.sh --dir /mnt/sda1
+```
+
 For installation without automatic updates, run `sh /tmp/iping-install.sh --no-auto-update`.
 Re-running the installer preserves an existing update preference unless explicitly
 changed. Stop other transparent proxy services before connecting iPing.
