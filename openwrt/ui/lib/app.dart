@@ -4,6 +4,7 @@ import 'package:fl_clash/pages/home_presentation.dart';
 import 'package:fl_clash/enum/appearance.dart';
 import 'package:fl_clash/iping/account_widgets.dart';
 import 'package:fl_clash/iping/support.dart';
+import 'package:fl_clash/iping/update_view.dart';
 import 'package:fl_clash/enum/page_label.dart';
 import 'package:fl_clash/l10n/page_labels.dart';
 import 'package:fl_clash/views/page_destination.dart';
@@ -36,6 +37,7 @@ import 'probes.dart';
 import 'proxies_host.dart';
 import 'requests_page.dart';
 import 'settings.dart';
+import 'updater.dart';
 
 enum RouterAspect { session, status, telemetry, probes, proxies }
 
@@ -121,6 +123,8 @@ class RouterApp extends StatefulWidget {
 
 class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
   late final RouterController _controller = RouterController(widget.client);
+  late final updater = RouterUpdater(widget.client);
+  final updateDialogs = IpingUpdateDialogs();
   final _navigatorKey = GlobalKey<NavigatorState>();
   late final _ipingClient = createRouterIpingClient(
     widget.client,
@@ -294,6 +298,7 @@ class RouterAppState extends State<RouterApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    updater.dispose();
     super.dispose();
   }
 }

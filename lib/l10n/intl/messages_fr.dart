@@ -2377,6 +2377,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "Les réglages sont enregistrés sur le routeur. Leur application redémarre le cœur iPing et peut interrompre les connexions.",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "Le routeur n’a pas pu installer la mise à jour et conserve la version actuelle. Réessayez plus tard.",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "Le routeur redémarre iPing pendant la mise à jour, et cette page se recharge à la fin.",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Marque de routage"),
     "ru": MessageLookupByLibrary.simpleMessage("Russe"),
     "rule": MessageLookupByLibrary.simpleMessage("Règle"),

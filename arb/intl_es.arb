@@ -1102,6 +1102,8 @@
   "routerOperationFailed": "El router no pudo completar la operación. Revisa sus registros e inténtalo de nuevo.",
   "routerServiceConflict": "Otro proxy está usando los recursos de red necesarios. Deténlo antes de conectar iPing.",
   "routerBusy": "Hay otra operación en curso. Espera un momento.",
+  "routerUpdateFailed": "El router no pudo instalar la actualización y conserva la versión actual. Inténtalo más tarde.",
+  "routerUpdateHint": "El router reinicia iPing durante la actualización y esta página se recargará al terminar.",
   "routerSettingsHint": "Los ajustes se guardan en el router. Aplicarlos reinicia el núcleo de iPing y puede interrumpir las conexiones.",
   "routerResourcesHint": "Las reglas adicionales se ejecutan antes que las de la suscripción. Los nodos y grupos de filtros personalizados se añaden a los grupos de selección. Los nodos y proveedores de reglas usan Mihomo YAML.",
   "routerIconsHint": "Use el nombre del grupo como clave y una URL de imagen HTTP(S) como valor.",

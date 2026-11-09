@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:fl_clash/iping/profile_resources_page.dart';
+import 'package:fl_clash/iping/update_view.dart';
 import 'package:fl_clash/iping/settings_host.dart';
 import 'package:fl_clash/iping/script_form.dart';
 import 'package:fl_clash/features/form/rule_form.dart';
@@ -557,6 +560,75 @@ void main() {
       1.4,
     );
   });
+
+  testWidgets('the router reuses the update dialog and reloads afterwards', (
+    tester,
+  ) async {
+    final client = FakeRouterClient();
+    client.updateCheck = {
+      'available': true,
+      'current': '0.1.9+2026110801',
+      'version': '0.2.0',
+      'build': 2026110901,
+      'notes': 'Fixes routing',
+    };
+    await _openSettings(tester, client);
+    final l = AppLocalizations.current;
+    await tester.tap(find.text(l.checkUpdate));
+    await tester.pumpAndSettle();
+    expect(find.byType(IpingUpdateDialog), findsOneWidget);
+    expect(find.text('Fixes routing'), findsOneWidget);
+    expect(find.text(l.routerUpdateHint), findsOneWidget);
+
+    client.updateStatusRequest = Completer<void>();
+    await tester.tap(find.text(l.update));
+    await tester.pump();
+    expect(client.calls, contains('update_install'));
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.textContaining('%'), findsNothing);
+
+    client.updateStatus = {'current': '0.2.0+2026110901', 'running': true};
+    client.updateStatusRequest!.complete();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(client.calls, contains('update_status'));
+    expect(client.calls, isNot(contains('reload')));
+
+    client.updateStatus = {
+      'current': '0.2.0+2026110901',
+      'running': false,
+      'failed': false,
+    };
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(client.calls, contains('reload'));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'a failed router update keeps the current version and offers a retry',
+    (tester) async {
+      final client = FakeRouterClient();
+      client.updateCheck = {
+        'available': true,
+        'version': '0.2.0',
+        'build': 2026110901,
+      };
+      await _openSettings(tester, client);
+      final l = AppLocalizations.current;
+      await tester.tap(find.text(l.checkUpdate));
+      await tester.pumpAndSettle();
+      client.updateStatus = {'running': false, 'failed': true};
+      await tester.tap(find.text(l.update));
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(find.text(l.routerUpdateFailed), findsOneWidget);
+      expect(find.text(l.ipingUpdateManualDownload), findsNothing);
+      expect(find.text(l.retry), findsOneWidget);
+      expect(client.calls, isNot(contains('reload')));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
   test(
     'settings job errors release busy state and propagate to the form',

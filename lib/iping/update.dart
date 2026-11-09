@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'update_installer.dart';
+import 'update_view.dart';
 
 const ipingUpdateBase = String.fromEnvironment(
   'IPING_UPDATE_BASE_URL',
@@ -25,7 +26,7 @@ const ipingUpdateBase = String.fromEnvironment(
 const ipingUpdateChecksEnabled =
     (kReleaseMode || kProfileMode) && !safeModeBuild;
 
-class IpingUpdate {
+class IpingUpdate implements IpingUpdateOffer {
   const IpingUpdate({
     required this.version,
     required this.buildNumber,
@@ -36,15 +37,23 @@ class IpingUpdate {
     this.notes = '',
   });
 
+  @override
   final String version;
+  @override
   final int buildNumber;
+  @override
   final Uri url;
   final String sha256;
   final int size;
   final String format;
+  @override
   final String notes;
 
   bool get isAppStore => format == 'app-store';
+
+  @override
+  IpingUpdateKind get kind =>
+      isAppStore ? IpingUpdateKind.appStore : IpingUpdateKind.package;
 
   factory IpingUpdate.fromJson(Map<String, dynamic> json) {
     final version = json['version'] as String;
@@ -208,7 +217,7 @@ Future<void> verifyIpingUpdate(String path, IpingUpdate update) async {
   }
 }
 
-class IpingUpdater extends ChangeNotifier {
+class IpingUpdater extends ChangeNotifier implements IpingUpdateController {
   IpingUpdater({
     required PackageInfo Function() current,
     required this.target,
@@ -228,21 +237,29 @@ class IpingUpdater extends ChangeNotifier {
   final IpingUpdateClient client;
   final Future<void> Function() beforeInstall;
   final Future<void> Function() exitApplication;
+  @override
   final bool enabled;
   final Future<void> Function(IpingUpdate, void Function(double))? _install;
   final Future<bool> Function(Uri) _openStore;
+  @override
   IpingUpdate? update;
+  @override
   bool busy = false;
+  @override
   bool failed = false;
+  @override
   double? progress;
   bool _disposed = false;
   Future<void>? _pending;
   StreamSubscription<OtaEvent>? _otaSubscription;
   Completer<void>? _otaCompletion;
+  @override
   bool checkFailed = false;
 
+  @override
   bool get checking => _pending != null;
 
+  @override
   Future<void> check() {
     if (!enabled || _disposed || busy) return Future.value();
     if (_pending case final pending?) return pending;
@@ -277,6 +294,7 @@ class IpingUpdater extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   Future<void> install({PasswordPrompt? askPassword}) async {
     final release = update;
     if (!enabled || release == null || busy || checking || _disposed) return;

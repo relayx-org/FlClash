@@ -1887,6 +1887,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "設定はルーターに保存されます。適用時に iPing コアが再起動し、接続が一時的に切れる場合があります。",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "ルーターで更新をインストールできなかったため、現在のバージョンを維持しています。しばらくしてから再試行してください。",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "更新中にルーターが iPing を再起動します。完了するとこのページが再読み込みされます。",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("ルーティングマーク"),
     "ru": MessageLookupByLibrary.simpleMessage("ロシア語"),
     "rule": MessageLookupByLibrary.simpleMessage("ルール"),

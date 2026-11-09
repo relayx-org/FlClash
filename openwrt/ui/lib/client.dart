@@ -6,6 +6,7 @@ abstract interface class RouterClient {
   Future<void> signIn({bool register = false});
   void cancelSignIn();
   void open(String url);
+  void reload();
   void exportText(String name, String content);
   Map<String, Object?> readPreferences();
   void writePreferences(Map<String, Object?> value);

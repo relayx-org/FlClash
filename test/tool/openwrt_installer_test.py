@@ -56,6 +56,7 @@ esac
 case "$1" in
  get) cat "/result/uci/$2" 2>/dev/null ;;
  set) key=${2%%=*}; value=${2#*=}; mkdir -p /result/uci; printf '%s' "$value" > "/result/uci/$key" ;;
+ delete) rm -f "/result/uci/$2" ;;
  commit) : ;;
  *) exit 1 ;;
 esac
@@ -81,7 +82,7 @@ case "$*" in
  'stop iping.service') rm -f /result/running; echo 'service stop' >> /result/events ;;
  'enable iping.service') echo 'service enable' >> /result/events ;;
  'disable --now iping.service') rm -f /result/running; echo 'service disable' >> /result/events ;;
- 'disable --now iping-update.timer') if [ -L /etc/systemd/system/iping-update.timer ]; then rm /etc/systemd/system/iping-update.timer; fi ;;
+ 'disable --now iping-update.timer') if [ -f /etc/systemd/system/iping-update.timer ]; then rm /etc/systemd/system/iping-update.timer; else exit 1; fi ;;
  'enable --now iping-update.timer') test -f /etc/systemd/system/iping-update.timer ;;
 esac
 """)
@@ -186,6 +187,8 @@ echo old-agent > /usr/libexec/iping/agent
 mkdir -p /etc/config
 echo user-config > /etc/config/iping
 echo '0 1 * * * echo user-task' > /etc/crontabs/root
+[ ! -f /fixture/legacy-schedule ] || echo '7 4 * * * /usr/libexec/iping/update --scheduled 2>&1 | logger -t iping-update # iping-auto-update' >> /etc/crontabs/root
+[ ! -f /fixture/legacy-options ] || for option in auto_update update_minute; do echo 1 > "/result/uci/iping.config.$option"; done
 [ ! -s /fixture/installed ] || cp /fixture/installed /usr/share/iping/version
 [ ! -s /fixture/running ] || touch /result/running
 [ ! -s /fixture/auto ] || cp /fixture/auto /result/uci/iping.config.auto_update
@@ -200,6 +203,7 @@ readlink /etc/init.d/iping > /result/init-link || true
 cat /etc/init.d/iping > /result/init-content 2>/dev/null || true
 if [ -f /etc/init.d/iping ] && [ ! -L /etc/init.d/iping ]; then echo regular > /result/init-file; fi
 if [ -f /etc/systemd/system/iping-update.timer ] && [ ! -L /etc/systemd/system/iping-update.timer ]; then echo regular > /result/timer-unit; fi
+ls /result/uci > /result/options 2>/dev/null || true
 exit "$status"
 '''
         container = subprocess.check_output(
@@ -240,7 +244,7 @@ exit "$status"
                 self.assertIn('http://192.168.1.1:19091/', result.stdout)
                 cron = (self.result / 'crontab').read_text()
                 self.assertIn('user-task', cron)
-                self.assertEqual(cron.count('# iping-auto-update'), 1)
+                self.assertNotIn('iping-auto-update', cron)
 
     def test_ready_address_drops_the_lan_prefix_length(self):
         self.prepare('24.10', 'aarch64_cortex-a53')
@@ -249,7 +253,7 @@ exit "$status"
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('iPing is ready: http://192.168.100.1:19091/\n', result.stdout)
 
-    def test_linux_systemd_uses_the_same_bundle_and_timer(self):
+    def test_linux_systemd_uses_the_same_bundle_without_a_schedule(self):
         self.prepare('linux', 'x86_64')
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -257,15 +261,9 @@ exit "$status"
         self.assertIn('service enable', events)
         self.assertIn('service start', events)
         self.assertIn('systemctl daemon-reload', events)
-        self.assertIn('systemctl enable --now iping-update.timer', events)
+        self.assertNotIn('iping-update.timer', events)
         self.assertIn('http://192.168.1.2:19091/', result.stdout)
-        self.assertNotIn('# iping-auto-update', (self.result / 'crontab').read_text())
-        self.assertEqual((self.result / 'timer-unit').read_text().strip(), 'regular')
-        result = self.run_installer('sh /installer; sh /installer auto off; sh /installer auto on')
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotIn('service start', self.events())
+        self.assertFalse((self.result / 'timer-unit').exists())
 
     def test_checksums_and_space_are_checked_before_stopping_the_service(self):
         for failure in ['archive', 'package', 'space', 'url', 'schema']:
@@ -284,7 +282,7 @@ exit "$status"
     def test_equal_or_older_releases_never_reinstall_or_restart(self):
         for installed in ['1.2.3+42', '1.2.3+43', '1.2.4+1', '2.0.0+1']:
             with self.subTest(installed=installed):
-                result = self.run_installer('sh /installer --scheduled', installed=installed, running=True)
+                result = self.run_installer('sh /installer update', installed=installed, running=True)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertNotIn('pm ', self.events())
                 self.assertNotIn('service stop', self.events())
@@ -301,6 +299,7 @@ exit "$status"
 
     def test_late_update_failure_restores_the_previous_init_file(self):
         (self.fixture / 'schedule-fails').touch()
+        (self.fixture / 'legacy-schedule').touch()
         result = self.run_installer('sh /installer update', installed='1.2.2+41', running=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue((self.result / 'running').exists())
@@ -308,31 +307,40 @@ exit "$status"
         self.assertIn('OLD_TEST_INIT=1', (self.result / 'init-content').read_text())
         self.assertEqual((self.result / 'init-file').read_text().strip(), 'regular')
 
-    def test_scheduled_update_preserves_a_stopped_service(self):
-        result = self.run_installer('sh /installer --scheduled', installed='1.2.2+41')
+    def test_update_preserves_a_stopped_service(self):
+        result = self.run_installer('sh /installer update', installed='1.2.2+41')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn('service start', self.events())
         self.assertNotIn('service enable', self.events())
 
-    def test_disabled_schedule_skips_network_and_toggles_without_duplicates(self):
-        result = self.run_installer('sh /installer --scheduled', auto=0)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotIn('download ', self.events())
-        result = self.run_installer('sh /installer auto on; sh /installer auto on; sh /installer auto off')
+    def test_an_update_removes_a_schedule_left_by_an_older_release(self):
+        (self.fixture / 'legacy-schedule').touch()
+        (self.fixture / 'legacy-options').touch()
+        result = self.run_installer('sh /installer update', installed='1.2.2+41')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         cron = (self.result / 'crontab').read_text()
         self.assertIn('user-task', cron)
         self.assertNotIn('iping-auto-update', cron)
-
-    def test_no_auto_update_option_and_check_mode(self):
-        result = self.run_installer('sh /installer --no-auto-update')
+        self.assertIn('cron restart', self.events())
+        self.assertNotIn('auto_update', (self.result / 'options').read_text())
+        self.assertNotIn('update_minute', (self.result / 'options').read_text())
+        self.prepare('linux', 'x86_64')
+        result = self.run_installer('sh /installer --scheduled', extra='mkdir -p /etc/systemd/system && touch /etc/systemd/system/iping-update.timer')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotIn('iping-auto-update', (self.result / 'crontab').read_text())
-        self.assertNotIn('cron enable', self.events())
+        self.assertNotIn('.zip', self.events())
+        self.assertIn('systemctl disable --now iping-update.timer', self.events())
+        self.assertFalse((self.result / 'timer-unit').exists())
+
+    def test_check_mode_reports_without_changing_anything(self):
         result = self.run_installer('sh /installer check', installed='1.2.2+41')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn('pm ', self.events())
         self.assertNotIn('service ', self.events())
+        (self.fixture / 'legacy-schedule').touch()
+        result = self.run_installer('sh /installer check', installed='1.2.3+42')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn('.zip', self.events())
+        self.assertNotIn('iping-auto-update', (self.result / 'crontab').read_text())
 
     def test_another_update_lock_prevents_downloads_and_package_changes(self):
         result = self.run_installer('sh /installer update', extra='''mkdir -p /var/lock
@@ -380,7 +388,6 @@ flock -n 8
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         events = self.events()
         self.assertIn('service disable', events)
-        self.assertIn('systemctl disable --now iping-update.timer', events)
         self.assertEqual((self.result / 'units').read_text().strip(), '')
         self.assertIn('remain in /etc/iping;', result.stdout)
 
@@ -414,7 +421,7 @@ flock -n 8
         self.assertIn('mihomo.version', files)
         self.assertIn('xz -dc', (self.result / 'agent').read_text())
         result = self.run_installer('sh /installer && echo 1.2.2+41 > /usr/libexec/iping/version && '
-                                    f'sh /installer --scheduled && {check}')
+                                    f'sh /installer update && {check}')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual((self.result / 'version').read_text().strip(), '1.2.3+42')
         self.assertEqual((self.result / 'ran').read_text().split(), ['agent-new', 'mihomo-new'])
@@ -450,14 +457,15 @@ flock -n 8
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('absolute path', result.stderr)
 
-    def test_schedule_does_not_require_the_optional_od_applet(self):
-        self.command('od', "echo 'od is not installed' >&2; exit 127\n")
-        result = self.run_installer('sh /installer auto on')
+    def test_a_current_install_removes_a_retired_timer_without_downloading(self):
+        self.prepare('linux', 'x86_64')
+        result = self.run_installer(
+            extra='mkdir -p /etc/systemd/system && touch /etc/systemd/system/iping-update.timer /etc/systemd/system/iping-update.service',
+            installed='1.2.3+42')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotIn('od is not installed', result.stderr)
-        line = next(line for line in (self.result / 'crontab').read_text().splitlines()
-                    if line.endswith('# iping-auto-update'))
-        self.assertIn(int(line.split()[0]), range(60))
+        self.assertNotIn('.zip', self.events())
+        self.assertIn('systemctl disable --now iping-update.timer', self.events())
+        self.assertFalse((self.result / 'timer-unit').exists())
 
 
 if __name__ == '__main__':

@@ -1708,6 +1708,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "设置保存在路由器上，应用时会重启 iPing 内核，可能短暂中断连接。",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "路由器未能安装更新，已保留当前版本。请稍后重试。",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "更新期间路由器会重启 iPing，完成后此页面将自动刷新。",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("路由标记"),
     "ru": MessageLookupByLibrary.simpleMessage("俄语"),
     "rule": MessageLookupByLibrary.simpleMessage("规则"),

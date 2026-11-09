@@ -57,6 +57,9 @@ type app struct {
 	site              string
 	client            *http.Client
 	command           func(context.Context, string, ...string) ([]byte, error)
+	detach            func(string, ...string) error
+	versionFile       string
+	updateBinary      string
 	runProfile        string
 	coreBinary        string
 	bootIDFile        string
@@ -98,7 +101,7 @@ var methods = map[string]map[string]any{
 	"telemetry":           {}, "connections": {"query": "", "offset": 0}, "logs": {},
 	"dns_queries": {}, "resources": {"action": ""},
 	"close_connection": {"id": ""}, "set_mode": {"mode": ""},
-	"requests": {},
+	"requests": {}, "update_check": {}, "update_status": {}, "update_install": {},
 	"api_call": {"method": "", "path": "", "params": map[string]any{}, "body": nil},
 }
 
@@ -110,6 +113,9 @@ func newApp() (*app, error) {
 		coreBinary:        mihomoBinary,
 		bootIDFile:        "/proc/sys/kernel/random/boot_id",
 		firewallFile:      firewallInclude,
+		versionFile:       "/usr/share/iping/version",
+		updateBinary:      "/usr/libexec/iping/update",
+		detach:            detachProcess,
 		controllerAddress: "127.0.0.1:19090",
 		ctx:               context.Background(),
 		client: &http.Client{Timeout: 12 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
@@ -230,6 +236,10 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return a.apiCall(ctx, args)
 	case "requests":
 		return a.requests(ctx)
+	case "update_check":
+		return a.checkUpdate(ctx)
+	case "update_status":
+		return a.updateStatus()
 	}
 	lock, err := a.lock()
 	if err != nil {
@@ -260,6 +270,8 @@ func (a *app) call(ctx context.Context, method string, args arguments) (any, err
 		return nil, a.selectProxy(ctx, args)
 	case "set_mode":
 		return nil, a.setMode(ctx, args.Mode)
+	case "update_install":
+		return a.installUpdate(ctx)
 	case "close_connection":
 		if args.ID != "" && !accessKey.MatchString(args.ID) {
 			return nil, failure("invalid_request")
@@ -369,7 +381,7 @@ func configurationCLI(args []string) error {
 		return failure("invalid_request")
 	}
 	switch args[1] {
-	case "site", "enabled", "web_listen", "auto_update", "update_url", "update_minute":
+	case "site", "enabled", "web_listen", "update_url":
 	default:
 		return failure("invalid_request")
 	}

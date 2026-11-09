@@ -15,6 +15,9 @@ external void _cancelSignIn();
 @JS('ipingOpen')
 external void _open(JSString url);
 
+@JS('ipingReload')
+external void _reload();
+
 @JS('ipingDownload')
 external void _download(JSString name, JSString content);
 
@@ -67,6 +70,9 @@ class WebRouterClient implements RouterClient {
 
   @override
   void open(String url) => _open(url.toJS);
+
+  @override
+  void reload() => _reload();
 
   @override
   void exportText(String name, String content) =>

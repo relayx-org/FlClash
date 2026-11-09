@@ -7,6 +7,7 @@ import 'package:fl_clash/iping/backend.dart';
 import 'package:fl_clash/iping/pages/settings_page.dart';
 import 'package:fl_clash/iping/settings_host.dart';
 import 'package:fl_clash/iping/support.dart';
+import 'package:fl_clash/iping/update_view.dart';
 import 'package:fl_clash/iping/subscription_page.dart';
 import 'package:fl_clash/iping/subscription_url.dart';
 import 'package:fl_clash/l10n/l10n.dart';
@@ -107,6 +108,10 @@ class RouterSettingsRoute extends StatelessWidget {
         ],
         about: IpingAboutVersionSummary(
           site: router.siteConfig,
+          updateCheck: IpingUpdateCheckItem(
+            updater: app.updater,
+            dialogs: app.updateDialogs,
+          ),
           onTerms: () =>
               router.client.open('${router.site}/terms-of-service.html'),
           onPrivacy: () =>

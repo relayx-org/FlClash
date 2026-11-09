@@ -1102,6 +1102,8 @@
   "routerOperationFailed": "路由器未能完成操作，请查看日志后重试。",
   "routerServiceConflict": "其他代理正在使用所需的网络资源，请先停止它，再连接 iPing。",
   "routerBusy": "其他操作正在进行，请稍候。",
+  "routerUpdateFailed": "路由器未能安装更新，已保留当前版本。请稍后重试。",
+  "routerUpdateHint": "更新期间路由器会重启 iPing，完成后此页面将自动刷新。",
   "routerSettingsHint": "设置保存在路由器上，应用时会重启 iPing 内核，可能短暂中断连接。",
   "routerResourcesHint": "附加规则优先于订阅规则。自定义节点和筛选分组会加入选择分组。节点和规则提供者条目使用 Mihomo YAML 格式。",
   "routerIconsHint": "键填写分组名称，值填写 HTTP(S) 图片地址。",

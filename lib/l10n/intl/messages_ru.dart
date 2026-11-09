@@ -2318,6 +2318,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "Настройки сохраняются на роутере. Применение перезапускает ядро iPing и может прервать соединения.",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "Роутеру не удалось установить обновление, текущая версия сохранена. Повторите попытку позже.",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "Во время обновления роутер перезапускает iPing, а после завершения эта страница перезагрузится.",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Метка маршрутизации"),
     "ru": MessageLookupByLibrary.simpleMessage("Русский"),
     "rule": MessageLookupByLibrary.simpleMessage("Правило"),

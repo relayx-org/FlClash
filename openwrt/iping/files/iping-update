@@ -4,9 +4,7 @@ set -eu
 work=''
 restore_service=0
 repositories_updated=0
-auto_update=''
 mode=install
-scheduled=0
 staged=''
 backup=''
 replaced=0
@@ -55,10 +53,8 @@ config_set() {
 
 install_systemd_units() {
     mkdir -p /etc/systemd/system
-    for unit in iping.service iping-update.service iping-update.timer; do
-        rm -f "/etc/systemd/system/$unit"
-        if [ -f "/usr/libexec/iping/$unit" ]; then cp "/usr/libexec/iping/$unit" "/etc/systemd/system/$unit"; fi
-    done
+    rm -f /etc/systemd/system/iping.service
+    cp /usr/libexec/iping/iping.service /etc/systemd/system/iping.service
     systemctl daemon-reload
 }
 
@@ -89,7 +85,6 @@ update_repositories() {
 }
 
 install_dependencies() {
-    [ "$scheduled" = 0 ] || fail 'update dependencies are missing; rerun the installer'
     update_repositories
     case "$manager" in
         opkg) opkg install ca-bundle curl jsonfilter unzip flock ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket ;;
@@ -144,36 +139,29 @@ ensure_tools() {
     command -v sha256sum >/dev/null || fail 'sha256sum is required'
 }
 
-schedule_updates() {
+# Earlier releases updated daily from cron or a systemd timer, and their updater re-creates
+# that schedule after installing this release; its next run, --scheduled, removes it. The
+# bundle keeps both units because that updater requires them.
+remove_schedule() {
     if [ "$init_system" = systemd ]; then
-        if [ "$(config_get auto_update || echo 1)" = 1 ]; then
-            systemctl enable --now iping-update.timer
-        else systemctl disable --now iping-update.timer; fi
+        [ -f /etc/systemd/system/iping-update.timer ] || return 0
+        systemctl disable --now iping-update.timer
+        rm -f /etc/systemd/system/iping-update.timer /etc/systemd/system/iping-update.service
+        systemctl daemon-reload
         return 0
     fi
-    mkdir -p /etc/crontabs
+    for option in auto_update update_minute; do
+        if uci -q get "iping.config.$option" >/dev/null; then
+            uci delete "iping.config.$option"
+            uci commit iping
+        fi
+    done
+    [ -f /etc/crontabs/root ] && grep -q '# iping-auto-update$' /etc/crontabs/root || return 0
     cron=$(mktemp /tmp/iping-cron.XXXXXX)
-    if [ -f /etc/crontabs/root ]; then
-        sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
-    fi
-    schedule_enabled=$(config_get auto_update || echo 1)
-    if [ "$schedule_enabled" = 1 ]; then
-        minute=$(config_get update_minute || true)
-        case "$minute" in
-            ''|*[!0-9]*) minute=$(awk 'BEGIN { srand(); print int(rand() * 60) }') ;;
-        esac
-        [ "$minute" -le 59 ] || { rm -f "$cron"; fail 'update_minute must be between 0 and 59'; }
-        config_set update_minute "$minute"
-        printf '%s 4 * * * /usr/libexec/iping/update --scheduled 2>&1 | logger -t iping-update # iping-auto-update\n' "$minute" >> "$cron"
-    fi
+    sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
     crontab "$cron"
     rm -f "$cron"
-    if [ "$schedule_enabled" = 1 ]; then
-        /etc/init.d/cron enable
-        /etc/init.d/cron restart
-    elif /etc/init.d/cron running; then
-        /etc/init.d/cron restart
-    fi
+    if [ -x /etc/init.d/cron ] && /etc/init.d/cron running; then /etc/init.d/cron restart; fi
 }
 
 download() {
@@ -226,7 +214,6 @@ unpack_binaries() {
 }
 
 ensure_runtime() {
-    [ "$scheduled" = 0 ] || return 0
     if [ "$init_system" = systemd ]; then
         if ! command -v ip >/dev/null || ! command -v nft >/dev/null; then install_dependencies; fi
         return 0
@@ -268,7 +255,6 @@ compress_binaries() {
     unpacked=$(du -sk "$work/payload/agent" "$work/payload/mihomo" | awk '{ total += $1 } END { print total }')
     awk -v memory="$memory" -v spare="$spare" -v unpacked="$unpacked" 'BEGIN { exit !(memory >= unpacked * 2 + 131072 && spare >= unpacked + 32768) }' || fail "$no_space"
     if ! xz -c < /dev/null > /dev/null 2>&1; then
-        [ "$scheduled" = 0 ] || fail 'xz is missing; rerun the installer'
         update_repositories
         if [ "$manager" = opkg ]; then opkg install xz; else apk add xz; fi
         xz -c < /dev/null > /dev/null 2>&1 || fail 'xz cannot compress; install xz-utils and rerun the installer'
@@ -428,10 +414,8 @@ uninstall() {
             service_action stop
             service_action disable
         fi
-    else
-        for unit in iping.service iping-update.timer; do
-            if [ -f "/etc/systemd/system/$unit" ]; then systemctl disable --now "$unit"; fi
-        done
+    elif [ -f /etc/systemd/system/iping.service ]; then
+        systemctl disable --now iping.service
     fi
     waited=0
     while iping_process; do
@@ -439,18 +423,12 @@ uninstall() {
         waited=$((waited + 1))
         sleep 1
     done
+    remove_schedule
     if [ "$init_system" = procd ]; then
         release_firewall_include
-        if [ -f /etc/crontabs/root ] && grep -q '# iping-auto-update$' /etc/crontabs/root; then
-            cron=$(mktemp /tmp/iping-cron.XXXXXX)
-            sed '\|# iping-auto-update$|d' /etc/crontabs/root > "$cron"
-            crontab "$cron"
-            rm -f "$cron"
-            if [ -x /etc/init.d/cron ] && /etc/init.d/cron running; then /etc/init.d/cron restart; fi
-        fi
         rm -f /etc/init.d/iping /lib/upgrade/keep.d/iping
     else
-        rm -f /etc/systemd/system/iping.service /etc/systemd/system/iping-update.service /etc/systemd/system/iping-update.timer
+        rm -f /etc/systemd/system/iping.service
         systemctl daemon-reload
     fi
     rm -rf "$binaries" /usr/libexec/iping /usr/share/iping /var/run/iping /tmp/iping-bin
@@ -471,13 +449,7 @@ uninstall() {
 main() {
     [ "$(id -u)" = 0 ] || fail 'run this installer as root'
     case "${1:-}" in
-        auto)
-            detect_platform
-            case "${2:-}" in on) value=1 ;; off) value=0 ;; *) fail 'usage: iping-update auto on|off' ;; esac
-            config_set auto_update "$value"
-            schedule_updates
-            exit 0 ;;
-        schedule) detect_platform; schedule_updates; exit 0 ;;
+        --scheduled) detect_platform; remove_schedule; exit 0 ;;
         uninstall)
             case "${2:-}" in '') purge=0 ;; --purge) purge=1 ;; *) fail 'usage: iping-update uninstall [--purge]' ;; esac
             detect_platform
@@ -487,17 +459,13 @@ main() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
             install|update|check) mode=$1 ;;
-            --scheduled) mode=update; scheduled=1 ;;
-            --no-auto-update) auto_update=0 ;;
-            --auto-update) auto_update=1 ;;
             --dir) [ "$#" -gt 1 ] || fail 'usage: --dir <path>'; install_dir=$2; shift ;;
-            -h|--help) echo 'Usage: iping-update [install|update|check|auto on|auto off|uninstall [--purge]] [--no-auto-update] [--dir <path>]'; exit 0 ;;
+            -h|--help) echo 'Usage: iping-update [install|update|check|uninstall [--purge]] [--dir <path>]'; exit 0 ;;
             *) fail "unknown argument: $1" ;;
         esac
         shift
     done
     detect_platform
-    if [ "$scheduled" = 1 ] && [ "$(config_get auto_update || echo 1)" != 1 ]; then exit 0; fi
     ensure_tools
     mkdir -p /var/lock
     exec 9>/var/lock/iping-update.lock
@@ -538,9 +506,8 @@ main() {
         valid_version "$installed" || fail 'invalid installed version'
         if ! newer "$target" "$installed" && [ "$bin_dir" = "$current_dir" ]; then
             echo "iPing $installed is current; no update needed."
+            remove_schedule
             if [ "$mode" = install ]; then
-                if [ -n "$auto_update" ]; then config_set auto_update "$auto_update"; fi
-                schedule_updates
                 service_action enable
                 service_action start
                 show_address
@@ -566,16 +533,15 @@ main() {
         service_action stop
     fi
     activate_binaries
-    if [ -n "$auto_update" ]; then config_set auto_update "$auto_update"; fi
     if [ -n "${IPING_UPDATE_BASE_URL:-}" ]; then config_set update_url "$base_url"; fi
-    schedule_updates
+    remove_schedule
     if [ "$mode" = install ]; then service_action enable; fi
     if [ "$mode" = install ] || [ "$was_running" = 1 ]; then
         service_action start
     fi
     restore_service=0
     echo "iPing $target installed."
-    [ "$scheduled" = 1 ] || show_address
+    show_address
 }
 
 main "$@"

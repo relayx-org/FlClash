@@ -1851,6 +1851,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "설정은 라우터에 저장됩니다. 적용하면 iPing 코어가 재시작되며 연결이 잠시 끊길 수 있습니다.",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "라우터에서 업데이트를 설치하지 못해 현재 버전을 유지합니다. 나중에 다시 시도하세요.",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "업데이트 중 라우터가 iPing을 다시 시작하며, 완료되면 이 페이지가 새로 고쳐집니다.",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("라우팅 마크"),
     "ru": MessageLookupByLibrary.simpleMessage("러시아어"),
     "rule": MessageLookupByLibrary.simpleMessage("규칙"),

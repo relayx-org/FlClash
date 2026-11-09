@@ -2357,6 +2357,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "Los ajustes se guardan en el router. Aplicarlos reinicia el núcleo de iPing y puede interrumpir las conexiones.",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "El router no pudo instalar la actualización y conserva la versión actual. Inténtalo más tarde.",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "El router reinicia iPing durante la actualización y esta página se recargará al terminar.",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage(
       "Marca de enrutamiento",
     ),

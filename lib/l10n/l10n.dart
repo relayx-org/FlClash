@@ -8977,6 +8977,26 @@ class AppLocalizations {
     );
   }
 
+  /// `The router could not install the update and kept the current version. Retry later.`
+  String get routerUpdateFailed {
+    return Intl.message(
+      'The router could not install the update and kept the current version. Retry later.',
+      name: 'routerUpdateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The router restarts iPing during the update, and this page reloads when it finishes.`
+  String get routerUpdateHint {
+    return Intl.message(
+      'The router restarts iPing during the update, and this page reloads when it finishes.',
+      name: 'routerUpdateHint',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Saved on this router. Applying changes restarts the iPing core and may interrupt connections.`
   String get routerSettingsHint {
     return Intl.message(

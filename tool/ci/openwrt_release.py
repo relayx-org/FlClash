@@ -18,6 +18,8 @@ ARCHITECTURES = {
     'mips': ('mips', 'mips-softfloat', '8b6c0e437ca388d7849db5343ef24304a9b4cf63f12e926eb75d4c7251cd6ab1'),
     'mipsel': ('mipsle', 'mipsle-softfloat', '69b10ecd1db5244ab2bf1fac3c629a2e0f9b19f84728fe51b043a9767832d38c'),
 }
+# The update units are a one-release shim: an older updater copies and enables them after
+# installing this bundle, and their next run only removes that schedule.
 PAYLOAD = {'agent', 'mihomo', 'update', 'iping.init', 'iping.conf', 'iping.upgrade', 'iping.service', 'iping-update.service', 'iping-update.timer', 'version', 'LICENSE'}
 
 

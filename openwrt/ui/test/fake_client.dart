@@ -78,6 +78,19 @@ class FakeRouterClient implements RouterClient {
     'custom.filters': <Object?>[],
   };
   Completer<void>? login;
+  Object? updateCheck = {
+    'available': false,
+    'current': '0.1.9+2026110801',
+    'version': '0.1.9',
+    'build': 2026110801,
+    'notes': '',
+  };
+  Map<String, Object?> updateStatus = {
+    'current': '0.1.9+2026110801',
+    'running': false,
+    'failed': false,
+  };
+  Completer<void>? updateStatusRequest;
 
   @override
   Future<Object?> call(
@@ -195,6 +208,8 @@ class FakeRouterClient implements RouterClient {
         'status': 'active',
       },
       'api_call' => _apiCall(args),
+      'update_check' => updateCheck,
+      'update_status' => await _updateStatus(),
       'dns_queries' => {
         'items': [
           {
@@ -332,6 +347,11 @@ class FakeRouterClient implements RouterClient {
     return null;
   }
 
+  Future<Object?> _updateStatus() async {
+    if (updateStatusRequest case final request?) await request.future;
+    return updateStatus;
+  }
+
   @override
   Future<void> signIn({bool register = false}) async {
     calls.add('sign_in');
@@ -350,4 +370,7 @@ class FakeRouterClient implements RouterClient {
 
   @override
   void open(String url) => calls.add('open:$url');
+
+  @override
+  void reload() => calls.add('reload');
 }

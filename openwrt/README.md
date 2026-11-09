@@ -71,26 +71,26 @@ Agent at boot and prints its Web address. Open `http://<router-LAN-address>:1909
 and sign in with your iPing account, or choose **Import a subscription without signing in** and paste a Clash
 subscription link. There is no separate router access key.
 
-Automatic updates are enabled by default. A procd cron task or systemd timer checks the stable update
-manifest once daily between 04:00 and 04:59 in the router's timezone. It upgrades only
-when the version/build is newer; it does not execute a downloaded installer or upgrade
+Updates are started from **Check for updates** in the Web interface, or with `iping-update update`. The
+updater upgrades only when the version/build is newer; it does not execute a downloaded installer or upgrade
 unrelated system packages. Download and verification finish before the Agent is stopped.
 Updates replace the binary directory and preserve `/etc/iping/` and UCI configuration. A
 running Agent is restarted after updating; an Agent that was stopped remains stopped.
 If activation fails, the updater restores the previous binary directory and running
-service. Scheduled results appear in `logread -e iping-update` on OpenWrt or `journalctl -u iping-update` on Linux. Re-run the installer
+service. The updater's output is written to `/var/run/iping/update.log`. Re-run the installer
 after a firmware sysupgrade to restore the programs and runtime dependencies.
+
+Earlier releases checked for updates daily. Installing or updating to this release removes that cron task or
+systemd timer, and a schedule an older updater recreates afterwards removes itself on its next run.
 
 ```sh
 iping-update check       # Check for a newer stable build
 iping-update update      # Update now
-iping-update auto off    # Disable daily updates
-iping-update auto on     # Enable daily updates
 iping-update uninstall   # Remove iPing, keeping /etc/iping and /etc/config/iping
 iping-update uninstall --purge  # Also delete the account, subscription and settings
 ```
 
-Uninstalling stops and disables the service, waits for the Agent and Core to exit, removes the update schedule,
+Uninstalling stops and disables the service, waits for the Agent and Core to exit, removes a leftover update schedule,
 programs and service files, and keeps the runtime packages the installer added. On a version without the
 `uninstall` command, run the published uninstaller, which takes the same `--purge` option:
 
@@ -108,9 +108,7 @@ and later updates keep that location:
 sh /tmp/iping-install.sh --dir /mnt/sda1
 ```
 
-For installation without automatic updates, run `sh /tmp/iping-install.sh --no-auto-update`.
-Re-running the installer preserves an existing update preference unless explicitly
-changed. Stop other transparent proxy services before connecting iPing.
+Stop other transparent proxy services before connecting iPing.
 
 Installation enables and starts `/etc/init.d/iping`. The HTTP server accepts private, loopback, and link-local clients;
 state-changing API calls require the same Origin. Browser cookies only bind pending
@@ -141,7 +139,6 @@ config iping 'config'
     option site 'https://iping.my'
     option enabled '0'
     option web_listen '0.0.0.0:19091'
-    option auto_update '1'
 ```
 
 Changing the site or Web listener requires `systemctl restart iping` on Linux,

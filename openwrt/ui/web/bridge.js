@@ -77,6 +77,7 @@
 		}).catch(error => { clearLogin(current); closePopup(current); reject(error); });
 	});
 	window.ipingOpen = url => window.open(url, '_blank', 'noopener,noreferrer');
+	window.ipingReload = () => location.reload();
 	window.ipingDownload = (name, content) => {
 		const url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
 		const link = document.createElement('a');

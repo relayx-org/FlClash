@@ -2228,6 +2228,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "routerSettingsHint": MessageLookupByLibrary.simpleMessage(
       "Saved on this router. Applying changes restarts the iPing core and may interrupt connections.",
     ),
+    "routerUpdateFailed": MessageLookupByLibrary.simpleMessage(
+      "The router could not install the update and kept the current version. Retry later.",
+    ),
+    "routerUpdateHint": MessageLookupByLibrary.simpleMessage(
+      "The router restarts iPing during the update, and this page reloads when it finishes.",
+    ),
     "routingMark": MessageLookupByLibrary.simpleMessage("Routing mark"),
     "ru": MessageLookupByLibrary.simpleMessage("Russian"),
     "rule": MessageLookupByLibrary.simpleMessage("Rule"),
