@@ -23,6 +23,7 @@ void main() {
       cancelAuthentication: () {},
       storage: storage,
       profiles: profiles,
+      clientIdentity: () => (platform: 'macos', version: '0.1.10+2026110901'),
       onChanged: (_) {},
     );
   });
@@ -39,6 +40,8 @@ void main() {
     expect(session.state.canConnect, isTrue);
     expect(storage.stored?.manualUrl, manualUrl);
     expect(api.subscriptionUrlRequested, manualUrl);
+    expect(api.subscriptionPlatform, 'macos');
+    expect(api.subscriptionVersion, '0.1.10+2026110901');
     expect(profiles.stops, 0);
     await session.synchronize();
     expect(profiles.saves, 2);

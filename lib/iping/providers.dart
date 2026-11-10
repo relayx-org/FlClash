@@ -7,6 +7,7 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:fl_clash/state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -188,6 +189,13 @@ class IpingSessionNotifier extends Notifier<IpingSessionState> {
       cancelAuthentication: ref.read(ipingBrowserProvider).cancel,
       storage: ref.watch(ipingStorageProvider),
       profiles: ref.watch(ipingProfilesProvider),
+      clientIdentity: () {
+        final info = globalState.packageInfo;
+        return (
+          platform: Platform.operatingSystem,
+          version: '${info.version}+${info.buildNumber}',
+        );
+      },
       onChanged: (next) {
         if (ref.mounted) state = next;
       },

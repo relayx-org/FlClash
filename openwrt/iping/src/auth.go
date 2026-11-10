@@ -160,6 +160,10 @@ func (a *app) requestURL(ctx context.Context, method, target string, body []byte
 		return nil, failure("invalid_response")
 	}
 	req.Header.Set("User-Agent", "iPing Linux Clash.Meta")
+	if redirects {
+		req.Header.Set("X-IPing-Platform", "linux")
+		req.Header.Set("X-IPing-Version", a.installedVersion())
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

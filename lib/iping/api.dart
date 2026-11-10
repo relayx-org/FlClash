@@ -69,6 +69,11 @@ class IpingAccount {
 
 typedef IpingSubscription = ({Uint8List bytes, int nodes});
 
+typedef IpingClientIdentity = ({String platform, String version});
+
+IpingClientIdentity defaultIpingClientIdentity() =>
+    (platform: 'unknown', version: 'unknown');
+
 int ipingNodeCount(String content) {
   try {
     final config = loadYaml(content);
@@ -313,7 +318,11 @@ class IpingApi {
     '$site/api/tunnel/subscription',
   ).replace(queryParameters: {'token': token}).toString();
 
-  Future<IpingSubscription> subscription(String url) => _request(() async {
+  Future<IpingSubscription> subscription(
+    String url, {
+    String? platform,
+    String? version,
+  }) => _request(() async {
     final response = await _dio.get<String>(
       url,
       options: Options(
@@ -322,6 +331,8 @@ class IpingApi {
         headers: {
           'User-Agent': 'iPing Clash.Meta',
           'Accept': 'text/yaml, text/plain',
+          'X-IPing-Platform': ?platform,
+          'X-IPing-Version': ?version,
         },
       ),
     );

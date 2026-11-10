@@ -39,6 +39,9 @@ func TestManualSubscriptionWithoutAccount(t *testing.T) {
 		if r.Header.Get("Authorization") != "" || !strings.Contains(r.Header.Get("User-Agent"), "Clash") {
 			t.Error("subscription request must be anonymous and advertise Clash format")
 		}
+		if r.URL.Path != "/latest.json" && (r.Header.Get("X-IPing-Platform") != "linux" || r.Header.Get("X-IPing-Version") == "") {
+			t.Error("subscription request must name the installed client")
+		}
 		if r.URL.Path == "/redirect" {
 			http.Redirect(w, r, "/sub?token=manual", http.StatusFound)
 			return

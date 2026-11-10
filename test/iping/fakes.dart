@@ -126,10 +126,19 @@ class FakeIpingApi extends IpingApi {
         apiKey: '62ab74aa-0473-4790-9bd5-2f728dd42c56',
       );
 
+  String? subscriptionPlatform;
+  String? subscriptionVersion;
+
   @override
-  Future<IpingSubscription> subscription(String url) async {
+  Future<IpingSubscription> subscription(
+    String url, {
+    String? platform,
+    String? version,
+  }) async {
     downloads++;
     subscriptionUrlRequested = url;
+    subscriptionPlatform = platform;
+    subscriptionVersion = version;
     if (subscriptionFailure case final failure?) throw IpingException(failure);
     return download?.future ?? (bytes: Uint8List(0), nodes: nodes);
   }

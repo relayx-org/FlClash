@@ -467,6 +467,7 @@ void main() {
       expect(adapter.request.followRedirects, isTrue);
       expect(adapter.request.headers['User-Agent'], contains('Clash'));
       expect(adapter.request.headers.containsKey('Authorization'), isFalse);
+      expect(adapter.request.headers.containsKey('X-IPing-Platform'), isFalse);
     },
   );
 
@@ -480,6 +481,18 @@ void main() {
       expect(() => ipingNodeCount(content), throwsA(isA<IpingException>()));
     });
   }
+
+  test('subscription requests name the client platform and version', () async {
+    adapter.body =
+        'proxies:\n  - {name: node, type: ss, server: example.com, port: 443}\n';
+    await api.subscription(
+      'https://iping.my/api/tunnel/subscription?token=key',
+      platform: 'macos',
+      version: '0.1.10+2026110901',
+    );
+    expect(adapter.request.headers['X-IPing-Platform'], 'macos');
+    expect(adapter.request.headers['X-IPing-Version'], '0.1.10+2026110901');
+  });
 
   test('empty subscriptions are valid but have no usable nodes', () {
     expect(ipingNodeCount('proxies: []\n'), 0);

@@ -76,8 +76,10 @@ class IpingSession {
     required this.onChanged,
     required this.authenticate,
     required this.cancelAuthentication,
+    this.clientIdentity = defaultIpingClientIdentity,
   });
   final IpingApi api;
+  final IpingClientIdentity Function() clientIdentity;
   final Future<IpingAccount?> Function(bool register) authenticate;
   final void Function() cancelAuthentication;
   final IpingSessionStorage storage;
@@ -206,7 +208,7 @@ class IpingSession {
     final next = IpingStoredSession(account: previous?.account, manualUrl: url);
     _publish(busy: true);
     try {
-      final subscription = await api.subscription(url);
+      final subscription = await _subscription(url);
       if (!_current(epoch)) return false;
       IpingCachedProfile? saved;
       await _commit(epoch, () async {
@@ -272,6 +274,15 @@ class IpingSession {
     return _sync = operation;
   }
 
+  Future<IpingSubscription> _subscription(String url) {
+    final identity = clientIdentity();
+    return api.subscription(
+      url,
+      platform: identity.platform,
+      version: identity.version,
+    );
+  }
+
   Future<void> _synchronize(int epoch) async {
     if (!_current(epoch)) return;
     _publish(busy: true);
@@ -280,7 +291,7 @@ class IpingSession {
       final url =
           manualUrl ??
           api.subscriptionUrl(_session!.account!.subscriptionToken);
-      final subscription = await api.subscription(url);
+      final subscription = await _subscription(url);
       if (!_current(epoch)) return;
       IpingCachedProfile? saved;
       await _commit(epoch, () async {

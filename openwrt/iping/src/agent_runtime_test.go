@@ -97,9 +97,12 @@ func testSetup(t *testing.T, slow bool) *testAgent {
 	address := listener.Addr().String()
 	listener.Close()
 	f := &testAgent{}
-	a := &app{dataDir: filepath.Join(dir, "data"), runDir: filepath.Join(dir, "run"), profile: filepath.Join(dir, "data/profile.yaml"), runProfile: filepath.Join(dir, "run/config.yaml"), controllerAddress: address, site: "https://example.com", client: &http.Client{Timeout: time.Second}, ctx: ctx}
+	a := &app{dataDir: filepath.Join(dir, "data"), runDir: filepath.Join(dir, "run"), profile: filepath.Join(dir, "data/profile.yaml"), runProfile: filepath.Join(dir, "run/config.yaml"), controllerAddress: address, site: "https://example.com", versionFile: filepath.Join(dir, "version"), client: &http.Client{Timeout: time.Second}, ctx: ctx}
 	f.a = a
 	a.core = &coreRuntime{app: a}
+	if err := os.WriteFile(a.versionFile, []byte("0.1.10+2026110901\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	for _, p := range []string{a.dataDir, a.runDir} {
 		if err := os.MkdirAll(p, 0700); err != nil {
 			t.Fatal(err)

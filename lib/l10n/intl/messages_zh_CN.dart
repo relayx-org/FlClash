@@ -580,7 +580,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "本软件自身不提供任何代理服务器、节点、订阅、机场或网络接入服务，也不与任何此类服务的提供者存在合作、代理或担保关系。",
     ),
     "disclaimerPrivacyContent": MessageLookupByLibrary.simpleMessage(
-      "本软件不会收集或上传你的订阅地址、节点信息、配置内容、访问的网站、连接记录、流量内容和日志，这些数据仅保存在你的设备本地，开发者无法获取。\n\n本软件只会在你使用相应功能时访问外部网络，例如更新订阅时访问你提供的订阅地址、检查更新时访问 GitHub。\n\n本软件在所有平台上均未集成任何数据统计或崩溃上报服务。",
+      "本软件不会收集或上传你的订阅地址、节点信息、配置内容、访问的网站、连接记录、流量内容和日志，这些数据仅保存在你的设备本地，开发者无法获取。\n\n本软件只会在你使用相应功能时访问外部网络，例如更新订阅时访问你提供的订阅地址、检查更新时访问 GitHub。本软件更新订阅时会一并发送应用的平台和版本，服务端据此按账号统计使用人数，除此之外不发送其他内容。本软件在所有平台上均未集成任何第三方数据统计或崩溃上报服务。",
     ),
     "disclaimerPrivacyTitle": MessageLookupByLibrary.simpleMessage("数据收集与隐私"),
     "disclaimerResponsibilityContent": MessageLookupByLibrary.simpleMessage(
