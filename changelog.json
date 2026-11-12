@@ -2,6 +2,25 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.11",
+      "tag": "v0.1.11",
+      "date": "2026-11-12",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "fix",
+          "entries": [
+            {
+              "text": "兼容使用传统 iptables 防火墙的 QWRT / OpenWrt，安装时不再强制安装 firewall4 和 nftables 组件"
+            },
+            {
+              "text": "修复传统防火墙重载后网络接管规则丢失的问题"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.10",
       "tag": "v0.1.10",
       "date": "2026-11-09",
