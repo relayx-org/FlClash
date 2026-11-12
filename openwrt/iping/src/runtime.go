@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -112,10 +113,19 @@ func (r *coreRuntime) start(ctx context.Context) error {
 	if yaml.Unmarshal(data, &config) != nil {
 		return failure("invalid_subscription")
 	}
+	backend := nftablesBackend
 	if yamlSetting(config, "tun.enable") == true {
 		device, _ := yamlSetting(config, "tun.device").(string)
-		if err := a.acquireNetwork(ctx, device); err != nil {
+		if err := a.acquireNetwork(ctx, device, config["ipv6"] == true); err != nil {
 			return err
+		}
+		network, err := a.readLease()
+		if err != nil {
+			return failure("storage_error")
+		}
+		backend = network.Backend
+		if backend == iptablesBackend && (len(stringList(yamlSetting(config, "tun.route-address-set"))) != 0 || len(stringList(yamlSetting(config, "tun.route-exclude-address-set"))) != 0) {
+			return failure("invalid_request")
 		}
 	}
 	if err := writePrivate(a.runProfile, data); err != nil {
@@ -135,6 +145,7 @@ func (r *coreRuntime) start(ctx context.Context) error {
 	child.cmd.Stdout = &coreLog{path: filepath.Join(a.runDir, "core.log")}
 	child.cmd.Stderr = child.cmd.Stdout
 	child.cmd.ExtraFiles = []*os.File{lease}
+	child.cmd.Env = coreEnvironment(backend)
 	configureChild(child.cmd)
 	started := make(chan error, 1)
 	go func() {
@@ -180,6 +191,9 @@ func (r *coreRuntime) start(ctx context.Context) error {
 			default:
 			}
 			child.ready.Store(true)
+			if backend == iptablesBackend {
+				go r.monitorNetwork(child)
+			}
 			return nil
 		}
 		select {
@@ -194,6 +208,38 @@ func (r *coreRuntime) start(ctx context.Context) error {
 			}
 			return failure("service_failed")
 		case <-time.After(100 * time.Millisecond):
+		}
+	}
+}
+
+func (r *coreRuntime) monitorNetwork(child *coreChild) {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-r.app.ctx.Done():
+			return
+		case <-child.done:
+			return
+		case <-ticker.C:
+		}
+		r.mu.Lock()
+		if r.current.Load() != child || r.closed.Load() || !r.wanted.Load() {
+			r.mu.Unlock()
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.app.ctx, 20*time.Second)
+		err := r.app.networkReady(ctx)
+		if errors.Is(err, failure("service_failed")) {
+			_ = r.converge(ctx, true)
+			cancel()
+			r.mu.Unlock()
+			return
+		}
+		cancel()
+		r.mu.Unlock()
+		if err != nil {
+			return
 		}
 	}
 }

@@ -253,6 +253,42 @@ exit "$status"
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('iPing is ready: http://192.168.100.1:19091/\n', result.stdout)
 
+    def test_legacy_qwrt_keeps_its_firewall_and_uses_only_iptables_dependencies(self):
+        self.prepare('21.02-SNAPSHOT', 'aarch64_cortex-a53')
+        (self.bin / 'fw4').unlink()
+        (self.bin / 'nft').unlink()
+        self.command('fw3', 'exit 0\n')
+        self.command('iptables', '[ "$1" != -m ]\n')
+        self.command('ip6tables', 'exit 0\n')
+        (self.fixture / 'missing-package').write_text('iptables-mod-extra')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('using iptables', result.stdout)
+        self.assertIn('pm opkg install iptables-mod-extra', self.events())
+        for package in ['firewall4', 'nftables', 'kmod-nft', 'jansson']:
+            self.assertNotIn(package, self.events())
+
+    def test_bootstrap_tools_do_not_install_a_firewall(self):
+        (self.bin / 'curl').rename(self.fixture / 'saved-curl')
+        (self.bin / 'opkg').rename(self.bin / 'opkg-real')
+        self.command('opkg', '''if [ "$1" = install ]; then cp /fixture/saved-curl /fixture/bin/curl; fi
+exec /fixture/bin/opkg-real "$@"
+''')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('pm opkg-real install ca-bundle curl jsonfilter unzip flock\n', self.events())
+        self.assertNotIn('firewall4', self.events())
+        self.assertNotIn('nftables-json', self.events())
+
+    def test_unknown_firewall_fails_before_installing_runtime_or_stopping_service(self):
+        (self.bin / 'fw4').unlink()
+        (self.bin / 'nft').unlink()
+        result = self.run_installer('sh /installer update', installed='1.2.2+41', running=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('no supported firewall found', result.stderr)
+        self.assertNotIn('pm ', self.events())
+        self.assertNotIn('service stop', self.events())
+
     def test_linux_systemd_uses_the_same_bundle_without_a_schedule(self):
         self.prepare('linux', 'x86_64')
         result = self.run_installer()

@@ -362,7 +362,10 @@ and owns its private `iping-mihomo` child. procd supervises only the Agent. Core
 transitions serialize in `coreRuntime`, preserve the latest running intent, and close
 terminally. Configuration changes validate first and restore prior files and runtime
 on failure. Network leases and inherited process locks prevent competing owners;
-cleanup verifies interface and nftables identities. Local Web access needs no extra key;
+cleanup verifies interface and nftables identities, or the recorded Mihomo iptables chains and hooks.
+The Agent selects the firmware's firewall backend and forces the same backend in its Core child;
+on iptables, missing recorded rules trigger recovery through `coreRuntime` while running is still wanted.
+Local Web access needs no extra key;
 the API retains LAN and same-origin checks, and HttpOnly browser cookies bind account
 login attempts to their initiating browser. There is no LuCI/rpcd bridge.
 The Agent can also own a TLS listener (`web_tls_listen`); new installations use

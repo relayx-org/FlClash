@@ -120,6 +120,9 @@ func testSetup(t *testing.T, slow bool) *testAgent {
 	}
 	a.coreBinary = wrapper
 	a.command = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		if name == "fw4" {
+			return nil, nil
+		}
 		if name == wrapper {
 			return exec.CommandContext(ctx, name, args...).Output()
 		}
@@ -368,7 +371,7 @@ func TestConflictingNetworkIsNeverCleanedWithoutALease(t *testing.T) {
 		}
 		return nil, errors.New("unexpected command")
 	}
-	if err := a.acquireNetwork(a.ctx, "iping0"); err == nil || err.Error() != "service_conflict" {
+	if err := a.acquireNetwork(a.ctx, "iping0", false); err == nil || err.Error() != "service_conflict" {
 		t.Fatalf("conflict result %v", err)
 	}
 	if deleted {
@@ -514,7 +517,7 @@ func TestLeaseFromAnEarlierBootCleansOnlyItsOwnFirewallInclude(t *testing.T) {
 				}
 				return []byte(`[{"ifname":"iping0","ifindex":4}]`), nil
 			}
-			owned, err := a.networkIdentity(context.Background(), "iping0")
+			owned, err := a.networkIdentity(context.Background(), networkLease{Device: "iping0"})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -539,7 +542,7 @@ func TestLeaseFromAnEarlierBootCleansOnlyItsOwnFirewallInclude(t *testing.T) {
 				}
 				return nil, errors.New("unexpected command")
 			}
-			err = a.acquireNetwork(a.ctx, "iping0")
+			err = a.acquireNetwork(a.ctx, "iping0", false)
 			if tc.want == "" && err != nil || tc.want != "" && (err == nil || err.Error() != tc.want) {
 				t.Fatalf("acquire = %v, want %q", err, tc.want)
 			}
@@ -551,7 +554,7 @@ func TestLeaseFromAnEarlierBootCleansOnlyItsOwnFirewallInclude(t *testing.T) {
 			if err := readJSON(a.leasePath(), &lease); err != nil {
 				t.Fatal(err)
 			}
-			if tc.want == "" && lease != (networkLease{Device: "iping0", Boot: "current"}) {
+			if tc.want == "" && lease != (networkLease{Device: "iping0", Backend: nftablesBackend, Boot: "current"}) {
 				t.Fatalf("lease after acquire = %+v", lease)
 			}
 		})

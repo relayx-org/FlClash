@@ -13,16 +13,20 @@ features follow backend capabilities.
 
 ## Requirements
 
-- OpenWrt 24.10 or newer with procd/firewall4, or a systemd Linux server
+- OpenWrt with procd and firewall4/nftables or firewall3/iptables (including QWRT), or a systemd Linux server
   (Debian/Ubuntu and Fedora/RHEL families install dependencies automatically).
-- Linux 5.13 or newer for Mihomo TUN auto-route and nftables auto-redirect.
+- Kernel support for TUN, policy routing, and the selected netfilter backend.
 - Enough storage and RAM for the embedded Flutter application and Mihomo.
   Generated Web assets omit unused native Geo databases and debug symbols.
 - A current browser with WebAssembly support, and HTTPS access from the router
   to the configured iPing site.
 
 On OpenWrt the installer uses the router's package manager only for runtime dependencies:
-`ip-full`, `nftables-json`, firewall4, CA certificates and TUN/netfilter modules.
+`ip-full`, CA certificates and TUN/netfilter modules. It keeps the firmware's firewall:
+firewall4 uses nftables dependencies, while firewall3 and legacy iptables use IPv4 NAT
+and the `addrtype` extension, plus IPv6 NAT when the kernel supports IPv6. Working
+iptables extensions built into custom firmware are reused even without separate package records.
+The installer does not replace firewall3 with firewall4 or overwrite conflicting system libraries.
 Kernel modules come from the router's own repositories and match its running kernel.
 The iPing binaries do not link to the firmware's C runtime.
 
@@ -201,10 +205,13 @@ The Agent reserves the loopback controller `127.0.0.1:19090`, TUN device `iping0
 0x4950/0x4951. It enforces auto-route/auto-redirect and blocks alternate TUN
 listeners and controller endpoints from subscription scripts. Startup rejects
 pre-existing conflicting resources. Core readiness requires both an authenticated
-controller and, when TUN is enabled, the expected interface and nftables table.
+controller and, when TUN is enabled, the expected interface and either the nftables table
+or the iptables chains and hooks. The Agent selects Mihomo's matching auto-redirect backend;
+nftables-only route address sets are rejected on iptables. On iptables it monitors the
+recorded rules and restarts the wanted Core when a firewall reload removes them.
 Network leases record resource identities so stale cleanup refuses resources
 replaced by another process. Running another transparent proxy concurrently is
-not supported by the shared Mihomo nftables table.
+not supported by the shared Mihomo table or chain names.
 
 procd supervises the Agent; the Agent owns the Core's exact child process and
 serializes lifecycle transitions. Linux parent-death signaling terminates the

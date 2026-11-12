@@ -87,8 +87,8 @@ update_repositories() {
 install_dependencies() {
     update_repositories
     case "$manager" in
-        opkg) opkg install ca-bundle curl jsonfilter unzip flock ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket ;;
-        apk) apk add ca-bundle curl jsonfilter unzip flock ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket ;;
+        opkg) opkg install ca-bundle curl jsonfilter unzip flock ;;
+        apk) apk add ca-bundle curl jsonfilter unzip flock ;;
         apt-get) DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl jq unzip util-linux iproute2 nftables ;;
         dnf|yum) "$manager" install -y ca-certificates curl jq unzip util-linux iproute nftables ;;
     esac
@@ -218,8 +218,29 @@ ensure_runtime() {
         if ! command -v ip >/dev/null || ! command -v nft >/dev/null; then install_dependencies; fi
         return 0
     fi
+    if fw4 -q print >/dev/null 2>&1; then
+        firewall_packages='nftables-json kmod-nft-tproxy kmod-nft-socket'
+        echo 'iPing: using nftables (firewall4)'
+    elif fw3 -q print >/dev/null 2>&1 || iptables -t nat -S >/dev/null 2>&1; then
+        firewall_packages='iptables iptables-mod-extra kmod-ipt-nat'
+        if [ -f /proc/net/if_inet6 ]; then
+            firewall_packages="$firewall_packages ip6tables ip6tables-mod-nat"
+        fi
+        echo 'iPing: using iptables'
+    elif nft list tables >/dev/null 2>&1; then
+        firewall_packages='nftables-json kmod-nft-tproxy kmod-nft-socket'
+        echo 'iPing: using nftables'
+    else
+        fail 'no supported firewall found; keep the firmware firewall and install its matching runtime packages'
+    fi
     set --
-    for package in ca-bundle ip-full nftables-json firewall4 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-nft-socket; do
+    for package in ca-bundle ip-full kmod-tun kmod-inet-diag $firewall_packages; do
+        case "$package" in
+            iptables|ip6tables) if command -v "$package" >/dev/null; then continue; fi ;;
+            iptables-mod-extra) if iptables -m addrtype -h >/dev/null 2>&1; then continue; fi ;;
+            kmod-ipt-nat) if iptables -t nat -S >/dev/null 2>&1; then continue; fi ;;
+            ip6tables-mod-nat) if ip6tables -t nat -S >/dev/null 2>&1; then continue; fi ;;
+        esac
         if [ "$manager" = opkg ]; then
             opkg status "$package" | grep -q '^Status: .* installed$' || set -- "$@" "$package"
         else
