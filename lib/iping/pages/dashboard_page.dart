@@ -162,7 +162,10 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
         tables && host.connected
             ? host.backend.readConnections()
             : Future.value(const IpingConnectionPage()),
-        host.connected
+        host.connected ||
+                host.backend.capabilities.contains(
+                  IpingBackendCapability.offlineProxies,
+                )
             ? host.backend.readProxies()
             : Future.value(const IpingProxyPage()),
         host.connected
@@ -562,6 +565,12 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     );
     final services = _ServicesCard(host: host);
     final proxyStatus = host.proxyStatus;
+    final showProxies =
+        host.hasSubscription &&
+        (host.connected ||
+            host.backend.capabilities.contains(
+              IpingBackendCapability.offlineProxies,
+            ));
     final timedOut = proxyStatus == null
         ? 0
         : _groups
@@ -570,9 +579,9 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     void openProxies([String? group]) =>
         host.openProxies(context, group: group);
     final proxies = DashboardProxyGroupsFrame(
-      count: host.connected ? _groups.length : 0,
+      count: showProxies ? _groups.length : 0,
       header: DashboardProxyGroupsHeader(
-        count: host.connected ? _groups.length : 0,
+        count: showProxies ? _groups.length : 0,
         onOpen: openProxies,
         leading: [
           if (timedOut > 0)
@@ -629,7 +638,7 @@ class _IpingDashboardPageState extends State<IpingDashboardPage>
     final groups = _MetricCard(
       glyph: AppGlyphs.proxies,
       title: l.proxies,
-      value: host.connected ? '${_groups.length}' : '—',
+      value: showProxies ? '${_groups.length}' : '—',
       onTap: () => host.openProxies(context),
     );
     final feed = _FeedCard(

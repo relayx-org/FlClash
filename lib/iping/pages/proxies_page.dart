@@ -64,12 +64,17 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
       _preferences = host.preferences;
     }
     final revision = (host.revision, host.routeEpoch, host.picksVersion);
-    if (host.connected &&
-        (!_wasConnected ||
+    if ((host.connected ||
+            host.backend.capabilities.contains(
+              IpingBackendCapability.offlineProxies,
+            )) &&
+        !host.busy &&
+        (_seenRevision == null ||
+            host.connected != _wasConnected ||
             (_seenRevision != revision &&
                 PageActivityScope.isActiveOf(context)))) {
       _seenRevision = revision;
-      unawaited(_load());
+      unawaited(_load(reset: host.connected != _wasConnected));
     }
     _wasConnected = host.connected;
   }
@@ -98,7 +103,13 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
     }
     if (_loading || !mounted) return;
     final host = IpingProxiesScope.read(context);
-    if (!host.connected || host.busy) return;
+    if ((!host.connected &&
+            !host.backend.capabilities.contains(
+              IpingBackendCapability.offlineProxies,
+            )) ||
+        host.busy) {
+      return;
+    }
     _loading = true;
     final generation = _generation;
     final resetting = _resetPending;
@@ -295,21 +306,25 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
         loose: _preferences.card == ProxyCardType.loose,
         inUse: group.metadata.selected == name,
         pinned: group.metadata.pinned == name,
-        latency: ProxyLatency(
-          delay: delay,
-          phase: host.isTestingDelay(name, testUrl)
-              ? (host.isRunningDelay(name, testUrl)
-                    ? ProxyLatencyPhase.running
-                    : ProxyLatencyPhase.queued)
-              : null,
-          alignment: _preferences.card == ProxyCardType.loose
-              ? Alignment.centerLeft
-              : Alignment.centerRight,
-          tooltip: l.delayTest,
-          failureText: delay == -1 ? l.timeout : l.delayFailed,
-          onPressed: () => _testDelay(host, name),
-        ),
-        onPressed: host.busy ? null : () => _select(group, name),
+        latency: !host.connected
+            ? const SizedBox.shrink()
+            : ProxyLatency(
+                delay: delay,
+                phase: host.isTestingDelay(name, testUrl)
+                    ? (host.isRunningDelay(name, testUrl)
+                          ? ProxyLatencyPhase.running
+                          : ProxyLatencyPhase.queued)
+                    : null,
+                alignment: _preferences.card == ProxyCardType.loose
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
+                tooltip: l.delayTest,
+                failureText: delay == -1 ? l.timeout : l.delayFailed,
+                onPressed: () => _testDelay(host, name),
+              ),
+        onPressed: host.busy || !host.connected
+            ? null
+            : () => _select(group, name),
       );
     },
   );
@@ -344,7 +359,13 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
   @override
   Widget build(BuildContext context) {
     final host = IpingProxiesScope.read(context);
-    final groups = host.connected ? _groups.values.toList() : <_RemoteGroup>[];
+    final groups =
+        host.connected ||
+            host.backend.capabilities.contains(
+              IpingBackendCapability.offlineProxies,
+            )
+        ? _groups.values.toList()
+        : <_RemoteGroup>[];
     final current = groups.isEmpty
         ? null
         : groups[_tabs?.index.clamp(0, groups.length - 1) ?? 0];
@@ -361,7 +382,9 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
             unawaited(_load(reset: true));
           });
         },
-        onTest: current == null ? null : () => _test(current),
+        onTest: current == null || !host.connected
+            ? null
+            : () => _test(current),
         onLocate: current == null
             ? null
             : () {
@@ -415,7 +438,7 @@ class _IpingProxiesPageState extends State<IpingProxiesPage>
                             : GroupMonogram(group.name),
                         onToggle: () =>
                             setState(() => group.expanded = !group.expanded),
-                        onTest: () => _test(group),
+                        onTest: host.connected ? () => _test(group) : null,
                       ),
                 ],
               )

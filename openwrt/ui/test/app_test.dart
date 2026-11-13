@@ -9,6 +9,7 @@ import 'package:fl_clash/views/dashboard/panel_layout.dart';
 import 'package:fl_clash/views/dashboard/widgets/intranet_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/outbound_content.dart';
 import 'package:fl_clash/views/dashboard/widgets/profile_frame.dart';
+import 'package:fl_clash/views/dashboard/widgets/proxy_groups_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/service_frame.dart';
 import 'package:fl_clash/views/dashboard/widgets/service_detail.dart';
 import 'package:fl_clash/features/ip_quality/detail.dart';
@@ -30,6 +31,71 @@ import 'package:material_ui/material_ui.dart';
 import 'fake_client.dart';
 
 void main() {
+  for (final signedIn in [false, true]) {
+    testWidgets('disconnected subscriptions show nodes signedIn=$signedIn', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 900);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final client = FakeRouterClient(signedIn: signedIn)
+        ..manualSubscription = !signedIn
+        ..running = false;
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: _DependencyAssets(),
+          child: RouterApp(client: client),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.current;
+      expect(find.byType(DashboardProxyGroupTile), findsOneWidget);
+      expect(client.calls, contains('proxies'));
+      expect(client.calls, isNot(contains('connect')));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationSidebar),
+          matching: find.text(l.proxies),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Node A'), findsOneWidget);
+      expect(find.text('Node B'), findsOneWidget);
+      expect(find.byType(ProxyLatency), findsNothing);
+      expect(
+        tester
+            .widgetList<ProxyNodeCard>(find.byType(ProxyNodeCard))
+            .every((node) => node.onPressed == null),
+        isTrue,
+      );
+      expect(
+        tester
+            .widgetList<IconButton>(find.byType(IconButton))
+            .where((button) => button.tooltip == l.delayTest)
+            .every((button) => button.onPressed == null),
+        isTrue,
+      );
+
+      client.running = true;
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProxyLatency), findsNWidgets(2));
+      await tester.tap(find.text('Node B'));
+      await tester.pumpAndSettle();
+      expect(client.selected, 'Node B');
+
+      client.running = false;
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(find.text('Node B'), findsOneWidget);
+      expect(find.byType(ProxyLatency), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    });
+  }
+
   testWidgets(
     'manual subscription import opens the dashboard without signing in',
     (tester) async {

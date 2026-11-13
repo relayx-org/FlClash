@@ -198,6 +198,7 @@ class RouterBackend implements IpingBackend {
   Set<IpingBackendCapability> get capabilities => const {
     IpingBackendCapability.tun,
     IpingBackendCapability.routerNetwork,
+    IpingBackendCapability.offlineProxies,
   };
 
   Future<Map<String, dynamic>> _status() async =>

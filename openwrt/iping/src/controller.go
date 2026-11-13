@@ -156,30 +156,44 @@ func pageBounds(offset, total int) (int, int) {
 }
 
 func (a *app) proxies(ctx context.Context, args arguments) (any, error) {
-	proxies, err := a.proxyMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-	mode, err := a.coreMode(ctx)
-	if err != nil {
+	if _, err := a.subscriptionURL(); err != nil {
 		return nil, err
 	}
 	custom, err := a.profileSettings()
 	if err != nil {
 		return nil, err
 	}
+	running := a.running(ctx)
+	path := a.runProfile
+	if !running {
+		path = a.profile
+	}
+	config, err := readProxyProfile(path)
+	if err != nil {
+		return nil, err
+	}
+	var proxies map[string]proxyData
+	mode := config.Mode
+	if running {
+		proxies, err = a.proxyMap(ctx)
+		if err == nil {
+			mode, err = a.coreMode(ctx)
+		}
+	} else {
+		proxies, err = config.proxyMap()
+		if saved, ok := custom["mode"].(string); ok {
+			mode = saved
+		}
+		if mode == "" {
+			mode = "rule"
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
 	icons, _ := custom["custom.icons"].(map[string]any)
 	globalConfigured := false
 	if mode == "rule" {
-		data, readErr := os.ReadFile(a.runProfile)
-		var config struct {
-			Groups []struct {
-				Name string `yaml:"name"`
-			} `yaml:"proxy-groups"`
-		}
-		if readErr != nil || yaml.Unmarshal(data, &config) != nil {
-			return nil, failure("controller_unavailable")
-		}
 		for _, group := range config.Groups {
 			globalConfigured = globalConfigured || group.Name == "GLOBAL"
 		}

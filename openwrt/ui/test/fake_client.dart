@@ -242,7 +242,12 @@ class FakeRouterClient implements RouterClient {
       },
       'proxies' => {
         'groups': [
-          {'name': 'PROXY', 'type': 'Selector', 'now': selected},
+          {
+            'name': 'PROXY',
+            'type': 'Selector',
+            'count': 2,
+            if (running) 'now': selected,
+          },
         ],
         'group': 'PROXY',
         'total': 2,
@@ -252,9 +257,10 @@ class FakeRouterClient implements RouterClient {
             {
               'name': name,
               'type': 'Shadowsocks',
-              'history': [
-                {'delay': 30},
-              ],
+              if (running)
+                'history': [
+                  {'delay': 30},
+                ],
             },
         ],
       },

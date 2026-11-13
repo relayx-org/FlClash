@@ -59,7 +59,7 @@ class ProxyGroupPresentation {
   final WidgetBuilder iconBuilder;
   final int? Function() selectedIndex;
   final VoidCallback onToggle;
-  final VoidCallback onTest;
+  final VoidCallback? onTest;
 }
 
 const _pinnedHeaderGap = 8.0;
@@ -838,7 +838,7 @@ class _GroupActions extends StatelessWidget {
   final bool isDelayTesting;
   final String groupType;
   final VoidCallback onScrollToSelected;
-  final VoidCallback onDelayTest;
+  final VoidCallback? onDelayTest;
   final VoidCallback onToggle;
 
   @override

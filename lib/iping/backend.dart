@@ -26,7 +26,14 @@ export '../common/service_probe_data.dart';
 export '../models/ip_quality.dart';
 export '../enum/ip_quality.dart';
 
-enum IpingBackendCapability { systemProxy, vpn, tun, tray, routerNetwork }
+enum IpingBackendCapability {
+  systemProxy,
+  vpn,
+  tun,
+  tray,
+  routerNetwork,
+  offlineProxies,
+}
 
 class IpingBackendState {
   const IpingBackendState({
