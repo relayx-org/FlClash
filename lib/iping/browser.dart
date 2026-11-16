@@ -95,7 +95,7 @@ class IpingBrowserLogin {
       unawaited(fallback());
       return;
     }
-    // If the system sheet cannot start, the app-link callback path still works.
+    // Optional platform sheet; failures fall back to the external browser.
     unawaited(
       session
           .authenticate(url, callbackScheme: 'iping')

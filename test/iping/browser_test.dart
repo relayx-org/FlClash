@@ -242,6 +242,13 @@ void main() {
     );
   });
 
+  test(
+    'system authentication sessions are disabled so login uses the browser cookie jar',
+    () {
+      expect(ipingSystemAuthSession(), isNull);
+    },
+  );
+
   group('system authentication session', () {
     late FakeSession session;
     var browserOpened = 0;

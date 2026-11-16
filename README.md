@@ -25,7 +25,7 @@ Replace `macos` with `android`, `windows`, or `linux` on the corresponding host.
 
 Sign in through the iPing website using its existing Stack Auth interface (email, Google, or passkey). The `/client-login` page sends the subscription token back through `iping://auth/callback`, bound to the login request's random state. The client stores the subscription credential in system secure storage and loads `/api/tunnel/subscription?token=…` with a Clash User-Agent. It makes no Stack Auth requests and contains no Stack project configuration.
 
-Deploy `apps/web/src/app/client-login` in the companion iping repository before using browser login. Only `IPING_SITE` is configurable at build time. Sign-out removes local credentials and account configuration without signing out of the website. The default interface language is Simplified Chinese; users can select another language in settings.
+Deploy `apps/web/src/app/client-login` in the companion iping repository before using browser login. Only `IPING_SITE` is configurable at build time. Sign-in opens the default browser so it reuses that browser's website session after an account switch. Sign-out removes local credentials and account configuration without signing out of the website. The default interface language is Simplified Chinese; users can select another language in settings.
 
 ```sh
 flutter run --dart-define=SAFE_MODE=true
