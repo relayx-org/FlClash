@@ -2,6 +2,25 @@
   "schemaVersion": 2,
   "versions": [
     {
+      "version": "0.1.12",
+      "tag": "v0.1.12",
+      "date": "2026-11-17",
+      "prerelease": false,
+      "groups": [
+        {
+          "type": "fix",
+          "entries": [
+            {
+              "text": "修复 OpenWrt 未连接时无法查看订阅节点和策略组的问题"
+            },
+            {
+              "text": "修复 macOS 在默认浏览器中切换网站账号后，客户端重新登录仍进入旧账号的问题"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "version": "0.1.11",
       "tag": "v0.1.11",
       "date": "2026-11-12",
