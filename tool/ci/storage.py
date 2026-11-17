@@ -85,6 +85,8 @@ class BuildStorage:
         return True
 
     def plan(self, previous=None):
+        if previous is not None and not self.reuse(previous, 'geodata'):
+            raise ValueError('Cannot resume a release without its original geodata snapshot')
         rows = [row for row in NATIVE_TARGETS
                 if previous is None or not self.reuse(previous, row['platform'] + '-' + row['arch'])]
         web = previous is not None and self.reuse(previous, 'web')

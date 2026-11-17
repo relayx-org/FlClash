@@ -76,6 +76,18 @@ jobs:
           IS_STABLE: ${{ needs.release.outputs.stable }}
         run: python3 tool/ci/storage.py plan --reuse-run "$PREVIOUS_RUN"
 
+      - name: Fetch and save the release geodata snapshot
+        if: inputs.reuse_run_id == ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+          RELEASE_SHA: ${{ needs.release.outputs.sha }}
+          RELEASE_VERSION: ${{ needs.release.outputs.version }}
+          IS_STABLE: ${{ needs.release.outputs.stable }}
+        run: |
+          python3 tool/ci/geodata.py fetch --output "$RUNNER_TEMP/iping-geodata"
+          python3 tool/ci/storage.py put --group geodata --path "$RUNNER_TEMP/iping-geodata"
+
   build:
     if: ${{ needs.plan.outputs.matrix != '{"include":[]}' }}
     needs: [release, plan]
@@ -110,7 +122,7 @@ jobs:
             sleep 5
           done
           mkdir -p tool/ci tool/patches
-          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/patches/flutter-distributor-appimage.patch tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py tool/ci/native_targets.json tool/ci/windows_python.ps1; do
+          for path in setup.dart plugins/setup/setup_hooks/lib/src/core_builder.dart plugins/rust_api/rust/rust-toolchain.toml tool/sign_macos.sh tool/package_ios.dart tool/build_ios_core.dart tool/patches/flutter-distributor-appimage.patch tool/ci/ios_signing.py tool/ci/cache.sh tool/ci/cache.ps1 tool/ci/storage.py tool/ci/geodata.py tool/ci/native_targets.json tool/ci/windows_python.ps1; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -122,6 +134,13 @@ jobs:
       - name: Check MinIO upload tooling
         shell: bash
         run: aws --version
+
+      - name: Bundle the verified release geodata
+        shell: bash
+        run: |
+          rm -rf .dart_tool/geodata
+          ${{ runner.os == 'Windows' && 'python' || 'python3' }} tool/ci/storage.py get --group geodata --path .dart_tool/geodata
+          ${{ runner.os == 'Windows' && 'python' || 'python3' }} tool/ci/geodata.py stage --source .dart_tool/geodata --output assets/data
 
       - name: Validate the pinned release version
         shell: bash
@@ -416,6 +435,7 @@ jobs:
       stable: ${{ inputs.publish_stable }}
       build_binaries: true
       reuse_web: ${{ needs.plan.outputs.web == 'true' }}
+      reuse_geodata: true
       agent_matrix: ${{ needs.plan.outputs.agents }}
     secrets: inherit
 

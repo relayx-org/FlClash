@@ -36,6 +36,7 @@ Build the shared Web interface once, then cross-compile the Agent:
 
 ```sh
 bash openwrt/build_ui.sh
+python3 tool/ci/geodata.py fetch --output .dart_tool/geodata
 python3 tool/ci/openwrt_release.py build --arch x86_64
 ```
 
@@ -47,6 +48,11 @@ Go's module/build caches and verified Core downloads persist on the runners.
 
 The Web build stages assets under `openwrt/iping/src/webui/dist/`. Go embeds them
 into the Agent, so no separate web server or static-file deployment is needed.
+The Agent also embeds compressed GeoIP MMDB/DAT, GeoSite DAT and ASN MMDB databases.
+Release CI downloads and verifies one current upstream snapshot shared with every
+native App package. The daemon installs changed bundled files atomically before
+starting Core, replacing old or damaged files without a first-run download. Online
+updates remain in place until a package carries a different database digest.
 Mihomo's official Linux binaries are pinned to a version and SHA-256 hashes in
 `tool/ci/openwrt_release.py`; release validation rejects dynamically linked or
 incorrectly targeted executables.

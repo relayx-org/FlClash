@@ -29,6 +29,9 @@ on:
       reuse_web:
         type: boolean
         default: false
+      reuse_geodata:
+        type: boolean
+        default: false
       agent_matrix:
         type: string
         default: '{"include":[{"arch":"x86_64"},{"arch":"aarch64"},{"arch":"armv7"},{"arch":"mips"},{"arch":"mipsel"}]}'
@@ -119,7 +122,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/geodata.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -177,6 +180,12 @@ jobs:
           chmod 755 "$RUNNER_TEMP/iping-installer/uninstall-linux.sh"
           python3 tool/ci/storage.py put --group installer --path "$RUNNER_TEMP/iping-installer"
 
+      - name: Fetch and save the release geodata snapshot
+        if: ${{ (github.event_name == 'workflow_dispatch' || inputs.build_binaries) && !inputs.reuse_geodata }}
+        run: |
+          python3 tool/ci/geodata.py fetch --output "$RUNNER_TEMP/iping-geodata"
+          python3 tool/ci/storage.py put --group geodata --path "$RUNNER_TEMP/iping-geodata"
+
   binaries:
     if: ${{ (github.event_name == 'workflow_dispatch' || inputs.build_binaries) && inputs.agent_matrix != '{"include":[]}' }}
     needs: [ui, agent]
@@ -203,7 +212,7 @@ jobs:
           TOOLS_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags --depth=1 origin "$TOOLS_SHA"
-          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/storage.py openwrt/iping/files/iping-update; do
+          for path in tool/ci/native_targets.json tool/ci/openwrt_release.py tool/ci/geodata.py tool/ci/storage.py openwrt/iping/files/iping-update; do
             git show "$TOOLS_SHA:$path" > "$path"
           done
 
@@ -220,6 +229,11 @@ jobs:
 
       - name: Load the verified Web build from MinIO
         run: python3 tool/ci/storage.py get --group web --path openwrt/iping/src/webui/dist
+
+      - name: Load the verified release geodata
+        run: |
+          rm -rf .dart_tool/geodata
+          python3 tool/ci/storage.py get --group geodata --path .dart_tool/geodata
 
       - name: Cross-compile static Agent and reuse the pinned Core binary
         env:

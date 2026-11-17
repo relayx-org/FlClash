@@ -11,6 +11,8 @@ git submodule update --init --recursive
 Full package build, including Go core, Flutter, and packaging, runs through `setup.dart`:
 
 ```bash
+python3 tool/ci/geodata.py fetch --output .dart_tool/geodata
+python3 tool/ci/geodata.py stage --source .dart_tool/geodata --output assets/data
 dart setup.dart macos
 dart setup.dart linux
 dart setup.dart windows
@@ -65,6 +67,14 @@ but the hook cache keys on the user-define, so the first build afterwards runs
 the hooks again. The editor and IPC socket tests still need the Rust library: keep `rust_api`
 on, or point `FRB_DART_LOAD_EXTERNAL_LIBRARY_NATIVE_LIB_DIR` at a directory that
 holds a `rust_api` library built from the same sources.
+
+Release builds fetch GeoIP MMDB/DAT, GeoSite DAT and ASN MMDB once from one upstream
+release, verifying its asset sizes and SHA-256 digests before saving the `geodata`
+MinIO group. Native packages and Linux Agents load that same snapshot; resumed
+builds must reuse its original receipt. Native initialization and the Agent daemon
+install changed bundled databases atomically before initializing Core. Per-file
+digest markers preserve subsequent online updates until the bundled digest changes.
+Linux Agents embed compressed databases without changing the updater's archive file list.
 
 ## iPing Updates
 

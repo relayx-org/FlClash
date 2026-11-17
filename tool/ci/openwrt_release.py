@@ -7,6 +7,7 @@ import re
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import zipfile
 
@@ -114,6 +115,11 @@ def build(feed, output, cache, pubspec, arch, expected=''):
     release_version(pubspec, expected)
     if not (feed / 'iping/src/host_config.go').is_file():
         raise ValueError('The selected source predates Linux Agent host configuration support')
+    if not (feed / 'iping/src/geodata.go').is_file():
+        raise ValueError('The selected source predates bundled geodata support')
+    subprocess.run([sys.executable, str(Path(__file__).with_name('geodata.py')), 'stage',
+                    '--source', str(feed.parent / '.dart_tool/geodata'),
+                    '--output', str(feed / 'iping/src/geodata'), '--compressed'], check=True)
     goarch, _, _ = ARCHITECTURES[arch]
     env = {**os.environ, 'CGO_ENABLED': '0', 'GOOS': 'linux', 'GOARCH': goarch,
            'GOAMD64': 'v1', 'GOARM64': 'v8.0', 'GOARM': '7', 'GOMIPS': 'softfloat'}

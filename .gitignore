@@ -82,3 +82,8 @@ devtools_options.yaml
 # OpenWrt embedded Flutter Web build
 /openwrt/iping/src/webui/dist/*
 !/openwrt/iping/src/webui/dist/.keep
+
+# Release geodata snapshots
+/assets/data/manifest.json
+/openwrt/iping/src/geodata/*
+!/openwrt/iping/src/geodata/.keep

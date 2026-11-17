@@ -100,6 +100,9 @@ func serveAgent() error {
 	if syscall.Flock(int(daemonLock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB) != nil {
 		return failure("busy")
 	}
+	if err := installBundledGeodata(bundledGeodata, a.dataDir); err != nil {
+		return err
+	}
 	a.core = &coreRuntime{app: a}
 	address, err := a.webAddress(ctx)
 	if err != nil {

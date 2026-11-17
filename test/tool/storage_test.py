@@ -66,6 +66,7 @@ class StorageTest(unittest.TestCase):
                 self.store.put(group, source)
         self.store.put('web', source)
         self.store.put('agent-x86_64', source)
+        self.store.put('geodata', source)
         resumed = storage.BuildStorage('67890', self.store.sha, self.store.version)
         resumed.aws = self.store.aws
         matrix, web, agents = resumed.plan(self.store)
@@ -74,6 +75,14 @@ class StorageTest(unittest.TestCase):
         self.assertEqual([row['arch'] for row in agents['include']], ['aarch64', 'armv7', 'mips', 'mipsel'])
         resumed.get('linux-amd64', self.root / 'resumed')
         self.assertEqual((self.root / 'resumed/file').read_bytes(), b'data')
+        resumed.get('geodata', self.root / 'resumed-geodata')
+        self.assertEqual((self.root / 'resumed-geodata/file').read_bytes(), b'data')
+
+    def test_resume_cannot_mix_existing_packages_with_new_geodata(self):
+        self.store.receipt = lambda group, optional=False: None
+        resumed = storage.BuildStorage('67890', self.store.sha, self.store.version)
+        with self.assertRaisesRegex(ValueError, 'original geodata snapshot'):
+            resumed.plan(self.store)
 
     def test_failed_upload_never_publishes_a_receipt(self):
         source = self.root / 'source'

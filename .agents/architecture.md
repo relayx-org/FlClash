@@ -363,6 +363,12 @@ transitions serialize in `coreRuntime`, preserve the latest running intent, and 
 terminally. Configuration changes validate first and restore prior files and runtime
 on failure. Network leases and inherited process locks prevent competing owners;
 cleanup verifies interface and nftables identities, or the recorded Mihomo iptables chains and hooks.
+`geodata.go` installs the release's compressed database snapshot after acquiring
+the daemon lock and before starting Core. Native `core/geodata.dart` installs the
+same verified snapshot before Core initialization, with hashing and writes in an
+isolate. Bundle digests advance package-provided databases once and preserve later
+online updates. Release preparation and cross-platform staging live in
+`tool/ci/geodata.py`; the `geodata` MinIO receipt keeps resumed builds consistent.
 The Agent selects the firmware's firewall backend and forces the same backend in its Core child;
 on iptables, missing recorded rules trigger recovery through `coreRuntime` while running is still wanted.
 Local Web access needs no extra key;
