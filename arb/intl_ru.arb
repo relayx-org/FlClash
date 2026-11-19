@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "Не удалось загрузить тарифы туннелей. IP можно купить отдельно.",
   "ipingNativeIpOrder": "Заказ",
   "ipingNativeIpCount": "Количество",
+  "ipingNativeIpCountBelowMinimum": "Укажите количество не меньше 1.",
   "ipingNativeIpCountInvalid": "Укажите количество от 1 до {count}.",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

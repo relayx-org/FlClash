@@ -9562,6 +9562,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Enter a quantity of at least 1.`
+  String get ipingNativeIpCountBelowMinimum {
+    return Intl.message(
+      'Enter a quantity of at least 1.',
+      name: 'ipingNativeIpCountBelowMinimum',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Enter a quantity from 1 to {count}.`
   String ipingNativeIpCountInvalid(int count) {
     return Intl.message(

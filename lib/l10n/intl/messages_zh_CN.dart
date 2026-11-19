@@ -995,6 +995,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingNativeIpCopyUrl": MessageLookupByLibrary.simpleMessage("复制代理链接"),
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("数量"),
+    "ipingNativeIpCountBelowMinimum": MessageLookupByLibrary.simpleMessage(
+      "购买数量至少为 1。",
+    ),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("时长"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage("当前没有可购买的网络"),

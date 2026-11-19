@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "隧道套餐加载失败，仍可单独购买 IP",
   "ipingNativeIpOrder": "订单",
   "ipingNativeIpCount": "数量",
+  "ipingNativeIpCountBelowMinimum": "购买数量至少为 1。",
   "ipingNativeIpCountInvalid": "数量需在 1 到 {count} 之间",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

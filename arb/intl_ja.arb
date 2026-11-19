@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "トンネルプランを読み込めませんでした。IP のみ購入できます。",
   "ipingNativeIpOrder": "注文",
   "ipingNativeIpCount": "数量",
+  "ipingNativeIpCountBelowMinimum": "数量は 1 以上にしてください。",
   "ipingNativeIpCountInvalid": "数量は 1 から {count} までにしてください。",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

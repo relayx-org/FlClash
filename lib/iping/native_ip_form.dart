@@ -67,7 +67,12 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
 
   int? get _quantity {
     final value = int.tryParse(_count.text.trim());
-    if (value == null || value < 1) return null;
+    final stockLimit = widget.offer.stockLimit;
+    if (value == null ||
+        value < 1 ||
+        (stockLimit != null && value > stockLimit)) {
+      return null;
+    }
     return value;
   }
 
@@ -77,14 +82,14 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
         widget.plans.first;
   }
 
-  bool get _countInvalid {
-    final quantity = _quantity;
-    return quantity == null || quantity > widget.offer.stock;
-  }
-
   String? _issue() {
     final l = context.appLocalizations;
-    if (_countInvalid) return l.ipingNativeIpCountInvalid(widget.offer.stock);
+    if (_quantity == null) {
+      final stockLimit = widget.offer.stockLimit;
+      return stockLimit == null
+          ? l.ipingNativeIpCountBelowMinimum
+          : l.ipingNativeIpCountInvalid(stockLimit);
+    }
     if (_plan == null) return l.ipingNativeIpNoPlans;
     return null;
   }
@@ -128,7 +133,7 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
 
   double? _total(TunnelPlan? plan) {
     final quantity = _quantity;
-    if (quantity == null || quantity > widget.offer.stock) return null;
+    if (quantity == null) return null;
     final ip = widget.offer.price * _monthsSelected * quantity;
     final tunnel = (plan?.price ?? 0) * quantity;
     return ip + tunnel;
@@ -139,6 +144,7 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
     final l = context.appLocalizations;
     final scheme = context.colorScheme;
     final offer = widget.offer;
+    final stockLimit = offer.stockLimit;
     final plan = _plan;
     final total = _total(plan);
     final plans = widget.plans;
@@ -199,10 +205,10 @@ class _IpingNativeIpFormState extends ConsumerState<_IpingNativeIpForm> {
                   ),
                   FormRow(
                     title: l.ipingNativeIpCount,
-                    invalid: _attempted && _countInvalid,
+                    invalid: _attempted && _quantity == null,
                     trailing: FormRowTextField(
                       controller: _count,
-                      hintText: '1–${offer.stock}',
+                      hintText: stockLimit == null ? '1' : '1–$stockLimit',
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
                       autocorrect: false,

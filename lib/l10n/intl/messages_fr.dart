@@ -1371,6 +1371,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Copier l’URL du proxy",
     ),
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("Quantité"),
+    "ipingNativeIpCountBelowMinimum": MessageLookupByLibrary.simpleMessage(
+      "Indiquez une quantité d’au moins 1.",
+    ),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Durée"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(

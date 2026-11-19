@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "No se pudieron cargar los planes de túnel. Aún puedes comprar solo la IP.",
   "ipingNativeIpOrder": "Pedido",
   "ipingNativeIpCount": "Cantidad",
+  "ipingNativeIpCountBelowMinimum": "Indica una cantidad de al menos 1.",
   "ipingNativeIpCountInvalid": "Indica una cantidad de 1 a {count}.",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

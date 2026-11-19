@@ -1240,6 +1240,7 @@
   "ipingNativeIpPlansFailed": "Tunnel plans could not be loaded. You can still buy the IP on its own.",
   "ipingNativeIpOrder": "Order",
   "ipingNativeIpCount": "Quantity",
+  "ipingNativeIpCountBelowMinimum": "Enter a quantity of at least 1.",
   "ipingNativeIpCountInvalid": "Enter a quantity from 1 to {count}.",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

@@ -1072,6 +1072,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ipingNativeIpCopyUrl": MessageLookupByLibrary.simpleMessage("프록시 URL 복사"),
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("수량"),
+    "ipingNativeIpCountBelowMinimum": MessageLookupByLibrary.simpleMessage(
+      "수량은 1 이상으로 입력하세요.",
+    ),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("기간"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(

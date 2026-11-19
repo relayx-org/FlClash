@@ -110,7 +110,6 @@ class _IpingNativeIpPageState extends ConsumerState<IpingNativeIpPage> {
   }
 
   Future<void> _buy(NativeIpOffer offer, List<TunnelPlan> plans) async {
-    if (offer.stock < 1) return;
     final l = context.appLocalizations;
     final order = await showIpingNativeIpPurchase(
       context,
@@ -315,45 +314,27 @@ class _IpingNativeIpPageState extends ConsumerState<IpingNativeIpPage> {
                           separatorBuilder: (_, _) =>
                               const SizedBox(height: ipingCardGap),
                           itemBuilder: (context, rowIndex) {
-                            if (columns == 1) {
-                              final offer = visible[rowIndex];
+                            Widget card(int index) {
+                              final offer = visible[index];
                               return _NativeIpOfferCard(
                                 offer: offer,
-                                onBuy: offer.stock < 1
-                                    ? null
-                                    : () =>
-                                          _buy(offer, plans.value ?? const []),
+                                onBuy: () =>
+                                    _buy(offer, plans.value ?? const []),
                               );
                             }
+
+                            if (columns == 1) return card(rowIndex);
                             final first = rowIndex * 2;
                             final second = first + 1;
                             return IntrinsicHeight(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Expanded(
-                                    child: _NativeIpOfferCard(
-                                      offer: visible[first],
-                                      onBuy: visible[first].stock < 1
-                                          ? null
-                                          : () => _buy(
-                                              visible[first],
-                                              plans.value ?? const [],
-                                            ),
-                                    ),
-                                  ),
+                                  Expanded(child: card(first)),
                                   const SizedBox(width: ipingCardGap),
                                   Expanded(
                                     child: second < visible.length
-                                        ? _NativeIpOfferCard(
-                                            offer: visible[second],
-                                            onBuy: visible[second].stock < 1
-                                                ? null
-                                                : () => _buy(
-                                                    visible[second],
-                                                    plans.value ?? const [],
-                                                  ),
-                                          )
+                                        ? card(second)
                                         : const SizedBox.shrink(),
                                   ),
                                 ],
@@ -581,7 +562,7 @@ class _StockBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.appLocalizations;
     final scheme = context.colorScheme;
-    final (label, color, foreground) = stock < 1
+    final (label, color, foreground) = stock == 0
         ? (
             l.ipingNativeIpSoldOut,
             scheme.errorContainer,
@@ -603,10 +584,10 @@ class _StockBadge extends StatelessWidget {
 }
 
 class _MonthlyPrice extends StatelessWidget {
-  const _MonthlyPrice({required this.price, required this.inStock});
+  const _MonthlyPrice({required this.price, required this.canBuy});
 
   final double price;
-  final bool inStock;
+  final bool canBuy;
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +598,7 @@ class _MonthlyPrice extends StatelessWidget {
     final amountStyle = AppTextStyle.title3
         .of(context, emphasized: true)
         .toTabular
-        .copyWith(color: inStock ? scheme.onSurface : scheme.onSurfaceVariant);
+        .copyWith(color: canBuy ? scheme.onSurface : scheme.onSurfaceVariant);
     if (at < 0) return Text(text, style: amountStyle);
     return Text.rich(
       TextSpan(
@@ -638,16 +619,17 @@ class _NativeIpOfferCard extends StatelessWidget {
   const _NativeIpOfferCard({required this.offer, required this.onBuy});
 
   final NativeIpOffer offer;
-  final VoidCallback? onBuy;
+  final VoidCallback onBuy;
 
   @override
   Widget build(BuildContext context) {
     final scheme = context.colorScheme;
-    final inStock = offer.stock > 0;
+    final stockLimit = offer.stockLimit;
+    final canBuy = stockLimit != 0;
     final flag = countryFlagEmoji(offer.countryCode);
     return CommonCard(
       radius: ipingCardCorner,
-      onPressed: onBuy,
+      onPressed: canBuy ? onBuy : null,
       padding: ipingCardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -683,8 +665,10 @@ class _NativeIpOfferCard extends StatelessWidget {
                       style: AppTextStyle.headline.of(context),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _StockBadge(stock: offer.stock),
+                  if (stockLimit != null) ...[
+                    const SizedBox(width: 8),
+                    _StockBadge(stock: stockLimit),
+                  ],
                 ],
               ),
               if (offer.tags.isNotEmpty) ...[
@@ -709,8 +693,8 @@ class _NativeIpOfferCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _MonthlyPrice(price: offer.price, inStock: inStock),
-              if (inStock) const GlyphIcon(AppGlyphs.chevronForward),
+              _MonthlyPrice(price: offer.price, canBuy: canBuy),
+              if (canBuy) const GlyphIcon(AppGlyphs.chevronForward),
             ],
           ),
         ],

@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "Les forfaits de tunnel n’ont pas pu être chargés. Vous pouvez acheter l’IP seule.",
   "ipingNativeIpOrder": "Commande",
   "ipingNativeIpCount": "Quantité",
+  "ipingNativeIpCountBelowMinimum": "Indiquez une quantité d’au moins 1.",
   "ipingNativeIpCountInvalid": "Indiquez une quantité de 1 à {count}.",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

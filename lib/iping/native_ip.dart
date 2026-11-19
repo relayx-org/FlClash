@@ -58,6 +58,9 @@ class NativeIpOffer {
   final double price;
   final List<NativeIpTag> tags;
 
+  // A negative inventory value means the supplier does not report a count.
+  int? get stockLimit => stock < 0 ? null : stock;
+
   String get place {
     final hasCountry =
         country.isNotEmpty &&

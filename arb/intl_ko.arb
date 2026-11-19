@@ -1184,6 +1184,7 @@
   "ipingNativeIpPlansFailed": "터널 요금제를 불러오지 못했습니다. IP만 구매할 수 있습니다.",
   "ipingNativeIpOrder": "주문",
   "ipingNativeIpCount": "수량",
+  "ipingNativeIpCountBelowMinimum": "수량은 1 이상으로 입력하세요.",
   "ipingNativeIpCountInvalid": "수량은 1에서 {count} 사이로 입력하세요.",
   "@ipingNativeIpCountInvalid": {
     "placeholders": {

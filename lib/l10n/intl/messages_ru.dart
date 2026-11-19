@@ -1334,6 +1334,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Копировать URL прокси",
     ),
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("Количество"),
+    "ipingNativeIpCountBelowMinimum": MessageLookupByLibrary.simpleMessage(
+      "Укажите количество не меньше 1.",
+    ),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("Срок"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(

@@ -297,7 +297,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('¥42.00'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextFormField), '0');
+    await tester.enterText(find.byType(TextFormField), '3');
     await tester.tap(find.byTooltip('Buy'));
     await tester.pumpAndSettle();
     expect(find.text('Enter a quantity from 1 to 2.'), findsOneWidget);
@@ -339,17 +339,17 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('line B says the tunnel is configured immediately', (
+  testWidgets('line B is purchasable without a reported stock count', (
     tester,
   ) async {
     api.nativeInventory['ipproxy/inventory/native2'] = [
       _offer(
-        country: 'Japan',
-        cityName: 'Tokyo',
-        city: 'tokyo',
-        countryCode: 'JP',
-        stock: 1,
-        price: 9,
+        country: 'United States',
+        cityName: 'Ashburn',
+        city: 'ashburn',
+        countryCode: 'US',
+        stock: -1,
+        price: 18,
       ),
     ];
     api.tunnelPrices = [
@@ -366,19 +366,33 @@ void main() {
       'tunnel_ids': [2],
     };
     await pump(tester);
-    await tester.tap(find.text('Japan · Tokyo'));
+    expect(find.text('Sold out'), findsNothing);
+    expect(find.textContaining('in stock'), findsNothing);
+    await tester.tap(find.text('United States · Ashburn'));
     await tester.pumpAndSettle();
     expect(
       find.text('Tunnels are configured as soon as the purchase completes.'),
       findsOneWidget,
     );
+    final quantity = find.byType(TextFormField);
+    await tester.enterText(quantity, '0');
+    await tester.tap(find.byTooltip('Buy'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a quantity of at least 1.'), findsOneWidget);
+    expect(api.nativePurchases, isEmpty);
+
+    await tester.enterText(quantity, '3');
+    await tester.pumpAndSettle();
+    expect(find.text('¥72.00'), findsOneWidget);
     await tester.tap(find.byTooltip('Buy'));
     await tester.pumpAndSettle();
     expect(
       find.text('Purchase placed. The tunnels are already configured.'),
       findsOneWidget,
     );
-    expect(api.nativePurchases.single.path, 'ipproxy/buy/native2');
+    final purchase = api.nativePurchases.single;
+    expect(purchase.path, 'ipproxy/buy/native2');
+    expect(purchase.data['count'], 3);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

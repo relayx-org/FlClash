@@ -1100,6 +1100,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "プロキシ URL をコピー",
     ),
     "ipingNativeIpCount": MessageLookupByLibrary.simpleMessage("数量"),
+    "ipingNativeIpCountBelowMinimum": MessageLookupByLibrary.simpleMessage(
+      "数量は 1 以上にしてください。",
+    ),
     "ipingNativeIpCountInvalid": m43,
     "ipingNativeIpDuration": MessageLookupByLibrary.simpleMessage("期間"),
     "ipingNativeIpEmpty": MessageLookupByLibrary.simpleMessage(
